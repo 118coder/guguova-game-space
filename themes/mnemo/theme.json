@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "mnemo",
+  "name": "记忆管理局 · MNEMO",
+  "author": "NOVA",
+  "version": "1.0.0",
+  "description": "冰蓝记忆档案主题：冷白 HUD、青色数据线、红色节点、黄色路径、块状字标与记忆扫描开场。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": false,
+  "intro": "mnemo",
+  "tokens": {
+    "--accent": "#d6272f",
+    "--accent-2": "#f2d33c",
+    "--glow": "rgba(47, 143, 139, .22)"
+  }
+}

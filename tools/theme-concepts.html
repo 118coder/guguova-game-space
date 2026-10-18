@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>NOVA · theme concept boards</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  @font-face {
+    font-family: 'Saira';
+    src: url("https://nova.themes/endfield/assets/Saira.ttf") format("truetype-variations");
+    font-weight: 100 900;
+    font-stretch: 50% 125%;
+    font-style: normal;
+    font-display: block;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; }
+  body {
+    background: #0b0b0b;
+    font-family: 'Manrope', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .board { display: none; position: relative; width: 960px; height: 540px; overflow: hidden; }
+  body[data-board="nova"] .board.nova,
+  body[data-board="aurum"] .board.aurum,
+  body[data-board="endfield"] .board.endfield { display: block; }
+  body[data-board="codex"] .board.codex,
+  body[data-board="zerohour"] .board.zerohour,
+  body[data-board="mnemo"] .board.mnemo { display: block; }
+
+  /* ============================================================
+     NOVA · cinematic type specimen
+     ============================================================ */
+  .nova {
+    --ivory: #f6efe2;
+    --warm: #ffb274;
+    --coral: #ff7e6d;
+    --cyan: #8cefff;
+    color: var(--ivory);
+    background:
+      radial-gradient(80% 90% at 78% 18%, rgba(255, 178, 116, .16) 0%, transparent 60%),
+      radial-gradient(60% 70% at 18% 88%, rgba(140, 239, 255, .09) 0%, transparent 65%),
+      linear-gradient(150deg, #080a10 0%, #0b0d15 48%, #06070b 100%);
+  }
+  .nova::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: linear-gradient(120deg, transparent 20%, #000 100%);
+    -webkit-mask-image: linear-gradient(120deg, transparent 20%, #000 100%);
+  }
+  .nova .ring {
+    position: absolute;
+    top: -150px;
+    right: -60px;
+    width: 540px;
+    height: 540px;
+    border-radius: 50%;
+    border: 1px solid rgba(246, 239, 226, .14);
+  }
+  .nova .ring::before,
+  .nova .ring::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(246, 239, 226, .1);
+  }
+  .nova .ring::before { inset: 54px; }
+  .nova .ring::after { inset: 118px; border-style: dashed; border-color: rgba(140, 239, 255, .18); }
+  .nova .giant-no {
+    position: absolute;
+    right: 38px;
+    bottom: -42px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 390px;
+    font-weight: 300;
+    line-height: .8;
+    letter-spacing: -.08em;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(246, 239, 226, .16);
+  }
+  .nova .eyebrow {
+    position: absolute;
+    top: 34px;
+    left: 46px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: .28em;
+    color: rgba(246, 239, 226, .5);
+  }
+  .nova .eyebrow i { width: 34px; height: 1px; background: rgba(246, 239, 226, .3); }
+  .nova .eyebrow b { color: var(--warm); font-weight: 500; }
+  .nova .word {
+    position: absolute;
+    top: 128px;
+    left: 42px;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 172px;
+    line-height: .72;
+    letter-spacing: -.035em;
+    color: transparent;
+    background: linear-gradient(160deg, #fffaf0 4%, #ffe2b8 45%, var(--warm) 76%, var(--coral) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 18px 40px rgba(255, 140, 100, .12));
+  }
+  .nova .sub {
+    position: absolute;
+    top: 292px;
+    left: 48px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: .52em;
+    color: rgba(246, 239, 226, .86);
+  }
+  .nova .lead {
+    position: absolute;
+    top: 350px;
+    left: 48px;
+    width: 400px;
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: .03em;
+    color: rgba(246, 239, 226, .52);
+  }
+  .nova .specimen {
+    position: absolute;
+    top: 78px;
+    right: 42px;
+    width: 340px;
+    padding: 18px 20px 16px;
+    border: 1px solid rgba(246, 239, 226, .16);
+    background: rgba(8, 10, 16, .42);
+  }
+  .nova .specimen-head {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(246, 239, 226, .14);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 8px;
+    letter-spacing: .2em;
+    color: rgba(246, 239, 226, .42);
+  }
+  .nova .specimen-head b { color: var(--warm); font-weight: 500; }
+  .nova .type-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(246, 239, 226, .09);
+  }
+  .nova .type-row span { font-size: 8px; letter-spacing: .14em; color: rgba(246, 239, 226, .32); }
+  .nova .type-row em { font-style: normal; color: rgba(246, 239, 226, .88); white-space: nowrap; }
+  .nova .t-serif { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 19px; }
+  .nova .t-poster { font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: .06em; }
+  .nova .t-grotesk { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; }
+  .nova .t-mono { font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 300; letter-spacing: .18em; }
+  .nova .swatches { display: flex; gap: 8px; margin-top: 15px; }
+  .nova .swatches i { width: 26px; height: 26px; border: 1px solid rgba(255,255,255,.24); }
+  .nova .swatches span {
+    margin-left: auto;
+    align-self: flex-end;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 7.5px;
+    letter-spacing: .14em;
+    color: rgba(246,239,226,.34);
+  }
+  .nova .cta {
+    position: absolute;
+    left: 48px;
+    bottom: 80px;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    height: 42px;
+    padding: 0 24px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fbf8f0 0%, #e9e4d8 100%);
+    color: #0b0c0f;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .16em;
+  }
+  .nova .cta::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 7px solid #0b0c0f;
+  }
+  .nova .fields {
+    position: absolute;
+    right: 52px;
+    bottom: 26px;
+    display: flex;
+    gap: 22px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 8px;
+    letter-spacing: .16em;
+    color: rgba(246,239,226,.34);
+  }
+  .nova .fields b { color: rgba(246,239,226,.72); font-weight: 500; }
+
+  .nova .command,
+  .aurum .command {
+    position: absolute;
+    left: 42px;
+    right: 42px;
+    bottom: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+  }
+  .nova .command {
+    border: 1px solid rgba(246, 239, 226, .16);
+    background: rgba(255, 255, 255, .05);
+    color: rgba(246, 239, 226, .46);
+  }
+  .nova .command b { color: var(--warm); font-weight: 600; }
+
+  /* ============================================================
+     AURUM · forged plaque
+     ============================================================ */
+  .aurum {
+    --gold: #e8c98a;
+    --bronze: #b08a4e;
+    --jade: #5fd6c6;
+    --paper: #e4d3b0;
+    --ink: #07100c;
+    color: var(--paper);
+    background:
+      radial-gradient(70% 80% at 78% 22%, rgba(232, 201, 138, .14) 0%, transparent 62%),
+      radial-gradient(55% 60% at 16% 84%, rgba(95, 214, 198, .1) 0%, transparent 66%),
+      #07100c;
+  }
+  .aurum::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(232,201,138,.03) 0 1px, transparent 1px 46px),
+      repeating-linear-gradient(0deg, rgba(232,201,138,.03) 0 1px, transparent 1px 46px);
+    opacity: .7;
+  }
+  .aurum::after {
+    content: "";
+    position: absolute;
+    inset: 16px;
+    border: 1px solid rgba(232, 201, 138, .18);
+    pointer-events: none;
+  }
+  .aurum .corner { position: absolute; width: 30px; height: 30px; border-color: rgba(232,201,138,.65); border-style: solid; }
+  .aurum .corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+  .aurum .corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+  .aurum .corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
+  .aurum .corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
+  .aurum .eyebrow {
+    position: absolute;
+    top: 34px;
+    left: 52px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .26em;
+    color: var(--bronze);
+  }
+  .aurum .eyebrow::before { content: "// "; color: var(--gold); }
+  .aurum .badge {
+    position: absolute;
+    top: 34px;
+    right: 52px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 8px;
+    border: 1px solid rgba(232, 201, 138, .4);
+    color: var(--gold);
+    font-family: 'Manrope', sans-serif;
+    font-size: 7.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+  }
+  .aurum .badge i { width: 4px; height: 4px; background: var(--jade); transform: rotate(45deg); }
+  .aurum .word {
+    position: absolute;
+    top: 112px;
+    left: 38px;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 138px;
+    line-height: .78;
+    letter-spacing: .02em;
+    color: transparent;
+    background: linear-gradient(180deg, #fff4d8 0%, #e8c98a 44%, #b08a4e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 18px 40px rgba(232, 201, 138, .12));
+  }
+  .aurum .sub {
+    position: absolute;
+    top: 258px;
+    left: 44px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .34em;
+    color: rgba(232, 201, 138, .68);
+  }
+  .aurum .mark {
+    position: absolute;
+    top: 306px;
+    left: 44px;
+    display: inline-block;
+    padding: 6px 12px 7px;
+    border: 1px solid rgba(255, 248, 232, .8);
+    background: var(--paper);
+    color: #1d160c;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  }
+  .aurum .fields {
+    position: absolute;
+    top: 372px;
+    left: 44px;
+    display: flex;
+    gap: 30px;
+  }
+  .aurum .fields span { display: flex; flex-direction: column; gap: 5px; }
+  .aurum .fields i {
+    font-style: normal;
+    font-size: 7.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    color: rgba(232, 201, 138, .44);
+  }
+  .aurum .fields b {
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: var(--gold);
+  }
+  .aurum .panel {
+    position: absolute;
+    top: 78px;
+    right: 42px;
+    width: 340px;
+    height: 330px;
+    border: 1px solid rgba(232, 201, 138, .55);
+    background: #0a1511;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+  }
+  .aurum .panel::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(232, 201, 138, .18);
+    clip-path: inherit;
+    pointer-events: none;
+  }
+  .aurum .panel .no {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 4px 6px 3px;
+    background: var(--gold);
+    color: #1d160c;
+    font-family: 'Manrope', sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    line-height: 1;
+  }
+  .aurum .panel .ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    transform: translate(-50%, -56%);
+    border-radius: 50%;
+    border: 1px solid rgba(232, 201, 138, .38);
+  }
+  .aurum .panel .ring::before,
+  .aurum .panel .ring::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(232, 201, 138, .2);
+  }
+  .aurum .panel .ring::before { inset: 24px; border-style: dashed; }
+  .aurum .panel .ring::after { inset: 54px; border-color: rgba(95, 214, 198, .3); }
+  .aurum .panel .ring i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    background: var(--jade);
+    transform: translate(-50%, -50%) rotate(45deg);
+    box-shadow: 0 0 18px rgba(95, 214, 198, .7);
+  }
+  .aurum .panel .plate {
+    position: absolute;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%);
+    padding: 7px 12px 8px;
+    border: 1px solid rgba(255, 248, 232, .8);
+    background: var(--paper);
+    color: #1d160c;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    white-space: nowrap;
+  }
+  .aurum .panel .plate small {
+    display: block;
+    margin-bottom: 2px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 6px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-align: center;
+    color: rgba(29, 22, 12, .5);
+  }
+  .aurum .command {
+    border: 1px solid rgba(232, 201, 138, .35);
+    background: #07100c;
+    color: rgba(232, 201, 138, .52);
+  }
+  .aurum .command b { color: var(--gold); font-weight: 600; }
+
+  /* ============================================================
+     ENDFIELD · paper console board
+     ============================================================ */
+  .endfield {
+    --paper: #f4f4f2;
+    --panel: #ffffff;
+    --ink: #161616;
+    --ink2: #5c5c5c;
+    --rule: #d9d9d6;
+    --signal: #fffa00;
+    --mark: #ff00f0;
+    --mint: #00ffa2;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(22,22,22,.045) 0 1px, transparent 1px 72px),
+      repeating-linear-gradient(90deg, rgba(22,22,22,.045) 0 1px, transparent 1px 72px);
+    font-family: 'Saira', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  }
+  .endfield .tri {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mark) 0 33.33%, var(--signal) 33.33% 66.66%, var(--mint) 66.66% 100%);
+  }
+  .endfield .head {
+    position: absolute;
+    top: 26px;
+    left: 42px;
+    right: 42px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: var(--ink2);
+  }
+  .endfield .head b { color: var(--ink); }
+  .endfield .head .clock { font-variant-numeric: tabular-nums; letter-spacing: .12em; }
+  .endfield .word {
+    position: absolute;
+    top: 86px;
+    left: 38px;
+    line-height: .8;
+    letter-spacing: -.03em;
+  }
+  .endfield .word .solid {
+    display: block;
+    font-size: 146px;
+    font-weight: 800;
+    font-stretch: 112%;
+    color: var(--ink);
+  }
+  .endfield .word .hollow {
+    display: block;
+    margin-top: 4px;
+    font-size: 146px;
+    font-weight: 800;
+    font-stretch: 112%;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--ink);
+  }
+  .endfield .mark {
+    position: absolute;
+    top: 352px;
+    left: 44px;
+    display: inline-block;
+    padding: 5px 13px 6px;
+    background: var(--signal);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  }
+  .endfield .fields {
+    position: absolute;
+    top: 402px;
+    left: 44px;
+    display: flex;
+    gap: 34px;
+  }
+  .endfield .fields span { display: flex; flex-direction: column; gap: 5px; }
+  .endfield .fields i {
+    font-style: normal;
+    font-size: 7.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    color: var(--ink2);
+  }
+  .endfield .fields b {
+    font-size: 18px;
+    font-weight: 800;
+    font-stretch: 112%;
+    line-height: 1;
+    letter-spacing: .02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .endfield .frame {
+    position: absolute;
+    top: 78px;
+    right: 42px;
+    width: 340px;
+    height: 330px;
+    border: 1px solid var(--ink);
+    background:
+      linear-gradient(var(--paper), var(--paper)) 0 0 / calc(100% - 40px) 100% no-repeat,
+      repeating-linear-gradient(-45deg, transparent 0 5px, rgba(22,22,22,.14) 5px 6px);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 34px), calc(100% - 34px) 100%, 0 100%);
+  }
+  .endfield .frame::before {
+    content: "No.02";
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 4px 6px 3px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    line-height: 1;
+  }
+  .endfield .frame::after {
+    content: "CUT / 34";
+    position: absolute;
+    right: 48px;
+    bottom: 20px;
+    font-size: 7.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    color: rgba(22,22,22,.46);
+  }
+  .endfield .frame .big {
+    position: absolute;
+    top: 44px;
+    left: 18px;
+    font-size: 164px;
+    font-weight: 800;
+    font-stretch: 112%;
+    line-height: .8;
+    letter-spacing: -.04em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(22,22,22,.85);
+  }
+  .endfield .frame .small {
+    position: absolute;
+    top: 196px;
+    left: 22px;
+    width: 220px;
+    font-size: 9px;
+    line-height: 1.7;
+    letter-spacing: .04em;
+    color: var(--ink2);
+  }
+  .endfield .command {
+    position: absolute;
+    left: 42px;
+    right: 42px;
+    bottom: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+  }
+  .endfield .command b { color: var(--signal); font-weight: 700; }
+  .endfield .command span:last-child { color: rgba(244,244,242,.48); }
+  /* ============================================================
+     CODEX · arcane dossier board
+     ============================================================ */
+  .codex {
+    --gold: #e2c78e;
+    --gold-hi: #f6e3bb;
+    --gold-deep: #a9874e;
+    --maroon: #8a2f28;
+    --paper: #d9c7a3;
+    --bg: #160f0a;
+    color: #f0e4cc;
+    background:
+      radial-gradient(70% 70% at 22% 16%, rgba(226, 199, 142, .1) 0%, transparent 60%),
+      radial-gradient(50% 55% at 88% 82%, rgba(138, 47, 40, .12) 0%, transparent 66%),
+      #160f0a;
+    font-family: 'Manrope', 'Songti SC', 'SimSun', serif;
+  }
+  .codex::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(226,199,142,.03) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(90deg, rgba(226,199,142,.03) 0 1px, transparent 1px 64px);
+  }
+  .codex::after {
+    content: "";
+    position: absolute;
+    inset: 16px;
+    border: 1px solid rgba(226, 199, 142, .26);
+    pointer-events: none;
+  }
+  .codex .corner { position: absolute; width: 28px; height: 28px; border-color: rgba(226,199,142,.6); border-style: solid; }
+  .codex .corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+  .codex .corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+  .codex .corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
+  .codex .corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
+  .codex .eyebrow {
+    position: absolute;
+    top: 34px;
+    left: 50px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .24em;
+    color: var(--gold);
+  }
+  .codex .eyebrow::before { content: "◆ "; color: var(--maroon); }
+  .codex .badge {
+    position: absolute;
+    top: 32px;
+    right: 50px;
+    padding: 5px 9px;
+    border: 1px solid rgba(226, 199, 142, .42);
+    color: var(--gold);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    letter-spacing: .18em;
+  }
+  .codex .word {
+    position: absolute;
+    top: 94px;
+    left: 36px;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 154px;
+    line-height: .8;
+    letter-spacing: .02em;
+    color: transparent;
+    background: linear-gradient(180deg, #fff6df 0%, #f0d8a8 42%, #d3ae72 78%, #a9874e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 18px 40px rgba(0, 0, 0, .55));
+  }
+  .codex .sub {
+    position: absolute;
+    top: 258px;
+    left: 42px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: .28em;
+    color: rgba(226, 199, 142, .72);
+  }
+  .codex .mark {
+    position: absolute;
+    top: 304px;
+    left: 42px;
+    padding: 7px 13px 8px;
+    background: var(--paper);
+    border: 1px solid rgba(255, 248, 232, .8);
+    color: #2a1d12;
+    font-family: 'Songti SC', 'SimSun', serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  }
+  .codex .fields {
+    position: absolute;
+    top: 370px;
+    left: 42px;
+    display: flex;
+    gap: 30px;
+  }
+  .codex .fields span { display: flex; flex-direction: column; gap: 5px; }
+  .codex .fields i { font-style: normal; font-size: 8px; font-weight: 600; letter-spacing: .14em; color: rgba(226, 199, 142, .42); }
+  .codex .fields b { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; letter-spacing: .05em; color: var(--gold-hi); }
+  .codex .panel {
+    position: absolute;
+    top: 78px;
+    right: 42px;
+    width: 340px;
+    height: 330px;
+    background: #1d140d;
+    border: 1px solid rgba(226, 199, 142, .55);
+    outline: 1px dashed rgba(226, 199, 142, .28);
+    outline-offset: -8px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+  }
+  .codex .panel .no {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    padding: 4px 6px 3px;
+    background: var(--maroon);
+    border: 1px solid var(--gold);
+    color: var(--gold-hi);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    letter-spacing: .12em;
+    line-height: 1;
+  }
+  .codex .panel .ring {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    width: 176px;
+    height: 176px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(226, 199, 142, .45);
+  }
+  .codex .panel .ring::before,
+  .codex .panel .ring::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(226, 199, 142, .24);
+  }
+  .codex .panel .ring::before { inset: 20px; border-style: dashed; }
+  .codex .panel .ring::after { inset: 48px; border-color: rgba(138, 47, 40, .6); }
+  .codex .panel .ring i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--maroon);
+    border: 1px solid var(--gold);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .codex .panel .rating {
+    position: absolute;
+    top: 46px;
+    left: 18px;
+    display: flex;
+    gap: 7px;
+  }
+  .codex .panel .rating i {
+    width: 15px;
+    height: 15px;
+    background: var(--maroon);
+    border: 1px solid var(--gold);
+    transform: rotate(45deg);
+  }
+  .codex .panel .rating i.off { background: transparent; border-color: rgba(226, 199, 142, .3); }
+  .codex .panel .plate {
+    position: absolute;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    padding: 7px 12px 8px;
+    background: var(--paper);
+    border: 1px solid rgba(255, 248, 232, .8);
+    color: #2a1d12;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    white-space: nowrap;
+  }
+  .codex .panel .plate small {
+    display: block;
+    margin-bottom: 2px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 6.5px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-align: center;
+    color: rgba(42, 29, 18, .52);
+  }
+  .codex .command {
+    position: absolute;
+    left: 42px;
+    right: 42px;
+    bottom: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    border: 1px solid rgba(226, 199, 142, .38);
+    background: #160f0a;
+    color: rgba(226, 199, 142, .55);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    letter-spacing: .16em;
+  }
+  .codex .command b { color: var(--gold); font-weight: 600; }
+
+  /* ============================================================
+     ZERO HOUR · CRT broadcast board
+     ============================================================ */
+  .zerohour {
+    --paper: #f1efe7;
+    --ink: #08090a;
+    --yellow: #ffe600;
+    --orange: #ff5a2e;
+    --cyan: #59e3ff;
+    --gray: #8b8d91;
+    color: var(--paper);
+    background-color: var(--ink);
+    background-image: radial-gradient(circle, rgba(241,239,231,.09) 1px, transparent 1.6px);
+    background-size: 6px 6px;
+    font-family: 'Space Grotesk', 'Microsoft YaHei UI', sans-serif;
+  }
+  .zerohour::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 7px;
+    background: repeating-linear-gradient(-45deg, var(--yellow) 0 9px, var(--ink) 9px 18px);
+  }
+  .zerohour .eyebrow {
+    position: absolute;
+    top: 34px;
+    left: 44px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: .16em;
+    color: var(--yellow);
+  }
+  .zerohour .eyebrow::before { content: "// "; }
+  .zerohour .badge {
+    position: absolute;
+    top: 32px;
+    right: 44px;
+    padding: 4px 8px;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: .12em;
+    box-shadow: 3px 3px 0 var(--yellow);
+  }
+  .zerohour .word {
+    position: absolute;
+    top: 88px;
+    left: 32px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    line-height: .78;
+    letter-spacing: .02em;
+  }
+  .zerohour .word .solid { display: block; font-size: 178px; color: var(--paper); }
+  .zerohour .word .hollow { display: block; font-size: 178px; color: transparent; -webkit-text-stroke: 2px var(--paper); }
+  .zerohour .mark {
+    position: absolute;
+    top: 342px;
+    left: 42px;
+    padding: 6px 12px 7px;
+    background: var(--yellow);
+    border: 2px solid var(--ink);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    box-shadow: 5px 5px 0 var(--paper);
+    transform: rotate(-2deg);
+  }
+  .zerohour .fields {
+    position: absolute;
+    top: 398px;
+    left: 42px;
+    display: flex;
+    gap: 30px;
+  }
+  .zerohour .fields span { display: flex; flex-direction: column; gap: 4px; }
+  .zerohour .fields i { font-style: normal; font-size: 8px; font-weight: 700; letter-spacing: .12em; color: var(--gray); }
+  .zerohour .fields b { font-family: 'Bebas Neue', sans-serif; font-size: 20px; font-weight: 400; letter-spacing: .06em; color: var(--paper); }
+  .zerohour .panel {
+    position: absolute;
+    top: 78px;
+    right: 42px;
+    width: 340px;
+    height: 330px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    box-shadow: 8px 8px 0 var(--yellow);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+  }
+  .zerohour .panel .no {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 3;
+    padding: 3px 6px 2px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10px;
+    letter-spacing: .1em;
+  }
+  .zerohour .panel .crt {
+    position: absolute;
+    inset: 12px;
+    background:
+      repeating-linear-gradient(0deg, rgba(241,239,231,.07) 0 1px, transparent 1px 4px),
+      var(--ink);
+    border: 2px solid var(--ink);
+    overflow: hidden;
+  }
+  .zerohour .panel .crt::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(241,239,231,.12) 1px, transparent 1.6px);
+    background-size: 5px 5px;
+    opacity: .4;
+  }
+  .zerohour .panel .crt .ch {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 2px 6px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10px;
+    letter-spacing: .1em;
+  }
+  .zerohour .panel .crt .signal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    line-height: .85;
+    letter-spacing: .04em;
+    color: var(--paper);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .zerohour .panel .crt .signal small {
+    display: block;
+    margin-top: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    color: var(--yellow);
+  }
+  .zerohour .panel .crt .bar {
+    position: absolute;
+    right: 14px;
+    bottom: 16px;
+    left: 14px;
+    height: 6px;
+    background: var(--paper);
+  }
+  .zerohour .panel .crt .bar i {
+    display: block;
+    width: 62%;
+    height: 100%;
+    background: repeating-linear-gradient(90deg, var(--yellow) 0 9px, var(--ink) 9px 12px, var(--cyan) 12px 15px, transparent 15px 18px);
+  }
+  .zerohour .panel .tape {
+    position: absolute;
+    width: 74px;
+    height: 18px;
+    background: rgba(255, 230, 0, .9);
+    border: 1px solid rgba(8, 9, 10, .2);
+    transform: rotate(-6deg);
+  }
+  .zerohour .panel .tape.a { top: -8px; right: 42px; }
+  .zerohour .panel .tape.b { bottom: -6px; left: 38px; transform: rotate(5deg); background: rgba(241, 239, 231, .9); }
+  .zerohour .command {
+    position: absolute;
+    left: 42px;
+    right: 42px;
+    bottom: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    border: 2px solid var(--yellow);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: .12em;
+  }
+  .zerohour .command b { color: var(--yellow); font-weight: 400; }
+
+  /* ============================================================
+     MNEMO · memory map board
+     ============================================================ */
+  .mnemo {
+    --ice: #e9f1f0;
+    --ice-2: #dcebea;
+    --panel: #f7fbfa;
+    --ink: #102426;
+    --ink-2: #3f5d5f;
+    --teal: #2f8f8b;
+    --red: #d6272f;
+    --yellow: #f2d33c;
+    color: var(--ink);
+    background-color: var(--ice);
+    background-image:
+      linear-gradient(rgba(47,143,139,.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,143,139,.1) 1px, transparent 1px);
+    background-size: 72px 72px;
+    font-family: 'Space Grotesk', 'Microsoft YaHei UI', sans-serif;
+  }
+  .mnemo::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--red) 0 58%, var(--yellow) 58% 70%, var(--teal) 70% 100%);
+  }
+  .mnemo .eyebrow {
+    position: absolute;
+    top: 32px;
+    left: 42px;
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--teal);
+  }
+  .mnemo .eyebrow::before { content: "// "; color: var(--red); }
+  .mnemo .badge {
+    position: absolute;
+    top: 31px;
+    right: 42px;
+    padding: 4px 8px;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    font-family: 'Consolas', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .08em;
+  }
+  .mnemo .word {
+    position: absolute;
+    top: 98px;
+    left: 34px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    line-height: .8;
+    letter-spacing: .02em;
+  }
+  .mnemo .word .solid { display: block; font-size: 172px; color: var(--ink); }
+  .mnemo .word .hollow { display: block; font-size: 54px; color: transparent; -webkit-text-stroke: 1.5px var(--ink); letter-spacing: .08em; }
+  .mnemo .sub {
+    position: absolute;
+    top: 268px;
+    left: 40px;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    color: var(--ink);
+  }
+  .mnemo .mark {
+    position: absolute;
+    top: 316px;
+    left: 40px;
+    padding: 7px 13px 8px;
+    background: var(--red);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+  }
+  .mnemo .fields {
+    position: absolute;
+    top: 382px;
+    left: 40px;
+    display: flex;
+    gap: 26px;
+    font-family: 'Consolas', monospace;
+    font-size: 9px;
+    letter-spacing: .04em;
+    color: var(--ink-2);
+  }
+  .mnemo .fields span { display: flex; flex-direction: column; gap: 5px; }
+  .mnemo .fields b { color: var(--red); font-size: 13px; }
+  .mnemo .panel {
+    position: absolute;
+    top: 78px;
+    right: 42px;
+    width: 340px;
+    height: 330px;
+    background: var(--panel);
+    border: 1px solid var(--teal);
+    outline: 1px solid rgba(47,143,139,.2);
+    outline-offset: -6px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  }
+  .mnemo .panel .no {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 4;
+    padding: 3px 6px;
+    border: 1px solid var(--red);
+    background: var(--red);
+    color: #fff;
+    font-family: 'Consolas', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .06em;
+  }
+  .mnemo .panel .ring {
+    position: absolute;
+    top: 45%;
+    left: 52%;
+    width: 190px;
+    height: 190px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(47,143,139,.5);
+    box-shadow: inset 0 0 0 28px rgba(47,143,139,.04), inset 0 0 0 29px rgba(47,143,139,.18);
+  }
+  .mnemo .panel .ring::before {
+    content: "";
+    position: absolute;
+    inset: 28px;
+    border-radius: 50%;
+    border: 1px dashed rgba(214,39,47,.35);
+  }
+  .mnemo .panel .node {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 0 4px var(--panel), 0 0 0 5px rgba(214,39,47,.25);
+  }
+  .mnemo .panel .node.a { top: 34%; left: 62%; }
+  .mnemo .panel .node.b { top: 58%; left: 72%; width: 17px; height: 17px; }
+  .mnemo .panel .node.c { top: 22%; left: 80%; width: 26px; height: 26px; background: #fff; border: 1px solid var(--red); box-shadow: 0 0 0 7px rgba(214,39,47,.08); }
+  .mnemo .panel .node.d { top: 68%; left: 48%; }
+  .mnemo .panel .route {
+    position: absolute;
+    top: 58%;
+    left: 24%;
+    width: 52%;
+    height: 2px;
+    background: var(--yellow);
+    transform: rotate(-16deg);
+    transform-origin: left center;
+  }
+  .mnemo .panel .error {
+    position: absolute;
+    right: 14px;
+    bottom: 16px;
+    left: 14px;
+    padding: 8px 10px;
+    background:
+      repeating-linear-gradient(-45deg, rgba(255,255,255,.12) 0 6px, transparent 6px 12px),
+      var(--red);
+    color: #fff;
+    border-left: 4px solid #fff;
+  }
+  .mnemo .panel .error b { display: block; font-size: 16px; font-weight: 900; letter-spacing: .04em; }
+  .mnemo .panel .error i { display: block; margin-top: 2px; font-family: 'Consolas', monospace; font-size: 7px; font-style: normal; letter-spacing: .08em; color: rgba(255,255,255,.75); }
+  .mnemo .command {
+    position: absolute;
+    left: 42px;
+    right: 42px;
+    bottom: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    border: 1px solid var(--teal);
+    background: var(--panel);
+    color: var(--ink-2);
+    font-family: 'Consolas', monospace;
+    font-size: 9px;
+    letter-spacing: .08em;
+  }
+  .mnemo .command b { color: var(--red); }
+
+</style>
+</head>
+<body data-board="endfield">
+  <!-- NOVA -->
+  <section class="board nova">
+    <div class="eyebrow"><i></i>NOVA GAME SPACE <b>· CONCEPT 01</b></div>
+    <div class="ring"></div>
+    <div class="giant-no">08</div>
+    <div class="word">NOVA</div>
+    <div class="sub">GAME SPACE</div>
+    <div class="lead">电影感主线，封面驱动的按钮与字标。<br>一枚胶囊，八套字标配方，随每一款游戏呼吸。</div>
+    <div class="cta">开始游戏</div>
+    <div class="specimen">
+      <div class="specimen-head"><span>TYPE RECIPES</span><b>08</b></div>
+      <div class="type-row"><span>01</span><em class="t-serif">Gilded Serif</em></div>
+      <div class="type-row"><span>02</span><em class="t-poster">POSTER CONDENSED</em></div>
+      <div class="type-row"><span>03</span><em class="t-grotesk">Neo Grotesk</em></div>
+      <div class="type-row"><span>04</span><em class="t-mono">M O N O L I T H</em></div>
+      <div class="swatches">
+        <i style="background:#ffb274"></i>
+        <i style="background:#ff7e6d"></i>
+        <i style="background:#8cefff"></i>
+        <i style="background:#f6efe2"></i>
+        <span>COVER-SAMPLED PALETTE</span>
+      </div>
+    </div>
+    <div class="command">
+      <span>// NOVA GAME SPACE · CONCEPT 01</span>
+      <span><b>ADAPTIVE BUTTON</b> · 08 TYPE RECIPES · 16:9 HERO</span>
+    </div>
+  </section>
+
+  <!-- AURUM -->
+  <section class="board aurum">
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="eyebrow">NOVA THEME · AURUM</div>
+    <div class="badge"><i></i>JADE SIGNAL</div>
+    <div class="word">AURUM</div>
+    <div class="sub">THE GILDED SANCTUM</div>
+    <div class="mark">鎏金圣所</div>
+    <div class="fields">
+      <span><i>GROUND</i><b>METAL</b></span>
+      <span><i>PLAQUE</i><b>PARCHMENT</b></span>
+      <span><i>SIGNAL</i><b>JADE</b></span>
+    </div>
+    <div class="panel">
+      <span class="no">No.01</span>
+      <div class="ring"><i></i></div>
+      <div class="plate"><small>PARCHMENT / JADE</small>鎏金圣所</div>
+    </div>
+    <div class="command">
+      <span>// AURUM · THE GILDED SANCTUM</span>
+      <span><b>DOUBLE GOLD</b> · PARCHMENT · JADE</span>
+    </div>
+  </section>
+
+  <!-- ENDFIELD -->
+  <section class="board endfield">
+    <div class="tri"></div>
+    <div class="head">
+      <span>// NOVA THEME <b>· 02</b> / INDUSTRIAL PAPER</span>
+      <span class="clock">2026.10.19&nbsp;&nbsp;│&nbsp;&nbsp;FIELD NOTE</span>
+    </div>
+    <div class="word"><span class="solid">END</span><span class="hollow">FIELD</span></div>
+    <div class="mark">终末地</div>
+    <div class="fields">
+      <span><i>PAPER</i><b>#F4F4F2</b></span>
+      <span><i>SIGNAL</i><b>#FFFA00</b></span>
+      <span><i>TYPE</i><b>SAIRA 112%</b></span>
+    </div>
+    <div class="frame">
+      <div class="big">02</div>
+      <div class="small">一个强调色。切角只给可按的东西。<br>编号、日期、游戏数都是真实数据。</div>
+    </div>
+    <div class="command">
+      <span>// GAME SPACE · COMMAND</span>
+      <span><b>PAPER / INK / SIGNAL</b> &nbsp; 9PX CUT &nbsp; 1PX RULE</span>
+    </div>
+  </section>
+
+  <!-- CODEX -->
+  <section class="board codex">
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="eyebrow">NOVA THEME · CODEX</div>
+    <div class="badge">ASTRAL DOSSIER · No.03</div>
+    <div class="word">CODEX</div>
+    <div class="sub">星轨秘典</div>
+    <div class="mark">旅法师 · 星轨</div>
+    <div class="fields">
+      <span><i>GROUND</i><b>METAL</b></span>
+      <span><i>PLAQUE</i><b>PARCHMENT</b></span>
+      <span><i>RATING</i><b>MAROON</b></span>
+    </div>
+    <div class="panel">
+      <span class="no">No.03</span>
+      <div class="ring"><i></i></div>
+      <div class="rating">
+        <i></i><i></i><i></i><i></i><i class="off"></i>
+      </div>
+      <div class="plate"><small>PARCHMENT / GOLD / MAROON</small>星轨秘典</div>
+    </div>
+    <div class="command">
+      <span>// CODEX · ASTRAL DOSSIER</span>
+      <span><b>DOUBLE GOLD</b> · MAROON DIAMOND · SERIF</span>
+    </div>
+  </section>
+
+  <!-- ZERO HOUR -->
+  <section class="board zerohour">
+    <div class="eyebrow">NOVA THEME · ZERO HOUR</div>
+    <div class="badge">ON AIR · 2026</div>
+    <div class="word">
+      <span class="solid">ZERO</span>
+      <span class="hollow">HOUR</span>
+    </div>
+    <div class="mark">零点街区</div>
+    <div class="fields">
+      <span><i>INK</i><b>#08090A</b></span>
+      <span><i>PAPER</i><b>#F1EFE7</b></span>
+      <span><i>SIGNAL</i><b>HAZARD</b></span>
+    </div>
+    <div class="panel">
+      <span class="no">No.04</span>
+      <span class="tape a"></span><span class="tape b"></span>
+      <div class="crt">
+        <span class="ch">CH. 06</span>
+        <div class="signal">NO<br>SIGNAL<small>ZERO HOUR / BROADCAST</small></div>
+        <div class="bar"><i></i></div>
+      </div>
+    </div>
+    <div class="command">
+      <span>// ZERO HOUR · BROADCAST</span>
+      <span><b>CRT</b> · HALFTONE · HAZARD YELLOW</span>
+    </div>
+  </section>
+
+
+  <!-- MNEMO -->
+  <section class="board mnemo">
+    <div class="eyebrow">NOVA THEME · MNEMO</div>
+    <div class="badge">ARCHIVE · No.05</div>
+    <div class="word">
+      <span class="solid">MNEMO</span>
+      <span class="hollow">MEMORY BUREAU</span>
+    </div>
+    <div class="sub">记忆管理局</div>
+    <div class="mark">记忆无法读取</div>
+    <div class="fields">
+      <span>ICE <b>#E9F1F0</b></span>
+      <span>NODE <b>RED</b></span>
+      <span>ROUTE <b>YELLOW</b></span>
+    </div>
+    <div class="panel">
+      <span class="no">No.05</span>
+      <div class="ring"></div>
+      <span class="node a"></span><span class="node b"></span>
+      <span class="node c"></span><span class="node d"></span>
+      <span class="route"></span>
+      <div class="error"><b>记忆无法读取</b><i>UNABLE TO ACCESS MEMORY</i></div>
+    </div>
+    <div class="command">
+      <span>// MNEMO · MEMORY ARCHIVE</span>
+      <span><b>ICE HUD</b> · TEAL LINE · RED NODE · YELLOW ROUTE</span>
+    </div>
+  </section>
+
+
+  <script>
+    const board = new URLSearchParams(location.search).get('board');
+    if (board) document.body.dataset.board = board;
+  </script>
+</body>
+</html>

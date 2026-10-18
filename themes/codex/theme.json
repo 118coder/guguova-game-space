@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "codex",
+  "name": "星轨秘典 · CODEX",
+  "author": "NOVA",
+  "version": "1.0.0",
+  "description": "暗色秘典主题：深褐羊皮纸、双层金线、虚线内框、红玉菱形刻度与星盘开场。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": true,
+  "intro": "codex",
+  "tokens": {
+    "--accent": "#e2c78e",
+    "--accent-2": "#8a2f28",
+    "--glow": "rgba(226, 199, 142, .26)"
+  }
+}

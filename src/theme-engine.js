@@ -17,7 +17,7 @@
     description: '电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。',
     intro: 'gilded',
     cssUrl: null,
-    previewUrl: null,
+    previewUrl: 'https://nova.site/assets/theme-nova-preview.jpg?v=1.2.2',
     baseStyle: '',
     builtIn: true,
     ok: true,
@@ -56,6 +56,67 @@
   inlineSheet.id = 'theme-inline';
 
   /**
+   * Theme CSS is inlined into <head>, so a relative url("assets/...")
+   * would resolve against the page instead of the theme folder. Rewrite
+   * every relative reference to the theme's virtual-host URL before the
+   * sheet is inlined. Data, absolute and fragment URLs are left alone.
+   */
+  function rewriteCssUrls(css, baseUrl) {
+    if (!css || !baseUrl) return css;
+    const absolute = /^(data:|https?:|\/\/|#|blob:)/i;
+    let out = '';
+    let cursor = 0;
+
+    while (cursor < css.length) {
+      const at = css.indexOf('url(', cursor);
+      if (at < 0) {
+        out += css.slice(cursor);
+        break;
+      }
+      out += css.slice(cursor, at);
+
+      // Consume the balanced parentheses so URL data with nested
+      // "url(#id)" SVG references is treated as one value.
+      let index = at + 4;
+      let depth = 1;
+      let quote = '';
+      while (index < css.length && depth > 0) {
+        const char = css[index];
+        if (quote) {
+          if (char === '\\') { index += 2; continue; }
+          if (char === quote) quote = '';
+        } else if (char === '"' || char === "'") {
+          quote = char;
+        } else if (char === '(') {
+          depth += 1;
+        } else if (char === ')') {
+          depth -= 1;
+        }
+        index += 1;
+      }
+
+      if (depth !== 0) {
+        out += css.slice(at);
+        break;
+      }
+
+      const raw = css.slice(at + 4, index - 1).trim();
+      const value = raw.replace(/^(['"])([\s\S]*)\1$/, '$2');
+      if (absolute.test(value)) {
+        out += css.slice(at, index);
+      } else {
+        try {
+          out += `url("${new URL(value, baseUrl).href}")`;
+        } catch (error) {
+          out += css.slice(at, index);
+        }
+      }
+      cursor = index;
+    }
+    return out;
+  }
+
+  /**
    * WebView2 serves virtual-host files from a cache that ignores query
    * strings, so a theme edited on disk would keep loading its old CSS.
    * Fetching with no-store and inlining it makes edits take effect at once.
@@ -65,7 +126,8 @@
       const bust = `${url}${url.includes('?') ? '&' : '?'}_=${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const response = await fetch(bust, { cache: 'no-store' });
       if (!response.ok) return null;
-      return await response.text();
+      const css = await response.text();
+      return rewriteCssUrls(css, url);
     } catch (error) {
       return null;
     }

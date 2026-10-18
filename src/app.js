@@ -113,6 +113,7 @@
     editorMode: 'create',
     editorId: null,
     editorManifest: null,
+    editorFraming: { x: 50, y: 45, zoom: 1 },
     dataFolder: '',
     version: '1.0.0'
   };
@@ -275,7 +276,10 @@
     editorTitle: $('#editorTitle'),
     editorMode: $('#editorMode'),
     editorClose: $('#editorClose'),
+    editorPreview: $('#editorPreview'),
     editorPreviewImg: $('#editorPreviewImg'),
+    editorFraming: $('#editorFraming'),
+    framingZoom: $('#framingZoom'),
     editorLogo: $('#editorLogo'),
     editorPreviewHint: $('#editorPreviewHint'),
     editorSwatches: $('#editorSwatches'),
@@ -1135,7 +1139,7 @@
     const image = $('img', backdropLayers[0]);
     if (image) {
       image.src = game ? game.heroUrl : 'assets/backdrop.jpg';
-      image.style.objectPosition = game ? game.heroPosition : '50% 45%';
+      applyHeroFraming(image, framingFor(game), true);
     }
   }
 
@@ -1149,14 +1153,14 @@
 
     const activate = () => {
       if (token !== backdropToken) return;
-      image.style.objectPosition = game.heroPosition;
+      applyHeroFraming(image, framingFor(game), true);
       next.classList.add('is-active');
       backdropLayers[activeLayer].classList.remove('is-active');
       activeLayer = nextIndex;
     };
 
     if (!same) image.src = game.heroUrl;
-    image.style.objectPosition = game.heroPosition;
+    applyHeroFraming(image, framingFor(game), true);
 
     if (same && image.complete && image.naturalWidth) {
       if (instant) {
@@ -1690,7 +1694,7 @@
     image.className = 'detail-art-img';
     image.alt = `${game.zh || game.name} 主视觉`;
     image.src = game.heroUrl;
-    image.style.objectPosition = game.heroPosition;
+    applyHeroFraming(image, framingFor(game));
     image.draggable = false;
     els.detailArt.insertBefore(image, els.detailArt.firstChild);
 
@@ -1962,9 +1966,10 @@
     const game = currentGame();
     const heroSrc = game ? game.heroUrl : 'assets/backdrop.jpg';
     els.appearanceBg.src = heroSrc;
-    els.appearanceBg.style.objectPosition = game ? game.heroPosition : '50% 45%';
     els.appearanceImage.src = heroSrc;
-    els.appearanceImage.style.objectPosition = game ? game.heroPosition : '50% 45%';
+    const framing = framingFor(game);
+    applyHeroFraming(els.appearanceBg, framing);
+    applyHeroFraming(els.appearanceImage, framing);
     els.appearanceImage.alt = game ? `${game.zh || game.name} 主视觉` : 'NOVA';
 
     setLogo(els.appearanceLogo, game, 'appearance-logo');
@@ -2447,13 +2452,131 @@
     return name.toUpperCase();
   }
 
+  function clampNumber(value, min, max) {
+    const number = Number(value);
+    return Math.max(min, Math.min(max, Number.isFinite(number) ? number : min));
+  }
+
+  function parseHeroPosition(value) {
+    const match = String(value || '').match(/([\d.]+)%\s+([\d.]+)%/);
+    return {
+      x: match ? clampNumber(parseFloat(match[1]), 0, 100) : 50,
+      y: match ? clampNumber(parseFloat(match[2]), 0, 100) : 45
+    };
+  }
+
+  function framingFor(game) {
+    const position = parseHeroPosition(game && game.heroPosition);
+    return {
+      x: position.x,
+      y: position.y,
+      zoom: clampNumber(game && game.heroZoom, 1, 2.4)
+    };
+  }
+
+  /**
+   * object-position chooses the crop; the translate makes the crop
+   * pannable once the player zooms in. translate percentages are of the
+   * image's own box, so at zoom z the maximum travel is (z-1)/2.
+   */
+  function applyHeroFraming(image, framing, stopDrift = false) {
+    if (!image) return;
+    const x = clampNumber(framing && framing.x, 0, 100);
+    const y = clampNumber(framing && framing.y, 0, 100);
+    const zoom = clampNumber(framing && framing.zoom, 1, 2.4);
+    image.style.objectPosition = `${x}% ${y}%`;
+    if (zoom > 1.0001) {
+      image.style.transformOrigin = '50% 50%';
+      image.style.transform = `translate(${(50 - x) * (zoom - 1)}%, ${(50 - y) * (zoom - 1)}%) scale(${zoom})`;
+      if (stopDrift) image.style.animation = 'none';
+    } else {
+      image.style.transform = '';
+      image.style.transformOrigin = '';
+      if (stopDrift) image.style.animation = '';
+    }
+  }
+
+  function syncEditorFraming() {
+    const framing = state.editorFraming;
+    applyHeroFraming(els.editorPreviewImg, framing);
+    if (els.framingZoom) els.framingZoom.textContent = `${Math.round(framing.zoom * 100)}%`;
+  }
+
+  function bindEditorFraming() {
+    if (!els.editorPreview || !els.editorFraming) return;
+
+    els.editorFraming.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-frame]');
+      if (!button) return;
+      const framing = state.editorFraming;
+      const action = button.dataset.frame;
+      if (action === 'left') framing.x -= 2;
+      else if (action === 'right') framing.x += 2;
+      else if (action === 'up') framing.y -= 2;
+      else if (action === 'down') framing.y += 2;
+      else if (action === 'zoom-in') framing.zoom += 0.1;
+      else if (action === 'zoom-out') framing.zoom -= 0.1;
+      else if (action === 'reset') { framing.x = 50; framing.y = 45; framing.zoom = 1; }
+      framing.x = clampNumber(framing.x, 0, 100);
+      framing.y = clampNumber(framing.y, 0, 100);
+      framing.zoom = clampNumber(framing.zoom, 1, 2.4);
+      syncEditorFraming();
+      event.stopPropagation();
+    });
+
+    let drag = null;
+    els.editorPreview.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || event.target.closest('button')) return;
+      const rect = els.editorPreview.getBoundingClientRect();
+      drag = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        width: Math.max(1, rect.width),
+        height: Math.max(1, rect.height),
+        framing: { x: state.editorFraming.x, y: state.editorFraming.y, zoom: state.editorFraming.zoom }
+      };
+      try { els.editorPreview.setPointerCapture(event.pointerId); } catch (error) {}
+      els.editorPreview.classList.add('is-framing');
+      event.preventDefault();
+    });
+
+    els.editorPreview.addEventListener('pointermove', (event) => {
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      state.editorFraming.x = clampNumber(drag.framing.x - (dx / drag.width) * 120, 0, 100);
+      state.editorFraming.y = clampNumber(drag.framing.y - (dy / drag.height) * 120, 0, 100);
+      syncEditorFraming();
+    });
+
+    const endDrag = (event) => {
+      if (!drag || (event.pointerId != null && event.pointerId !== drag.pointerId)) return;
+      drag = null;
+      els.editorPreview.classList.remove('is-framing');
+      try { els.editorPreview.releasePointerCapture(event.pointerId); } catch (error) {}
+    };
+    els.editorPreview.addEventListener('pointerup', endDrag);
+    els.editorPreview.addEventListener('pointercancel', endDrag);
+
+    els.editorPreview.addEventListener('wheel', (event) => {
+      if (state.overlay !== 'editor') return;
+      event.preventDefault();
+      const step = event.deltaY < 0 ? 0.08 : -0.08;
+      state.editorFraming.zoom = clampNumber(state.editorFraming.zoom + step, 1, 2.4);
+      syncEditorFraming();
+    }, { passive: false });
+  }
+
   function syncEditorPreview() {
     const name = els.fLogo.value.trim() || els.fName.value.trim() || 'NOVA';
     setLogo(els.editorLogo, currentGame(), 'editor-logo', {
       text: name.toUpperCase(),
       recipe: els.fTypeRecipe ? els.fTypeRecipe.value : ''
     });
-    els.editorPreviewHint.textContent = els.fExe.value ? '保存后从真实封面或程序图标生成' : '从可执行文件或图片生成封面';
+    els.editorPreviewHint.textContent = els.editorPreviewImg.getAttribute('src')
+      ? '拖动画面 / 滚轮缩放 · 保存后应用'
+      : (els.fExe.value ? '保存后从真实封面或程序图标生成' : '从可执行文件或图片生成封面');
   }
 
   function setEditorError(message) {
@@ -2483,6 +2606,8 @@
     els.editorPreviewImg.classList.remove('is-loaded');
     els.editorPreviewImg.removeAttribute('src');
     els.editorSwatches.innerHTML = '';
+    state.editorFraming = { x: 50, y: 45, zoom: 1 };
+    syncEditorFraming();
     setEditorError('');
   }
 
@@ -2515,9 +2640,13 @@
       els.fAge.value = game.ageRating || '';
       els.fMode.value = game.mode || '';
       if (els.fTypeRecipe) els.fTypeRecipe.value = game.typeRecipe || '';
+      state.editorFraming = framingFor(game);
       if (game.heroUrl) {
         els.editorPreviewImg.src = game.heroUrl;
-        els.editorPreviewImg.onload = () => els.editorPreviewImg.classList.add('is-loaded');
+        els.editorPreviewImg.onload = () => {
+          els.editorPreviewImg.classList.add('is-loaded');
+          syncEditorFraming();
+        };
         (game.colors || []).forEach((color) => {
           const swatch = document.createElement('i');
           swatch.style.background = color;
@@ -2532,6 +2661,7 @@
     }
 
     syncEditorPreview();
+    syncEditorFraming();
     state.overlay = 'editor';
     openSurface('editor');
     audio.select();
@@ -2577,6 +2707,8 @@
       ageRating: els.fAge.value.trim() || '全年龄',
       mode: els.fMode.value.trim() || '单人',
       typeRecipe: els.fTypeRecipe ? els.fTypeRecipe.value : '',
+      heroPosition: `${Math.round(state.editorFraming.x)}% ${Math.round(state.editorFraming.y)}%`,
+      heroZoom: Number(state.editorFraming.zoom.toFixed(2)),
       manifestPath: state.editorManifest || undefined
     };
 
@@ -2798,6 +2930,15 @@
     closeContextMenu();
     audio.select();
     item.action();
+  }
+
+  function bindNativeGuards() {
+    document.addEventListener('dragstart', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target || !target.closest('input, textarea')) event.preventDefault();
+    }, true);
+    document.addEventListener('dragover', (event) => event.preventDefault(), true);
+    document.addEventListener('drop', (event) => event.preventDefault(), true);
   }
 
   function bindContextMenu() {
@@ -3132,7 +3273,12 @@
     buildAppearanceSwitcher();
     updateRail();
     const game = currentGame();
-    if (!state.overlay) renderHero(game, false);
+    if (!state.overlay) {
+      renderHero(game, false);
+      // Editing can change hero framing without changing the image URL,
+      // so re-apply the crop on the background layer too.
+      if (game) setBackdrop(game);
+    }
     document.body.classList.toggle('is-empty', !state.games.length);
     if (state.view === 'library') renderLibrary();
     if (state.view === 'appearance') renderAppearance();
@@ -3581,6 +3727,8 @@
      ============================================================ */
 
   function bindEvents() {
+    bindEditorFraming();
+
     /* window chrome */
     const dragZone = () => {
       document.addEventListener('pointerdown', (event) => {
@@ -3994,9 +4142,11 @@
       window.NovaOverlays.bind({ app: els.app, sound: audio, call });
     }
 
-    // Themes load asynchronously; the intro waits at most 500 ms for the
-    // theme so it can pick a preset without delaying the opening.
+    // Themes load asynchronously. The opening waits for the theme list and
+    // its stylesheet so the saved theme owns the first frame; the fallback
+    // only exists so a broken theme can never hold the shell hostage.
     const themesReady = startThemes().catch((error) => console.warn('theme boot failed', error));
+    bindNativeGuards();
     bindContextMenu();
     bindThemePanel();
 
@@ -4034,7 +4184,7 @@
         const theme = window.NovaTheme ? window.NovaTheme.find(state.theme) : null;
         return (theme && theme.intro) || 'gilded';
       }),
-      new Promise((resolve) => setTimeout(() => resolve('gilded'), 500))
+      new Promise((resolve) => setTimeout(() => resolve('gilded'), 2500))
     ]);
 
     introPreset.then((preset) => {

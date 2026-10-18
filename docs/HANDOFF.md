@@ -1,9 +1,145 @@
 # NOVA 交接文档
 
 > 写给接手这个项目的人（或下一个 AI 会话）。
-> 最后更新：2026-10-19 · 对应版本 1.2.1
+> 最后更新：2026-10-19 · 对应版本 1.2.2
 
 先读这一页，再按需跳到具体章节。文中所有路径都相对于仓库根目录。
+
+---
+
+## 0.00 30 秒交接
+
+- 当前版本 **1.2.2**；共 **6 套主题**：`nova` / `aurum` / `endfield` / `codex` / `zerohour` / `mnemo`。
+- 每套主题都有自己的开场 id（`gilded` / `aurum` / `endfield` / `codex` / `zerohour` / `mnemo`）；
+  新增主题必须：注册开场 + 做一张统一概念板预览 + 过一遍 **`docs/THEME-COVERAGE.md`**。
+- 主题卡预览**不是截图**：源在 `tools/theme-concepts.html`，用 `tools/render-concepts.js` 渲染，
+  缩到 960×540 后放进主题的 `assets/preview.jpg`；内置 NOVA 用 `src/assets/theme-nova-preview.jpg`。
+- 新主题最容易漏：**右键菜单**（`.context-menu` / `.context-item`）、**编辑器 `select`**、
+  **构图控件**（`.editor-framing`）、启动/睡眠、详情/外观预览。清单见覆盖文档第 7/8 节。
+- 改主题 CSS 后 **bump `theme.json` 的 version**（坑 #8）；发版同时改 csproj 版本和
+  `index.html` 的 `?v=`（坑 #2 / #13）。
+- ZERO HOUR 的主视觉是**黑色 command 面板 + 白字**，活动条是实色深面板；不要改回白纸卡片，
+  否则灰底黑字会再次出现。MNEMO 的红色错误牌只用于开场/错误态。
+- AURUM 的外观预览仍用基础卡片（覆盖表里标 `△`），下次可统一成铭牌 + 编号条。
+- 交接文件：本文件 + `docs/THEME-COVERAGE.md` + `docs/THEMES.md` + `README.md`。
+
+---
+
+## 0.0 1.2.2 变更记录（最新）
+
+这一轮加入「终末地 ENDFIELD」主题与启动序列，并按用户反馈做了一次**反玻璃化 / 反渐变**收敛。
+
+### 1. 新主题 themes/endfield/
+
+- 变体卡：酸黄 `#FFFA00` / 中性纸 `#F4F4F2` / 标准切角 / 细线网格 / 标准密度 / 完整动效。
+  主界面是纸面控制台，启动与睡眠是深色命令面，属于同一主题的两种页面类型，不是反色。
+- 主界面：纸面 dossier 覆盖封面左侧，右侧满幅 `cover`；顶栏与 dock 改为实色；
+  不再使用 `atmosphere` 的上下/左右渐变。
+- 组件：切角按钮（悬停黄色擦入）、纸面导航段、编号 tile（`No.01`）、
+  记录行 hover 右移 + 黄色左条、分段进度、纸面编号切换条、墨色铭牌（详情 / 外观预览）。
+- 字体：自带 Saira 可变字体（`assets/Saira.ttf`，SIL OFL 1.1，许可同目录），
+  `font-stretch` 112% / 125%；中文回退系统黑体。
+- `theme.json` version 1.0.1，`intro: "endfield"`，预览图 960×540。
+
+### 2. 新开场预设 endfield
+
+- `intro.js` 注册，`setup()` 注入独立 `.intro-ef` 结构，不改共同编排。
+- 真实数据：日期、时间、年份、游戏数（从 `#clockDate` / `#clockTime` / `#dockCount` 读取），
+  数字乱码后落定；分段进度 0→100；快门退场（`clip-path: inset(0 0 100% 0)`）。
+- 2400ms；任意键 / 鼠标 / 手柄跳过；`reduce-motion` 直接显示最终状态。
+- 三色条、实心 `NOVA` + 空心 `GAME SPACE`、黄色马克笔、`GAMES / THEME / YEAR` 字段。
+
+### 3. 反玻璃化 / 反渐变（用户反馈）
+
+- 移除 `.atmosphere` 的全部渐变；顶栏改实色 `--ef-paper`。
+- 详情页与外观预览：去掉模糊铺底（`filter: blur`）、暗角渐变与 `object-fit: contain` 留白；
+  图片改满幅 `cover`，信息改为 compact 墨色铭牌。
+- 外观预览移除假 CTA 与第二条进度条；底部游戏切换改成纸面编号记录条（`No.01`…）。
+- 游戏卡 / 库卡片去掉底部暗化渐变；启动页改为平面墨色 scrim + 黑白封面；编辑器预览改平底 caption 条。
+- 只保留硬边纹理：网格、45° 斜线、三色条、分段进度；没有柔和渐变、玻璃模糊、发光或软投影。
+- `html.calm` 会用 `!important` 隐藏 launch ring、强制亮色封面；主题用更高优先级恢复单色封面与读数，
+  因为进度是数据，不应该被 calm 模式吞掉。
+
+### 4. 主题引擎：相对 URL 重写
+
+- 主题 CSS 内联前，把所有相对 `url(...)` 重写为 `https://nova.themes/<folder>/...`。
+  `data:` / `http(s):` / `//` / `#` 跳过；按括号配对消费，data URI 里的 `url(#id)` 不会被误伤。
+- 这修好了 AURUM 的纹理引用，也让 ENDFIELD 的 Saira 与预览图能正常加载。
+
+### 5. 表单与细节
+
+- `.field select` 补纸面样式（此前白字白底不可见）；`#editorDelete` 使用危险红（红色只给删除）。
+- 详情弹层关闭按钮不再被切角裁掉：切角只给可点击元素，弹层 / 画框 / 铭牌保持直角。
+- 版本号 1.2.2，`index.html` 所有 `?v=` 同步。
+
+### 6. 主题预览统一概念板
+
+- 主题卡片不再使用应用截图。NOVA / AURUM / ENDFIELD / CODEX / ZERO HOUR 五张预览改为统一构图的概念板：
+  顶部 `// NOVA THEME · NAME` + 真实字段；左栏大字标 / 中文名标记 / 字段；
+  右栏主题语言的样张框（`No.01`、圆盘、字标样张）；底部全宽 command strip。
+- 五张预览分别表现：NOVA 的 8 套字标 + 封面采样色板；AURUM 的墨绿/鎏金/羊皮纸/青玉；
+  ENDFIELD 的纸面/酸黄/切角/空心字；CODEX 的深褐金线/红玉菱形/星盘；ZERO HOUR 的黑白/警示黄/CRT。
+- 生成源：`tools/theme-concepts.html` + `tools/render-concepts.js`（2× 渲染，再缩到 960×540）。
+- 内置 NOVA 预览：`src/assets/theme-nova-preview.jpg`，由 `theme-engine.js` 的 `BUILT_IN.previewUrl` 提供。
+- AURUM bump 到 1.0.6，ENDFIELD bump 到 1.0.2；规范写在 `docs/THEMES.md` 第 13 节。
+- **这是以后新主题的硬约定**：预览必须是概念板，不是截图。
+
+### 7. 主视觉构图（玩家可调）
+
+- `GameEntry.HeroZoom`（1–2.4）新增；`HeroPosition` 继续保存 `X% Y%`。
+- 编辑器的预览左上角新增「构图」控制条：方向键、缩小/放大、重置；预览支持拖动平移与滚轮缩放。
+- 保存时写入 `heroPosition` / `heroZoom`；应用在：
+  - 首页背景层（`.scene` 图片，缩放时暂停 drift 动画）；
+  - 外观预览的主视觉；
+  - 详情的封面图；
+  - 编辑器自身预览。
+- `rebuildAfterLibraryChange` 在编辑保存后会重新应用 `setBackdrop`，否则同一 URL 的背景层不会更新构图。
+- 数据结构与桥接：`GamePayload.HeroZoom`、`updateGame/createGame` 接收并 clamp；旧游戏默认 1。
+- `applyHeroFraming()` 用 `object-position` + `translate/scale`，缩放上限 2.4。
+
+### 8. 浏览器操作与启动预设
+
+- 屏蔽原生图片拖拽：全局 `img { -webkit-user-drag:none }`、所有预览/启动图 `draggable="false"`，
+  并捕获 `dragstart` / `dragover` / `drop` 的默认行为。
+- 启动开场改为等待主题列表与样式加载（最多 2.5s），不再 500ms 就退回 `gilded`，
+  避免“旧主题动画 → 新主题界面”。CSS 安全兜底从 3.4s 延到 6s，给主题等待留出空间。
+
+### 9. 新增三套主题：CODEX / ZERO HOUR / MNEMO
+
+- `themes/codex/`「星轨秘典 CODEX」：深褐纸面、双层金线、虚线内框、红玉菱形刻度、
+  星盘时钟与 Cormorant 衬线标题；主视觉是暗色秘典铭牌；`"intro": "codex"`。
+- `themes/zerohour/`「零点街区 ZERO HOUR」：黑白漫画、警示黄 + lime 选中、半调网点、粗黑边、
+  圆角药丸按钮、硬偏移阴影、胶带贴纸与 CRT；黑色漫画面板 + 白色粗描边 + Bebas 标题；
+  `"intro": "zerohour"`。按 `绝区0参考/` 与 `精选参考/` 补上 lime 选中态、圆角面板/按钮、
+  斜线扫描纹理和背景巨字水印；活动条改为实色深面板 + 白字，修复灰底黑字对比度。
+- `themes/mnemo/`「记忆管理局 MNEMO」：冰蓝记忆地图、冷白 HUD、青色数据线、红色节点、
+  黄色路径、块状字标与红色「记忆无法读取」错误牌；`"intro": "mnemo"`。
+- 三套都有独立的启动动画与演出：codex 是星盘/指针/菱形收束；zerohour 是 CRT 通电/
+  危险条/频道读数/折叠退场；mnemo 是冰蓝记忆地图 + 红色错误牌复位 + 横向折叠。
+  `test-intro-theme.js codex|zerohour|mnemo` 已验证 `dataset.intro` 与主题一致。
+- 右键菜单补齐：`.context-menu` / `.context-item` 与 `.popover` / `.menu-row` 是两套类；
+  AURUM / ENDFIELD / CODEX / ZERO HOUR / MNEMO 现在都显式覆盖右键菜单。
+- 主题卡预览新增 CODEX（No.03）、ZERO HOUR（No.04）、MNEMO（No.05）三张统一概念板；
+  六套预览共用同一构图。
+- **新增 `docs/THEME-COVERAGE.md`**：逐一列出全部界面/状态/选择器，带五套主题的覆盖状态、
+  常见漏项与 DoD。以后每套新主题必须过完这张表；右键菜单、`select`、构图控件、启动/睡眠、
+  详情/外观预览都在表内。
+
+### 验证
+
+- `dotnet build -c Debug`：0 错误。
+- 960 / 1280 / 1920 三档：首页、库、外观、详情、编辑器无截断或重叠。
+- 主题切换 NOVA → AURUM → ENDFIELD 回归；Saira 实际加载；切回 NOVA 后内联主题 CSS 清空。
+- 启动页：62% 读数、编号步骤、单色封面、平 scrim。
+- 开场：真实 `2026.10.19` / `04:28` / `06` 局 / `ENDFIELD` / `2026`，进度 0→100。
+- 主题卡：六套概念板全部显示（NOVA/AURUM/CODEX/ENDFIELD/MNEMO/ZERO HOUR）；AURUM 1.0.6、ENDFIELD 1.0.2；没有截图。
+- 构图：编辑器内缩放 140% + 左移后保存，`library.json` 写入 `heroPosition` / `heroZoom`；
+  首页背景层的 `transform` 同步，重置后恢复 100%。
+- 拖拽：`appearanceImage.draggable === false`；`dragstart` 与 `drop` 均被 `preventDefault()`。
+- ZERO HOUR：主视觉为黑色 command 面板 + 白字；活动条计算样式 `rgb(17,18,20)` / 标题 `rgb(241,239,231)`，
+  不再灰底黑字；发布版截图已核对。
+- MNEMO：`ENTRY` 读取真实游戏数（`06`）；开场红色错误牌在约 1.3s 后复位为「记忆已恢复」。
+- 发布版：6 套主题、6 张概念板预览，主题切换与右键菜单回归通过。
 
 ---
 
@@ -284,12 +420,17 @@ nova-game-space-desktop/
 │  └─ assets/                音效（CC0）、背景图、示例图
 │
 ├─ themes/aurum/             自带主题：鎏金圣所 AURUM
+├─ themes/endfield/          自带主题：终末地 ENDFIELD（Saira 字体 + OFL）
+├─ themes/codex/             自带主题：星轨秘典 CODEX
+├─ themes/zerohour/          自带主题：零点街区 ZERO HOUR
+├─ themes/mnemo/             自带主题：记忆管理局 MNEMO
 ├─ build/icon.ico            主图标；tools/make-icon.py 可复现
 ├─ docs/
 │  ├─ INTEGRATION.md         非 Steam 游戏接入规范
 │  ├─ THEMES.md              ★ 主题开发规范（含开场预设）
+│  ├─ THEME-COVERAGE.md      ★ 全部界面/状态覆盖清单（新主题必过）
 │  └─ HANDOFF.md             本文件
-└─ tools/                    开发期验证脚本（不参与发布）
+└─ tools/                    开发期验证脚本；theme-concepts.html 是主题预览概念板源（不参与发布）
 ```
 
 ---
@@ -404,6 +545,16 @@ AURUM 的羊皮纸/鎏金按钮是附赠主题自己的语言，不会影响默�
 参考目录只提炼语言：墨绿/近黑底、双层金线、羊皮纸铭牌、暗绿格槽、
 金色角括号、青玉小信号。所有纹理、图标、预览图都是本项目绘制，未复制素材。
 
+**ENDFIELD 的视觉语言（1.2.2）**
+纸面 + 唯一酸黄信号；切角只给可按元素，展示容器直角；宽体拉丁小字 + 粗体中文；
+编号、日期、游戏数都是真实数据。封面满幅 `cover`，信息放进实色墨色铭牌，
+不使用渐变、玻璃模糊与发光。启动 / 睡眠是深色命令面，不是反色，而是同主题的另一种页面类型。
+
+**主题不使用柔和渐变或玻璃（1.2.2）**
+用户明确要求终末地风味不要渐变/玻璃感。`atmosphere`、详情/外观的模糊铺底、
+卡片暗角渐变、launch 渐变遮罩全部移除；需要质感时只用网格、斜线纹、1px 线和实色块。
+`html.calm` 的 `!important` 规则会覆盖 launch 滤镜与 ring，主题需要更高优先级把数据恢复。
+
 ---
 
 ## 6. 踩过的坑（别重复踩）
@@ -479,6 +630,17 @@ WPF splash 显示期间页面还没加载，开场不会开始。不要以为开
 如果只加 `cta-cobalt-hour` 类却不清 inline 变量，颜色仍是被采样色覆盖。
 `setElementCta` 在套 palette 时要 `clearCtaVars()`，并移除旧的 palette class。
 
+**#17 `html.calm` 用 `!important` 隐藏 launch ring / 强制亮色封面**
+`motion.css` 里 `html.calm .launch-ring { display:none }` 与
+`html.calm .launch-art { filter: ... !important }` 会压过主题的普通规则。
+ENDFIELD 用 `html[data-theme="endfield"] .launch-ring { display:block }` 与
+更具体的 `!important` 滤镜恢复单色封面。以后给 launch 加主题样式时先检查 calm 规则。
+
+**#18 详情页 / 外观预览的模糊铺底是两张图**
+默认主题用 `object-fit: contain` + 模糊 `::before` 铺满画框；主题若想满幅 `cover`，
+必须同时改 `img` 与 `::before/::after`，否则会留下一条模糊/渐变的空带。
+ENDFIELD 的做法：隐藏 `::before/::after`，`img { inset:0; width:100%; height:100%; object-fit:cover }`。
+
 **#13 WebView2 虚拟主机会缓存 app.js / CSS**
 只改文件不升版本时，旧进程可能继续加载旧脚本，表现为「代码明明改了但界面没变」。
 `MainWindow.ClearRendererCacheIfVersionChanged()` 在程序集版本变化时删除
@@ -499,9 +661,12 @@ WPF splash 显示期间页面还没加载，开场不会开始。不要以为开
 - 沉浸式启动与退出动画、沉稳模式、睡眠模式
 - 应用内对话框、文件浏览器、右键菜单（无系统弹窗）
 - 无边框全屏、托盘常驻、关闭确认
-- 主题系统 + 自带 AURUM 主题 + 主题开发文档
-- 主题开场注册表（5 个预设）、主题按 id 选择开场
+- 主题系统 + 自带 AURUM / ENDFIELD / CODEX / ZERO HOUR / MNEMO 主题 + 主题开发文档
+- 主题开场注册表（9 个预设，含 `endfield` / `codex` / `zerohour` / `mnemo`）、主题按 id 选择开场
+- `docs/THEME-COVERAGE.md` 覆盖清单：右键菜单、select、构图控件、启动/睡眠、预览等全量状态
+- 主题 CSS 相对资源 URL 自动重写（字体、纹理、预览图）
 - 焦点陷阱 / 恢复、键盘与手柄开场跳过
+- 终末地主题的纸面 dossier、墨色铭牌、编号 tile / 切换条、无渐变启动面
 - 模式/弹层注册表（`surfaces.js`）
 - 原生 CTA 手调配色（8 套）+ 未知游戏封面采样兜底
 - 玩家可编辑年龄分级、模式、介绍与标题字体（8 套字标方案）
@@ -585,6 +750,14 @@ NOVA_CDP_PORT=9223 ./NovaGameSpace.exe
 - [ ] 右键 → NOVA 菜单（不是浏览器菜单）
 - [ ] 外观 → 切主题 → 按钮/描边/标题/开场立刻变化
 - [ ] 外观 → NOVA 原生 → 封面配色恢复驱动按钮与标题
+- [ ] 外观 → 终末地 → 首页纸面 dossier、右侧封面满幅无渐变；详情/外观预览是墨色铭牌，底部切换是 `No.01` 编号条
+- [ ] 终末地开场 → 日期/时间/游戏数/年份真实；任意键跳过；减少动效时直接显示最终状态
+- [ ] 终末地主题下 960 / 1280 / 1920 三档：标题、meta、按钮、编号条、库卡片都不截断
+- [ ] 六套主题预览都是概念板（不是截图），卡片在 264×148 下仍能读出主题气质
+- [ ] AURUM / ENDFIELD / CODEX / ZERO HOUR 的右键菜单都跟随主题；`.context-item` 不是基础深色
+- [ ] CODEX / ZERO HOUR 的编辑器 `select`、构图控件、启动页、详情/外观预览都已打开检查
+- [ ] 编辑器「构图」：方向键 / 滚轮 / 拖动都能调整，保存后首页、外观预览、详情同步
+- [ ] 外观预览的封面图不能被拖出浏览器原生拖影；文件不能被拖进窗口
 - [ ] 添加游戏 → 文件浏览器选 exe → 封面生成
 - [ ] 手柄连上 → 底部出现按键提示 → A 启动
 - [ ] 打开弹层后按 Tab → 焦点在弹层内循环；Esc 关闭后焦点回到触发按钮
@@ -604,9 +777,14 @@ NOVA_CDP_PORT=9223 ./NovaGameSpace.exe
 7. 提交前 `dotnet build -c Debug` 必须零错误；警告可以留。
 8. **主题 CSS 改动后 bump `theme.json` 的 version**，否则用户目录里的旧副本不会刷新（坑 #8）。
 9. **新增开场预设**：在 `intro.js` 注册 + `intro.css` 加 `[data-intro]` 变量，
-   不要把动画逻辑写进主题 CSS。
-10. **主题里不要再读取封面 `--accent` 作为 UI 文字色**；主题自己的 token 才是权威。
-11. **铁律：不允许文字/按钮被截断或重叠**。长标题必须走 `fitLogo` 缩放；
+   不要把动画逻辑写进主题 CSS。需要独立结构时用 `setup(overlay)` 注入，再在 `intro.css` 里限定预设。
+10. **切角只给可按的东西**；展示容器、弹层、画框保持直角。不要用柔和渐变、玻璃模糊或发光；
+    需要阴影时用硬边偏移或 45° 斜线纹。
+11. **主题里不要再读取封面 `--accent` 作为 UI 文字色**；主题自己的 token 才是权威。
+12. **主题预览图必须是统一模板的概念板**，不是应用截图；参考在 `docs/THEMES.md` 第 13 节。
+13. **每套新主题必须过 `docs/THEME-COVERAGE.md`**：右键菜单、`select`、构图控件、启动/睡眠、
+    详情/外观预览、主题卡全部检查；不能只改首页。
+14. **铁律：不允许文字/按钮被截断或重叠**。长标题必须走 `fitLogo` 缩放；
     长标签允许换行，或用 `is-long-name` 隐藏冗余的拉丁副标题，**不要靠 ellipsis 硬切**；
     徽章与 meta 行必须 flex-wrap，按钮文案必须在窄屏下完整可见。
     验收时必须检查 960px / 1280px / 全屏三档。

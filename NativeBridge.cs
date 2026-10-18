@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -356,6 +357,7 @@ public sealed class NativeBridge
             MediaUrl(game.HeroPath, game.Id, "hero"),
             MediaUrl(game.CoverPath, game.Id, "cover"),
             game.HeroPosition,
+            game.HeroZoom,
             game.CoverPosition,
             game.Accent,
             game.Accent2,
@@ -763,6 +765,9 @@ public sealed class NativeBridge
             }
 
             game.TypeRecipe = NormalizeTypeRecipe(GetString(args, "typeRecipe"));
+            var heroPosition = GetString(args, "heroPosition");
+            if (!string.IsNullOrWhiteSpace(heroPosition)) game.HeroPosition = NormalizeHeroPosition(heroPosition);
+            if (TryGetNumber(args, "heroZoom", out var heroZoom)) game.HeroZoom = NormalizeHeroZoom(heroZoom);
 
             var explicitImage = GetString(args, "imagePath");
             if (string.IsNullOrWhiteSpace(explicitImage) && manifest != null)
@@ -812,6 +817,10 @@ public sealed class NativeBridge
                 game.CustomLogo = string.IsNullOrWhiteSpace(logoText) ? null : logoText.Trim();
             if (TryGetString(args, "typeRecipe", out var typeRecipe))
                 game.TypeRecipe = NormalizeTypeRecipe(typeRecipe);
+            if (TryGetString(args, "heroPosition", out var heroPosition))
+                game.HeroPosition = NormalizeHeroPosition(heroPosition);
+            if (TryGetNumber(args, "heroZoom", out var heroZoom))
+                game.HeroZoom = NormalizeHeroZoom(heroZoom);
 
             if (TryGetString(args, "exePath", out var exe) && !string.IsNullOrWhiteSpace(exe))
             {
@@ -946,6 +955,31 @@ public sealed class NativeBridge
         args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()
             : null;
+
+    private static bool TryGetNumber(JsonElement args, string name, out double value)
+    {
+        value = 0;
+        if (args.ValueKind != JsonValueKind.Object || !args.TryGetProperty(name, out var element)) return false;
+        if (element.ValueKind != JsonValueKind.Number) return false;
+        return element.TryGetDouble(out value);
+    }
+
+    private static string NormalizeHeroPosition(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "50% 45%";
+        var match = System.Text.RegularExpressions.Regex.Match(
+            value, @"^\s*([0-9.]+)\s*%\s+([0-9.]+)\s*%\s*$");
+        if (!match.Success) return "50% 45%";
+        var x = Math.Clamp(ParseDouble(match.Groups[1].Value, 50), 0, 100);
+        var y = Math.Clamp(ParseDouble(match.Groups[2].Value, 45), 0, 100);
+        return $"{x:0.#}% {y:0.#}%";
+    }
+
+    private static double NormalizeHeroZoom(double value) =>
+        Math.Clamp(double.IsFinite(value) ? value : 1, 1, 2.4);
+
+    private static double ParseDouble(string text, double fallback) =>
+        double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : fallback;
 
     private static bool TryGetString(JsonElement args, string name, out string? value)
     {

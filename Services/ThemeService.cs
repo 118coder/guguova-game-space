@@ -117,7 +117,7 @@ public sealed class ThemeService
         "gilded",
         "",
         null,
-        null,
+        "https://nova.site/assets/theme-nova-preview.jpg?v=1.2.2",
         "",
         true,
         true,
