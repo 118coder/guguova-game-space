@@ -1,0 +1,511 @@
+/* ============================================================
+   NOVA DESKTOP · IMMERSIVE MOTION
+   Launch/exit choreography, calm mode and controller legends.
+   Everything here is additive on top of the console design system.
+   ============================================================ */
+
+/* ---------- launch: cinematic zoom + iris ---------- */
+
+.launch {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  overflow: hidden;
+  background: #040509;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .5s ease, visibility .5s;
+  --launch-ease: cubic-bezier(.16, .84, .28, 1);
+}
+
+.launch.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.launch:focus { outline: none; }
+
+.launch-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.launch-art {
+  position: absolute;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  object-fit: cover;
+  object-position: 50% 45%;
+  transform: scale(1.18);
+  filter: brightness(.62) saturate(1.05) blur(2px);
+  transition: transform 2.4s var(--launch-ease), filter 2.4s var(--launch-ease);
+  will-change: transform;
+}
+
+.launch.is-open .launch-art {
+  transform: scale(1);
+  filter: brightness(.78) saturate(1.08) blur(0);
+}
+
+.launch.is-leaving .launch-art {
+  transform: scale(1.14);
+  filter: brightness(.35) saturate(.9) blur(10px);
+  transition: transform 1.05s cubic-bezier(.4, 0, .7, .2), filter 1.05s ease;
+}
+
+.launch-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(58% 62% at 46% 52%, rgba(4, 5, 9, .12) 0%, rgba(4, 5, 9, .62) 62%, rgba(4, 5, 9, .95) 100%),
+    linear-gradient(180deg, rgba(4, 5, 9, .72) 0%, rgba(4, 5, 9, .08) 32%, rgba(4, 5, 9, .18) 58%, rgba(4, 5, 9, .92) 100%);
+  opacity: 0;
+  transition: opacity 1.1s ease;
+}
+
+.launch.is-open .launch-veil { opacity: 1; }
+.launch.is-leaving .launch-veil { opacity: 0; transition: opacity .9s ease; }
+
+/* Cinematic letterbox that opens with the launch and closes on exit. */
+.launch-bars { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+
+.launch-bars i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10.5vh;
+  background: #040509;
+  transform: scaleY(0);
+  transition: transform 1.15s var(--launch-ease);
+}
+
+.launch-bars i:first-child { top: 0; transform-origin: top; }
+.launch-bars i:last-child { bottom: 0; transform-origin: bottom; }
+
+.launch.is-open .launch-bars i { transform: scaleY(1); }
+.launch.is-leaving .launch-bars i { transform: scaleY(0); transition: transform .85s cubic-bezier(.6, 0, .8, .2); }
+
+.launch-brand {
+  position: absolute;
+  top: 34px;
+  left: clamp(24px, 4.4vw, 60px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: .4em;
+  color: rgba(255, 255, 255, .55);
+  opacity: 0;
+  transition: opacity .8s ease .35s;
+}
+
+.launch.is-open .launch-brand { opacity: 1; }
+.launch-brand .brand-mark { width: 21px; height: 21px; }
+
+.launch-system {
+  position: absolute;
+  top: 38px;
+  right: clamp(24px, 4.4vw, 60px);
+  z-index: 5;
+  font-size: 8.5px;
+  letter-spacing: .24em;
+  color: rgba(255, 255, 255, .34);
+  opacity: 0;
+  transition: opacity .8s ease .45s;
+}
+
+.launch.is-open .launch-system { opacity: 1; }
+
+.launch-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3.2vh, 34px);
+  padding: 12vh 24px;
+  text-align: center;
+}
+
+.launch-ring {
+  position: relative;
+  width: clamp(74px, 9vh, 104px);
+  aspect-ratio: 1;
+  opacity: 0;
+  transform: scale(.86);
+  transition: opacity .7s ease .2s, transform 1.1s var(--launch-ease) .2s;
+}
+
+.launch.is-open .launch-ring { opacity: 1; transform: none; }
+.launch.is-leaving .launch-ring { opacity: 0; transform: scale(1.12); transition: opacity .4s ease, transform .6s ease; }
+
+.launch-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+
+.ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, .22);
+  stroke-width: 1.8;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--accent, #ffb45e);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-dasharray: 540.35;
+  stroke-dashoffset: 540.35;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent, #ffb45e) 65%, transparent));
+  transition: stroke-dashoffset .55s cubic-bezier(.3, .8, .4, 1);
+}
+
+.launch-ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+  color: rgba(255, 255, 255, .82);
+}
+
+.launch-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: min(940px, 88vw);
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .9s ease .35s, transform 1.2s var(--launch-ease) .35s;
+}
+
+.launch.is-open .launch-copy { opacity: 1; transform: none; }
+.launch.is-leaving .launch-copy { opacity: 0; transform: translateY(-18px) scale(.985); transition: opacity .45s ease, transform .6s ease; }
+
+.launch-kicker {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: .32em;
+  color: rgba(255, 255, 255, .44);
+}
+
+.launch-logo {
+  --logo-size: clamp(42px, 6.4vw, 104px);
+  margin: 14px 0 10px;
+}
+
+.launch-zh {
+  font-size: 12px;
+  letter-spacing: .16em;
+  color: rgba(255, 255, 255, .5);
+}
+
+.launch-steps {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 26px;
+}
+
+.launch-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  color: rgba(255, 255, 255, .28);
+  transition: color .4s ease;
+}
+
+.launch-step i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .22);
+  transition: background .4s ease, box-shadow .4s ease;
+}
+
+.launch-step.is-active { color: rgba(255, 255, 255, .78); }
+.launch-step.is-active i { background: var(--accent, #ffb45e); box-shadow: 0 0 9px var(--accent, #ffb45e); }
+.launch-step.is-done { color: rgba(255, 255, 255, .46); }
+.launch-step.is-done i { background: #7fe3c0; box-shadow: 0 0 7px rgba(127, 227, 192, .6); }
+
+.launch-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 22px;
+  font-size: 11.5px;
+  letter-spacing: .04em;
+  color: rgba(255, 255, 255, .5);
+}
+
+.launch-status { min-width: 0; }
+
+.launch-hint {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, .38);
+}
+
+.launch.is-ready .launch-hint {
+  color: rgba(255, 255, 255, .82);
+  border-color: rgba(255, 255, 255, .26);
+  animation: hintPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: .7; }
+  50% { opacity: 1; }
+}
+
+.launch-foot {
+  position: absolute;
+  right: clamp(24px, 4.4vw, 60px);
+  bottom: 34px;
+  left: clamp(24px, 4.4vw, 60px);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: rgba(255, 255, 255, .26);
+  opacity: 0;
+  transition: opacity .8s ease .5s;
+}
+
+.launch.is-open .launch-foot { opacity: 1; }
+
+.launch-foot-item { display: flex; align-items: center; gap: 8px; }
+.launch-foot .ic { width: 12px; height: 12px; opacity: .6; }
+.launch-demo { font-family: var(--font-display); letter-spacing: .16em; }
+
+/* ---------- exit animation shared by overlays ---------- */
+
+@keyframes novaSurfaceIn {
+  from { opacity: 0; transform: translateY(26px) scale(.978); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes novaSurfaceOut {
+  from { opacity: 1; transform: none; filter: blur(0); }
+  to { opacity: 0; transform: translateY(-14px) scale(.99); filter: blur(5px); }
+}
+
+.overlay.is-leaving {
+  opacity: 0;
+  visibility: visible;
+  transition: opacity .34s ease, visibility .34s;
+}
+
+.overlay.is-leaving .detail-modal,
+.overlay.is-leaving .lib-shell,
+.overlay.is-leaving .appearance-shell,
+.overlay.is-leaving .editor-shell,
+.overlay.is-leaving .scanner-shell {
+  animation: novaSurfaceOut .34s cubic-bezier(.4, 0, .7, .2) both;
+}
+
+/* ---------- controller legend ---------- */
+
+.pad-hints {
+  position: fixed;
+  z-index: 65;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(8, 10, 14, .82);
+  backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 14px 44px -22px #000;
+  animation: padBarIn .4s var(--ease) both;
+}
+
+.pad-hints[hidden] { display: none; }
+
+@keyframes padBarIn {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.pad-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, .58);
+}
+
+.pad-hint + .pad-hint {
+  border-left: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 0;
+  padding-left: 10px;
+}
+
+.pad-glyph {
+  display: grid;
+  place-items: center;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .07);
+  color: rgba(255, 255, 255, .9);
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.pad-glyph.face {
+  border-color: color-mix(in srgb, var(--glyph, #fff) 55%, transparent);
+  color: var(--glyph, #fff);
+  background: color-mix(in srgb, var(--glyph, #fff) 12%, transparent);
+  box-shadow: 0 0 10px -4px var(--glyph, transparent);
+}
+
+.pad-hint em {
+  font-style: normal;
+  letter-spacing: .02em;
+}
+
+/* Hide the controller legend while a blocking surface owns the screen
+   and re-render it for that surface's own actions. */
+body[data-overlay="launch"] .pad-hints,
+body[data-overlay="sleep"] .pad-hints { bottom: 16px; }
+
+/* ============================================================
+   CALM MODE (沉稳模式)
+   A quieter, slower, more deliberate motion language: shorter
+   distances, longer durations, no bouncing, no parallax, no grain
+   flicker. Inspired by console "big picture" reduced-motion modes.
+   ============================================================ */
+
+html.calm {
+  --motion-fast: .18s;
+  --motion-base: .32s;
+  --motion-slow: .55s;
+}
+
+html.calm .scene > img,
+html.calm .launch-art,
+html.calm .tile-art > img,
+html.calm .lib-art > img {
+  transition-duration: 1.1s !important;
+}
+
+/* Calm: the backdrop never parallaxes and never drifts. */
+html.calm .scene-stack { transform: none !important; transition: none !important; }
+
+html.calm .hero-inner,
+html.calm .hero-inner.swap {
+  animation: calmFade .55s ease both !important;
+}
+
+@keyframes calmFade {
+  from { opacity: .35; }
+  to { opacity: 1; }
+}
+
+/* Calm: cards and rails move less and settle immediately. */
+html.calm .tile,
+html.calm .lib-card,
+html.calm .style-choice,
+html.calm .scan-row,
+html.calm .menu-row {
+  transition: background .25s ease, border-color .25s ease, color .25s ease !important;
+}
+
+html.calm .tile:hover .tile-art > img,
+html.calm .tile.is-active .tile-art > img,
+html.calm .lib-card:hover .lib-art > img {
+  transform: none !important;
+}
+
+html.calm .btn.primary:hover,
+html.calm .tile:hover,
+html.calm .lib-card:hover {
+  transform: none !important;
+}
+
+/* Calm: overlays cut in with a soft dissolve instead of a spring. */
+html.calm .detail-modal,
+html.calm .lib-shell,
+html.calm .appearance-shell,
+html.calm .editor-shell,
+html.calm .scanner-shell {
+  transition: opacity .3s ease !important;
+  transform: none !important;
+}
+
+html.calm .overlay.is-open .detail-modal,
+html.calm .overlay.is-open .lib-shell,
+html.calm .overlay.is-open .appearance-shell,
+html.calm .overlay.is-open .editor-shell,
+html.calm .overlay.is-open .scanner-shell {
+  transform: none !important;
+}
+
+/* Calm: the launch sequence keeps its information but loses the drama. */
+html.calm .launch-art { transform: scale(1) !important; filter: brightness(.72) saturate(1) blur(0) !important; }
+html.calm .launch-bars { display: none; }
+html.calm .launch.is-leaving .launch-art { transform: scale(1) !important; filter: brightness(.4) blur(4px) !important; }
+html.calm .launch-ring { display: none; }
+html.calm .launch.is-open .launch-copy,
+html.calm .launch.is-open .launch-foot,
+html.calm .launch.is-open .launch-brand,
+html.calm .launch.is-open .launch-system {
+  transition-duration: .35s !important;
+}
+html.calm .ring-progress { transition-duration: .25s !important; }
+html.calm .launch-step.is-active i { animation: none; }
+
+/* Calm: the atmosphere stops pulsing and the grain is dialled back. */
+html.calm .atmosphere::after { opacity: .28 !important; }
+html.calm .grain { opacity: .035 !important; }
+html.calm .tile-badge.live::before,
+html.calm .launch.is-ready .launch-hint { animation: none !important; }
+
+/* Reduced motion keeps the calm contract but removes every remaining tween. */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: .001ms !important;
+  animation-delay: 0s !important;
+  transition-duration: .001ms !important;
+}
+
+html.reduce-motion .scene-stack { transform: none !important; }
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 760px) {
+  .launch-steps { gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .launch-step em { display: none; }
+  .launch-row { flex-direction: column; gap: 8px; }
+  .pad-hints { bottom: 10px; max-width: calc(100vw - 24px); overflow-x: auto; }
+  .pad-hint { white-space: nowrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launch-art { transition-duration: .001ms !important; }
+}

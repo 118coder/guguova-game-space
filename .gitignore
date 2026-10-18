@@ -1,0 +1,44 @@
+# ---------- .NET build output ----------
+bin/
+obj/
+publish/
+
+# ---------- packaged artifacts ----------
+*.zip
+!themes/**/*.zip
+
+# ---------- IDE / tooling ----------
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# ---------- Node tooling (dev only, not shipped) ----------
+node_modules/
+package-lock.json
+
+# ---------- runtime / logs ----------
+*.log
+nova.log
+*.tmp
+*.bak
+*.broken-*.json
+
+# ---------- OS junk ----------
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---------- local screenshots used during development ----------
+_shots/
+*.png.bak
+
+# Keep the docs screenshots that the README links to.
+!docs/screenshot-*.jpg
+
+# ---------- theme previews are content, keep them ----------
+!themes/**/assets/*

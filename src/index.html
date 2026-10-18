@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#05060a">
+<title>NOVA · 游戏空间</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ffa477'/%3E%3Cellipse cx='16' cy='16' rx='14' ry='6.2' fill='none' stroke='%23ffffff' stroke-opacity='.55' stroke-width='1.2' transform='rotate(-28 16 16)'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="type.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="motion.css">
+<link rel="stylesheet" href="dialogs.css">
+<link rel="stylesheet" href="themes.css">
+</head>
+<body>
+<svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.2 5.3v13.4L19 12 8.2 5.3Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 10.8v5"/><circle cx="12" cy="7.9" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h13M13 6.5l5.5 5.5L13 17.5"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H6M11 6.5 5.5 12l5.5 5.5"/></symbol>
+  <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8.5 7H17v8.5"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.7"/><path d="m20 20-4.1-4.1"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18.2 9.3c0-3.4-2.8-6.1-6.2-6.1S5.8 5.9 5.8 9.3c0 5.2-2 6.1-2 7.6h16.4c0-1.5-2-2.4-2-7.6Z"/><path d="M10.2 20.2a2.2 2.2 0 0 0 3.6 0"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.3 18h9.5a3.7 3.7 0 0 0 .4-7.4 5.2 5.2 0 0 0-9.9-1.1A4.3 4.3 0 0 0 7.3 18Z"/></symbol>
+  <symbol id="i-cloud-check" viewBox="0 0 24 24"><path d="M7.5 18.5h9.8a3.7 3.7 0 0 0 .5-7.4A5.4 5.4 0 0 0 7.4 9.6a4.5 4.5 0 0 0 .1 8.9Z"/><path d="m9.8 13.2 1.7 1.7 3.2-3.4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10.5M7.8 10.5 12 14.7l4.2-4.2M5 19.2h14"/></symbol>
+  <symbol id="i-gamepad" viewBox="0 0 24 24"><path d="M7.2 8h9.6c2.2 0 3.3 1.3 3.8 3.2l1 4c.5 2-.4 3.4-2 3.4-1.2 0-2-.7-2.8-1.8l-.8-1h-7.9l-.9 1C6.4 18 5.6 18.6 4.5 18.6c-1.6 0-2.6-1.4-2-3.4l1-4C4 9.3 5 8 7.2 8Z"/><path d="M8 11v4M6 13h4"/><circle cx="16.2" cy="12" r=".9" fill="currentColor" stroke="none"/><circle cx="18.2" cy="14" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M3 9.5a13.5 13.5 0 0 1 18 0M6.2 13a9.2 9.2 0 0 1 11.6 0M9.4 16.4a4.2 4.2 0 0 1 5.2 0"/><circle cx="12" cy="19.2" r="1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 24 24"><rect x="2.5" y="8" width="17" height="8" rx="2.2"/><path d="M22 10.5v3"/><rect x="4.8" y="10.2" width="10" height="3.6" rx=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.5c.5 4.7 3 7.2 7.5 7.7-4.5.5-7 3-7.5 7.7-.5-4.7-3-7.2-7.5-7.7 4.5-.5 7-3 7.5-7.7Z"/><path d="M19 3.2c.2 1.8 1.2 2.8 3 3-1.8.2-2.8 1.2-3 3-.2-1.8-1.2-2.8-3-3 1.8-.2 2.8-1.2 3-3Z" opacity=".55"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 6.5"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 7h3.1c1.3 0 2.5.6 3.3 1.6l5.2 6.8c.8 1 2 1.6 3.3 1.6H21"/><path d="m18.2 4.2 2.8 2.8-2.8 2.8M18.2 14.2l2.8 2.8-2.8 2.8"/><path d="M3 17h3.1c1.3 0 2.5-.6 3.3-1.6l1.3-1.7M14.3 8.1l1.3-1.7C16.4 5.4 17.6 5 18.9 5H21" opacity=".55"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.5 4.5 0 0 1 12 6.7 4.5 4.5 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10Z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+  <symbol id="i-fullscreen" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.2 8.2 0 0 1 9.6 4a8.4 8.4 0 1 0 10.4 10.4Z"/></symbol>
+  <symbol id="i-sound-on" viewBox="0 0 24 24"><path d="M11 5.2 6.8 9H3v6h3.8L11 18.8V5.2Z"/><path d="M15 9.2a4 4 0 0 1 0 5.6M17.8 6.5a7.6 7.6 0 0 1 0 11"/></symbol>
+  <symbol id="i-sound-off" viewBox="0 0 24 24"><path d="M11 5.2 6.8 9H3v6h3.8L11 18.8V5.2Z"/><path d="m15.5 9.5 5 5M20.5 9.5l-5 5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.6c0-1.1.9-2 2-2h3.2l1.9 2.1h7.9c1.1 0 2 .9 2 2v7.7c0 1.1-.9 2-2 2h-13c-1.1 0-2-.9-2-2V7.6Z"/></symbol>
+  <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="2.3"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8.5 8.5"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 6.8h15M9.6 6.8V5.2c0-.7.6-1.2 1.2-1.2h2.4c.7 0 1.2.6 1.2 1.2v1.6M6.4 6.8l.8 11.3c.1.9.8 1.6 1.7 1.6h6.2c.9 0 1.6-.7 1.7-1.6l.8-11.3"/><path d="M10.2 10.4v5.2M13.8 10.4v5.2"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M15.6 4.4a1.9 1.9 0 0 1 2.7 0l1.3 1.3a1.9 1.9 0 0 1 0 2.7L8.4 19.6 4 20l.4-4.4L15.6 4.4Z"/><path d="m13.4 6.6 4 4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><circle cx="9" cy="10" r="1.5"/><path d="m5 17.5 4.6-4.6a1.6 1.6 0 0 1 2.3 0l1.7 1.7M14.5 13.5l1.5-1.5a1.6 1.6 0 0 1 2.3 0l2.2 2.2"/></symbol>
+  <symbol id="i-steam" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="15.2" cy="9.2" r="2.4"/><circle cx="7.4" cy="14.6" r="1.7"/><path d="m8.9 13.6 4-2.3"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.8 12S6.5 5.8 12 5.8 21.2 12 21.2 12 17.5 18.2 12 18.2 2.8 12 2.8 12Z"/><circle cx="12" cy="12" r="2.7"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-square" viewBox="0 0 24 24"><rect x="5.5" y="5.5" width="13" height="13" rx="1.5"/></symbol>
+  <symbol id="i-restore" viewBox="0 0 24 24"><rect x="4.5" y="7.5" width="11" height="11" rx="1.5"/><path d="M8 7.5V6a1.5 1.5 0 0 1 1.5-1.5H18A1.5 1.5 0 0 1 19.5 6v8.5A1.5 1.5 0 0 1 18 16h-1.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4 20.4 19a1 1 0 0 1-.9 1.5H4.5a1 1 0 0 1-.9-1.5L12 4.4Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6.5 3.5h7l5 5v12h-12v-17Z"/><path d="M13.5 3.5v5h5"/></symbol>
+  <symbol id="i-folder-fill" viewBox="0 0 24 24"><path d="M3.5 7.6c0-1.1.9-2 2-2h3.2l1.9 2.1h7.9c1.1 0 2 .9 2 2v7.7c0 1.1-.9 2-2 2h-13c-1.1 0-2-.9-2-2V7.6Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-drive" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M3.5 13h17"/><circle cx="7.5" cy="15.4" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-warning" viewBox="0 0 24 24"><path d="M12 4.4 20.4 19a1 1 0 0 1-.9 1.5H4.5a1 1 0 0 1-.9-1.5L12 4.4Z"/><path d="M12 10v4"/><circle cx="12" cy="17.2" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.7.4-1.2 1-1.2 1.8v.3"/><circle cx="12" cy="16.7" r=".9" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <div class="scene-stack" id="sceneStack" aria-hidden="true"></div>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="window-drag" id="windowDrag" aria-hidden="true"></div>
+    <button class="brand" id="brandBtn" aria-label="回到首页">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <ellipse cx="16" cy="16" rx="13.4" ry="6.1" transform="rotate(-27 16 16)" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".48"/>
+        <circle cx="16" cy="16" r="4.2" fill="currentColor"/>
+        <circle cx="26.4" cy="9.2" r="1.9" fill="var(--accent)"/>
+      </svg>
+      <span class="brand-word">NOVA</span>
+    </button>
+
+    <nav class="nav" aria-label="主导航">
+      <button class="nav-btn is-active" data-nav="home">首页</button>
+      <button class="nav-btn" data-nav="library">游戏库</button>
+      <button class="nav-btn" data-nav="appearance">外观</button>
+    </nav>
+
+    <div class="top-right">
+      <div class="clock">
+        <span class="clock-time" id="clockTime">--:--</span>
+        <span class="clock-date" id="clockDate"></span>
+      </div>
+      <button class="icon-btn" id="addBtn" aria-label="添加游戏" title="添加游戏 (A)">
+        <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>
+      </button>
+      <button class="icon-btn" id="searchBtn" aria-label="搜索游戏" title="搜索游戏 (/)">
+        <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+      </button>
+      <button class="icon-btn" id="notifBtn" aria-label="通知" title="通知 (N)" aria-expanded="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>
+        <span class="bell-dot is-hidden" id="bellDot"></span>
+      </button>
+      <button class="avatar-btn" id="profileBtn" aria-label="玩家菜单" title="玩家菜单" aria-expanded="false">
+        <span class="avatar" id="avatarLetter">N</span>
+        <span class="online-dot"></span>
+      </button>
+      <div class="window-controls" aria-label="窗口控制">
+        <button class="win-btn" id="minBtn" aria-label="最小化" title="最小化"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
+        <button class="win-btn" id="maxBtn" aria-label="最大化" title="最大化"><svg class="ic" aria-hidden="true"><use href="#i-square"/></svg></button>
+        <button class="win-btn close" id="closeBtn" aria-label="关闭" title="关闭"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="hero" aria-label="当前游戏">
+      <div class="hero-inner" id="heroInner">
+        <div class="kicker">
+          <span class="kicker-dot"></span>
+          <span id="kickerLabel">准备好开始</span>
+          <span class="kicker-sep"></span>
+          <span class="kicker-dim" id="kickerDim">从添加第一款游戏开始</span>
+        </div>
+
+        <h1 class="logo hero-logo type-gilded" id="gameLogo">NOVA</h1>
+
+        <p class="tagline" id="gameTagline">你的游戏，都在这里。</p>
+
+        <div class="meta-row" id="metaRow">
+          <span>动作</span><i class="meta-dot"></i><span>冒险</span><i class="meta-dot"></i>
+          <span class="age-badge">12+</span><i class="meta-dot"></i><span>单人</span>
+        </div>
+
+        <div class="cta-row">
+          <button class="btn primary cta-adaptive" id="playBtn">
+            <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+            <span id="playLabel">开始游戏</span>
+          </button>
+          <button class="btn ghost" id="detailBtn">
+            <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>
+            <span>游戏详情</span>
+          </button>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-head">
+            <span id="progressLabel">尚未添加游戏</span>
+            <span class="progress-pct" id="progressPct">—</span>
+          </div>
+          <div class="progress-track"><i id="progressFill" style="width:0%"></i></div>
+          <div class="progress-sub">
+            <svg class="ic" id="progressSubIcon" aria-hidden="true"><use href="#i-clock"/></svg>
+            <span id="progressSub">导入 Steam 游戏库，或添加任意游戏程序</span>
+          </div>
+        </div>
+
+        <button class="activity-strip" id="questCard" aria-label="导入游戏">
+          <span class="activity-icon">
+            <svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg>
+          </span>
+          <span class="activity-text">
+            <span class="activity-kicker" id="questKicker">快速开始</span>
+            <span class="activity-title" id="questTitle">浏览本机游戏</span>
+            <span class="activity-desc" id="questDesc">Steam 库与开始菜单</span>
+          </span>
+          <span class="activity-side">
+            <span class="activity-pct" id="questPct">0</span>
+            <span class="activity-meta" id="questMeta">已发现候选</span>
+          </span>
+          <span class="activity-track"><i id="questFill" style="width:0%"></i></span>
+          <svg class="ic activity-arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="dock">
+    <div class="dock-head">
+      <div class="dock-title"><span>游戏</span><span class="dock-count" id="dockCount">0 款</span></div>
+      <button class="all-btn" id="allBtn">
+        <span>打开游戏库</span>
+        <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+    </div>
+
+    <div class="rail" id="rail" aria-label="游戏列表"></div>
+    <div class="rail-empty" id="railEmpty" hidden>
+      <button class="rail-empty-card" id="railAddCard">
+        <span class="rail-empty-icon"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></span>
+        <span class="rail-empty-title">添加第一款游戏</span>
+        <span class="rail-empty-sub">选择 EXE，或从 Steam 库导入</span>
+      </button>
+    </div>
+
+    <div class="dock-foot">
+      <div class="hints">
+        <span class="hint"><kbd class="key">←</kbd><kbd class="key">→</kbd><span>切换</span></span>
+        <span class="hint"><kbd class="key">Enter</kbd><span>启动</span></span>
+        <span class="hint"><kbd class="key">A</kbd><span>添加</span></span>
+        <span class="hint"><kbd class="key">L</kbd><span>游戏库</span></span>
+        <span class="hint"><kbd class="key">T</kbd><span>外观</span></span>
+      </div>
+      <div class="runtime">
+        <span class="runtime-item" id="dataFolderBtn" title="打开数据文件夹" role="button" tabindex="0">
+          <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+          <span>本地游戏库</span>
+        </span>
+        <span class="runtime-sep"></span>
+        <span class="runtime-item" id="inputStatus">
+          <svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg>
+          <span>键盘 / 鼠标</span>
+        </span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ============ NOTIFICATIONS ============ -->
+<div class="popover notif-panel" id="notifPanel" aria-hidden="true">
+  <div class="popover-head">
+    <div>
+      <div class="popover-kicker">通知</div>
+      <h3>通知</h3>
+    </div>
+    <button class="text-btn" id="markReadBtn">全部标记已读</button>
+  </div>
+  <div class="notif-list" id="notifList"></div>
+  <div class="popover-foot">
+    <span class="status-pip"></span>
+    <span id="notifFootText">游戏库已就绪</span>
+  </div>
+</div>
+
+<!-- ============ PROFILE ============ -->
+<div class="popover profile-menu" id="profileMenu" aria-hidden="true">
+  <div class="profile-head">
+    <span class="avatar large" id="avatarLarge">N</span>
+    <div class="profile-id">
+      <strong id="profileName">玩家</strong>
+      <span id="profileStatus">本地游戏库</span>
+    </div>
+    <span class="online-dot static"></span>
+  </div>
+  <div class="profile-rows">
+    <button class="menu-row" id="appearanceRow">
+      <span class="row-main">
+        <svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>
+        <span>界面与外观</span>
+      </span>
+      <span class="row-value" id="appearanceModeLabel">跟随封面</span>
+    </button>
+    <button class="menu-row" id="soundRow" role="switch" aria-checked="true">
+      <span class="row-main">
+        <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
+        <span>界面音效</span>
+      </span>
+      <span class="switch on" id="soundSwitch"></span>
+    </button>
+    <button class="menu-row" id="calmRow" role="switch" aria-checked="false">
+      <span class="row-main">
+        <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+        <span>沉稳模式</span>
+      </span>
+      <span class="switch" id="calmSwitch"></span>
+    </button>
+    <button class="menu-row" id="fullscreenRow">
+      <span class="row-main">
+        <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+        <span id="fullscreenLabel">全屏显示</span>
+      </span>
+      <span class="row-key">F</span>
+    </button>
+    <button class="menu-row" id="sleepRow">
+      <span class="row-main">
+        <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+        <span>睡眠模式</span>
+      </span>
+      <svg class="ic row-chevron" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+    </button>
+    <button class="menu-row" id="quitRow">
+      <span class="row-main">
+        <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+        <span>退出 NOVA</span>
+      </span>
+    </button>
+  </div>
+  <div class="profile-foot">
+    <span>NOVA OS</span>
+    <span>1.0.0 · 桌面版</span>
+  </div>
+</div>
+
+<!-- ============ GAME DETAILS ============ -->
+<div class="overlay" id="detailsOverlay" aria-hidden="true">
+  <div class="detail-modal" role="dialog" aria-modal="true" aria-label="游戏详情">
+    <button class="icon-btn modal-close" id="detailsClose" aria-label="关闭详情">
+      <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+    </button>
+    <div class="detail-art" id="detailArt">
+      <div class="detail-art-copy">
+        <div class="detail-status" id="detailStatus">
+          <span class="status-dot"></span>
+          <span id="detailStatusText">可用</span>
+        </div>
+        <div class="logo detail-logo type-gilded" id="detailLogo">NOVA</div>
+        <div class="detail-zh" id="detailZh">NOVA</div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-kicker">游戏详情</div>
+      <h2 id="detailTitle">NOVA</h2>
+      <p class="detail-tagline" id="detailTagline"></p>
+      <div class="meta-row detail-meta" id="detailMeta"></div>
+      <p class="detail-desc" id="detailDesc"></p>
+
+      <div class="detail-progress">
+        <div class="dp-head">
+          <span id="dProgressLabel">游玩时长</span>
+          <b id="dProgressPct">0 小时</b>
+        </div>
+        <div class="dp-track"><i id="dProgressFill" style="width:0%"></i></div>
+        <div class="dp-sub" id="dProgressSub"></div>
+      </div>
+
+      <div class="detail-stats" id="detailStats"></div>
+
+      <div class="detail-sync" id="detailPathRow">
+        <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+        <span class="detail-path" id="detailPath">—</span>
+        <button class="text-btn" id="revealBtn">在资源管理器中显示</button>
+      </div>
+
+      <div class="manage-panel" id="managePanel" hidden>
+        <div class="manage-head">
+          <div>
+            <div class="manage-kicker">游戏管理</div>
+            <h3>游戏设置</h3>
+          </div>
+          <button class="icon-btn" id="manageClose" aria-label="收起管理">
+            <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+          </button>
+        </div>
+        <div class="manage-stats" id="manageStats"></div>
+        <div class="manage-rows">
+          <button class="manage-row" id="editRow">
+            <span>编辑游戏信息与封面</span>
+            <svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg>
+          </button>
+          <button class="manage-row" id="steamRow">
+            <span>在 Steam 商店中查看</span>
+            <svg class="ic" aria-hidden="true"><use href="#i-external"/></svg>
+          </button>
+          <button class="manage-row" id="resetArtRow">
+            <span>重新生成封面（从程序图标）</span>
+            <svg class="ic" aria-hidden="true"><use href="#i-image"/></svg>
+          </button>
+        </div>
+        <div class="manage-actions">
+          <button class="btn ghost compact danger" id="removeGameBtn">从游戏库移除</button>
+          <button class="btn ghost compact" id="manageDoneBtn">完成</button>
+        </div>
+      </div>
+
+      <div class="detail-actions">
+        <button class="btn primary cta-adaptive" id="detailPlay">
+          <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+          <span id="detailPlayLabel">开始游戏</span>
+        </button>
+        <button class="icon-btn square heart" id="detailFav" aria-label="收藏游戏" aria-pressed="false">
+          <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg>
+        </button>
+        <button class="btn ghost compact" id="detailManage" aria-expanded="false">
+          <svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>
+          <span id="detailManageLabel">管理</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LIBRARY ============ -->
+<div class="overlay library-overlay" id="libraryOverlay" aria-hidden="true">
+  <div class="lib-shell" role="dialog" aria-modal="true" aria-label="游戏库">
+    <header class="lib-head">
+      <button class="icon-btn lib-back" id="libBack" aria-label="返回首页">
+        <svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+      </button>
+      <div class="lib-title">
+        <div class="lib-eyebrow">NOVA · 游戏库</div>
+        <h2>游戏库</h2>
+      </div>
+      <div class="lib-search">
+        <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="libSearch" type="text" placeholder="搜索游戏" autocomplete="off" spellcheck="false" aria-label="搜索游戏">
+        <span class="keycap">/</span>
+      </div>
+      <button class="btn ghost compact lib-add" id="libAdd">
+        <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>
+        <span>添加游戏</span>
+      </button>
+    </header>
+
+    <div class="lib-meta">
+      <div class="lib-stats" id="libStats"></div>
+      <div class="lib-filters" id="libFilters">
+        <button class="filter is-active" data-filter="all">全部</button>
+        <button class="filter" data-filter="recent">最近游玩</button>
+        <button class="filter" data-filter="favorite">已收藏</button>
+        <button class="filter" data-filter="steam">Steam</button>
+      </div>
+    </div>
+
+    <div class="lib-grid" id="libGrid"></div>
+
+    <div class="lib-empty" id="libEmpty" hidden>
+      <div class="empty-icon">
+        <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+      </div>
+      <h3 id="libEmptyTitle">没有找到游戏</h3>
+      <p id="libEmptyText">试试其他关键词，或切换筛选条件。</p>
+      <button class="btn ghost compact" id="clearFilters">清除筛选</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APPEARANCE ============ -->
+<div class="overlay appearance-overlay" id="appearanceOverlay" aria-hidden="true">
+  <div class="appearance-shell" role="dialog" aria-modal="true" aria-label="外观工作室">
+    <button class="icon-btn modal-close appearance-close" id="appearanceClose" aria-label="关闭外观工作室">
+      <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+    </button>
+
+    <div class="appearance-preview">
+      <img class="appearance-bg" id="appearanceBg" src="assets/backdrop.jpg" alt="" aria-hidden="true">
+      <img class="appearance-image" id="appearanceImage" src="assets/backdrop.jpg" alt="">
+      <div class="appearance-preview-shade"></div>
+      <div class="appearance-preview-top">
+        <span class="live-pill"><i></i>实时预览</span>
+        <span class="appearance-index" id="appearanceIndex">01 / 01</span>
+      </div>
+      <div class="appearance-preview-copy">
+        <div class="appearance-eyebrow">当前外观</div>
+        <div class="logo appearance-logo type-gilded" id="appearanceLogo">NOVA</div>
+        <p class="appearance-tagline" id="appearanceTagline">你的游戏，都在这里。</p>
+        <div class="preview-cta-row">
+          <div class="btn primary preview-cta cta-adaptive" id="appearanceCta">
+            <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+            <span id="appearanceCtaLabel">开始游戏</span>
+          </div>
+          <span class="preview-cta-note" id="appearanceCtaNote">跟随封面</span>
+        </div>
+        <div class="appearance-progress">
+          <i id="appearanceProgressFill"></i>
+          <span id="appearanceProgressPct">0 小时</span>
+        </div>
+      </div>
+      <div class="appearance-switcher" id="appearanceSwitcher" role="group" aria-label="选择预览游戏"></div>
+    </div>
+
+    <div class="appearance-options" id="appearanceOptions">
+      <header class="appearance-head">
+        <div class="appearance-kicker">NOVA · 外观</div>
+        <h2>外观工作室</h2>
+        <p>按钮形状不变，颜色跟着封面走。</p>
+      </header>
+
+      <section class="appearance-section">
+        <div class="section-head">
+          <div>
+            <h3>外观语言</h3>
+            <p>只改颜色和字标。</p>
+          </div>
+          <span class="section-tag" id="styleModeTag">跟随封面</span>
+        </div>
+        <div class="style-choice-grid" id="styleChoices">
+          <button class="style-choice is-active" data-style="adaptive" aria-pressed="true">
+            <span class="style-choice-head">
+              <span class="choice-radio"></span>
+              <span>跟随封面</span>
+              <em>随封面</em>
+            </span>
+            <span class="style-choice-preview">
+              <span class="choice-look">
+                <span class="logo choice-logo type-gilded" id="adaptiveChoiceLogo">NOVA</span>
+              </span>
+              <span class="btn primary preview-mini cta-adaptive" id="adaptivePreviewCta">
+                <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+                <span>开始游戏</span>
+              </span>
+            </span>
+            <span class="style-choice-desc">颜色与字标取自封面。</span>
+          </button>
+          <button class="style-choice" data-style="system" aria-pressed="false">
+            <span class="style-choice-head">
+              <span class="choice-radio"></span>
+              <span>NOVA 默认</span>
+              <em>统一</em>
+            </span>
+            <span class="style-choice-preview">
+              <span class="choice-look">
+                <span class="logo choice-logo type-system" id="systemChoiceLogo">NOVA</span>
+              </span>
+              <span class="btn primary preview-mini cta-system" id="systemPreviewCta">
+                <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+                <span>开始游戏</span>
+              </span>
+            </span>
+            <span class="style-choice-desc">统一字体，中性配色。</span>
+          </button>
+        </div>
+        <div class="type-readout" id="typeReadout" aria-live="polite">
+          <div class="type-readout-main">
+            <span class="type-readout-kicker">字标方案</span>
+            <strong class="type-recipe-name" id="typeRecipeName">GILDED SERIF</strong>
+            <span class="type-recipe-spec" id="typeRecipeSpec">Cormorant Garamond · Italic · 600</span>
+          </div>
+          <div class="type-readout-side">
+            <span class="type-seed" id="typeSeedLabel">TYPE 01 · SEED 01</span>
+            <button class="type-shuffle" id="typeShuffleBtn" type="button" title="重新编排 (R)">
+              <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
+              <span id="typeShuffleLabel">重新编排</span>
+            </button>
+          </div>
+          <div class="type-dna" id="typeDna"></div>
+        </div>
+        <div class="palette-strip">
+          <span class="palette-strip-label">封面配色 · <em id="appearanceGameName">NOVA</em></span>
+          <div class="palette-row" id="appearancePalette"></div>
+        </div>
+      </section>
+
+      <section class="appearance-section">
+        <div class="section-head">
+          <div>
+            <h3>界面主题</h3>
+            <p>整套替换颜色、描边、按钮与图标。主题放在主题文件夹里，可以自己做。</p>
+          </div>
+          <span class="section-tag" id="themeCountTag">2 套</span>
+        </div>
+        <div class="theme-grid" id="themeGrid"></div>
+        <div class="theme-actions">
+          <button class="btn ghost compact" id="themeRefresh">
+            <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
+            <span>刷新</span>
+          </button>
+          <button class="btn ghost compact" id="themeFolder">
+            <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+            <span>打开主题文件夹</span>
+          </button>
+          <span class="theme-hint">把主题文件夹或 .zip 放进去，再点刷新</span>
+        </div>
+      </section>
+
+      <section class="appearance-section">
+        <div class="section-head">
+          <div>
+            <h3>系统偏好</h3>
+            <p>改动自动保存。</p>
+          </div>
+        </div>
+        <div class="pref-list">
+          <button class="pref-row" id="appearanceSoundRow" role="switch" aria-checked="true">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
+              <span>界面音效</span>
+            </span>
+            <span class="switch on" id="appearanceSoundSwitch"></span>
+          </button>
+          <button class="pref-row" id="appearanceMotionRow" role="switch" aria-checked="false">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>
+              <span>减少动效</span>
+            </span>
+            <span class="switch" id="appearanceMotionSwitch"></span>
+          </button>
+          <button class="pref-row" id="appearanceCalmRow" role="switch" aria-checked="false">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+              <span>沉稳模式</span>
+            </span>
+            <span class="pref-hint">更少动画 · 更平稳的过渡</span>
+            <span class="switch" id="appearanceCalmSwitch"></span>
+          </button>
+          <button class="pref-row" id="appearanceFullscreenRow">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+              <span>全屏显示</span>
+            </span>
+            <span class="pref-note">F</span>
+          </button>
+          <button class="pref-row" id="openDataRow">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+              <span>打开数据文件夹</span>
+            </span>
+            <span class="pref-note">库文件 · 封面缓存</span>
+          </button>
+        </div>
+      </section>
+
+      <footer class="appearance-footer">
+        <span class="autosave">
+          <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+自动保存
+        </span>
+        <span class="appearance-data" id="appearanceDataPath"></span>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADD / EDIT GAME ============ -->
+<div class="overlay editor-overlay" id="editorOverlay" aria-hidden="true">
+  <div class="editor-shell" role="dialog" aria-modal="true" aria-label="添加游戏">
+    <header class="editor-head">
+      <div>
+        <div class="editor-kicker">游戏库 · <span id="editorMode">添加</span></div>
+        <h2 id="editorTitle">添加游戏</h2>
+      </div>
+      <button class="icon-btn" id="editorClose" aria-label="关闭">
+        <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </header>
+
+    <div class="editor-body">
+      <div class="editor-preview" id="editorPreview">
+        <img id="editorPreviewImg" alt="">
+        <div class="editor-preview-shade"></div>
+        <div class="editor-preview-copy">
+          <div class="logo editor-logo type-gilded" id="editorLogo">NOVA</div>
+          <span class="editor-preview-hint" id="editorPreviewHint">从可执行文件或图片生成封面</span>
+        </div>
+        <div class="editor-preview-swatches" id="editorSwatches"></div>
+      </div>
+
+      <div class="editor-fields">
+        <div class="field-row">
+          <label class="field grow">
+            <span class="field-label">游戏程序</span>
+            <span class="field-combo">
+              <input id="fExe" type="text" placeholder="选择 .exe 文件" autocomplete="off" spellcheck="false">
+              <button class="field-btn" id="fPickExe" type="button" title="浏览">
+                <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+              </button>
+            </span>
+          </label>
+        </div>
+
+        <div class="field-row two">
+          <label class="field">
+            <span class="field-label">显示名称</span>
+            <input id="fName" type="text" placeholder="例如 Elden Ring" autocomplete="off">
+          </label>
+          <label class="field">
+            <span class="field-label">中文名 <em>可选</em></span>
+            <input id="fZh" type="text" placeholder="例如 艾尔登法环" autocomplete="off">
+          </label>
+        </div>
+
+        <div class="field-row two">
+          <label class="field">
+            <span class="field-label">类型 <em>可选</em></span>
+            <input id="fGenre" type="text" placeholder="动作 / RPG" autocomplete="off">
+          </label>
+          <label class="field">
+            <span class="field-label">字标文字 <em>可选</em></span>
+            <input id="fLogo" type="text" placeholder="默认使用显示名称" autocomplete="off">
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field-label">一句话介绍 <em>可选</em></span>
+          <input id="fTagline" type="text" placeholder="显示在首页主视觉下方" autocomplete="off">
+        </label>
+
+        <label class="field">
+          <span class="field-label">封面 / 主视觉图片 <em>可选 · 留空则使用程序图标</em></span>
+          <span class="field-combo">
+            <input id="fImage" type="text" placeholder="选择一张图片" autocomplete="off" spellcheck="false">
+            <button class="field-btn" id="fPickImage" type="button" title="浏览">
+              <svg class="ic" aria-hidden="true"><use href="#i-image"/></svg>
+            </button>
+          </span>
+        </label>
+
+        <div class="field-row two">
+          <label class="field">
+            <span class="field-label">启动参数 <em>可选</em></span>
+            <input id="fArgs" type="text" placeholder="-windowed" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="field">
+            <span class="field-label">工作目录 <em>可选</em></span>
+            <input id="fWorkDir" type="text" placeholder="默认为 exe 所在目录" autocomplete="off" spellcheck="false">
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field-label">详细描述 <em>可选</em></span>
+          <textarea id="fDesc" rows="3" placeholder="显示在游戏详情中"></textarea>
+        </label>
+
+        <div class="editor-error" id="editorError" hidden></div>
+      </div>
+    </div>
+
+    <footer class="editor-foot">
+      <button class="text-btn" id="editorDelete" hidden>从游戏库移除</button>
+      <div class="editor-actions">
+        <button class="btn ghost compact" id="editorCancel">取消</button>
+        <button class="btn primary cta-adaptive editor-save" id="editorSave">
+          <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+          <span id="editorSaveLabel">添加到游戏库</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ SCANNER / IMPORT ============ -->
+<div class="overlay scanner-overlay" id="scannerOverlay" aria-hidden="true">
+  <div class="scanner-shell" role="dialog" aria-modal="true" aria-label="导入本机游戏">
+    <header class="scanner-head">
+      <div>
+        <div class="scanner-kicker">游戏库 · 导入</div>
+        <h2>导入本机游戏</h2>
+        <p id="scannerSub">扫描已安装的游戏。</p>
+      </div>
+      <button class="icon-btn" id="scannerClose" aria-label="关闭">
+        <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </header>
+
+    <div class="scanner-status" id="scannerStatus">
+      <span class="scanner-spinner" id="scannerSpinner"></span>
+      <span id="scannerStatusText">正在扫描…</span>
+    </div>
+
+    <div class="scanner-list" id="scannerList"></div>
+
+    <footer class="scanner-foot">
+      <button class="btn ghost compact" id="scannerRescan">
+        <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
+        <span>重新扫描</span>
+      </button>
+      <div class="scanner-actions">
+        <button class="btn ghost compact" id="scannerManual">手动添加…</button>
+        <button class="btn primary cta-adaptive" id="scannerImport" disabled>
+          <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+          <span id="scannerImportLabel">导入所选</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ IN-APP DIALOG ============ -->
+<div class="dialog-overlay" id="dialogOverlay" aria-hidden="true">
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <div class="dialog-mark" id="dialogMark" aria-hidden="true">
+      <svg class="ic"><use href="#i-info"/></svg>
+    </div>
+    <h2 class="dialog-title" id="dialogTitle">提示</h2>
+    <p class="dialog-text" id="dialogText"></p>
+    <div class="dialog-actions" id="dialogActions"></div>
+  </div>
+</div>
+
+<!-- ============ IN-APP FILE BROWSER ============ -->
+<div class="overlay picker-overlay" id="pickerOverlay" aria-hidden="true">
+  <div class="picker-shell" role="dialog" aria-modal="true" aria-label="选择文件">
+    <header class="picker-head">
+      <div>
+        <div class="picker-kicker" id="pickerKicker">SELECT · EXECUTABLE</div>
+        <h2 id="pickerTitle">选择游戏程序</h2>
+      </div>
+      <button class="icon-btn" id="pickerClose" aria-label="关闭">
+        <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </header>
+
+    <div class="picker-crumbs">
+      <button class="crumb-btn" id="pickerUp" aria-label="上一级">
+        <svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+      </button>
+      <div class="crumb-path" id="pickerPath">—</div>
+      <label class="picker-toggle">
+        <input type="checkbox" id="pickerHidden">
+        <span>显示隐藏项</span>
+      </label>
+    </div>
+
+    <div class="picker-drives" id="pickerDrives"></div>
+    <div class="picker-list" id="pickerList"></div>
+
+    <footer class="picker-foot">
+      <span class="picker-note" id="pickerNote">选择后会自动读取游戏文件名</span>
+      <div class="picker-actions">
+        <button class="btn ghost compact" id="pickerCancel">取消</button>
+        <button class="btn primary cta-adaptive picker-confirm" id="pickerConfirm" disabled>
+          <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+          <span>选择</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ IMMERSIVE LAUNCH / EXIT ============ -->
+<div class="launch" id="launchOverlay" role="dialog" aria-modal="true" aria-label="正在启动游戏" aria-hidden="true" tabindex="-1">
+  <div class="launch-backdrop">
+    <img class="launch-art" id="launchArt" alt="">
+  </div>
+  <div class="launch-veil"></div>
+  <div class="launch-bars" aria-hidden="true"><i></i><i></i></div>
+
+  <div class="launch-brand">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="16" rx="13.4" ry="6.1" transform="rotate(-27 16 16)" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".48"/>
+      <circle cx="16" cy="16" r="4.2" fill="currentColor"/>
+      <circle cx="26.4" cy="9.2" r="1.9" fill="var(--accent)"/>
+    </svg>
+    <span>NOVA</span>
+  </div>
+  <div class="launch-system" id="launchSystem">启动中</div>
+
+  <div class="launch-stage">
+    <div class="launch-ring" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <circle class="ring-track" cx="100" cy="100" r="86"/>
+        <circle class="ring-progress" id="launchRing" cx="100" cy="100" r="86"/>
+      </svg>
+      <span class="launch-ring-label" id="launchRingLabel">0%</span>
+    </div>
+
+    <div class="launch-copy">
+      <div class="launch-kicker" id="launchKicker">启动中</div>
+      <div class="logo launch-logo type-gilded" id="launchLogo">NOVA</div>
+      <div class="launch-zh" id="launchZh">NOVA</div>
+      <div class="launch-steps" id="launchSteps" aria-hidden="true">
+        <span class="launch-step"><i></i><em>载入游戏信息</em></span>
+        <span class="launch-step"><i></i><em>启动游戏进程</em></span>
+        <span class="launch-step"><i></i><em>接管画面</em></span>
+      </div>
+      <div class="launch-row">
+        <span class="launch-status" id="launchStatus">正在启动游戏进程…</span>
+        <span class="launch-hint" id="launchHint">按 B 返回</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="launch-foot">
+    <div class="launch-foot-item">
+      <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+      <span id="launchFootMeta">本次时长会计入统计</span>
+    </div>
+    <div class="launch-demo">NOVA 桌面版 · 真实启动</div>
+  </div>
+</div>
+
+<!-- ============ SLEEP ============ -->
+<div class="sleep" id="sleepOverlay" role="dialog" aria-modal="true" aria-label="睡眠模式" aria-hidden="true" tabindex="-1">
+  <div class="sleep-brand">NOVA</div>
+  <div class="sleep-inner">
+    <div class="sleep-moon">
+      <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+    </div>
+    <div class="sleep-time" id="sleepTime">--:--</div>
+    <div class="sleep-date" id="sleepDate"></div>
+  </div>
+  <div class="sleep-hint">
+    <span class="sleep-dot"></span>
+    <span>按任意键唤醒</span>
+  </div>
+</div>
+
+<button class="fullscreen-pill" id="fullscreenPill" aria-label="退出全屏">
+  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+  <span>退出全屏</span>
+</button>
+
+<div class="context-menu" id="contextMenu" role="menu" aria-hidden="true"></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+  <span id="toastText"></span>
+</div>
+
+<script src="gamepad.js" defer></script>
+<script src="overlays.js" defer></script>
+<script src="theme-engine.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>

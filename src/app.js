@@ -1,0 +1,3829 @@
+(() => {
+  'use strict';
+
+  /* ============================================================
+     NOVA DESKTOP · renderer
+     Real game library: native bridge to the C# host, real launching,
+     real playtime. No simulated installs.
+     ============================================================ */
+
+  const bridge = window.chrome && window.chrome.webview ? window.chrome.webview : null;
+  const hasBridge = !!bridge;
+
+  /* ---------- native bridge ---------- */
+
+  let requestSeq = 0;
+  const pending = new Map();
+
+  function call(method, args = {}) {
+    if (!hasBridge) return Promise.resolve(null);
+    const id = `r${++requestSeq}`;
+    return new Promise((resolve) => {
+      pending.set(id, resolve);
+      try {
+        bridge.postMessage(JSON.stringify({ id, method, args }));
+      } catch (error) {
+        pending.delete(id);
+        resolve({ ok: false, error: String(error) });
+      }
+      setTimeout(() => {
+        if (pending.has(id)) {
+          pending.delete(id);
+          resolve({ ok: false, error: 'native timeout' });
+        }
+      }, 60000);
+    });
+  }
+
+  window.nova = { call };
+
+  if (hasBridge) {
+    bridge.addEventListener('message', (event) => {
+      const message = event.data;
+      if (!message || typeof message !== 'object') return;
+      if (message.type === 'response') {
+        const resolve = pending.get(message.id);
+        if (resolve) {
+          pending.delete(message.id);
+          resolve(message.result);
+        }
+        return;
+      }
+      if (message.type === 'session-started') {
+        onSessionStarted(message.payload);
+        return;
+      }
+      if (message.type === 'session-ended') {
+        onSessionEnded(message.payload);
+        return;
+      }
+      if (message.type === 'window-state') {
+        syncMaxButton(!!message.payload?.maximized);
+        return;
+      }
+      if (message.type === 'fullscreen-state') {
+        applyFullscreenState(!!message.payload?.fullscreen);
+        return;
+      }
+      if (message.type === 'ask-close') {
+        askClose();
+        return;
+      }
+    });
+  }
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+
+  const state = {
+    games: [],
+    running: new Map(),
+    settings: {
+      playername: '玩家',
+      sound: true,
+      reduceMotion: false,
+      styleMode: 'adaptive',
+      typeSeed: 0,
+      calm: false
+    },
+    index: 0,
+    overlay: null,
+    libFilter: 'all',
+    libQuery: '',
+    lastFocus: null,
+    toastTimer: null,
+    launchTimers: [],
+    manageOpen: false,
+    manageConfirming: false,
+    manageConfirmTimer: null,
+    removeArmed: false,
+    removeTimer: null,
+    wheelLock: 0,
+    hoverTimer: null,
+    padIndex: null,
+    padWelcome: false,
+    libPadIndex: 0,
+    scanning: false,
+    scan: null,
+    theme: 'nova',
+    menuOpen: false,
+    editorMode: 'create',
+    editorId: null,
+    editorManifest: null,
+    dataFolder: '',
+    version: '1.0.0'
+  };
+
+  const notices = [];
+  let noticeSeq = 0;
+
+  /* ============================================================
+     DOM
+     ============================================================ */
+
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+  const els = {
+    app: $('#app'),
+    sceneStack: $('#sceneStack'),
+    clockTime: $('#clockTime'),
+    clockDate: $('#clockDate'),
+    brandBtn: $('#brandBtn'),
+    addBtn: $('#addBtn'),
+    searchBtn: $('#searchBtn'),
+    notifBtn: $('#notifBtn'),
+    bellDot: $('#bellDot'),
+    profileBtn: $('#profileBtn'),
+    avatarLetter: $('#avatarLetter'),
+    avatarLarge: $('#avatarLarge'),
+    profileName: $('#profileName'),
+    profileStatus: $('#profileStatus'),
+    notifPanel: $('#notifPanel'),
+    profileMenu: $('#profileMenu'),
+    notifList: $('#notifList'),
+    notifFootText: $('#notifFootText'),
+    markReadBtn: $('#markReadBtn'),
+    appearanceRow: $('#appearanceRow'),
+    appearanceModeLabel: $('#appearanceModeLabel'),
+    soundRow: $('#soundRow'),
+    soundSwitch: $('#soundSwitch'),
+    fullscreenRow: $('#fullscreenRow'),
+    fullscreenLabel: $('#fullscreenLabel'),
+    sleepRow: $('#sleepRow'),
+    quitRow: $('#quitRow'),
+    inputStatus: $('#inputStatus'),
+    dataFolderBtn: $('#dataFolderBtn'),
+    minBtn: $('#minBtn'),
+    maxBtn: $('#maxBtn'),
+    closeBtn: $('#closeBtn'),
+    heroInner: $('#heroInner'),
+    kickerLabel: $('#kickerLabel'),
+    kickerDim: $('#kickerDim'),
+    gameLogo: $('#gameLogo'),
+    gameTagline: $('#gameTagline'),
+    metaRow: $('#metaRow'),
+    playBtn: $('#playBtn'),
+    playLabel: $('#playLabel'),
+    detailBtn: $('#detailBtn'),
+    progressLabel: $('#progressLabel'),
+    progressPct: $('#progressPct'),
+    progressFill: $('#progressFill'),
+    progressSub: $('#progressSub'),
+    progressSubIcon: $('#progressSubIcon'),
+    questCard: $('#questCard'),
+    questKicker: $('#questKicker'),
+    questTitle: $('#questTitle'),
+    questDesc: $('#questDesc'),
+    questPct: $('#questPct'),
+    questMeta: $('#questMeta'),
+    questFill: $('#questFill'),
+    dockCount: $('#dockCount'),
+    allBtn: $('#allBtn'),
+    rail: $('#rail'),
+    railEmpty: $('#railEmpty'),
+    railAddCard: $('#railAddCard'),
+    detailsOverlay: $('#detailsOverlay'),
+    detailsClose: $('#detailsClose'),
+    detailArt: $('#detailArt'),
+    detailStatus: $('#detailStatus'),
+    detailStatusText: $('#detailStatusText'),
+    detailLogo: $('#detailLogo'),
+    detailZh: $('#detailZh'),
+    detailTitle: $('#detailTitle'),
+    detailTagline: $('#detailTagline'),
+    detailMeta: $('#detailMeta'),
+    detailDesc: $('#detailDesc'),
+    dProgressLabel: $('#dProgressLabel'),
+    dProgressPct: $('#dProgressPct'),
+    dProgressFill: $('#dProgressFill'),
+    dProgressSub: $('#dProgressSub'),
+    detailStats: $('#detailStats'),
+    detailPath: $('#detailPath'),
+    revealBtn: $('#revealBtn'),
+    detailPlay: $('#detailPlay'),
+    detailPlayLabel: $('#detailPlayLabel'),
+    detailFav: $('#detailFav'),
+    detailManage: $('#detailManage'),
+    detailManageLabel: $('#detailManageLabel'),
+    managePanel: $('#managePanel'),
+    manageClose: $('#manageClose'),
+    manageStats: $('#manageStats'),
+    editRow: $('#editRow'),
+    steamRow: $('#steamRow'),
+    resetArtRow: $('#resetArtRow'),
+    removeGameBtn: $('#removeGameBtn'),
+    manageDoneBtn: $('#manageDoneBtn'),
+    libraryOverlay: $('#libraryOverlay'),
+    libBack: $('#libBack'),
+    libSearch: $('#libSearch'),
+    libStats: $('#libStats'),
+    libFilters: $('#libFilters'),
+    libGrid: $('#libGrid'),
+    libEmpty: $('#libEmpty'),
+    libEmptyTitle: $('#libEmptyTitle'),
+    libEmptyText: $('#libEmptyText'),
+    clearFilters: $('#clearFilters'),
+    libAdd: $('#libAdd'),
+    appearanceOverlay: $('#appearanceOverlay'),
+    appearanceClose: $('#appearanceClose'),
+    appearanceOptions: $('#appearanceOptions'),
+    appearanceBg: $('#appearanceBg'),
+    appearanceImage: $('#appearanceImage'),
+    appearanceLogo: $('#appearanceLogo'),
+    appearanceTagline: $('#appearanceTagline'),
+    appearanceIndex: $('#appearanceIndex'),
+    appearanceCta: $('#appearanceCta'),
+    appearanceCtaLabel: $('#appearanceCtaLabel'),
+    appearanceCtaNote: $('#appearanceCtaNote'),
+    appearanceProgressFill: $('#appearanceProgressFill'),
+    appearanceProgressPct: $('#appearanceProgressPct'),
+    appearanceSwitcher: $('#appearanceSwitcher'),
+    styleChoices: $('#styleChoices'),
+    styleModeTag: $('#styleModeTag'),
+    appearanceGameName: $('#appearanceGameName'),
+    appearancePalette: $('#appearancePalette'),
+    appearanceDataPath: $('#appearanceDataPath'),
+    adaptivePreviewCta: $('#adaptivePreviewCta'),
+    systemPreviewCta: $('#systemPreviewCta'),
+    adaptiveChoiceLogo: $('#adaptiveChoiceLogo'),
+    systemChoiceLogo: $('#systemChoiceLogo'),
+    typeRecipeName: $('#typeRecipeName'),
+    typeRecipeSpec: $('#typeRecipeSpec'),
+    typeSeedLabel: $('#typeSeedLabel'),
+    typeShuffleBtn: $('#typeShuffleBtn'),
+    typeShuffleLabel: $('#typeShuffleLabel'),
+    typeDna: $('#typeDna'),
+    appearanceSoundRow: $('#appearanceSoundRow'),
+    appearanceSoundSwitch: $('#appearanceSoundSwitch'),
+    appearanceMotionRow: $('#appearanceMotionRow'),
+    appearanceMotionSwitch: $('#appearanceMotionSwitch'),
+    appearanceCalmRow: $('#appearanceCalmRow'),
+    appearanceCalmSwitch: $('#appearanceCalmSwitch'),
+    calmRow: $('#calmRow'),
+    calmSwitch: $('#calmSwitch'),
+    launchRing: $('#launchRing'),
+    launchRingLabel: $('#launchRingLabel'),
+    launchSteps: $('#launchSteps'),
+    launchSystem: $('#launchSystem'),
+    appearanceFullscreenRow: $('#appearanceFullscreenRow'),
+    openDataRow: $('#openDataRow'),
+    editorOverlay: $('#editorOverlay'),
+    editorTitle: $('#editorTitle'),
+    editorMode: $('#editorMode'),
+    editorClose: $('#editorClose'),
+    editorPreviewImg: $('#editorPreviewImg'),
+    editorLogo: $('#editorLogo'),
+    editorPreviewHint: $('#editorPreviewHint'),
+    editorSwatches: $('#editorSwatches'),
+    editorError: $('#editorError'),
+    editorCancel: $('#editorCancel'),
+    editorSave: $('#editorSave'),
+    editorSaveLabel: $('#editorSaveLabel'),
+    editorDelete: $('#editorDelete'),
+    fExe: $('#fExe'),
+    fPickExe: $('#fPickExe'),
+    fName: $('#fName'),
+    fZh: $('#fZh'),
+    fGenre: $('#fGenre'),
+    fLogo: $('#fLogo'),
+    fTagline: $('#fTagline'),
+    fImage: $('#fImage'),
+    fPickImage: $('#fPickImage'),
+    fArgs: $('#fArgs'),
+    fWorkDir: $('#fWorkDir'),
+    fDesc: $('#fDesc'),
+    scannerOverlay: $('#scannerOverlay'),
+    scannerClose: $('#scannerClose'),
+    scannerSub: $('#scannerSub'),
+    scannerStatus: $('#scannerStatus'),
+    scannerStatusText: $('#scannerStatusText'),
+    scannerSpinner: $('#scannerSpinner'),
+    scannerList: $('#scannerList'),
+    scannerRescan: $('#scannerRescan'),
+    scannerManual: $('#scannerManual'),
+    scannerImport: $('#scannerImport'),
+    scannerImportLabel: $('#scannerImportLabel'),
+    launchOverlay: $('#launchOverlay'),
+    launchArt: $('#launchArt'),
+    launchLogo: $('#launchLogo'),
+    launchKicker: $('#launchKicker'),
+    launchZh: $('#launchZh'),
+    launchStatus: $('#launchStatus'),
+    launchFootMeta: $('#launchFootMeta'),
+    sleepOverlay: $('#sleepOverlay'),
+    sleepTime: $('#sleepTime'),
+    sleepDate: $('#sleepDate'),
+    toast: $('#toast'),
+    toastText: $('#toastText'),
+    fullscreenPill: $('#fullscreenPill'),
+    themeGrid: $('#themeGrid'),
+    themeCountTag: $('#themeCountTag'),
+    themeRefresh: $('#themeRefresh'),
+    themeFolder: $('#themeFolder'),
+    contextMenu: $('#contextMenu')
+  };
+
+  /* ============================================================
+     TYPE DIRECTOR
+     Same constrained recipe system as the concept, but DNA now comes
+     from the real cover analysis (accent luminance/sat proxy).
+     ============================================================ */
+
+  const RECIPE_ZH = {
+    gilded: '描金衬线',
+    poster: '海报窄体',
+    grotesk: '现代无衬线',
+    inscription: '石刻宽体',
+    boutique: '精品衬线',
+    monolith: '极简无衬线',
+    kinetic: '动感斜体',
+    outline: '描边窄体'
+  };
+
+  const TYPE_RECIPES = [
+    { id: 'gilded', label: 'GILDED SERIF', family: 'Cormorant Garamond', detail: 'Italic · 600 · Optical gradient', profile: { luma: .31, sat: .62, warmth: .66, edge: .09 } },
+    { id: 'poster', label: 'POSTER CONDENSED', family: 'Bebas Neue', detail: 'Condensed · Offset impression', displayCase: 'upper', profile: { luma: .28, sat: .42, warmth: .53, edge: .15 } },
+    { id: 'grotesk', label: 'NEO GROTESK', family: 'Space Grotesk', detail: 'Bold · Cool gradient', profile: { luma: .62, sat: .36, warmth: .44, edge: .12 } },
+    { id: 'inscription', label: 'INSCRIPTION', family: 'Cormorant Garamond', detail: 'Wide caps · Metallic gradient', profile: { luma: .21, sat: .47, warmth: .48, edge: .07 } },
+    { id: 'boutique', label: 'BOUTIQUE SERIF', family: 'Cormorant Garamond', detail: 'Italic · Title case · Soft light', displayCase: 'title', profile: { luma: .48, sat: .62, warmth: .72, edge: .11 } },
+    { id: 'monolith', label: 'MONOLITH', family: 'Space Grotesk', detail: 'Light · Wide tracking · No fill effects', profile: { luma: .09, sat: .16, warmth: .50, edge: .03 } },
+    { id: 'kinetic', label: 'KINETIC DISPLAY', family: 'Space Grotesk', detail: 'Bold italic · Chromatic gradient', profile: { luma: .49, sat: .48, warmth: .45, edge: .17 } },
+    { id: 'outline', label: 'OUTLINE', family: 'Bebas Neue', detail: 'Condensed · Stroke + offset', displayCase: 'upper', profile: { luma: .35, sat: .40, warmth: .55, edge: .12 } }
+  ];
+
+  const LOGO_VARS = [
+    '--logo-light', '--logo-accent', '--logo-accent-2', '--logo-dark',
+    '--logo-angle', '--logo-offset-dir', '--logo-track', '--logo-fit'
+  ];
+
+  const TYPE_TRACKS = { gilded: -.018, poster: .032, grotesk: .005, inscription: .16, boutique: -.015, monolith: .155, kinetic: -.025, outline: .038 };
+
+  function seededUnit(key) {
+    let hash = 2166136261 >>> 0;
+    for (let i = 0; i < key.length; i += 1) {
+      hash ^= key.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    hash ^= hash >>> 13;
+    hash = Math.imul(hash, 0x5bd1e995);
+    hash ^= hash >>> 15;
+    return (hash >>> 0) / 4294967296;
+  }
+
+  function parseHex(hex) {
+    const value = String(hex || '').replace('#', '');
+    if (value.length !== 6) return { r: 255, g: 255, b: 255 };
+    return { r: parseInt(value.slice(0, 2), 16), g: parseInt(value.slice(2, 4), 16), b: parseInt(value.slice(4, 6), 16) };
+  }
+
+  function luminanceOf(hex) {
+    const { r, g, b } = parseHex(hex);
+    return (.2126 * r + .7152 * g + .0722 * b) / 255;
+  }
+
+  function toHex(rgb) {
+    const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
+    return `#${[rgb.r, rgb.g, rgb.b].map((v) => clamp(v).toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  function mixHex(a, b, amount) {
+    const first = parseHex(a);
+    const second = parseHex(b);
+    return toHex({
+      r: first.r + (second.r - first.r) * amount,
+      g: first.g + (second.g - first.g) * amount,
+      b: first.b + (second.b - first.b) * amount
+    });
+  }
+
+  function lighten(hex, amount) { return mixHex(hex, '#ffffff', amount); }
+  function darken(hex, amount) { return mixHex(hex, '#050609', amount); }
+
+  function dnaFor(game) {
+    const dna = game && game.dna ? game.dna : null;
+    return {
+      luma: clamp01(dna ? dna.luma : luminanceOf(game ? game.accent : '#ffb45e')),
+      sat: clamp01(dna ? dna.sat : .5),
+      warmth: clamp01(dna ? dna.warmth : .5),
+      edge: clamp01(dna ? dna.edge : .1)
+    };
+  }
+
+  const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
+
+  function recipeDistance(game, recipe) {
+    const dna = dnaFor(game);
+    const p = recipe.profile;
+    return Math.abs(dna.luma - p.luma) + Math.abs(dna.sat - p.sat) + Math.abs(dna.warmth - p.warmth) * 1.1 + Math.abs(dna.edge - p.edge) * 2.2;
+  }
+
+  let typeMapCache = { seed: null, size: -1, map: null };
+
+  function buildTypeMap(seed) {
+    const pairs = [];
+    state.games.forEach((game) => {
+      TYPE_RECIPES.forEach((recipe) => {
+        const jitter = seededUnit(`${game.id}|${recipe.id}|${seed}`) * .09;
+        pairs.push({ gameId: game.id, recipeId: recipe.id, score: recipeDistance(game, recipe) + jitter });
+      });
+    });
+    pairs.sort((a, b) => a.score - b.score);
+
+    const assignment = {};
+    const used = new Set();
+    pairs.forEach((pair) => {
+      if (assignment[pair.gameId] || used.has(pair.recipeId)) return;
+      assignment[pair.gameId] = pair.recipeId;
+      used.add(pair.recipeId);
+    });
+
+    if (seed > 0 && state.games.length > 1) {
+      const ids = state.games.map((game) => game.id);
+      const candidates = [];
+      for (let i = 0; i < ids.length; i += 1) {
+        for (let j = i + 1; j < ids.length; j += 1) {
+          const first = ids[i];
+          const second = ids[j];
+          const firstRecipe = assignment[first];
+          const secondRecipe = assignment[second];
+          if (!firstRecipe || !secondRecipe || firstRecipe === secondRecipe) continue;
+          const firstGame = findGame(first);
+          const secondGame = findGame(second);
+          if (!firstGame || !secondGame) continue;
+          const r1 = TYPE_RECIPES.find((r) => r.id === firstRecipe);
+          const r2 = TYPE_RECIPES.find((r) => r.id === secondRecipe);
+          if (!r1 || !r2) continue;
+          const now = recipeDistance(firstGame, r1) + recipeDistance(secondGame, r2);
+          const swapped = recipeDistance(firstGame, r2) + recipeDistance(secondGame, r1);
+          const delta = swapped - now;
+          if (delta > .5) continue;
+          candidates.push({ first, second, score: delta + seededUnit(`remix|${seed}|${first}|${second}`) * .05 });
+        }
+      }
+      candidates.sort((a, b) => a.score - b.score);
+      if (candidates.length) {
+        const pool = candidates.slice(0, Math.min(10, candidates.length));
+        const pick = pool[Math.floor(seededUnit(`remix-pick|${seed}`) * pool.length)];
+        const firstRecipe = assignment[pick.first];
+        assignment[pick.first] = assignment[pick.second];
+        assignment[pick.second] = firstRecipe;
+      }
+    }
+    return assignment;
+  }
+
+  function getTypeMap() {
+    if (typeMapCache.seed !== state.settings.typeSeed || typeMapCache.size !== state.games.length || !typeMapCache.map) {
+      typeMapCache = { seed: state.settings.typeSeed, size: state.games.length, map: buildTypeMap(state.settings.typeSeed) };
+    }
+    return typeMapCache.map;
+  }
+
+  function recipeFor(game) {
+    const map = getTypeMap();
+    return TYPE_RECIPES.find((recipe) => recipe.id === map[game.id]) || TYPE_RECIPES[0];
+  }
+
+  function logoPaletteFor(game) {
+    const colors = (game.colors || []).slice().sort((a, b) => luminanceOf(b) - luminanceOf(a));
+    return {
+      light: colors[0] || '#f5f2ea',
+      dark: colors[colors.length - 1] || '#08090c',
+      accent: game.accent || '#ffb45e',
+      accent2: game.accent2 || '#ff6b79'
+    };
+  }
+
+  function toTitleCase(value) {
+    return String(value).toLowerCase().replace(/(^|[\s-])([a-z])/g, (match, prefix, letter) => prefix + letter.toUpperCase());
+  }
+
+  function applyTypeVariables(element, game, recipe) {
+    const palette = logoPaletteFor(game);
+    const seed = state.settings.typeSeed;
+    const baseTrack = TYPE_TRACKS[recipe.id] || 0;
+    const jitter = (seededUnit(`${game.id}|${recipe.id}|${seed}|track`) - .5) * .012;
+    const angle = [96, 112, 136, 154, 172][Math.floor(seededUnit(`${game.id}|${recipe.id}|${seed}|angle`) * 5)];
+    const direction = seededUnit(`${game.id}|${recipe.id}|${seed}|offset`) > .5 ? 1 : -1;
+    element.style.setProperty('--logo-light', palette.light);
+    element.style.setProperty('--logo-dark', palette.dark);
+    element.style.setProperty('--logo-accent', palette.accent);
+    element.style.setProperty('--logo-accent-2', palette.accent2);
+    element.style.setProperty('--logo-angle', `${angle}deg`);
+    element.style.setProperty('--logo-offset-dir', String(direction));
+    element.style.setProperty('--logo-track', `${(baseTrack + jitter).toFixed(4)}em`);
+  }
+
+  function fitLogo(element) {
+    if (!element) return;
+    element.style.removeProperty('--logo-fit');
+    requestAnimationFrame(() => {
+      if (!element.isConnected) return;
+      const available = element.clientWidth;
+      const required = element.scrollWidth;
+      if (available <= 0 || !required || required <= available + 1) return;
+      const ratio = Math.max(.42, Math.min(1, (available / required) * .985));
+      element.style.setProperty('--logo-fit', ratio.toFixed(3));
+    });
+  }
+
+  function refitLogos() {
+    $$('.logo').forEach((element) => {
+      element.style.removeProperty('--logo-fit');
+      fitLogo(element);
+    });
+  }
+
+  function setLogo(element, game, baseClass, options = {}) {
+    if (!element) return;
+    const mode = options.forceMode || state.settings.styleMode;
+    LOGO_VARS.forEach((name) => element.style.removeProperty(name));
+    element.classList.remove('is-retyping');
+    element.style.removeProperty('--logo-fit');
+
+    const text = options.text ?? (game ? game.logo : 'NOVA');
+
+    if (mode === 'system') {
+      element.className = `logo ${baseClass} type-system`;
+      element.textContent = text;
+      element.dataset.recipe = 'system';
+    } else if (!game) {
+      element.className = `logo ${baseClass} type-gilded`;
+      element.textContent = text;
+      element.dataset.recipe = 'gilded';
+    } else {
+      const recipe = recipeFor(game);
+      element.className = `logo ${baseClass} type-${recipe.id}`;
+      element.textContent = recipe.displayCase === 'title' ? toTitleCase(text) : text;
+      element.dataset.recipe = recipe.id;
+      applyTypeVariables(element, game, recipe);
+    }
+
+    fitLogo(element);
+    if (options.animate) {
+      void element.offsetWidth;
+      element.classList.add('is-retyping');
+    }
+  }
+
+  function typeReadoutHTML(game) {
+    const dna = dnaFor(game);
+    return [['亮度', dna.luma], ['饱和', dna.sat], ['细节', dna.edge]]
+      .map(([label, value]) => `<span>${label} ${Math.round(value * 100)}%</span>`).join('');
+  }
+
+  function updateTypeReadout() {
+    if (!els.typeRecipeName) return;
+    const game = currentGame();
+    const system = state.settings.styleMode === 'system';
+    $$('.type-readout').forEach((el) => el.classList.toggle('is-system', system));
+
+    if (system) {
+      els.typeRecipeName.textContent = 'NOVA 统一字体';
+      els.typeRecipeSpec.textContent = 'Cormorant Garamond · 统一字标';
+      els.typeSeedLabel.textContent = '统一字标';
+      els.typeShuffleLabel.textContent = '系统固定';
+      els.typeShuffleBtn.disabled = true;
+      els.typeDna.innerHTML = '<span>统一字体</span><span>暖白</span><span>中性光</span>';
+      return;
+    }
+
+    if (!game) {
+      els.typeRecipeName.textContent = 'GILDED SERIF';
+      els.typeRecipeSpec.textContent = '等待添加游戏';
+      els.typeSeedLabel.textContent = '—';
+      els.typeShuffleLabel.textContent = '换一套';
+      els.typeShuffleBtn.disabled = true;
+      els.typeDna.innerHTML = '<span>还没有封面</span><span>添加游戏后生成</span>';
+      return;
+    }
+
+    const recipe = recipeFor(game);
+    const index = TYPE_RECIPES.findIndex((item) => item.id === recipe.id) + 1;
+    els.typeRecipeName.textContent = RECIPE_ZH[recipe.id] ? `${RECIPE_ZH[recipe.id]} · ${recipe.label}` : recipe.label;
+    els.typeRecipeSpec.textContent = `${recipe.family} · ${recipe.detail}`;
+    els.typeSeedLabel.textContent = `方案 ${String(index).padStart(2, '0')} · 第 ${String(state.settings.typeSeed + 1).padStart(2, '0')} 版`;
+    els.typeShuffleLabel.textContent = '换一套';
+    els.typeShuffleBtn.disabled = false;
+    els.typeDna.innerHTML = typeReadoutHTML(game);
+  }
+
+  function shuffleTypeDirection() {
+    if (state.settings.styleMode === 'system' || !state.games.length) return;
+    state.settings.typeSeed = (state.settings.typeSeed + 1) % 99;
+    saveSettings();
+    const game = currentGame();
+    setLogo(els.gameLogo, game, 'hero-logo', { animate: true });
+    setLogo(els.detailLogo, game, 'detail-logo', { animate: true });
+    setLogo(els.appearanceLogo, game, 'appearance-logo', { animate: true });
+    setLogo(els.launchLogo, game, 'launch-logo', { animate: true });
+    setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', { forceMode: 'adaptive', animate: true });
+    setLogo(els.editorLogo, null, 'editor-logo', { text: editorLogoText() });
+    updateTypeReadout();
+    audio.select();
+    toast('已换一套字标', 'spark');
+  }
+
+  /* ============================================================
+     AUDIO
+     Two layers: CC0 interface samples (Kenney, bundled locally) and
+     a tiny synth fallback so nothing goes silent if a file is missing.
+     ============================================================ */
+
+  const SFX = {
+    move: 'assets/sfx/move.ogg',
+    select: 'assets/sfx/select.ogg',
+    click: 'assets/sfx/click.ogg',
+    back: 'assets/sfx/back.ogg',
+    open: 'assets/sfx/open.ogg',
+    close: 'assets/sfx/close.ogg',
+    toggle: 'assets/sfx/toggle.ogg',
+    switch: 'assets/sfx/switch.ogg',
+    confirm: 'assets/sfx/confirm.ogg',
+    error: 'assets/sfx/error.ogg',
+    tick: 'assets/sfx/tick.ogg',
+    chime: 'assets/sfx/chime.ogg',
+    deep: 'assets/sfx/deep.ogg',
+    launchRise: 'assets/sfx/launch-rise.ogg',
+    launchFall: 'assets/sfx/launch-fall.ogg'
+  };
+
+  const audio = {
+    ctx: null,
+    pools: new Map(),
+    volume: 0.5,
+
+    /** Preload one decoded buffer per cue; misses fall back to the synth. */
+    async warm() {
+      if (!state.settings.sound) return;
+      const ctx = this.ensure();
+      if (!ctx) return;
+      await Promise.all(Object.entries(SFX).map(async ([name, url]) => {
+        if (this.pools.has(name)) return;
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(String(response.status));
+          const data = await response.arrayBuffer();
+          const buffer = await ctx.decodeAudioData(data);
+          this.pools.set(name, buffer);
+        } catch (error) {
+          this.pools.set(name, null);
+        }
+      }));
+    },
+
+    ensure() {
+      if (!state.settings.sound) return null;
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        try { this.ctx = new AC(); } catch (error) { return null; }
+      }
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      return this.ctx;
+    },
+
+    /** Plays a bundled sample; `gain` trims it to sit under the interface. */
+    play(name, options = {}) {
+      const ctx = this.ensure();
+      if (!ctx) return false;
+      const buffer = this.pools.get(name);
+      if (!buffer) return false;
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      const offset = options.offset || 0;
+      const trim = options.gain ?? 1;
+      source.buffer = buffer;
+      gain.gain.value = this.volume * trim;
+      source.connect(gain).connect(ctx.destination);
+      source.start(ctx.currentTime + (options.delay || 0), offset);
+      return true;
+    },
+
+    tone(freq, options = {}) {
+      const ctx = this.ensure();
+      if (!ctx) return;
+      const { dur = .09, type = 'sine', gain = .012, delay = 0 } = options;
+      const t = ctx.currentTime + delay;
+      const osc = ctx.createOscillator();
+      const amp = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t);
+      amp.gain.setValueAtTime(.0001, t);
+      amp.gain.exponentialRampToValueAtTime(Math.max(gain, .0002), t + .012);
+      amp.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      osc.connect(amp).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur + .035);
+    },
+
+    move(dir = 1) {
+      if (!this.play('move', { gain: .32 })) {
+        this.tone(dir > 0 ? 700 : 540, { dur: .065, gain: .0075 });
+      }
+    },
+    hover() {
+      if (!this.play('tick', { gain: .18 })) this.tone(880, { dur: .04, gain: .004 });
+    },
+    select() {
+      if (!this.play('select', { gain: .5 })) {
+        this.tone(520, { dur: .12, gain: .009, type: 'triangle' });
+        this.tone(780, { dur: .18, gain: .0055, delay: .05 });
+      }
+    },
+    back() {
+      if (!this.play('back', { gain: .42 })) this.tone(400, { dur: .1, gain: .006 });
+    },
+    open() {
+      if (!this.play('open', { gain: .38 })) this.select();
+    },
+    close() {
+      if (!this.play('close', { gain: .36 })) this.back();
+    },
+    toggle() {
+      if (!this.play('toggle', { gain: .38 })) this.tone(640, { dur: .07, gain: .006 });
+    },
+    confirm() {
+      if (!this.play('confirm', { gain: .5 })) this.select();
+    },
+    error() {
+      if (!this.play('error', { gain: .45 })) {
+        this.tone(220, { dur: .16, gain: .01, type: 'triangle' });
+      }
+    },
+    launch() {
+      const played = this.play('launchRise', { gain: .55 });
+      if (!played) {
+        [392, 523.25, 659.25].forEach((freq, i) => this.tone(freq, { dur: .5, gain: .012, delay: i * .055 }));
+        return;
+      }
+      [261.63, 329.63, 392, 523.25].forEach((freq, i) => {
+        this.tone(freq, { dur: 1.4, gain: .006, delay: .18 + i * .09, type: 'sine' });
+      });
+    },
+    launchReady() {
+      this.play('chime', { gain: .4 });
+    },
+    exitGame() {
+      if (!this.play('launchFall', { gain: .45 })) this.back();
+    },
+    sleep() {
+      if (!this.play('deep', { gain: .34, offset: .05 })) this.tone(196, { dur: .75, gain: .0045 });
+    }
+  };
+
+  /* ============================================================
+     UTILITIES
+     ============================================================ */
+
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[char]));
+
+  const findGame = (id) => state.games.find((game) => game.id === id) || null;
+  const fullName = (game) => {
+    if (!game) return '';
+    const zh = (game.zh || '').trim();
+    const en = (game.name || '').trim();
+    if (!en || zh.toLowerCase() === en.toLowerCase()) return zh || en;
+    return [zh, en].filter(Boolean).join(' · ');
+  };
+  const currentGame = () => state.games[state.index] || null;
+  const clamp01Value = (value) => Math.max(0, Math.min(1, value));
+
+  function toast(message, icon = 'check') {
+    if (state.overlay === 'launch' || state.overlay === 'sleep') return;
+    const use = els.toast.querySelector('use');
+    if (use) use.setAttribute('href', `#i-${icon}`);
+    els.toastText.textContent = message;
+    els.toast.classList.add('show');
+    clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(() => els.toast.classList.remove('show'), 3000);
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const weekdayShort = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
+    const weekdayLong = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][now.getDay()];
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    els.clockTime.textContent = `${hh}:${mm}`;
+    els.clockDate.textContent = `${month}月${day}日 · ${weekdayShort}`;
+    els.sleepTime.textContent = `${hh}:${mm}`;
+    els.sleepDate.textContent = `${now.getFullYear()} · ${String(month).padStart(2, '0')} · ${String(day).padStart(2, '0')} · ${weekdayLong}`;
+  }
+
+  function formatHours(seconds) {
+    if (!seconds) return '0 分钟';
+    if (seconds < 60) return '不到 1 分钟';
+    const hours = seconds / 3600;
+    if (hours < 1) return `${Math.max(1, Math.round(seconds / 60))} 分钟`;
+    if (hours < 100) return `${hours.toFixed(1)} 小时`;
+    return `${Math.round(hours)} 小时`;
+  }
+
+  function formatHoursShort(seconds) {
+    if (!seconds || seconds < 60) return '0 小时';
+    const hours = seconds / 3600;
+    return hours < 1 ? '<1 小时' : `${hours < 100 ? hours.toFixed(1) : Math.round(hours)} 小时`;
+  }
+
+  function relativeTime(iso) {
+    if (!iso) return '尚未游玩';
+    const then = new Date(iso);
+    if (Number.isNaN(then.getTime())) return '尚未游玩';
+    const diff = Date.now() - then.getTime();
+    const minute = 60000;
+    const hour = 3600000;
+    const day = 86400000;
+    if (diff < minute) return '刚刚';
+    if (diff < hour) return `${Math.floor(diff / minute)} 分钟前`;
+    if (diff < day) return `${Math.floor(diff / hour)} 小时前`;
+    if (diff < day * 7) return `${Math.floor(diff / day)} 天前`;
+    return `${then.getMonth() + 1} 月 ${then.getDate()} 日`;
+  }
+
+  function restoreFocus() {
+    const target = state.lastFocus;
+    if (!target || !document.contains(target)) return;
+    setTimeout(() => {
+      try { target.focus({ preventScroll: true }); } catch (error) {}
+    }, 70);
+  }
+
+  function setNav(view) {
+    $$('.nav-btn').forEach((button) => button.classList.toggle('is-active', button.dataset.nav === view));
+  }
+
+  function closePopovers() {
+    [els.notifPanel, els.profileMenu].forEach((panel) => {
+      panel.classList.remove('is-open');
+      panel.setAttribute('aria-hidden', 'true');
+    });
+    els.notifBtn.setAttribute('aria-expanded', 'false');
+    els.profileBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  let saveTimer = null;
+  function saveSettings() {
+    if (!hasBridge) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      call('saveSettings', {
+        currentGameId: currentGame()?.id || null,
+        sound: state.settings.sound,
+        reduceMotion: state.settings.reduceMotion,
+        styleMode: state.settings.styleMode,
+        typeSeed: state.settings.typeSeed,
+        calm: state.settings.calm,
+        playerName: state.settings.playername
+      });
+    }, 180);
+  }
+
+  /* ============================================================
+     ACCENT / CTA
+     ============================================================ */
+
+  function applyAccent(game) {
+    const root = document.documentElement;
+    const system = state.settings.styleMode === 'system';
+    if (!game) {
+      root.style.setProperty('--accent', system ? '#e7dcc9' : '#ffb45e');
+      root.style.setProperty('--accent-2', system ? '#c7b79d' : '#ff6b79');
+      root.style.setProperty('--glow', system ? 'rgba(231, 220, 201, .16)' : 'rgba(255, 172, 96, .32)');
+      root.style.setProperty('--scrim-rgb', '16, 12, 10');
+      return;
+    }
+    root.style.setProperty('--accent', system ? '#e7dcc9' : game.accent);
+    root.style.setProperty('--accent-2', system ? '#c7b79d' : game.accent2);
+    root.style.setProperty('--glow', system ? 'rgba(231, 220, 201, .16)' : game.glow);
+    root.style.setProperty('--scrim-rgb', game.scrim || '16, 12, 10');
+  }
+
+  function ctaClassFor(game) {
+    return state.settings.styleMode === 'adaptive' && game ? 'cta-adaptive' : 'cta-system';
+  }
+
+  const CTA_CLASSES = ['cta-adaptive', 'cta-system'];
+
+  function setElementCta(element, className, game, forceAdaptive = false) {
+    if (!element) return;
+    CTA_CLASSES.forEach((name) => element.classList.remove(name));
+    element.classList.add(forceAdaptive ? 'cta-adaptive' : className);
+    if (forceAdaptive || className === 'cta-adaptive') {
+      applyCtaVars(element, game);
+    } else {
+      ['--cta-a', '--cta-b', '--cta-a-hover', '--cta-b-hover', '--cta-fg', '--cta-border', '--cta-glow']
+        .forEach((name) => element.style.removeProperty(name));
+    }
+  }
+
+  /**
+   * Buttons stay the same capsule; only their colour is derived from the
+   * cover palette. Text contrast is computed, never guessed.
+   */
+  function applyCtaVars(element, game) {
+    if (!element) return;
+    // A theme owns its button language; the cover palette must not repaint it.
+    if (document.documentElement.classList.contains('theme-custom')) {
+      ['--cta-a', '--cta-b', '--cta-a-hover', '--cta-b-hover', '--cta-fg', '--cta-border', '--cta-glow']
+        .forEach((name) => element.style.removeProperty(name));
+      return;
+    }
+    if (!game) {
+      element.style.removeProperty('--cta-a');
+      element.style.removeProperty('--cta-b');
+      return;
+    }
+    const a = game.accent || '#ffd88a';
+    const b = game.accent2 || a;
+    const lightA = lighten(a, .28);
+    const lightB = lighten(b, .22);
+    const { r, g, b: blue } = parseHex(mixHex(a, b, .35));
+    const luma = (.2126 * r + .7152 * g + .0722 * blue) / 255;
+    const fg = luma > .62 ? '#161008' : '#fff8ee';
+    const border = luma > .62 ? `rgba(20, 14, 10, .18)` : `rgba(255, 250, 240, .42)`;
+    element.style.setProperty('--cta-a', lighten(a, .36));
+    element.style.setProperty('--cta-b', lighten(b, .16));
+    element.style.setProperty('--cta-a-hover', lighten(a, .48));
+    element.style.setProperty('--cta-b-hover', lighten(b, .28));
+    element.style.setProperty('--cta-fg', fg);
+    element.style.setProperty('--cta-border', border);
+    element.style.setProperty('--cta-glow', `rgba(${r}, ${g}, ${blue}, .55)`);
+  }
+
+  function updatePrimaryButton(button, labelElement, game) {
+    if (!button) return;
+    const info = actionInfo(game);
+    const use = button.querySelector('use');
+    if (use) use.setAttribute('href', `#i-${info.icon}`);
+    button.disabled = info.disabled;
+    if (labelElement) labelElement.textContent = info.label;
+    const className = game && state.settings.styleMode === 'adaptive' ? 'cta-adaptive' : 'cta-system';
+    setElementCta(button, className, game);
+  }
+
+  function actionInfo(game) {
+    if (!game) return { icon: 'plus', label: '添加游戏', disabled: false };
+    if (state.running.has(game.id)) return { icon: 'stop', label: '游戏运行中', disabled: false };
+    if (!game.exists) return { icon: 'alert', label: '程序缺失', disabled: false };
+    return { icon: 'play', label: game.playtimeSeconds > 0 || game.launchCount > 0 ? '继续游戏' : '开始游戏', disabled: false };
+  }
+
+  /* ============================================================
+     BACKDROP
+     ============================================================ */
+
+  const backdropLayers = [];
+  let activeLayer = 0;
+  let backdropToken = 0;
+
+  function buildBackdrop() {
+    els.sceneStack.innerHTML = '';
+    backdropLayers.length = 0;
+    for (let i = 0; i < 2; i += 1) {
+      const layer = document.createElement('div');
+      layer.className = 'scene';
+      const image = document.createElement('img');
+      image.alt = '';
+      image.decoding = 'async';
+      image.draggable = false;
+      layer.appendChild(image);
+      els.sceneStack.appendChild(layer);
+      backdropLayers.push(layer);
+    }
+    if (backdropLayers[0]) backdropLayers[0].classList.add('is-active');
+    const game = currentGame();
+    const image = $('img', backdropLayers[0]);
+    if (image) {
+      image.src = game ? game.heroUrl : 'assets/backdrop.jpg';
+      image.style.objectPosition = game ? game.heroPosition : '50% 45%';
+    }
+  }
+
+  function setBackdrop(game, instant = false) {
+    if (!backdropLayers.length || !game) return;
+    const token = ++backdropToken;
+    const nextIndex = 1 - activeLayer;
+    const next = backdropLayers[nextIndex];
+    const image = $('img', next);
+    const same = image.getAttribute('src') === game.heroUrl;
+
+    const activate = () => {
+      if (token !== backdropToken) return;
+      image.style.objectPosition = game.heroPosition;
+      next.classList.add('is-active');
+      backdropLayers[activeLayer].classList.remove('is-active');
+      activeLayer = nextIndex;
+    };
+
+    if (!same) image.src = game.heroUrl;
+    image.style.objectPosition = game.heroPosition;
+
+    if (same && image.complete && image.naturalWidth) {
+      if (instant) {
+        backdropLayers.forEach((layer, index) => layer.classList.toggle('is-active', index === nextIndex));
+        activeLayer = nextIndex;
+        return;
+      }
+      requestAnimationFrame(activate);
+      return;
+    }
+    if (image.complete && image.naturalWidth) {
+      requestAnimationFrame(activate);
+      return;
+    }
+    image.onload = activate;
+    image.onerror = activate;
+  }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+
+  function progressInfo(game) {
+    if (!game) {
+      return { pct: 0, pctText: '—', title: '没有游戏', sub: '按 A 导入或添加', icon: 'clock' };
+    }
+    if (state.running.has(game.id)) {
+      const session = state.running.get(game.id);
+      const started = new Date(session.startedUtc).getTime();
+      const minutes = Math.max(0, Math.floor((Date.now() - started) / 60000));
+      return {
+        pct: 100,
+        pctText: '运行中',
+        title: '正在运行',
+        sub: minutes < 1 ? '刚刚启动' : `已运行 ${minutes} 分钟`,
+        icon: 'stop'
+      };
+    }
+    if (!game.exists) {
+      return { pct: 0, pctText: '缺失', title: '找不到游戏程序', sub: '在管理面板中重新指定路径', icon: 'alert' };
+    }
+    const total = game.playtimeSeconds || 0;
+    const pct = Math.min(100, Math.round((total / (60 * 60 * 40)) * 100));
+    return {
+      pct,
+      pctText: formatHoursShort(total),
+      title: game.lastPlayedUtc ? `上次游玩 ${relativeTime(game.lastPlayedUtc)}` : '还没玩过',
+      sub: game.playtimeSeconds ? `累计 ${formatHours(game.playtimeSeconds)}` : '启动后开始计时',
+      icon: 'clock'
+    };
+  }
+
+  function heroStatus(game) {
+    if (!game) {
+      return { label: '开始', dim: '还没有游戏' };
+    }
+    if (state.running.has(game.id)) {
+      return { label: '运行中', dim: '游戏已启动' };
+    }
+    if (!game.exists) {
+      return { label: '找不到程序', dim: '文件被移动或删除' };
+    }
+    if (game.lastPlayedUtc) {
+      return { label: '继续', dim: `上次游玩 ${relativeTime(game.lastPlayedUtc)}` };
+    }
+    return { label: '就绪', dim: game.source === 'steam' ? 'Steam 库' : '本机' };
+  }
+
+  function metaHTML(game) {
+    if (!game) return '<span>动作</span><i class="meta-dot"></i><span>冒险</span><i class="meta-dot"></i><span class="age-badge">全年龄</span>';
+    const bits = [];
+    const genres = (game.genres && game.genres.length ? game.genres : [game.genre || '游戏'])
+      .filter((genre) => genre && !(game.source === 'steam' && genre.toLowerCase() === 'steam'));
+    genres.forEach((genre) => bits.push(`<span>${esc(genre)}</span>`));
+    bits.push(`<span class="age-badge">${esc(game.ageRating || '全年龄')}</span>`);
+    if (game.mode) bits.push(`<span>${esc(game.mode)}</span>`);
+    if (game.source === 'steam') bits.push('<span class="update-badge">STEAM</span>');
+    return bits.join('<i class="meta-dot"></i>');
+  }
+
+  function renderHero(game, animate = true) {
+    const status = heroStatus(game);
+    const logoText = game ? (game.logo || game.name || '') : 'NOVA';
+    document.body.classList.toggle('is-long-logo', logoText.length > 18);
+    setLogo(els.gameLogo, game, 'hero-logo');
+    els.kickerLabel.textContent = status.label;
+    els.kickerDim.textContent = status.dim;
+    els.gameTagline.textContent = game ? (game.tagline || '') : '选择游戏开始。';
+    els.metaRow.innerHTML = metaHTML(game);
+
+    updatePrimaryButton(els.playBtn, els.playLabel, game);
+    if (els.detailPlay) updatePrimaryButton(els.detailPlay, els.detailPlayLabel, game);
+
+    const info = progressInfo(game);
+    els.progressLabel.textContent = info.title;
+    els.progressPct.textContent = info.pctText;
+    els.progressFill.style.width = `${info.pct}%`;
+    const subUse = els.progressSubIcon.querySelector('use');
+    if (subUse) subUse.setAttribute('href', `#i-${info.icon}`);
+    els.progressSub.textContent = info.sub;
+
+    renderActivity(game, info);
+
+    if (animate) {
+      els.heroInner.classList.remove('swap');
+      void els.heroInner.offsetWidth;
+      els.heroInner.classList.add('swap');
+    }
+  }
+
+  function renderActivity(game, info) {
+    const strip = els.questCard;
+    strip.classList.remove('is-cloud');
+    if (!game) {
+      els.questKicker.textContent = '导入';
+      els.questTitle.textContent = '导入本机游戏';
+      els.questDesc.textContent = 'Steam 库与开始菜单';
+      els.questPct.textContent = '0';
+      els.questMeta.textContent = '已发现候选';
+      els.questFill.style.width = '0%';
+      return;
+    }
+    if (state.running.has(game.id)) {
+      const session = state.running.get(game.id);
+      const started = new Date(session.startedUtc).getTime();
+      const minutes = Math.max(0, Math.floor((Date.now() - started) / 60000));
+      els.questKicker.textContent = '运行中';
+      els.questTitle.textContent = `正在游玩 ${game.zh || game.name}`;
+      els.questDesc.textContent = '打开游戏管理可以结束进程';
+      els.questPct.textContent = minutes < 1 ? '刚刚' : `${minutes} 分钟`;
+      els.questMeta.textContent = '计时中';
+      els.questFill.style.width = '100%';
+      return;
+    }
+    els.questKicker.textContent = game.source === 'steam' ? 'Steam 游戏库' : '游戏';
+    const genres = (game.genres && game.genres.length ? game.genres.join(' · ') : game.genre) || '游戏';
+    els.questTitle.textContent = game.name || game.zh || '游戏';
+    if (!game.exists) {
+      els.questDesc.textContent = '找不到程序 · 请在管理里重新指定';
+    } else {
+      els.questDesc.textContent = `${genres} · ${game.mode || '单人'}`;
+    }
+    els.questDesc.title = game.exePath || '';
+    els.questPct.textContent = formatHoursShort(game.playtimeSeconds);
+    els.questMeta.textContent = game.exists ? (game.lastPlayedUtc ? relativeTime(game.lastPlayedUtc) : '尚未游玩') : '程序缺失';
+    els.questFill.style.width = `${Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100))}%`;
+  }
+
+  /* ============================================================
+     SELECTION
+     ============================================================ */
+
+  function selectGame(index, options = {}) {
+    if (!state.games.length) {
+      renderHero(null, false);
+      return;
+    }
+    const wrapped = ((index % state.games.length) + state.games.length) % state.games.length;
+    const previous = state.index;
+
+    if (wrapped === previous) {
+      if (options.scroll) centerTile(wrapped);
+      if (options.sound) audio.select();
+      if (state.overlay === 'appearance') renderAppearance();
+      return;
+    }
+
+    state.index = wrapped;
+    const game = state.games[wrapped];
+
+    applyAccent(game);
+    if (!options.initial) setBackdrop(game);
+    renderHero(game, options.animate !== false);
+    updateRail();
+    document.title = `${game.zh || game.name} · NOVA 游戏空间`;
+
+    if (options.scroll) centerTile(wrapped);
+    if (options.sound) audio.move(wrapped > previous ? 1 : -1);
+
+    if (state.overlay === 'details') populateDetails(game);
+    if (state.overlay === 'appearance') renderAppearance();
+    if (!state.overlay) setNav('home');
+    saveSettings();
+  }
+
+  function chooseGameById(id, options = {}) {
+    const index = state.games.findIndex((game) => game.id === id);
+    if (index < 0) return;
+    selectGame(index, { sound: true, scroll: true, ...options });
+  }
+
+  /* ============================================================
+     RAIL
+     ============================================================ */
+
+  function buildRail() {
+    els.rail.innerHTML = state.games.map((game, index) => `
+      <button class="tile" data-index="${index}" aria-label="${esc(game.zh || game.name)}" aria-current="false">
+        <div class="tile-art">
+          <img src="${esc(game.coverUrl)}" alt="" loading="eager" draggable="false" style="object-position:${esc(game.coverPosition)}">
+          <div class="tile-badges"></div>
+          <div class="tile-progress"><i></i></div>
+        </div>
+        <div class="tile-label">
+          <span class="tile-name">${esc(game.zh || game.name)}</span>
+          <span class="tile-sub"></span>
+        </div>
+      </button>
+    `).join('');
+
+    const empty = state.games.length === 0;
+    els.rail.style.display = empty ? 'none' : '';
+    els.railEmpty.hidden = !empty;
+    els.dockCount.textContent = `${state.games.length} 款`;
+  }
+
+  function updateRail() {
+    const tiles = els.rail.children;
+    state.games.forEach((game, index) => {
+      const tile = tiles[index];
+      if (!tile) return;
+      const active = index === state.index;
+      tile.classList.toggle('is-active', active);
+      tile.setAttribute('aria-current', active ? 'true' : 'false');
+
+      let badge = '';
+      if (state.running.has(game.id)) badge = '<span class="tile-badge live">运行中</span>';
+      else if (!game.exists) badge = '<span class="tile-badge offline">程序缺失</span>';
+      else if (game.source === 'steam') badge = '<span class="tile-badge">STEAM</span>';
+      const badges = $('.tile-badges', tile);
+      if (badges) badges.innerHTML = badge;
+
+      const progress = $('.tile-progress', tile);
+      if (progress) {
+        const pct = state.running.has(game.id) ? 100 : Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100));
+        progress.style.display = game.exists ? '' : 'none';
+        const fill = $('i', progress);
+        if (fill) fill.style.width = `${pct}%`;
+      }
+
+      const sub = $('.tile-sub', tile);
+      if (sub) sub.textContent = state.running.has(game.id) ? '运行中' : formatHoursShort(game.playtimeSeconds);
+    });
+  }
+
+  function centerTile(index) {
+    const tile = els.rail.children[index];
+    if (!tile) return;
+    const railRect = els.rail.getBoundingClientRect();
+    const tileRect = tile.getBoundingClientRect();
+    const delta = (tileRect.left + tileRect.width / 2) - (railRect.left + railRect.width / 2);
+    els.rail.scrollBy({ left: delta, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  function ensureActiveTileVisible() {
+    const tile = els.rail.children[state.index];
+    if (!tile) return;
+    const railRect = els.rail.getBoundingClientRect();
+    const tileRect = tile.getBoundingClientRect();
+    const margin = 8;
+    if (tileRect.left < railRect.left + margin) {
+      els.rail.scrollBy({ left: tileRect.left - railRect.left - margin, behavior: 'auto' });
+    } else if (tileRect.right > railRect.right - margin) {
+      els.rail.scrollBy({ left: tileRect.right - railRect.right + margin, behavior: 'auto' });
+    }
+  }
+
+  /* ============================================================
+     LIBRARY
+     ============================================================ */
+
+  function filterGames() {
+    const query = state.libQuery.trim().toLowerCase();
+    return state.games.filter((game) => {
+      if (state.libFilter === 'recent' && !game.lastPlayedUtc) return false;
+      if (state.libFilter === 'favorite' && !game.favorite) return false;
+      if (state.libFilter === 'steam' && game.source !== 'steam') return false;
+      if (query) {
+        const haystack = `${game.zh} ${game.name} ${(game.genres || []).join(' ')} ${game.genre || ''}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderLibrary() {
+    const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
+    const favorites = state.games.filter((game) => game.favorite).length;
+    const steamCount = state.games.filter((game) => game.source === 'steam').length;
+
+    els.libStats.innerHTML = `
+      <span><b>${state.games.length}</b> 款游戏</span>
+      <span class="lib-sep"></span>
+      <span>累计 <b>${formatHoursShort(totalSeconds)}</b></span>
+      <span class="lib-sep"></span>
+      <span><b>${steamCount}</b> 款来自 Steam</span>
+      <span class="lib-sep"></span>
+      <span><b>${favorites}</b> 款收藏</span>
+    `;
+
+    $$('.filter', els.libFilters).forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.filter === state.libFilter);
+    });
+
+    const list = filterGames();
+    if (state.games.length === 0) {
+      els.libGrid.style.display = 'none';
+      els.libEmpty.hidden = false;
+      els.libEmptyTitle.textContent = '游戏库还是空的';
+      els.libEmptyText.textContent = '添加一个游戏程序，或先从 Steam 库导入。';
+      els.clearFilters.textContent = '添加游戏';
+      return;
+    }
+
+    const current = currentGame();
+    const currentPos = current ? list.findIndex((game) => game.id === current.id) : -1;
+    let featuredId = null;
+    if (currentPos >= 0) {
+      const [featured] = list.splice(currentPos, 1);
+      list.unshift(featured);
+      featuredId = featured.id;
+    }
+
+    els.libEmpty.hidden = list.length !== 0;
+    els.libGrid.style.display = list.length ? '' : 'none';
+    els.clearFilters.textContent = '清除筛选';
+
+    els.libGrid.innerHTML = list.map((game, index) => {
+      const featured = game.id === featuredId;
+      const badges = [];
+      if (featured) badges.push('<span class="lib-current">CURRENT</span>');
+      if (state.running.has(game.id)) badges.push('<span class="lib-badge live">运行中</span>');
+      else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
+      else if (game.source === 'steam') badges.push('<span class="tile-badge">STEAM</span>');
+      const pct = Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100));
+      const displayName = game.zh || game.name;
+      const showLatin = !!game.zh && !!game.name
+        && game.zh.trim().toLowerCase() !== game.name.trim().toLowerCase()
+        && game.zh.trim().length <= 10;
+
+      return `
+        <button class="lib-card${featured ? ' is-featured' : ''}" data-game="${game.id}" style="animation-delay:${Math.min(index * 34, 240)}ms" aria-label="${esc(game.zh || game.name)}">
+          <div class="lib-art">
+            <img src="${esc(game.coverUrl)}" alt="" loading="lazy" draggable="false" style="object-position:${esc(game.coverPosition)}">
+            <div class="lib-badges">${badges.join('')}</div>
+            <span class="lib-open" aria-hidden="true"><svg class="ic"><use href="#i-arrow-up-right"/></svg></span>
+            ${game.exists ? `<div class="lib-progress"><i style="width:${pct}%"></i></div>` : ''}
+          </div>
+          <div class="lib-info">
+            <div class="lib-name-row">
+              <span class="lib-name${showLatin ? '' : ' is-solo'}">${esc(displayName)}</span>
+              ${showLatin ? `<span class="lib-en">${esc(game.name)}</span>` : ''}
+              ${game.favorite ? '<svg class="lib-fav" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg>' : ''}
+            </div>
+            <div class="lib-sub">${esc((game.genres && game.genres[0]) || game.genre || '游戏')} · ${state.running.has(game.id) ? '运行中' : formatHoursShort(game.playtimeSeconds)}</div>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    $$('img', els.libGrid).forEach((img) => {
+      img.addEventListener('error', () => img.classList.add('is-missing'), { once: true });
+    });
+  }
+
+  function openLibrary(options = {}) {
+    if (state.overlay) return;
+    state.lastFocus = document.activeElement;
+    closePopovers();
+    state.libPadIndex = 0;
+
+    if (options.search) {
+      state.libFilter = 'all';
+      state.libQuery = '';
+      els.libSearch.value = '';
+    } else {
+      els.libSearch.value = state.libQuery;
+    }
+
+    renderLibrary();
+    audio.open();
+    state.overlay = 'library';
+    els.libraryOverlay.classList.add('is-open');
+    els.libraryOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    setNav('library');
+
+    setTimeout(() => {
+      try { (options.search ? els.libSearch : els.libBack).focus({ preventScroll: true }); } catch (error) {}
+    }, 90);
+  }
+
+  function closeLibrary(options = {}) {
+    if (state.overlay !== 'library') return;
+    const { focus = true, sound = true } = options;
+    els.libraryOverlay.classList.remove('is-open');
+    els.libraryOverlay.setAttribute('aria-hidden', 'true');
+    state.overlay = null;
+    els.app.inert = false;
+    setNav('home');
+    if (sound) audio.back();
+    if (focus) restoreFocus();
+  }
+
+  /* ============================================================
+     DETAILS
+     ============================================================ */
+
+  function updateDetailStatus(game) {
+    els.detailStatus.classList.remove('is-update', 'is-offline');
+    if (!game) {
+      els.detailStatusText.textContent = '没有游戏';
+      els.detailStatus.classList.add('is-offline');
+      return;
+    }
+    if (state.running.has(game.id)) {
+      els.detailStatusText.textContent = '运行中';
+      els.detailStatus.classList.add('is-update');
+    } else if (!game.exists) {
+      els.detailStatusText.textContent = '程序缺失';
+      els.detailStatus.classList.add('is-offline');
+    } else {
+      els.detailStatusText.textContent = '已就绪';
+    }
+  }
+
+  function updateDetailProgress(game) {
+    const info = progressInfo(game);
+    els.dProgressLabel.textContent = info.title;
+    els.dProgressPct.textContent = info.pctText;
+    els.dProgressFill.style.width = `${info.pct}%`;
+    // The stat grid below already reports totals; keep this line operational.
+    els.dProgressSub.textContent = state.running.has(game.id)
+      ? '游戏运行中'
+      : game.exists ? '可随时启动' : '需要在管理里重新指定程序';
+  }
+
+  function populateDetails(game) {
+    const oldImage = $('img.detail-art-img', els.detailArt);
+    if (oldImage) oldImage.remove();
+
+    if (!game) {
+      els.detailArt.style.setProperty('--detail-bg', 'url("assets/backdrop.jpg")');
+      setLogo(els.detailLogo, null, 'detail-logo');
+      els.detailZh.textContent = 'NOVA';
+      els.detailTitle.textContent = '还没有游戏';
+      els.detailTagline.textContent = '添加一个游戏程序开始使用。';
+      els.detailMeta.innerHTML = metaHTML(null);
+      els.detailDesc.textContent = '';
+      els.detailStats.innerHTML = '';
+      els.detailPath.textContent = '—';
+      updateDetailStatus(null);
+      return;
+    }
+
+    els.detailArt.style.setProperty('--detail-bg', `url("${game.heroUrl}")`);
+    const image = document.createElement('img');
+    image.className = 'detail-art-img';
+    image.alt = `${game.zh || game.name} 主视觉`;
+    image.src = game.heroUrl;
+    image.style.objectPosition = game.heroPosition;
+    image.draggable = false;
+    els.detailArt.insertBefore(image, els.detailArt.firstChild);
+
+    setLogo(els.detailLogo, game, 'detail-logo');
+    els.detailZh.textContent = fullName(game) || game.name;
+    els.detailTitle.textContent = game.zh || game.name;
+    els.detailTagline.textContent = game.tagline || '';
+    els.detailMeta.innerHTML = metaHTML(game);
+    els.detailDesc.textContent = game.description || '';
+
+    els.detailStats.innerHTML = [
+      ['累计游玩', game.playtimeSeconds ? formatHours(game.playtimeSeconds) : '还没玩过'],
+      ['最近游玩', game.lastPlayedUtc ? relativeTime(game.lastPlayedUtc) : '尚未游玩'],
+      ['启动次数', `${game.launchCount || 0} 次`],
+      ['来源', game.source === 'steam' ? 'Steam 库' : '手动添加']
+    ].map(([label, value]) => `
+      <div class="stat">
+        <div class="stat-label">${esc(label)}</div>
+        <div class="stat-value">${esc(value)}</div>
+      </div>
+    `).join('');
+
+    els.detailPath.textContent = game.exePath || '（未设置）';
+    els.detailPath.title = game.exePath || '';
+    els.revealBtn.hidden = !game.exists;
+
+    els.detailFav.classList.toggle('active', !!game.favorite);
+    els.detailFav.setAttribute('aria-pressed', String(!!game.favorite));
+
+    updatePrimaryButton(els.detailPlay, els.detailPlayLabel, game);
+    updateDetailStatus(game);
+    updateDetailProgress(game);
+
+    closeManage({ silent: true });
+    els.detailManageLabel.textContent = '管理';
+    els.detailManage.setAttribute('aria-expanded', 'false');
+
+    const dialog = $('.detail-modal', els.detailsOverlay);
+    if (dialog) dialog.setAttribute('aria-label', `${game.zh || game.name} · 游戏详情`);
+  }
+
+  function openDetails() {
+    if (state.overlay) return;
+    if (!state.games.length) {
+      openEditor();
+      return;
+    }
+    state.lastFocus = document.activeElement;
+    closePopovers();
+    populateDetails(currentGame());
+    state.overlay = 'details';
+    els.detailsOverlay.classList.add('is-open');
+    els.detailsOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    setNav('home');
+    audio.select();
+    setTimeout(() => {
+      try { els.detailsClose.focus({ preventScroll: true }); } catch (error) {}
+    }, 90);
+    setTimeout(refitLogos, 140);
+  }
+
+  function closeDetails(options = {}) {
+    if (state.overlay !== 'details') return;
+    const { focus = true, sound = true } = options;
+    closeManage({ silent: true });
+    els.detailsOverlay.classList.remove('is-open');
+    els.detailsOverlay.setAttribute('aria-hidden', 'true');
+    state.overlay = null;
+    els.app.inert = false;
+    if (sound) audio.close();
+    if (focus) restoreFocus();
+  }
+
+  async function toggleFavorite(game) {
+    if (!game) return;
+    const result = await call('setFavorite', { id: game.id });
+    if (result && result.ok) {
+      game.favorite = result.favorite;
+    } else {
+      game.favorite = !game.favorite;
+    }
+    els.detailFav.classList.toggle('active', game.favorite);
+    els.detailFav.setAttribute('aria-pressed', String(game.favorite));
+    audio.select();
+    toast(game.favorite ? `已收藏《${game.zh || game.name}》` : `已取消收藏《${game.zh || game.name}》`, 'heart');
+    if (state.overlay === 'library') renderLibrary();
+    updateRail();
+  }
+
+  /* ============================================================
+     MANAGE
+     ============================================================ */
+
+  function fillManage() {
+    const game = currentGame();
+    if (!game) return;
+    els.manageStats.innerHTML = [
+      ['运行时程序', game.exePath ? (game.exePath.length > 34 ? `…${game.exePath.slice(-33)}` : game.exePath) : '未设置'],
+      ['启动参数', game.args || '无'],
+      ['工作目录', game.workDir || '与程序相同'],
+      ['版本 / 来源', game.source === 'steam' ? `Steam · App ${game.steamAppId || '—'}` : '手动添加']
+    ].map(([label, value]) => `<div class="manage-stat"><span>${esc(label)}</span><b title="${esc(value)}">${esc(value)}</b></div>`).join('');
+
+    els.steamRow.hidden = game.source !== 'steam';
+    els.resetArtRow.hidden = !game.exists;
+    resetRemoveConfirm();
+  }
+
+  function openManage() {
+    if (state.overlay !== 'details' || state.manageOpen) return;
+    state.manageOpen = true;
+    els.detailsOverlay.classList.add('is-managing');
+    els.managePanel.hidden = false;
+    els.detailManageLabel.textContent = '收起';
+    els.detailManage.setAttribute('aria-expanded', 'true');
+    fillManage();
+    audio.select();
+    setTimeout(() => {
+      try { els.managePanel.scrollIntoView({ behavior: state.settings.reduceMotion ? 'auto' : 'smooth', block: 'nearest' }); } catch (error) {}
+    }, 40);
+  }
+
+  function closeManage(options = {}) {
+    if (!state.manageOpen) {
+      if (!options.silent) return;
+      els.detailsOverlay.classList.remove('is-managing');
+      els.managePanel.hidden = true;
+      els.detailManageLabel.textContent = '管理';
+      els.detailManage.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    state.manageOpen = false;
+    resetRemoveConfirm();
+    els.detailsOverlay.classList.remove('is-managing');
+    els.managePanel.hidden = true;
+    els.detailManageLabel.textContent = '管理';
+    els.detailManage.setAttribute('aria-expanded', 'false');
+    if (!options.silent) audio.back();
+  }
+
+  function resetRemoveConfirm() {
+    state.removeArmed = false;
+    clearTimeout(state.removeTimer);
+    els.removeGameBtn.classList.remove('is-confirming');
+    els.removeGameBtn.textContent = '从游戏库移除';
+  }
+
+  async function handleRemoveGame() {
+    const game = currentGame();
+    if (!game) return;
+    if (!state.removeArmed) {
+      state.removeArmed = true;
+      els.removeGameBtn.textContent = '再次点击确认移除';
+      els.removeGameBtn.classList.add('is-confirming');
+      clearTimeout(state.removeTimer);
+      state.removeTimer = setTimeout(resetRemoveConfirm, 3200);
+      return;
+    }
+    const result = await call('deleteGame', { id: game.id });
+    if (!result || !result.ok) {
+      toast(result?.error || '移除失败', 'alert');
+      return;
+    }
+    const index = state.games.findIndex((entry) => entry.id === game.id);
+    if (index >= 0) state.games.splice(index, 1);
+    state.running.delete(game.id);
+    if (state.index >= state.games.length) state.index = Math.max(0, state.games.length - 1);
+    closeDetails({ focus: false, sound: false });
+    rebuildAfterLibraryChange();
+    audio.select();
+    toast(`已从游戏库移除《${game.zh || game.name}》`, 'check');
+  }
+
+  async function resetArtwork() {
+    const game = currentGame();
+    if (!game) return;
+    toast('正在从程序图标重新生成封面…', 'image');
+    const result = await call('updateGame', { id: game.id, resetArt: true });
+    if (!result || !result.ok) {
+      toast(result?.error || '重新生成失败', 'alert');
+      return;
+    }
+    Object.assign(game, result.game);
+    populateDetails(game);
+    rebuildAfterLibraryChange(false);
+    applyAccent(game);
+    renderHero(game, false);
+    audio.select();
+    toast('封面已重新生成', 'image');
+  }
+
+  /* ============================================================
+     APPEARANCE STUDIO
+     ============================================================ */
+
+  function buildAppearanceSwitcher() {
+    els.appearanceSwitcher.innerHTML = state.games.map((game, index) => `
+      <button class="game-chip" data-index="${index}" aria-label="预览 ${esc(game.zh || game.name)}">
+        <img src="${esc(game.coverUrl)}" alt="" loading="lazy" draggable="false" style="object-position:${esc(game.coverPosition)}">
+      </button>
+    `).join('');
+    els.appearanceSwitcher.hidden = state.games.length === 0;
+  }
+
+  function syncAppearanceChips() {
+    $$('.game-chip', els.appearanceSwitcher).forEach((chip) => {
+      const active = Number(chip.dataset.index) === state.index;
+      chip.classList.toggle('is-active', active);
+      chip.setAttribute('aria-current', active ? 'true' : 'false');
+    });
+    if (state.overlay !== 'appearance') return;
+    const chip = $('.game-chip.is-active', els.appearanceSwitcher);
+    if (!chip) return;
+    const switcherRect = els.appearanceSwitcher.getBoundingClientRect();
+    const chipRect = chip.getBoundingClientRect();
+    const delta = (chipRect.left + chipRect.width / 2) - (switcherRect.left + switcherRect.width / 2);
+    els.appearanceSwitcher.scrollBy({ left: delta, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  function applyStyleModeUI() {
+    const game = currentGame();
+    const adaptive = state.settings.styleMode === 'adaptive';
+    document.documentElement.classList.toggle('is-nova-system', !adaptive);
+    applyAccent(game);
+
+    setElementCta(els.playBtn, adaptive ? 'cta-adaptive' : 'cta-system', game);
+    setElementCta(els.detailPlay, adaptive ? 'cta-adaptive' : 'cta-system', game);
+    setElementCta(els.appearanceCta, adaptive ? 'cta-adaptive' : 'cta-system', game);
+    setElementCta(els.adaptivePreviewCta, 'cta-adaptive', game, true);
+    setElementCta(els.systemPreviewCta, 'cta-system', game);
+    setElementCta(els.editorSave, adaptive ? 'cta-adaptive' : 'cta-system', game);
+    setElementCta(els.scannerImport, adaptive ? 'cta-adaptive' : 'cta-system', game);
+
+    setLogo(els.gameLogo, game, 'hero-logo');
+    setLogo(els.detailLogo, game, 'detail-logo');
+    setLogo(els.appearanceLogo, game, 'appearance-logo');
+    setLogo(els.launchLogo, game, 'launch-logo');
+    setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', { forceMode: 'adaptive' });
+    setLogo(els.systemChoiceLogo, game, 'choice-logo', { forceMode: 'system' });
+
+    const action = actionInfo(game);
+    if (els.appearanceCtaLabel) els.appearanceCtaLabel.textContent = action.label;
+    const use = els.appearanceCta ? $('use', els.appearanceCta) : null;
+    if (use) use.setAttribute('href', `#i-${action.icon}`);
+
+    if (els.appearanceCtaNote) els.appearanceCtaNote.textContent = adaptive ? '跟随封面' : 'NOVA 默认';
+    if (els.appearanceModeLabel) els.appearanceModeLabel.textContent = adaptive ? '跟随封面' : 'NOVA 默认';
+    if (els.styleModeTag) els.styleModeTag.textContent = adaptive ? '跟随封面' : 'NOVA 默认';
+
+    $$('.style-choice', els.styleChoices).forEach((button) => {
+      const active = button.dataset.style === state.settings.styleMode;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+
+    updateTypeReadout();
+    if (state.overlay === 'appearance') requestAnimationFrame(updateAppearanceScrollState);
+  }
+
+  function setStyleMode(mode, options = {}) {
+    if (mode !== 'adaptive' && mode !== 'system') return;
+    if (state.settings.styleMode === mode && !options.force) return;
+    state.settings.styleMode = mode;
+    saveSettings();
+    applyStyleModeUI();
+    audio.select();
+    if (!options.silent) toast(mode === 'adaptive' ? '外观语言 · 跟随封面' : '外观语言 · NOVA 编辑系统', 'spark');
+  }
+
+  function renderAppearance() {
+    const game = currentGame();
+    const heroSrc = game ? game.heroUrl : 'assets/backdrop.jpg';
+    els.appearanceBg.src = heroSrc;
+    els.appearanceBg.style.objectPosition = game ? game.heroPosition : '50% 45%';
+    els.appearanceImage.src = heroSrc;
+    els.appearanceImage.style.objectPosition = game ? game.heroPosition : '50% 45%';
+    els.appearanceImage.alt = game ? `${game.zh || game.name} 主视觉` : 'NOVA';
+
+    setLogo(els.appearanceLogo, game, 'appearance-logo');
+    els.appearanceTagline.textContent = game ? (game.tagline || '') : '选择游戏开始。';
+    els.appearanceIndex.textContent = game ? `${String(state.index + 1).padStart(2, '0')} / ${String(state.games.length).padStart(2, '0')}` : '00 / 00';
+    els.appearanceGameName.textContent = game ? (game.zh || game.name) : 'NOVA';
+
+    els.appearanceProgressFill.style.width = `${game ? Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100)) : 0}%`;
+    els.appearanceProgressPct.textContent = game ? formatHoursShort(game.playtimeSeconds) : '0 小时';
+
+    const colors = game && game.colors && game.colors.length ? game.colors : ['#ffb45e', '#ff6b79', '#f3e3c3', '#251318'];
+    els.appearancePalette.innerHTML = colors.map((color) => `
+      <span class="swatch"><i style="background:${esc(color)}"></i><em>${esc(String(color).toUpperCase())}</em></span>
+    `).join('');
+
+    els.appearanceDataPath.textContent = state.dataFolder || '';
+    els.appearanceDataPath.title = state.dataFolder || '';
+    syncAppearanceChips();
+    syncSoundUI();
+    syncMotionUI();
+    renderThemes();
+    applyStyleModeUI();
+  }
+
+  function updateAppearanceScrollState() {
+    if (!els.appearanceOptions) return;
+    const el = els.appearanceOptions;
+    const scrollable = el.scrollHeight > el.clientHeight + 4;
+    el.classList.toggle('is-scrollable', scrollable);
+    el.classList.toggle('is-at-end', !scrollable || el.scrollTop + el.clientHeight >= el.scrollHeight - 10);
+  }
+
+  function openAppearance() {
+    if (state.overlay) return;
+    const active = document.activeElement;
+    state.lastFocus = els.profileMenu.contains(active) ? els.profileBtn : active;
+    closePopovers();
+    renderAppearance();
+    state.overlay = 'appearance';
+    els.appearanceOverlay.classList.add('is-open');
+    els.appearanceOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    setNav('appearance');
+    syncAppearanceChips();
+    audio.open();
+    setTimeout(() => {
+      try { els.appearanceClose.focus({ preventScroll: true }); } catch (error) {}
+    }, 90);
+    setTimeout(refitLogos, 140);
+    requestAnimationFrame(updateAppearanceScrollState);
+    setTimeout(updateAppearanceScrollState, 180);
+  }
+
+  function closeAppearance(options = {}) {
+    if (state.overlay !== 'appearance') return;
+    const { focus = true, sound = true } = options;
+    els.appearanceOverlay.classList.remove('is-open');
+    els.appearanceOverlay.setAttribute('aria-hidden', 'true');
+    state.overlay = null;
+    els.app.inert = false;
+    setNav('home');
+    if (sound) audio.back();
+    if (focus) restoreFocus();
+  }
+
+  /* ============================================================
+     SOUND / MOTION / FULLSCREEN / SLEEP
+     ============================================================ */
+
+  function syncSoundUI() {
+    const on = state.settings.sound;
+    if (els.soundSwitch) els.soundSwitch.classList.toggle('on', on);
+    if (els.soundRow) els.soundRow.setAttribute('aria-checked', String(on));
+    const profileUse = els.soundRow ? $('use', els.soundRow) : null;
+    if (profileUse) profileUse.setAttribute('href', on ? '#i-sound-on' : '#i-sound-off');
+    if (els.appearanceSoundSwitch) els.appearanceSoundSwitch.classList.toggle('on', on);
+    if (els.appearanceSoundRow) els.appearanceSoundRow.setAttribute('aria-checked', String(on));
+    const appearanceUse = els.appearanceSoundRow ? $('use', els.appearanceSoundRow) : null;
+    if (appearanceUse) appearanceUse.setAttribute('href', on ? '#i-sound-on' : '#i-sound-off');
+  }
+
+  function setSound(on, announce = true) {
+    state.settings.sound = on;
+    saveSettings();
+    syncSoundUI();
+    if (announce) {
+      if (on) audio.select();
+      toast(on ? '界面音效已开启' : '界面音效已关闭', on ? 'sound-on' : 'sound-off');
+    }
+  }
+
+  function syncMotionUI() {
+    document.documentElement.classList.toggle('reduce-motion', state.settings.reduceMotion);
+    document.documentElement.classList.toggle('calm', state.settings.calm);
+    if (els.appearanceMotionSwitch) els.appearanceMotionSwitch.classList.toggle('on', state.settings.reduceMotion);
+    if (els.appearanceMotionRow) els.appearanceMotionRow.setAttribute('aria-checked', String(state.settings.reduceMotion));
+    if (els.appearanceCalmSwitch) els.appearanceCalmSwitch.classList.toggle('on', state.settings.calm);
+    if (els.appearanceCalmRow) els.appearanceCalmRow.setAttribute('aria-checked', String(state.settings.calm));
+    if (els.calmSwitch) els.calmSwitch.classList.toggle('on', state.settings.calm);
+    if (els.calmRow) els.calmRow.setAttribute('aria-checked', String(state.settings.calm));
+  }
+
+  function setCalm(on, announce = true) {
+    state.settings.calm = on;
+    saveSettings();
+    syncMotionUI();
+    if (on && state.settings.reduceMotion) setReduceMotion(false, false);
+    syncSoundUI();
+    if (announce) {
+      audio.toggle();
+      toast(on ? '沉稳模式已开启 · 更少动画，更多留白' : '沉稳模式已关闭', 'moon');
+    }
+  }
+
+  function setReduceMotion(on, announce = true) {
+    state.settings.reduceMotion = on;
+    saveSettings();
+    syncMotionUI();
+    if (announce) { audio.toggle(); toast(on ? '已开启减少动效' : '已关闭减少动效', 'spark'); }
+  }
+
+  function syncFullscreenLabels() {
+    const active = !!state.fullscreen || !!document.fullscreenElement;
+    if (els.fullscreenLabel) els.fullscreenLabel.textContent = active ? '退出全屏' : '全屏显示';
+    const appearanceLabel = els.appearanceFullscreenRow ? $('.pref-label span', els.appearanceFullscreenRow) : null;
+    if (appearanceLabel) appearanceLabel.textContent = active ? '退出全屏' : '全屏显示';
+  }
+
+  async function toggleFullscreen(closeMenu = false, silent = false) {
+    const next = !state.fullscreen;
+    await applyFullscreen(next, silent);
+    if (closeMenu) closePopovers();
+  }
+
+  function applyFullscreenState(on) {
+    state.fullscreen = on;
+    document.documentElement.classList.toggle('is-fullscreen', on);
+    syncFullscreenLabels();
+    // Maximize and fullscreen are the same window mode, so one icon serves both.
+    syncMaxButton(on);
+    if (on) {
+      document.documentElement.classList.remove('idle');
+      scheduleFullscreenIdle();
+    }
+  }
+
+  let fullscreenIdleTimer = null;
+
+  function scheduleFullscreenIdle() {
+    clearTimeout(fullscreenIdleTimer);
+    if (!state.fullscreen) return;
+    fullscreenIdleTimer = setTimeout(() => {
+      if (state.fullscreen) document.documentElement.classList.add('idle');
+    }, 3200);
+  }
+
+  /** The window's close button and Alt+F4 both land here. */
+  async function askClose() {
+    const choice = await window.NovaOverlays.dialog({
+      title: '关闭 NOVA',
+      text: '可以最小化到托盘，让游戏继续计时。',
+      icon: 'power',
+      actions: [
+        { label: '最小化到托盘', value: 'tray', icon: 'moon' },
+        { label: '退出程序', value: 'quit', style: 'danger', icon: 'close' },
+        { label: '取消', value: 'cancel', style: 'primary' }
+      ]
+    });
+    if (choice === 'quit') call('quitNow');
+    else if (choice === 'tray') call('hideToTray');
+  }
+
+  async function applyFullscreen(on, silent = false) {
+    state.fullscreen = on;
+    document.documentElement.classList.toggle('is-fullscreen', on);
+    document.documentElement.classList.remove('idle');
+    syncFullscreenLabels();
+
+    if (on) {
+      document.body.classList.add('fullscreen-entering');
+      setTimeout(() => document.body.classList.remove('fullscreen-entering'), 520);
+    }
+
+    if (hasBridge) {
+      const result = await call('setFullscreen', { on });
+      if (result && result.ok === false && !silent) {
+        toast('无法切换全屏');
+      }
+    } else if (on) {
+      try { await document.documentElement.requestFullscreen(); } catch (error) {}
+    } else if (document.fullscreenElement) {
+      try { await document.exitFullscreen(); } catch (error) {}
+    }
+
+    if (!silent) toast(on ? '全屏已开启' : '全屏已关闭', 'fullscreen');
+  }
+
+  function enterSleep() {
+    if (state.overlay) return;
+    state.lastFocus = els.profileBtn;
+    closePopovers();
+    updateClock();
+    state.overlay = 'sleep';
+    els.sleepOverlay.classList.add('is-open');
+    els.sleepOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    audio.sleep();
+    try { els.sleepOverlay.focus({ preventScroll: true }); } catch (error) {}
+  }
+
+  function exitSleep() {
+    if (state.overlay !== 'sleep') return;
+    els.sleepOverlay.classList.remove('is-open');
+    els.sleepOverlay.setAttribute('aria-hidden', 'true');
+    state.overlay = null;
+    els.app.inert = false;
+    audio.select();
+    restoreFocus();
+  }
+
+  function syncMaxButton(maximized) {
+    const use = els.maxBtn.querySelector('use');
+    if (use) use.setAttribute('href', maximized ? '#i-restore' : '#i-square');
+    els.maxBtn.setAttribute('aria-label', maximized ? '还原' : '最大化');
+  }
+
+  /* ============================================================
+     NOTIFICATIONS
+     ============================================================ */
+
+  function pushNotice(notice) {
+    notices.unshift({ id: ++noticeSeq, unread: true, time: Date.now(), ...notice });
+    if (notices.length > 12) notices.length = 12;
+    renderNotifications();
+    els.bellDot.classList.remove('is-hidden');
+  }
+
+  function noticeTime(notice) {
+    const diff = Date.now() - notice.time;
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+    return `${Math.floor(diff / 3600000)} 小时前`;
+  }
+
+  function renderNotifications() {
+    const hasUnread = notices.some((notice) => notice.unread);
+    els.bellDot.classList.toggle('is-hidden', !hasUnread);
+    els.markReadBtn.disabled = !hasUnread;
+    els.notifFootText.textContent = notices.length ? `${notices.length} 条通知 · 本地生成` : '游戏库已就绪';
+
+    if (!notices.length) {
+      els.notifList.innerHTML = `
+        <div class="notif-empty">
+          <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>
+          <span>还没有通知</span>
+          <em>启动游戏、结束会话时会在这里留下记录。</em>
+        </div>`;
+      return;
+    }
+
+    els.notifList.innerHTML = notices.map((notice, index) => `
+      <button class="notif-item ${notice.unread ? '' : 'is-read'}" data-notice="${index}">
+        <span class="notif-icon" style="--n-color:${notice.color || '#ffb45e'}">
+          <svg class="ic" aria-hidden="true"><use href="#i-${notice.icon || 'spark'}"/></svg>
+        </span>
+        <div class="notif-copy">
+          <div class="notif-title">${esc(notice.title)}</div>
+          <div class="notif-sub">${esc(notice.sub || '')}</div>
+          <div class="notif-time">${esc(noticeTime(notice))}</div>
+        </div>
+        <span class="notif-unread" aria-hidden="true"></span>
+      </button>
+    `).join('');
+  }
+
+  function openPopover(which) {
+    const panel = which === 'notif' ? els.notifPanel : els.profileMenu;
+    const button = which === 'notif' ? els.notifBtn : els.profileBtn;
+    const wasOpen = panel.classList.contains('is-open');
+    closePopovers();
+    if (wasOpen) return;
+    if (which === 'notif') renderNotifications();
+    panel.classList.add('is-open');
+    panel.setAttribute('aria-hidden', 'false');
+    button.setAttribute('aria-expanded', 'true');
+    audio.select();
+  }
+
+  /* ============================================================
+     LAUNCH
+     ============================================================ */
+
+  function clearLaunchTimers() {
+    state.launchTimers.forEach((timer) => clearTimeout(timer));
+    state.launchTimers = [];
+  }
+
+  const launchSteps = () => Array.from(els.launchSteps.children);
+
+  function setLaunchProgress(percent) {
+    const value = Math.max(0, Math.min(100, percent));
+    const circumference = 540.35;
+    if (els.launchRing) els.launchRing.style.strokeDashoffset = String(circumference * (1 - value / 100));
+    if (els.launchRingLabel) els.launchRingLabel.textContent = `${Math.round(value)}%`;
+  }
+
+  function setLaunchStep(index) {
+    launchSteps().forEach((step, i) => {
+      step.classList.toggle('is-active', i === index);
+      step.classList.toggle('is-done', i < index);
+    });
+  }
+
+  async function launchGame(game) {
+    if (state.overlay === 'launch' || !game) return;
+    if (state.running.has(game.id)) {
+      toast(`《${game.zh || game.name}》正在运行中`, 'gamepad');
+      return;
+    }
+    if (!game.exists) {
+      toast('找不到游戏程序，请在管理面板中重新指定', 'alert');
+      openDetails();
+      setTimeout(openManage, 180);
+      return;
+    }
+
+    closePopovers();
+    clearLaunchTimers();
+
+    els.launchArt.src = game.heroUrl;
+    els.launchArt.style.objectPosition = game.heroPosition;
+    els.launchArt.alt = `${game.zh || game.name} 启动画面`;
+    setLogo(els.launchLogo, game, 'launch-logo');
+    els.launchZh.textContent = fullName(game);
+    els.launchKicker.textContent = game.launchCount > 0 ? '继续' : '开始';
+    els.launchStatus.textContent = '正在启动…';
+    els.launchSystem.textContent = '启动中';
+    els.launchFootMeta.textContent = game.playtimeSeconds > 0
+      ? `累计 ${formatHours(game.playtimeSeconds)} · 本次会计入`
+      : '本次时长会计入统计';
+    setLaunchProgress(0);
+    setLaunchStep(0);
+
+    els.launchOverlay.classList.remove('is-open', 'is-ready', 'is-leaving');
+    void els.launchOverlay.offsetWidth;
+
+    state.lastFocus = els.playBtn;
+    state.overlay = 'launch';
+    document.body.dataset.overlay = 'launch';
+    els.launchOverlay.classList.add('is-open');
+    els.launchOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    audio.launch();
+    try { els.launchOverlay.focus({ preventScroll: true }); } catch (error) {}
+    refreshPadHints();
+
+    // Step 1 — load info. The visual sequence runs on wall-clock timers so
+    // it feels the same whether the process starts in 80 ms or 4 s.
+    state.launchTimers.push(setTimeout(() => {
+      setLaunchProgress(34);
+      els.launchStatus.textContent = '启动进程…';
+      setLaunchStep(1);
+    }, state.settings.calm ? 120 : 420));
+
+    const startedAt = performance.now();
+    const result = await call('launch', { id: game.id });
+    const ok = result && result.ok;
+
+    // Step 2 — the process exists; give the surface a beat to hand over.
+    const minimum = state.settings.calm ? 900 : 1500;
+    const elapsed = performance.now() - startedAt;
+    const wait = Math.max(0, minimum - elapsed);
+    await new Promise((resolve) => setTimeout(resolve, wait));
+
+    if (ok) {
+      game.launchCount = (game.launchCount || 0) + 1;
+      game.lastPlayedUtc = new Date().toISOString();
+      setLaunchProgress(78);
+      els.launchStatus.textContent = '已启动';
+      setLaunchStep(2);
+      if (!state.running.has(game.id)) {
+        state.running.set(game.id, {
+          sessionId: result.sessionId,
+          gameId: game.id,
+          gameName: game.name,
+          startedUtc: new Date().toISOString()
+        });
+      }
+      state.launchTimers.push(setTimeout(() => {
+        setLaunchProgress(100);
+        setLaunchStep(3);
+        els.launchSystem.textContent = '运行中';
+        els.launchStatus.textContent = '运行中';
+        els.launchOverlay.classList.add('is-ready');
+        audio.launchReady();
+      }, state.settings.calm ? 220 : 520));
+      if (state.overlay === 'details') populateDetails(game);
+      updateRail();
+      refreshLive();
+    } else {
+      setLaunchProgress(100);
+      els.launchStatus.textContent = result?.error || '启动失败';
+      els.launchSystem.textContent = '启动失败';
+      els.launchFootMeta.textContent = '请检查可执行文件路径与权限';
+      els.launchOverlay.classList.add('is-ready');
+      setLaunchStep(-1);
+      audio.error();
+      toast(result?.error || '启动失败', 'alert');
+    }
+  }
+
+  function closeLaunch(options = {}) {
+    if (state.overlay !== 'launch') return;
+    clearLaunchTimers();
+    if (options.quiet !== true) audio.exitGame();
+    const reduce = state.settings.reduceMotion || state.settings.calm;
+    const duration = reduce ? 220 : 900;
+    els.launchOverlay.classList.add('is-leaving');
+    els.launchOverlay.classList.remove('is-ready');
+
+    state.launchTimers.push(setTimeout(() => {
+      els.launchOverlay.classList.remove('is-open', 'is-leaving');
+      els.launchOverlay.setAttribute('aria-hidden', 'true');
+      state.overlay = null;
+      els.app.inert = false;
+      if (document.body.dataset.overlay === 'launch') delete document.body.dataset.overlay;
+      restoreFocus();
+      refreshPadHints();
+    }, duration));
+  }
+
+  function onSessionStarted(payload) {
+    if (!payload) return;
+    state.running.set(payload.gameId, payload);
+    const game = findGame(payload.gameId);
+    if (game) {
+      game.launchCount = Math.max(game.launchCount || 0, 1);
+      game.lastPlayedUtc = new Date().toISOString();
+    }
+    pushNotice({
+      icon: 'play',
+      color: game?.accent || '#ffb45e',
+      title: `${payload.gameName} 已启动`,
+      sub: '本次会话正在计时',
+      gameId: payload.gameId
+    });
+    refreshLive();
+    if (state.overlay === 'details') populateDetails(currentGame());
+    updateRail();
+  }
+
+  function onSessionEnded(payload) {
+    if (!payload) return;
+    state.running.delete(payload.gameId);
+    const game = findGame(payload.gameId);
+    if (game) {
+      game.playtimeSeconds = payload.playtimeSeconds ?? (game.playtimeSeconds + payload.seconds);
+      game.lastPlayedUtc = new Date().toISOString();
+    }
+    const spent = formatHours(payload.seconds);
+    pushNotice({
+      icon: payload.crashed ? 'alert' : 'check',
+      color: payload.crashed ? '#ff9d7a' : (game?.accent || '#7fe3c0'),
+      title: `${payload.gameName} 已结束`,
+      sub: payload.crashed ? `进程非正常退出 · 本次 ${spent}` : `本次游玩 ${spent}`,
+      gameId: payload.gameId
+    });
+    if (game && state.overlay !== 'launch') {
+      toast(payload.crashed
+        ? `《${game.zh || game.name}》非正常退出 · 已记录 ${spent}`
+        : `《${game.zh || game.name}》已结束 · 本次 ${spent}`, payload.crashed ? 'alert' : 'check');
+    }
+    refreshLive();
+    if (state.overlay === 'details') populateDetails(currentGame());
+    updateRail();
+  }
+
+  /* keep "运行中" counters fresh every 30 s */
+  function refreshLive() {
+    if (state.overlay === 'details' && currentGame()) updateDetailProgress(currentGame());
+    if (state.overlay === 'library') renderLibrary();
+    if (!state.overlay && currentGame()) renderHero(currentGame(), false);
+    updateRail();
+  }
+
+  /* ============================================================
+     EDITOR
+     ============================================================ */
+
+  function editorLogoText() {
+    const name = els.fLogo.value.trim() || els.fName.value.trim() || 'NOVA';
+    return name.toUpperCase();
+  }
+
+  function syncEditorPreview() {
+    const name = els.fLogo.value.trim() || els.fName.value.trim() || 'NOVA';
+    setLogo(els.editorLogo, currentGame(), 'editor-logo', { text: name.toUpperCase() });
+    els.editorPreviewHint.textContent = els.fExe.value ? '保存后从真实封面或程序图标生成' : '从可执行文件或图片生成封面';
+  }
+
+  function setEditorError(message) {
+    if (!message) {
+      els.editorError.hidden = true;
+      els.editorError.textContent = '';
+      return;
+    }
+    els.editorError.hidden = false;
+    els.editorError.textContent = message;
+  }
+
+  function resetEditorFields() {
+    els.fExe.value = '';
+    els.fName.value = '';
+    els.fZh.value = '';
+    els.fGenre.value = '';
+    els.fLogo.value = '';
+    els.fTagline.value = '';
+    els.fImage.value = '';
+    els.fArgs.value = '';
+    els.fWorkDir.value = '';
+    els.fDesc.value = '';
+    els.editorPreviewImg.classList.remove('is-loaded');
+    els.editorPreviewImg.removeAttribute('src');
+    els.editorSwatches.innerHTML = '';
+    setEditorError('');
+  }
+
+  function openEditor(game = null) {
+    if (state.overlay && state.overlay !== 'library' && state.overlay !== 'scanner') return;
+    const fromLibrary = state.overlay === 'library';
+    if (fromLibrary) closeLibrary({ focus: false, sound: false });
+    if (state.overlay === 'scanner') closeScanner({ focus: false, sound: false });
+
+    state.lastFocus = document.activeElement;
+    state.editorMode = game ? 'edit' : 'create';
+    state.editorId = game ? game.id : null;
+    state.editorManifest = null;
+    resetEditorFields();
+
+    if (game) {
+      els.editorTitle.textContent = '编辑游戏';
+      els.editorMode.textContent = '编辑';
+      els.editorSaveLabel.textContent = '保存修改';
+      els.editorDelete.hidden = false;
+      els.fExe.value = game.exePath || '';
+      els.fName.value = game.name || '';
+      els.fZh.value = game.zh || '';
+      els.fGenre.value = game.genre || '';
+      els.fLogo.value = game.logo || '';
+      els.fTagline.value = game.tagline || '';
+      els.fArgs.value = game.args || '';
+      els.fWorkDir.value = game.workDir || '';
+      els.fDesc.value = game.description || '';
+      if (game.heroUrl) {
+        els.editorPreviewImg.src = game.heroUrl;
+        els.editorPreviewImg.onload = () => els.editorPreviewImg.classList.add('is-loaded');
+        (game.colors || []).forEach((color) => {
+          const swatch = document.createElement('i');
+          swatch.style.background = color;
+          els.editorSwatches.appendChild(swatch);
+        });
+      }
+    } else {
+      els.editorTitle.textContent = '添加游戏';
+      els.editorMode.textContent = '添加';
+      els.editorSaveLabel.textContent = '添加到游戏库';
+      els.editorDelete.hidden = true;
+    }
+
+    syncEditorPreview();
+    state.overlay = 'editor';
+    els.editorOverlay.classList.add('is-open');
+    els.editorOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    audio.select();
+    setTimeout(() => {
+      const target = game ? els.fName : els.fExe;
+      try { target.focus({ preventScroll: true }); } catch (error) {}
+    }, 120);
+  }
+
+  function closeEditor(options = {}) {
+    if (state.overlay !== 'editor') return;
+    const { focus = true, sound = true } = options;
+    els.editorOverlay.classList.remove('is-open');
+    els.editorOverlay.setAttribute('aria-hidden', 'true');
+    state.overlay = null;
+    els.app.inert = false;
+    if (sound) audio.back();
+    if (focus) restoreFocus();
+  }
+
+  async function saveEditor() {
+    const exePath = els.fExe.value.trim();
+    const imagePath = els.fImage.value.trim();
+    if (!exePath) {
+      setEditorError('请先选择游戏的可执行文件（.exe）。');
+      return;
+    }
+    if (!els.fName.value.trim()) {
+      const suggested = exePath.split(/[\\/]/).pop().replace(/\.exe$/i, '').replace(/[_-]/g, ' ');
+      els.fName.value = suggested;
+    }
+
+    const payload = {
+      id: state.editorId || undefined,
+      exePath,
+      name: els.fName.value.trim(),
+      zh: els.fZh.value.trim(),
+      genre: els.fGenre.value.trim(),
+      logoText: els.fLogo.value.trim(),
+      tagline: els.fTagline.value.trim(),
+      imagePath: imagePath || undefined,
+      args: els.fArgs.value.trim(),
+      workDir: els.fWorkDir.value.trim(),
+      description: els.fDesc.value.trim(),
+      manifestPath: state.editorManifest || undefined
+    };
+
+    els.editorSave.disabled = true;
+    const label = els.editorSaveLabel.textContent;
+    els.editorSaveLabel.textContent = state.editorMode === 'edit' ? '正在保存…' : '正在生成封面…';
+
+    const result = state.editorMode === 'edit'
+      ? await call('updateGame', payload)
+      : await call('createGame', payload);
+
+    els.editorSave.disabled = false;
+    els.editorSaveLabel.textContent = label;
+
+    if (!result || !result.ok) {
+      setEditorError(result?.error || '保存失败，请检查文件路径。');
+      audio.error();
+      return;
+    }
+
+    if (state.editorMode === 'edit') {
+      const game = findGame(state.editorId);
+      if (game) Object.assign(game, result.game);
+      toast(`《${result.game.zh || result.game.name}》已更新`, 'check');
+      closeEditor({ focus: false, sound: false });
+      rebuildAfterLibraryChange(false);
+      audio.select();
+    } else {
+      state.games.push(result.game);
+      const index = state.games.length - 1;
+      closeEditor({ focus: false, sound: false });
+      rebuildAfterLibraryChange(false);
+      selectGame(index, { sound: false, initial: true });
+      setBackdrop(result.game);
+      applyAccent(result.game);
+      renderHero(result.game, true);
+      audio.select();
+      toast(`已添加《${result.game.zh || result.game.name}》`, 'check');
+    }
+  }
+
+  /* ============================================================
+     THEMES
+     A theme swaps the whole shell: colours, borders, buttons and
+     icons. Themes live in the user theme folder and never execute code.
+     ============================================================ */
+
+  function renderThemes() {
+    if (!els.themeGrid || !window.NovaTheme) return;
+    const themes = window.NovaTheme.themes;
+    const activeId = window.NovaTheme.activeId;
+    els.themeCountTag.textContent = `${themes.length} 套`;
+
+    els.themeGrid.innerHTML = themes.map((theme) => {
+      const active = theme.id === activeId;
+      const broken = theme.ok === false;
+      const preview = theme.previewUrl
+        ? `<img src="${esc(theme.previewUrl)}" alt="" draggable="false">`
+        : '<span class="theme-placeholder"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg></span>';
+      return `
+        <button class="theme-card${active ? ' is-active' : ''}${broken ? ' is-broken' : ''}"
+                data-theme="${esc(theme.id)}" type="button"
+                aria-pressed="${active ? 'true' : 'false'}"
+                ${broken ? 'disabled' : ''}
+                title="${esc(broken ? theme.error : theme.description || theme.name)}">
+          <span class="theme-preview">${preview}</span>
+          <span class="theme-meta">
+            <span class="theme-name">${esc(theme.name)}</span>
+            <span class="theme-sub">${esc(broken ? theme.error : `${theme.author} · v${theme.version}`)}</span>
+          </span>
+          ${active ? '<span class="theme-active-tag">使用中</span>' : ''}
+        </button>`;
+    }).join('');
+  }
+
+  async function applyTheme(id, options = {}) {
+    if (!window.NovaTheme) return;
+    const theme = window.NovaTheme.find(id);
+    if (!theme || theme.ok === false) {
+      if (!options.silent) toast(theme?.error || '这个主题不可用', 'alert');
+      return;
+    }
+    const before = window.NovaTheme.activeId;
+    const result = await window.NovaTheme.activate(id, options);
+    if (!result.ok) {
+      if (!options.silent) toast(result.error || '主题加载失败', 'alert');
+      return;
+    }
+    state.theme = result.theme.id;
+    renderThemes();
+    if (before !== state.theme) {
+      applyStyleModeUI();
+      applyAccent(currentGame());
+      audio.select();
+      if (!options.silent) toast(`界面主题 · ${result.theme.name}`, 'spark');
+    }
+  }
+
+  async function startThemes() {
+    if (!window.NovaTheme || !hasBridge) return;
+    await window.NovaTheme.start({ call, styleMode: state.settings.styleMode });
+
+    // The host remembers the active theme; apply it before first paint settles.
+    const preferred = state.settings.theme && window.NovaTheme.find(state.settings.theme)
+      ? state.settings.theme
+      : 'nova';
+    await window.NovaTheme.activate(preferred, { silent: true });
+    state.theme = window.NovaTheme.activeId;
+    renderThemes();
+    applyStyleModeUI();
+    applyAccent(currentGame());
+    renderHero(currentGame(), false);
+    updateRail();
+  }
+
+  function bindThemePanel() {
+    els.themeGrid.addEventListener('click', (event) => {
+      const card = event.target.closest('[data-theme]');
+      if (!card || card.disabled) return;
+      applyTheme(card.dataset.theme);
+    });
+
+    els.themeRefresh.addEventListener('click', async () => {
+      if (!window.NovaTheme) return;
+      await window.NovaTheme.refresh();
+      const stillThere = window.NovaTheme.find(state.theme);
+      if (!stillThere || stillThere.ok === false) await applyTheme('nova', { silent: true });
+      renderThemes();
+      audio.select();
+      toast(`已刷新 · ${window.NovaTheme.themes.length} 套主题`, 'shuffle');
+    });
+
+    els.themeFolder.addEventListener('click', async () => {
+      const result = await call('openThemesFolder');
+      audio.open();
+      if (result && result.folder) toast('已打开主题文件夹', 'folder');
+    });
+  }
+
+  /* ============================================================
+     CONTEXT MENU
+     The browser menu is disabled by the host; this is the themed
+     replacement. It only offers actions that make sense here.
+     ============================================================ */
+
+  const menuState = { items: [], index: -1 };
+
+  function closeContextMenu() {
+    if (!state.menuOpen) return;
+    state.menuOpen = false;
+    menuState.index = -1;
+    els.contextMenu.classList.remove('is-open');
+    els.contextMenu.setAttribute('aria-hidden', 'true');
+  }
+
+  function contextItemsFor(target) {
+    const scope = padScope();
+    const items = [];
+
+    if (scope === 'editor') {
+      const field = target.closest('input, textarea');
+      if (field && !field.readOnly) {
+        const hasSelection = field.selectionStart !== field.selectionEnd;
+        items.push({ label: '剪切', key: 'Ctrl+X', action: () => document.execCommand('cut') });
+        items.push({ label: '复制', key: 'Ctrl+C', action: () => document.execCommand('copy'), disabled: !hasSelection });
+        items.push({ label: '粘贴', key: 'Ctrl+V', action: () => document.execCommand('paste') });
+        items.push({ separator: true });
+        items.push({ label: '全选', key: 'Ctrl+A', action: () => field.select() });
+      }
+      return items;
+    }
+
+    const theme = window.NovaTheme && window.NovaTheme.find(state.theme);
+    items.push({ label: theme ? `界面主题 · ${theme.name}` : '界面主题', icon: 'spark', action: openAppearance });
+    items.push({ label: '游戏详情', icon: 'info', action: openDetails, disabled: !currentGame() });
+    items.push({ label: '在资源管理器中显示', icon: 'folder', action: () => currentGame() && call('revealGame', { id: currentGame().id }), disabled: !currentGame()?.exists });
+    items.push({ separator: true });
+    items.push({ label: state.fullscreen ? '退出全屏' : '全屏', key: 'F', icon: 'fullscreen', action: () => toggleFullscreen() });
+    items.push({ label: '睡眠模式', icon: 'moon', action: enterSleep });
+    items.push({ separator: true });
+    items.push({ label: '打开数据文件夹', icon: 'folder', action: () => call('openDataFolder') });
+    return items;
+  }
+
+  function openContextMenu(x, y) {
+    const target = document.elementFromPoint(x, y) || document.body;
+    const items = contextItemsFor(target).filter((item) => !item.disabled || item.separator);
+    if (!items.length) return;
+
+    menuState.items = items;
+    menuState.index = -1;
+    els.contextMenu.innerHTML = items.map((item, index) => {
+      if (item.separator) return '<span class="menu-separator" role="separator"></span>';
+      const icon = item.icon ? `<svg class="ic" aria-hidden="true"><use href="#i-${item.icon}"/></svg>` : '<span class="menu-icon-gap"></span>';
+      const key = item.key ? `<span class="menu-key">${esc(item.key)}</span>` : '';
+      return `<button class="context-item${item.disabled ? ' is-disabled' : ''}" role="menuitem" data-menu="${index}" type="button"${item.disabled ? ' disabled' : ''}>${icon}<span class="menu-label">${esc(item.label)}</span>${key}</button>`;
+    }).join('');
+
+    els.contextMenu.classList.add('is-open');
+    els.contextMenu.setAttribute('aria-hidden', 'false');
+    state.menuOpen = true;
+
+    // Keep the menu inside the viewport.
+    const rect = els.contextMenu.getBoundingClientRect();
+    const left = Math.min(x, window.innerWidth - rect.width - 10);
+    const top = Math.min(y, window.innerHeight - rect.height - 10);
+    els.contextMenu.style.left = `${Math.max(8, left)}px`;
+    els.contextMenu.style.top = `${Math.max(8, top)}px`;
+
+    setTimeout(() => {
+      const first = $('.context-item:not(.is-disabled)', els.contextMenu);
+      if (first) first.focus({ preventScroll: true });
+    }, 60);
+  }
+
+  function runMenuItem(index) {
+    const item = menuState.items[index];
+    if (!item || item.disabled) return;
+    closeContextMenu();
+    audio.select();
+    item.action();
+  }
+
+  function bindContextMenu() {
+    document.addEventListener('contextmenu', (event) => {
+      // Text fields keep their edit actions; everywhere else uses the themed menu.
+      event.preventDefault();
+      if (state.overlay === 'launch' || state.overlay === 'sleep') return;
+      openContextMenu(event.clientX, event.clientY);
+    });
+
+    els.contextMenu.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-menu]');
+      if (!button) return;
+      runMenuItem(Number(button.dataset.menu));
+    });
+
+    document.addEventListener('pointerdown', (event) => {
+      if (state.menuOpen && !event.target.closest('#contextMenu')) closeContextMenu();
+    }, true);
+
+    document.addEventListener('keydown', (event) => {
+      if (!state.menuOpen) return;
+      const usable = menuState.items
+        .map((item, index) => (item.separator || item.disabled ? -1 : index))
+        .filter((index) => index >= 0);
+      if (!usable.length) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeContextMenu();
+        return;
+      }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const current = usable.indexOf(menuState.index);
+        const next = event.key === 'ArrowDown'
+          ? usable[(current + 1 + usable.length) % usable.length]
+          : usable[(current - 1 + usable.length) % usable.length];
+        menuState.index = next;
+        const button = els.contextMenu.querySelector(`[data-menu="${next}"]`);
+        if (button) button.focus({ preventScroll: true });
+        return;
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (menuState.index < 0) runMenuItem(usable[0]);
+        else runMenuItem(menuState.index);
+      }
+    }, true);
+
+    window.addEventListener('blur', closeContextMenu);
+  }
+
+  /* ============================================================
+     MANIFEST ADOPTION
+     docs/INTEGRATION.md: when an exe ships a nova-game.json we can fill
+     the whole form from it instead of asking the user to retype metadata.
+     ============================================================ */
+
+  async function adoptExecutable(path, options = {}) {
+    els.fExe.value = path;
+    if (!els.fWorkDir.value.trim()) els.fWorkDir.value = path.replace(/[\\/][^\\/]+$/, '');
+
+    const manifest = await call('readManifest', { exePath: path });
+    if (manifest && manifest.ok && manifest.data) {
+      const data = manifest.data;
+      els.fName.value = data.name || els.fName.value;
+      els.fZh.value = data.zh || '';
+      els.fLogo.value = data.logo || '';
+      els.fGenre.value = data.genre || '';
+      els.fTagline.value = data.tagline || '';
+      els.fDesc.value = data.description || '';
+      els.fArgs.value = data.args || '';
+      els.fWorkDir.value = data.workdir || els.fWorkDir.value;
+      if (data.hero) els.fImage.value = data.hero;
+      state.editorManifest = manifest.manifestPath;
+      els.editorPreviewHint.textContent = '已读取 nova-game.json · 封面与信息来自清单';
+      if (!options.quiet) toast('已读取游戏清单 · 信息自动填入', 'disc');
+    } else {
+      state.editorManifest = null;
+      if (!els.fName.value.trim()) {
+        const name = path.split(/[\\/]/).pop().replace(/\.exe$/i, '').replace(/[_-]/g, ' ');
+        els.fName.value = name;
+      }
+      if (!options.quiet && manifest && manifest.error === '没有找到 nova-game.json') {
+        els.editorPreviewHint.textContent = '未找到清单 · 将根据程序图标生成封面';
+      } else if (!options.quiet && manifest && manifest.error) {
+        setEditorError(manifest.error);
+      }
+    }
+    syncEditorPreview();
+  }
+
+  /* ============================================================
+     SCANNER
+     ============================================================ */
+
+  const scanSelection = new Set();
+
+  function openScanner() {
+    if (state.overlay && state.overlay !== 'library') return;
+    if (state.overlay === 'library') closeLibrary({ focus: false, sound: false });
+    state.lastFocus = document.activeElement;
+    scanSelection.clear();
+    state.scan = null;
+    els.scannerList.innerHTML = '';
+    state.overlay = 'scanner';
+    els.scannerOverlay.classList.add('is-open');
+    els.scannerOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    audio.select();
+    startScan();
+  }
+
+  function closeScanner(options = {}) {
+    if (state.overlay !== 'scanner') return;
+    const { focus = true, sound = true } = options;
+    els.scannerOverlay.classList.remove('is-open');
+    els.scannerOverlay.setAttribute('aria-hidden', 'true');
+    state.overlay = null;
+    els.app.inert = false;
+    if (sound) audio.back();
+    if (focus) restoreFocus();
+  }
+
+  async function startScan() {
+    state.scanning = true;
+    els.scannerStatus.hidden = false;
+    els.scannerSpinner.hidden = false;
+    els.scannerStatusText.textContent = '正在扫描…';
+    els.scannerImport.disabled = true;
+    els.scannerImportLabel.textContent = '扫描中…';
+    els.scannerList.innerHTML = '';
+
+    const [result, manifests] = await Promise.all([call('scanLibrary'), call('scanManifests')]);
+    state.scanning = false;
+    state.manifestScan = manifests && manifests.ok ? manifests : null;
+
+    if (!result || !result.ok) {
+      els.scannerStatusText.textContent = result?.error || '扫描失败';
+      els.scannerSpinner.hidden = true;
+      els.scannerImportLabel.textContent = '导入所选';
+      return;
+    }
+
+    state.scan = result;
+    renderScanResults(result, state.manifestScan);
+  }
+
+  function renderScanResults(result, manifestScan) {
+    const steam = result.steam || [];
+    const shortcuts = result.shortcuts || [];
+    const manifests = (manifestScan && manifestScan.items) || [];
+    const pending = steam.filter((item) => !item.imported);
+    const imported = steam.filter((item) => item.imported);
+    els.scannerSpinner.hidden = true;
+    els.scannerStatus.hidden = !(steam.length || shortcuts.length);
+    els.scannerStatusText.textContent = `${pending.length} 款 Steam 游戏、${shortcuts.length} 个快捷方式`;
+
+    if (!steam.length && !shortcuts.length) {
+      els.scannerStatus.hidden = true;
+      els.scannerList.innerHTML = `
+        <div class="scanner-empty">
+          <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+          <strong>没有找到可导入的游戏</strong>
+          <span>${result.steamRoot ? 'Steam 库中没有识别到已安装的游戏。' : '未检测到 Steam 安装，可以手动添加游戏。'}</span>
+        </div>`;
+      els.scannerImport.disabled = true;
+      els.scannerImportLabel.textContent = '导入所选';
+      return;
+    }
+
+    const rows = [];
+    if (manifests.length) {
+      rows.push(`<div class="scan-group-title"><span>带清单的游戏 <em>nova-game.json</em></span></div>`);
+      manifests.forEach((item, index) => rows.push(scanManifestRow(item, index)));
+    }
+    if (pending.length) {
+      rows.push(`<div class="scan-group-title"><span>STEAM 游戏库 <em>${result.steamRoot || ''}</em></span></div>`);
+      pending.forEach((item) => rows.push(scanRow(item, 'steam')));
+    }
+    if (imported.length) {
+      rows.push(`<div class="scan-group-title"><span>已导入 <em>${imported.length} 款</em></span></div>`);
+      imported.forEach((item) => rows.push(scanRow(item, 'steam', true)));
+    }
+    if (shortcuts.length) {
+      rows.push('<div class="scan-group-title"><span>本机快捷方式 <em>START MENU</em></span></div>');
+      shortcuts.forEach((item, index) => rows.push(scanShortcutRow(item, index)));
+    }
+
+    els.scannerList.innerHTML = rows.join('');
+    updateScanSelection();
+  }
+
+  function scanManifestRow(item, index) {
+    const key = `manifest:${index}`;
+    const checked = scanSelection.has(key);
+    return `
+      <button class="scan-row ${checked ? 'is-checked' : ''}" data-scan="${key}">
+        <span class="scan-thumb"><svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg></span>
+        <span class="scan-copy">
+          <span class="scan-name">${esc(item.name || '未命名')}</span>
+          <span class="scan-sub">${esc(item.tagline || item.manifestPath || '')}</span>
+        </span>
+        <span class="scan-source">MANIFEST</span>
+        <span class="scan-check"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
+      </button>`;
+  }
+
+  function scanRow(item, kind, done = false) {
+    const checked = scanSelection.has(`steam:${item.appId}`);
+    return `
+      <button class="scan-row ${checked ? 'is-checked' : ''} ${done ? 'is-imported' : ''}" data-scan="steam:${esc(item.appId)}" ${done ? 'disabled' : ''}>
+        <span class="scan-thumb">
+          ${item.coverUrl ? `<img src="${esc(item.coverUrl)}" alt="" loading="lazy">` : '<svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg>'}
+        </span>
+        <span class="scan-copy">
+          <span class="scan-name">${esc(item.name)}</span>
+          <span class="scan-sub">${esc(item.installDir)}</span>
+        </span>
+        <span class="scan-source">APP ${esc(item.appId)}</span>
+        <span class="scan-check"><svg class="ic" aria-hidden="true"><use href="${done ? '#i-check' : '#i-check'}"/></svg></span>
+      </button>`;
+  }
+
+  function scanShortcutRow(item, index) {
+    const key = `exe:${index}`;
+    const checked = scanSelection.has(key);
+    return `
+      <button class="scan-row ${checked ? 'is-checked' : ''}" data-scan="${key}">
+        <span class="scan-thumb"><svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg></span>
+        <span class="scan-copy">
+          <span class="scan-name">${esc(item.name)}</span>
+          <span class="scan-sub">${esc(item.folder || '')}</span>
+        </span>
+        <span class="scan-source">EXE</span>
+        <span class="scan-check"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
+      </button>`;
+  }
+
+  function updateScanSelection() {
+    els.scannerImport.disabled = scanSelection.size === 0;
+    els.scannerImportLabel.textContent = scanSelection.size ? `导入所选 (${scanSelection.size})` : '导入所选';
+  }
+
+  function toggleScanRow(key) {
+    if (scanSelection.has(key)) scanSelection.delete(key);
+    else scanSelection.add(key);
+    $$('.scan-row', els.scannerList).forEach((row) => {
+      if (row.dataset.scan === key) row.classList.toggle('is-checked', scanSelection.has(key));
+    });
+    updateScanSelection();
+  }
+
+  async function importSelected() {
+    const appIds = [];
+    const exePaths = [];
+    const manifestItems = [];
+    scanSelection.forEach((key) => {
+      if (key.startsWith('steam:')) appIds.push(key.slice(6));
+      else if (key.startsWith('exe:')) {
+        const item = state.scan?.shortcuts?.[Number(key.slice(4))];
+        if (item) exePaths.push(item);
+      } else if (key.startsWith('manifest:')) {
+        const item = state.manifestScan?.items?.[Number(key.slice(9))];
+        if (item) manifestItems.push(item);
+      }
+    });
+    if (!appIds.length && !exePaths.length && !manifestItems.length) return;
+
+    els.scannerImport.disabled = true;
+    els.scannerImportLabel.textContent = '正在导入…';
+
+    let added = 0;
+    if (appIds.length) {
+      const result = await call('importCandidates', { steamAppIds: appIds });
+      if (result && result.ok) added += result.added || 0;
+    }
+    for (const item of manifestItems) {
+      const result = await call('createGame', {
+        exePath: item.exePath,
+        manifestPath: item.manifestPath
+      });
+      if (result && result.ok) {
+        state.games.push(result.game);
+        added += 1;
+      }
+    }
+    for (const item of exePaths) {
+      const result = await call('createGame', {
+        exePath: item.exePath,
+        name: item.name,
+        zh: '',
+        genre: '本机游戏'
+      });
+      if (result && result.ok) {
+        state.games.push(result.game);
+        added += 1;
+      }
+    }
+
+    scanSelection.clear();
+    const boot = await call('boot');
+    if (boot && boot.games) {
+      state.games = boot.games;
+      rebuildAfterLibraryChange(false);
+      if (state.games.length) {
+        const latest = state.games[state.games.length - 1];
+        const index = state.games.findIndex((game) => game.id === latest.id);
+        if (index >= 0) {
+          state.index = index;
+          applyAccent(latest);
+          setBackdrop(latest);
+          renderHero(latest, true);
+          updateRail();
+          centerTile(index);
+        }
+      }
+    }
+
+    audio.select();
+    toast(added ? `已导入 ${added} 款游戏` : '没有新增游戏', added ? 'check' : 'info');
+    closeScanner({ focus: false, sound: false });
+    if (!state.overlay) renderHero(currentGame(), false);
+  }
+
+  /* ============================================================
+     LIBRARY-CHANGED REBUILD
+     ============================================================ */
+
+  function rebuildAfterLibraryChange(resetIndex = true) {
+    if (resetIndex) {
+      if (!state.games.length) state.index = 0;
+      else state.index = Math.max(0, Math.min(state.index, state.games.length - 1));
+    }
+    buildRail();
+    buildAppearanceSwitcher();
+    updateRail();
+    const game = currentGame();
+    if (!state.overlay) renderHero(game, false);
+    document.body.classList.toggle('is-empty', !state.games.length);
+    if (state.overlay === 'library') renderLibrary();
+    if (state.overlay === 'appearance') renderAppearance();
+    if (!game) {
+      els.gameLogo.textContent = 'NOVA';
+      els.gameTagline.textContent = '选择游戏开始。';
+    }
+  }
+
+  /* ============================================================
+     KEYBOARD
+     ============================================================ */
+
+  function isTypingTarget(target) {
+    return target instanceof Element && !!target.closest('input, textarea, select, [contenteditable="true"]');
+  }
+
+  function isButtonTarget(target) {
+    return target instanceof Element && !!target.closest('button, a, input, [tabindex]');
+  }
+
+  function bindKeyboard() {
+    document.addEventListener('keydown', (event) => {
+      // In-app dialog and file browser own the keyboard while open.
+      if (window.NovaOverlays && window.NovaOverlays.dialogOpen()) return;
+      if (window.NovaOverlays && window.NovaOverlays.pickerOpenState()) {
+        if (window.NovaOverlays.pickerKey(event.key)) event.preventDefault();
+        return;
+      }
+
+      if (state.overlay === 'sleep') {
+        event.preventDefault();
+        exitSleep();
+        return;
+      }
+
+      if (state.overlay === 'editor' || state.overlay === 'scanner') {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          if (state.overlay === 'editor') closeEditor();
+          else closeScanner();
+        }
+        return;
+      }
+
+      if (state.overlay === 'launch') {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeLaunch();
+          return;
+        }
+        if (els.launchOverlay.classList.contains('is-ready') && !event.repeat && !event.metaKey && !event.ctrlKey && !event.altKey) {
+          event.preventDefault();
+          closeLaunch();
+        }
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        if (state.overlay === 'appearance') {
+          event.preventDefault();
+          closeAppearance();
+          return;
+        }
+        if (state.overlay === 'details') {
+          event.preventDefault();
+          if (state.manageOpen) closeManage();
+          else closeDetails();
+          return;
+        }
+        if (state.overlay === 'library') {
+          event.preventDefault();
+          closeLibrary();
+          return;
+        }
+        closePopovers();
+        return;
+      }
+
+      if (state.overlay === 'appearance') {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          selectGame(state.index - 1, { sound: true, animate: true });
+          return;
+        }
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          selectGame(state.index + 1, { sound: true, animate: true });
+          return;
+        }
+        if (event.key === 't' || event.key === 'T') {
+          event.preventDefault();
+          closeAppearance();
+          return;
+        }
+        if (event.key === 'r' || event.key === 'R') {
+          event.preventDefault();
+          shuffleTypeDirection();
+          return;
+        }
+        return;
+      }
+
+      if (state.overlay === 'details') {
+        if (isTypingTarget(event.target)) return;
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          selectGame(state.index - 1, { sound: true, scroll: true });
+          return;
+        }
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          selectGame(state.index + 1, { sound: true, scroll: true });
+          return;
+        }
+        if (event.key === 'm' || event.key === 'M') {
+          event.preventDefault();
+          if (state.manageOpen) closeManage();
+          else openManage();
+          return;
+        }
+        if (event.key === 'Enter' && !isButtonTarget(event.target)) {
+          event.preventDefault();
+          handlePrimary();
+          return;
+        }
+        return;
+      }
+
+      if (state.overlay === 'library') {
+        if (event.key === '/' && event.target !== els.libSearch) {
+          event.preventDefault();
+          els.libSearch.focus();
+          return;
+        }
+        if (event.key === 'Enter' && event.target === els.libSearch) {
+          event.preventDefault();
+          openFirstLibraryResult();
+          return;
+        }
+        return;
+      }
+
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTypingTarget(event.target)) return;
+
+      switch (event.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          if (event.key === 'a' || event.key === 'A') {
+            event.preventDefault();
+            openScanner();
+            break;
+          }
+          event.preventDefault();
+          selectGame(state.index - 1, { sound: true, scroll: true });
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          event.preventDefault();
+          selectGame(state.index + 1, { sound: true, scroll: true });
+          break;
+        case 'Enter':
+        case ' ':
+          if (isButtonTarget(event.target)) return;
+          event.preventDefault();
+          handlePrimary();
+          break;
+        case 'i':
+        case 'I':
+          event.preventDefault();
+          openDetails();
+          break;
+        case 'l':
+        case 'L':
+          event.preventDefault();
+          openLibrary();
+          break;
+        case 't':
+        case 'T':
+          event.preventDefault();
+          openAppearance();
+          break;
+        case '/':
+          event.preventDefault();
+          openLibrary({ search: true });
+          break;
+        case 'n':
+        case 'N':
+          event.preventDefault();
+          openPopover('notif');
+          break;
+        case 'm':
+        case 'M':
+          event.preventDefault();
+          setSound(!state.settings.sound);
+          break;
+        case 'f':
+        case 'F':
+          event.preventDefault();
+          toggleFullscreen();
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  function openFirstLibraryResult() {
+    const first = els.libGrid.querySelector('.lib-card');
+    if (first) first.click();
+    else toast('没有匹配的游戏');
+  }
+
+  /* ============================================================
+     GAMEPAD ADAPTER
+     The pad module owns polling and layout; this adapter maps its
+     abstract actions to whatever surface is currently in front.
+     ============================================================ */
+
+  function padScope() {
+    if (state.overlay === 'sleep') return 'sleep';
+    if (state.overlay === 'launch') return 'launch';
+    if (state.overlay === 'editor') return 'editor';
+    if (state.overlay === 'scanner') return 'scanner';
+    if (state.overlay === 'appearance') return 'appearance';
+    if (state.overlay === 'library') return 'library';
+    if (state.overlay === 'details') return 'details';
+    if (els.notifPanel.classList.contains('is-open')) return 'notifications';
+    if (els.profileMenu.classList.contains('is-open')) return 'profile';
+    return 'home';
+  }
+
+  function padHintsFor(scope) {
+    const hints = {
+      home: [['a', '启动'], ['y', '详情'], ['x', '收藏'], ['menu', '游戏库'], ['view', '通知'], ['ls', '外观']],
+      details: [['a', '启动'], ['b', '返回'], ['x', '收藏'], ['y', '管理']],
+      library: [['a', '打开'], ['b', '返回'], ['←→', '切换'], ['↑↓', '换行']],
+      appearance: [['b', '返回'], ['←→', '预览'], ['y', '重排字标'], ['a', '切换样式']],
+      launch: [['b', '返回'], ['a', '完成']],
+      editor: [['b', '关闭']],
+      scanner: [['b', '关闭']],
+      sleep: [['a', '唤醒']],
+      notifications: [['a', '关闭'], ['b', '关闭']],
+      profile: [['a', '关闭'], ['b', '关闭']]
+    };
+    return hints[scope] || hints.home;
+  }
+
+  function refreshPadHints() {
+    try {
+      if (!window.NovaPad || !window.NovaPad.connected) return;
+      window.NovaPad.hints(padHintsFor(padScope()));
+    } catch (error) {
+      // Controller UI must never interrupt launch or navigation.
+    }
+  }
+
+  function moveLibraryPadFocus(delta) {
+    const cards = $$('.lib-card', els.libGrid);
+    if (!cards.length) return;
+    state.libPadIndex = (state.libPadIndex + delta + cards.length) % cards.length;
+    const card = cards[state.libPadIndex];
+    try {
+      card.focus({ preventScroll: false });
+      card.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    } catch (error) {}
+  }
+
+  function openLibraryCardByIndex(delta) {
+    const cards = $$('.lib-card', els.libGrid);
+    if (!cards.length) return;
+    const focused = document.activeElement instanceof Element ? document.activeElement.closest('.lib-card') : null;
+    const current = focused ? cards.indexOf(focused) : state.libPadIndex;
+    state.libPadIndex = (current + delta + cards.length) % cards.length;
+    const card = cards[state.libPadIndex];
+    if (card) {
+      try { card.focus({ preventScroll: false }); card.scrollIntoView({ block: 'nearest' }); } catch (error) {}
+    }
+  }
+
+  function padVertical(delta) {
+    const scope = padScope();
+    if (scope === 'library') {
+      const columns = Math.max(1, getComputedStyle(els.libGrid).gridTemplateColumns.split(' ').filter(Boolean).length);
+      moveLibraryPadFocus(delta * columns);
+      return;
+    }
+    if (scope === 'appearance') {
+      els.appearanceOptions.scrollBy({ top: delta * 260, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+      return;
+    }
+    if (scope === 'details') {
+      $('.detail-body', els.detailsOverlay)?.scrollBy({ top: delta * 240, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+    }
+  }
+
+  const padApp = {
+    nav(delta) {
+      const scope = padScope();
+      if (scope === 'library') { openLibraryCardByIndex(delta); return; }
+      if (scope === 'appearance') { selectGame(state.index + delta, { sound: true, animate: true }); return; }
+      if (scope === 'details') { selectGame(state.index + delta, { sound: true, scroll: true }); return; }
+      if (scope === 'home') selectGame(state.index + delta, { sound: true, scroll: true });
+    },
+    navVertical(delta) {
+      const scope = padScope();
+      if (scope === 'library') { openLibraryCardByIndex(delta * Math.max(1, getComputedStyle(els.libGrid).gridTemplateColumns.split(' ').filter(Boolean).length)); return; }
+      padVertical(delta);
+    },
+    confirm() {
+      const scope = padScope();
+      if (scope === 'sleep') { exitSleep(); return; }
+      if (scope === 'launch') { if (els.launchOverlay.classList.contains('is-ready')) closeLaunch(); return; }
+      if (scope === 'editor' || scope === 'scanner') return;
+      if (scope === 'appearance') { setStyleMode(state.settings.styleMode === 'adaptive' ? 'system' : 'adaptive'); return; }
+      if (scope === 'notifications' || scope === 'profile') { closePopovers(); return; }
+      if (scope === 'library') {
+        const focused = document.activeElement instanceof Element ? document.activeElement.closest('.lib-card') : null;
+        if (focused) focused.click();
+        else {
+          const card = $$('.lib-card', els.libGrid)[state.libPadIndex];
+          if (card) card.click();
+        }
+        return;
+      }
+      if (scope === 'details') {
+        if (state.manageOpen) { closeManage(); return; }
+        if (state.running.has(currentGame()?.id)) { openManage(); return; }
+        handlePrimary();
+        return;
+      }
+      handlePrimary();
+    },
+    back() {
+      const scope = padScope();
+      if (scope === 'sleep') { exitSleep(); return; }
+      if (scope === 'launch') { closeLaunch(); return; }
+      if (scope === 'editor') { closeEditor(); return; }
+      if (scope === 'scanner') { closeScanner(); return; }
+      if (scope === 'appearance') { closeAppearance(); return; }
+      if (scope === 'details') {
+        if (state.manageOpen) closeManage();
+        else closeDetails();
+        return;
+      }
+      if (scope === 'library') { closeLibrary(); return; }
+      closePopovers();
+    },
+    favorite() {
+      const scope = padScope();
+      if (scope === 'home' || scope === 'details' || scope === 'library') toggleFavorite(currentGame());
+    },
+    manage() {
+      const scope = padScope();
+      if (scope === 'appearance') { shuffleTypeDirection(); return; }
+      if (scope === 'details') {
+        if (state.manageOpen) closeManage();
+        else openManage();
+      }
+    },
+    library() {
+      const scope = padScope();
+      if (scope === 'home') openLibrary();
+      else if (scope === 'library') closeLibrary();
+    },
+    appearance() {
+      const scope = padScope();
+      if (scope === 'home') openAppearance();
+      else if (scope === 'appearance') closeAppearance();
+    },
+    notifications() {
+      const scope = padScope();
+      if (scope === 'home') openPopover('notif');
+      else if (scope === 'notifications') closePopovers();
+    },
+    pageUp() { padVertical(-1); },
+    pageDown() { padVertical(1); },
+    padConnected(layout, id) {
+      audio.select();
+      toast(`${layout === 'playstation' ? 'PlayStation' : 'Xbox'} 手柄已连接 · 按 ${layout === 'playstation' ? '✕' : 'A'} 启动游戏`, 'gamepad');
+      refreshPadHints();
+    },
+    padDisconnected() {
+      toast('手柄已断开 · 可使用键盘', 'gamepad');
+    }
+  };
+
+  function syncInputStatus(label) {
+    if (els.profileStatus) els.profileStatus.textContent = label ? `${label} 已连接` : '本地游戏库';
+  }
+
+  function startGamepad() {
+    if (!window.NovaPad) return;
+    window.NovaPad.start(padApp, els.inputStatus);
+  }
+
+  /* ============================================================
+     PRIMARY ACTION
+     ============================================================ */
+
+  async function handlePrimary() {
+    const game = currentGame();
+    if (!game) {
+      openScanner();
+      return;
+    }
+    if (state.running.has(game.id)) {
+      openDetails();
+      setTimeout(openManage, 200);
+      toast('游戏正在运行 · 可在管理面板中结束进程', 'gamepad');
+      return;
+    }
+    if (!game.exists) {
+      toast('找不到游戏程序，请在管理面板中重新指定', 'alert');
+      openDetails();
+      setTimeout(openManage, 180);
+      return;
+    }
+    if (state.overlay === 'details') closeDetails({ focus: false, sound: false });
+    launchGame(game);
+  }
+
+  /* ============================================================
+     EVENTS
+     ============================================================ */
+
+  function bindEvents() {
+    /* window chrome */
+    const dragZone = () => {
+      document.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        if (event.clientY > 34) return;
+        if (event.target.closest('button, a, input, textarea, select, [tabindex]')) return;
+        call('beginDrag');
+      });
+      document.addEventListener('dblclick', async (event) => {
+        if (event.clientY > 34) return;
+        if (event.target.closest('button, a, input, textarea, select, [tabindex]')) return;
+        await call('toggleMaximizeWindow');
+        const result = await call('fullscreenState');
+        if (result) applyFullscreenState(!!result.fullscreen);
+      });
+    };
+    dragZone();
+
+    els.minBtn.addEventListener('click', () => call('minimizeWindow'));
+    els.maxBtn.addEventListener('click', async () => {
+      await call('toggleMaximizeWindow');
+      const result = await call('fullscreenState');
+      if (result) applyFullscreenState(!!result.fullscreen);
+    });
+    els.closeBtn.addEventListener('click', () => call('closeWindow'));
+    call('windowState').then((result) => { if (result) syncMaxButton(!!result.maximized); });
+
+    els.playBtn.addEventListener('click', handlePrimary);
+    els.detailPlay.addEventListener('click', handlePrimary);
+    els.detailBtn.addEventListener('click', openDetails);
+    els.questCard.addEventListener('click', openDetails);
+    els.detailsClose.addEventListener('click', () => closeDetails());
+    els.detailsOverlay.addEventListener('pointerdown', (event) => {
+      if (event.target === els.detailsOverlay) closeDetails();
+    });
+
+    els.detailFav.addEventListener('click', () => toggleFavorite(currentGame()));
+    els.detailManage.addEventListener('click', () => {
+      if (state.manageOpen) closeManage();
+      else openManage();
+    });
+    els.manageClose.addEventListener('click', () => closeManage());
+    els.manageDoneBtn.addEventListener('click', () => closeManage());
+    els.removeGameBtn.addEventListener('click', handleRemoveGame);
+    els.editRow.addEventListener('click', () => {
+      const game = currentGame();
+      if (!game) return;
+      closeDetails({ focus: false, sound: false });
+      openEditor(game);
+    });
+    els.steamRow.addEventListener('click', () => {
+      const game = currentGame();
+      if (game) call('openStorePage', { steamAppId: game.steamAppId });
+    });
+    els.resetArtRow.addEventListener('click', resetArtwork);
+    els.revealBtn.addEventListener('click', () => {
+      const game = currentGame();
+      if (game) call('revealGame', { id: game.id });
+    });
+
+    // Once the game is running, any deliberate click returns to NOVA.
+    // Before that, the launch sequence owns the screen so a stray click
+    // (for example the one that opened the overlay) cannot interrupt it.
+    els.launchOverlay.addEventListener('click', () => {
+      if (els.launchOverlay.classList.contains('is-ready')) closeLaunch();
+    });
+    els.sleepOverlay.addEventListener('pointerdown', exitSleep);
+
+    els.libBack.addEventListener('click', () => closeLibrary());
+    els.libSearch.addEventListener('input', () => {
+      state.libQuery = els.libSearch.value;
+      renderLibrary();
+    });
+    els.libFilters.addEventListener('click', (event) => {
+      const button = event.target.closest('.filter');
+      if (!button) return;
+      state.libFilter = button.dataset.filter;
+      state.libPadIndex = 0;
+      renderLibrary();
+      audio.toggle();
+    });
+    els.libGrid.addEventListener('click', (event) => {
+      const card = event.target.closest('.lib-card');
+      if (!card) return;
+      closeLibrary({ focus: false, sound: false });
+      chooseGameById(card.dataset.game);
+      setTimeout(() => {
+        try { els.playBtn.focus({ preventScroll: true }); } catch (error) {}
+      }, 120);
+    });
+    els.clearFilters.addEventListener('click', () => {
+      if (!state.games.length) {
+        openScanner();
+        return;
+      }
+      state.libFilter = 'all';
+      state.libQuery = '';
+      els.libSearch.value = '';
+      state.libPadIndex = 0;
+      renderLibrary();
+      audio.select();
+    });
+    els.libAdd.addEventListener('click', () => openEditor());
+
+    $$('.nav-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const view = button.dataset.nav;
+        if (view === 'library') openLibrary();
+        else if (view === 'appearance') openAppearance();
+        else {
+          if (state.overlay === 'library') closeLibrary();
+          setNav('home');
+        }
+      });
+    });
+
+    els.allBtn.addEventListener('click', () => openLibrary());
+    els.searchBtn.addEventListener('click', () => openLibrary({ search: true }));
+    els.addBtn.addEventListener('click', () => openScanner());
+    els.railAddCard.addEventListener('click', () => openScanner());
+    els.brandBtn.addEventListener('click', () => {
+      if (state.overlay) return;
+      selectGame(0, { sound: true, scroll: true });
+      setNav('home');
+    });
+
+    els.notifBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openPopover('notif');
+    });
+    els.profileBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openPopover('profile');
+    });
+    els.markReadBtn.addEventListener('click', () => {
+      notices.forEach((notice) => { notice.unread = false; });
+      renderNotifications();
+      audio.select();
+      toast('所有通知已标记为已读');
+    });
+    els.notifList.addEventListener('click', (event) => {
+      const item = event.target.closest('.notif-item');
+      if (!item) return;
+      const notice = notices[Number(item.dataset.notice)];
+      if (!notice) return;
+      notice.unread = false;
+      renderNotifications();
+      closePopovers();
+      audio.select();
+      if (notice.gameId && findGame(notice.gameId)) {
+        chooseGameById(notice.gameId);
+        setNav('home');
+        toast(`已切换至《${findGame(notice.gameId).zh || findGame(notice.gameId).name}》`);
+      }
+    });
+
+    els.appearanceRow.addEventListener('click', openAppearance);
+    els.soundRow.addEventListener('click', () => setSound(!state.settings.sound));
+    els.fullscreenRow.addEventListener('click', () => toggleFullscreen(true));
+    els.sleepRow.addEventListener('click', enterSleep);
+    els.quitRow.addEventListener('click', async () => {
+      const quit = await window.NovaOverlays.dialog({
+        title: '退出 NOVA？',
+        text: '游戏进程不会被关闭。',
+        icon: 'power',
+        tone: 'warning',
+        actions: [
+          { label: '退出', value: true, style: 'danger', icon: 'close' },
+          { label: '取消', value: false }
+        ]
+      });
+      if (quit) call('quitNow');
+    });
+    els.dataFolderBtn.addEventListener('click', () => call('openDataFolder'));
+    els.dataFolderBtn.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        call('openDataFolder');
+      }
+    });
+
+    els.appearanceClose.addEventListener('click', () => closeAppearance());
+    els.appearanceOverlay.addEventListener('pointerdown', (event) => {
+      if (event.target === els.appearanceOverlay) closeAppearance();
+    });
+    els.styleChoices.addEventListener('click', (event) => {
+      const button = event.target.closest('.style-choice');
+      if (!button) return;
+      setStyleMode(button.dataset.style, { silent: true });
+      audio.toggle();
+    });
+    els.typeShuffleBtn.addEventListener('click', shuffleTypeDirection);
+    els.appearanceOptions.addEventListener('scroll', updateAppearanceScrollState, { passive: true });
+    els.appearanceSwitcher.addEventListener('click', (event) => {
+      const chip = event.target.closest('.game-chip');
+      if (!chip) return;
+      selectGame(Number(chip.dataset.index), { sound: true, animate: true });
+    });
+    els.appearanceSoundRow.addEventListener('click', () => setSound(!state.settings.sound, false));
+    els.appearanceMotionRow.addEventListener('click', () => setReduceMotion(!state.settings.reduceMotion, false));
+    els.appearanceCalmRow.addEventListener('click', () => setCalm(!state.settings.calm, false));
+    els.calmRow.addEventListener('click', () => setCalm(!state.settings.calm));
+    els.appearanceFullscreenRow.addEventListener('click', () => toggleFullscreen(false, true));
+    els.fullscreenPill.addEventListener('click', () => toggleFullscreen());
+
+    // Auto-hide the fullscreen exit pill while the pointer is still.
+    document.addEventListener('pointermove', () => {
+      if (!state.fullscreen) return;
+      document.documentElement.classList.remove('idle');
+      scheduleFullscreenIdle();
+    }, { passive: true });
+    els.openDataRow.addEventListener('click', () => call('openDataFolder'));
+
+    /* editor */
+    els.editorClose.addEventListener('click', () => closeEditor());
+    els.editorCancel.addEventListener('click', () => closeEditor());
+    els.editorOverlay.addEventListener('pointerdown', (event) => {
+      if (event.target === els.editorOverlay) closeEditor();
+    });
+    els.editorSave.addEventListener('click', saveEditor);
+    els.editorDelete.addEventListener('click', async () => {
+      const game = currentGame();
+      if (!game) return;
+      closeEditor({ focus: false, sound: false });
+      await call('deleteGame', { id: game.id });
+      const index = state.games.findIndex((entry) => entry.id === game.id);
+      if (index >= 0) state.games.splice(index, 1);
+      if (state.index >= state.games.length) state.index = Math.max(0, state.games.length - 1);
+      rebuildAfterLibraryChange(false);
+      toast(`已从游戏库移除《${game.zh || game.name}》`, 'check');
+    });
+    els.fPickExe.addEventListener('click', async () => {
+      const path = await window.NovaOverlays.pickerOpen({ filter: 'exe' });
+      if (path) await adoptExecutable(path);
+    });
+    els.fExe.addEventListener('change', () => {
+      const value = els.fExe.value.trim();
+      if (value) adoptExecutable(value, { quiet: true });
+    });
+    els.fPickImage.addEventListener('click', async () => {
+      const path = await window.NovaOverlays.pickerOpen({ filter: 'image' });
+      if (!path) return;
+      els.fImage.value = path;
+      const preview = await call('readImagePreview', { path });
+      if (preview && preview.ok) {
+        els.editorPreviewImg.onload = () => els.editorPreviewImg.classList.add('is-loaded');
+        els.editorPreviewImg.src = preview.url;
+      }
+      els.editorPreviewHint.textContent = '保存后会生成主视觉与封面';
+    });
+    [els.fName, els.fLogo].forEach((input) => input.addEventListener('input', syncEditorPreview));
+
+    /* scanner */
+    els.scannerClose.addEventListener('click', () => closeScanner());
+    els.scannerOverlay.addEventListener('pointerdown', (event) => {
+      if (event.target === els.scannerOverlay) closeScanner();
+    });
+    els.scannerRescan.addEventListener('click', () => { scanSelection.clear(); startScan(); });
+    els.scannerManual.addEventListener('click', () => {
+      closeScanner({ focus: false, sound: false });
+      openEditor();
+    });
+    els.scannerImport.addEventListener('click', importSelected);
+    els.scannerList.addEventListener('click', (event) => {
+      const row = event.target.closest('.scan-row');
+      if (!row || row.disabled) return;
+      toggleScanRow(row.dataset.scan);
+      audio.select();
+    });
+
+    document.addEventListener('pointerdown', (event) => {
+      if (event.target.closest('#notifPanel, #notifBtn, #profileMenu, #profileBtn')) return;
+      closePopovers();
+    }, true);
+
+    els.rail.addEventListener('pointerover', (event) => {
+      if (event.pointerType !== 'mouse' || state.overlay) return;
+      const tile = event.target.closest('.tile');
+      if (!tile) return;
+      const index = Number(tile.dataset.index);
+      if (index === state.index) return;
+      clearTimeout(state.hoverTimer);
+      state.hoverTimer = setTimeout(() => selectGame(index, { sound: false }), 140);
+    });
+    els.rail.addEventListener('pointerleave', () => clearTimeout(state.hoverTimer));
+    els.rail.addEventListener('focusin', (event) => {
+      const tile = event.target.closest('.tile');
+      if (!tile) return;
+      const index = Number(tile.dataset.index);
+      if (index !== state.index) selectGame(index, { sound: false, scroll: true });
+    });
+    els.rail.addEventListener('click', (event) => {
+      const tile = event.target.closest('.tile');
+      if (!tile) return;
+      clearTimeout(state.hoverTimer);
+      selectGame(Number(tile.dataset.index), { sound: true, scroll: true });
+    });
+    els.rail.addEventListener('keydown', (event) => {
+      if ((event.key === 'Enter' || event.key === ' ') && event.target.closest('.tile')) {
+        event.preventDefault();
+        event.stopPropagation();
+        handlePrimary();
+      }
+    });
+    els.rail.addEventListener('wheel', (event) => {
+      if (state.overlay) return;
+      const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+      if (Math.abs(delta) < 3) return;
+      event.preventDefault();
+      const now = performance.now();
+      if (now < state.wheelLock) return;
+      state.wheelLock = now + 260;
+      selectGame(state.index + (delta > 0 ? 1 : -1), { sound: true, scroll: true });
+    }, { passive: false });
+
+    document.addEventListener('fullscreenchange', syncFullscreenLabels);
+  }
+
+  function initParallax() {
+    if (state.settings.reduceMotion) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    let frame = null;
+    let targetX = 0;
+    let targetY = 0;
+    window.addEventListener('pointermove', (event) => {
+      if (state.overlay || state.settings.reduceMotion) return;
+      targetX = (event.clientX / window.innerWidth - .5) * -14;
+      targetY = (event.clientY / window.innerHeight - .5) * -8;
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        els.sceneStack.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scale(1.02)`;
+        frame = null;
+      });
+    });
+  }
+
+  /* ============================================================
+     BOOT
+     ============================================================ */
+
+  function applyBoot(boot) {
+    state.games = Array.isArray(boot.games) ? boot.games : [];
+    state.settings = {
+      playername: boot.settings?.playername || '玩家',
+      sound: boot.settings?.sound !== false,
+      reduceMotion: boot.settings?.reduceMotion === true,
+      styleMode: boot.settings?.styleMode === 'system' ? 'system' : 'adaptive',
+      typeSeed: Number.isFinite(boot.settings?.typeSeed) ? boot.settings.typeSeed : 0,
+      calm: boot.settings?.calm === true,
+      theme: boot.settings?.theme || 'nova'
+    };
+    state.dataFolder = boot.dataFolder || '';
+    state.version = boot.version || '1.0.0';
+    state.running = new Map();
+    (boot.running || []).forEach((session) => state.running.set(session.gameId, session));
+
+    const currentId = boot.currentGameId;
+    const index = state.games.findIndex((game) => game.id === currentId);
+    state.index = index >= 0 ? index : 0;
+
+    const initial = currentGame()?.zh || currentGame()?.name || '玩家';
+    const letter = initial.trim().slice(0, 1).toUpperCase();
+    els.avatarLetter.textContent = letter;
+    els.avatarLarge.textContent = letter;
+    els.profileName.textContent = state.settings.playername;
+    els.appearanceDataPath.textContent = state.dataFolder;
+    els.appearanceDataPath.title = state.dataFolder;
+  }
+
+  async function init() {
+    syncMotionUI();
+    updateClock();
+    setInterval(updateClock, 1000);
+    setInterval(refreshLive, 30000);
+    setInterval(() => {
+      if (state.overlay === 'launch') {
+        const game = currentGame();
+        if (game && state.running.has(game.id) && els.launchOverlay.classList.contains('is-ready')) {
+          els.launchStatus.textContent = '游戏正在运行';
+        }
+      }
+    }, 4000);
+
+    let boot = null;
+    if (hasBridge) {
+      boot = await call('boot');
+    }
+
+    if (boot && boot.ok !== false) {
+      applyBoot(boot);
+    } else {
+      state.games = [];
+    }
+
+    buildBackdrop();
+    buildRail();
+    buildAppearanceSwitcher();
+    bindEvents();
+    bindKeyboard();
+
+    if (window.NovaOverlays) {
+      window.NovaOverlays.bind({ app: els.app, sound: audio, call });
+    }
+
+    // Themes load asynchronously; init() must not wait on a stylesheet.
+    startThemes().catch((error) => console.warn('theme boot failed', error));
+    bindContextMenu();
+    bindThemePanel();
+
+    document.body.classList.toggle('is-empty', !state.games.length);
+    applyAccent(currentGame());
+    renderHero(currentGame(), false);
+    applyStyleModeUI();
+    syncSoundUI();
+    syncFullscreenLabels();
+    renderNotifications();
+    syncInputStatus(null);
+    setNav('home');
+    document.title = currentGame() ? `${currentGame().zh || currentGame().name} · NOVA 游戏空间` : 'NOVA · 游戏空间';
+
+    if (hasBridge) {
+      call('fullscreenState').then((result) => {
+        if (result) applyFullscreenState(!!result.fullscreen);
+      });
+    }
+
+    if (currentGame()) setBackdrop(currentGame(), true);
+
+    setTimeout(() => { audio.warm(); }, 1500);
+    setTimeout(() => document.body.classList.add('is-booted'), 900);
+    setTimeout(ensureActiveTileVisible, 140);
+    initParallax();
+    startGamepad();
+    setTimeout(refitLogos, 500);
+
+    if (!hasBridge) {
+      toast('未检测到桌面宿主，正在以预览模式运行', 'info');
+    } else if (!state.games.length) {
+      setTimeout(() => toast('游戏库是空的 · 按 A 或点击 + 添加游戏', 'spark'), 1200);
+    }
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        refitLogos();
+        updateAppearanceScrollState();
+        ensureActiveTileVisible();
+      }, 160);
+    }, { passive: true });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => refitLogos()).catch(() => {});
+    }
+  }
+
+  init();
+})();

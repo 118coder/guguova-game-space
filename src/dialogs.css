@@ -1,0 +1,404 @@
+/* ============================================================
+   NOVA DESKTOP · OVERLAYS
+   In-app dialog and file browser. These replace every stock
+   Windows message box and file picker so the whole window keeps
+   one visual language.
+   ============================================================ */
+
+/* ---------- in-app dialog ---------- */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 4, 7, .62);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .26s ease, visibility .26s;
+}
+
+.dialog-overlay.is-open { opacity: 1; visibility: visible; }
+.dialog-overlay.is-leaving { opacity: 0; }
+
+.dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(430px, 92vw);
+  padding: 30px 30px 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: linear-gradient(180deg, #12151c 0%, #0a0c11 100%);
+  box-shadow: 0 40px 120px -34px #000, inset 0 1px 0 rgba(255, 255, 255, .06);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(14px) scale(.97);
+  transition: transform .34s var(--ease), opacity .26s ease;
+}
+
+.dialog-overlay.is-open .dialog { opacity: 1; transform: none; }
+.dialog-overlay.is-leaving .dialog { opacity: 0; transform: scale(.985); }
+
+.dialog-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.dialog-mark .ic { width: 21px; height: 21px; }
+.dialog-mark.is-warning {
+  border-color: rgba(255, 170, 120, .34);
+  background: rgba(255, 170, 120, .1);
+  color: #ffb08a;
+}
+
+.dialog-title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: rgba(255, 255, 255, .94);
+}
+
+.dialog-text {
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, .52);
+  text-wrap: pretty;
+}
+
+.dialog-text:empty { display: none; }
+
+.dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.dialog-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .045);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  color: rgba(255, 255, 255, .78);
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.dialog-action:hover {
+  background: rgba(255, 255, 255, .08);
+  border-color: rgba(255, 255, 255, .2);
+  color: #fff;
+}
+
+.dialog-action.is-primary {
+  border-color: transparent;
+  background: linear-gradient(180deg, #fbf8f0 0%, #e9e4d8 100%);
+  color: #0b0c0f;
+  font-weight: 600;
+}
+
+.dialog-action.is-primary:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #f0ece1 100%);
+  color: #0b0c0f;
+}
+
+.dialog-action.is-danger {
+  border-color: rgba(255, 120, 120, .28);
+  color: #ffb4b4;
+}
+
+.dialog-action.is-danger:hover {
+  background: rgba(255, 90, 90, .12);
+  border-color: rgba(255, 120, 120, .44);
+  color: #ffd0d0;
+}
+
+.dialog-action .ic { width: 15px; height: 15px; opacity: .8; }
+
+/* ---------- in-app file browser ---------- */
+
+.picker-overlay { z-index: 76; }
+
+.picker-shell {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 94vw);
+  max-height: 88vh;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: #0a0c11;
+  box-shadow: 0 50px 140px -40px #000;
+  opacity: 0;
+  transform: translateY(18px) scale(.988);
+  transition: transform .45s var(--ease), opacity .34s ease;
+}
+
+.overlay.is-open .picker-shell { opacity: 1; transform: none; }
+
+.picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 26px 14px;
+}
+
+.picker-kicker {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: .22em;
+  color: rgba(255, 255, 255, .3);
+}
+
+.picker-head h2 { margin-top: 6px; font-size: 21px; font-weight: 600; }
+
+.picker-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 26px 12px;
+}
+
+.crumb-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  color: rgba(255, 255, 255, .6);
+  transition: color .2s ease, background .2s ease;
+}
+
+.crumb-btn:hover { color: #fff; background: rgba(255, 255, 255, .07); }
+.crumb-btn:disabled { opacity: .3; pointer-events: none; }
+.crumb-btn .ic { width: 14px; height: 14px; }
+
+.crumb-path {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .035);
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, .5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+}
+
+.picker-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, .4);
+  cursor: pointer;
+}
+
+.picker-toggle input { accent-color: var(--accent); cursor: pointer; }
+
+.picker-drives {
+  display: flex;
+  gap: 6px;
+  padding: 0 26px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.picker-drives::-webkit-scrollbar { display: none; }
+.picker-drives:empty { display: none; }
+
+.drive-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .09);
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, .55);
+  transition: color .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.drive-chip:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+.drive-chip.is-active {
+  border-color: color-mix(in srgb, var(--accent) 46%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: rgba(255, 255, 255, .9);
+}
+
+.drive-chip .ic { width: 13px; height: 13px; opacity: .7; }
+
+.picker-list {
+  flex: 1 1 auto;
+  min-height: 220px;
+  max-height: 46vh;
+  overflow-y: auto;
+  padding: 0 14px 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .14) transparent;
+}
+
+.picker-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  text-align: left;
+  color: rgba(255, 255, 255, .72);
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.picker-row:hover { background: rgba(255, 255, 255, .05); color: #fff; }
+
+.picker-row.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: #fff;
+}
+
+.picker-row .ic { width: 16px; height: 16px; flex: none; }
+.picker-row.is-dir .ic { color: color-mix(in srgb, var(--accent) 72%, #fff); }
+.picker-row.is-file .ic { color: rgba(255, 255, 255, .42); }
+
+.picker-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-meta {
+  flex: none;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, .26);
+}
+
+.picker-empty {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, .34);
+}
+
+.picker-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 26px 17px;
+  border-top: 1px solid rgba(255, 255, 255, .06);
+}
+
+.picker-note {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, .3);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker-actions { display: flex; gap: 9px; margin-left: auto; }
+.picker-confirm { --cta-h: 40px; --cta-pad: 0 20px; }
+
+/* ---------- immersive fullscreen chrome ---------- */
+
+/* In real fullscreen the top bar keeps its controls but the window
+   buttons and the drag strip are not needed. */
+html.is-fullscreen .window-controls { display: none; }
+html.is-fullscreen .window-drag { display: none; }
+html.is-fullscreen .topbar { height: clamp(64px, 8vh, 82px); }
+
+html.is-fullscreen .stage { padding-bottom: 0; }
+
+/* Fullscreen entry: a single calm expansion rather than a jump cut. */
+body.fullscreen-entering .app { animation: fullscreenIn .5s var(--ease) both; }
+
+@keyframes fullscreenIn {
+  from { opacity: .6; transform: scale(1.012); }
+  to { opacity: 1; transform: none; }
+}
+
+html.calm body.fullscreen-entering .app { animation-duration: .3s; }
+
+/* Exit-fullscreen control, top right, only in fullscreen. */
+.fullscreen-pill {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 40;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(8, 10, 14, .6);
+  backdrop-filter: blur(14px);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: rgba(255, 255, 255, .55);
+  opacity: 0;
+  transition: opacity .4s ease, color .2s ease, border-color .2s ease;
+}
+
+html.is-fullscreen .fullscreen-pill { display: flex; opacity: 1; }
+.fullscreen-pill:hover { color: #fff; border-color: rgba(255, 255, 255, .3); }
+.fullscreen-pill .ic { width: 12px; height: 12px; }
+
+/* Auto-hide the pill after a few seconds of stillness. */
+html.is-fullscreen.idle .fullscreen-pill { opacity: 0; pointer-events: none; }
+
+@media (max-width: 760px) {
+  .picker-shell { width: 96vw; max-height: 92vh; }
+  .picker-head, .picker-crumbs, .picker-foot { padding-left: 18px; padding-right: 18px; }
+  .picker-list { max-height: 44vh; }
+  .dialog { width: 94vw; padding: 24px 22px 18px; }
+}
+
+/* Maximize and fullscreen are one mode now, so the window buttons step
+   aside entirely and the "exit fullscreen" pill takes over. */
+html.is-fullscreen .window-controls { display: none !important; }
+html.is-fullscreen .window-drag { display: none !important; }
+
+/* Dragging is disabled while fullscreen; keep the strip from swallowing clicks. */
+html.is-fullscreen .topbar { app-region: no-drag; }

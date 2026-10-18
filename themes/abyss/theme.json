@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "abyss",
+  "name": "深渊 · ABYSS",
+  "author": "NOVA",
+  "version": "1.0.1",
+  "description": "锻造金属与青铜描边的工业奇幻外观。深色底、鎏金切角、青色能量条。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "adaptive",
+  "dark": true,
+  "tokens": {
+    "--accent": "#d6b270",
+    "--accent-2": "#64d8ff"
+  }
+}
