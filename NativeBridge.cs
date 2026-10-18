@@ -425,6 +425,8 @@ public sealed class NativeBridge
                 settings.ReduceMotion = motion.GetBoolean();
             if (args.TryGetProperty("calm", out var calm) && calm.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.Calm = calm.GetBoolean();
+            if (args.TryGetProperty("layout", out var layout) && layout.ValueKind == JsonValueKind.String)
+                settings.Layout = layout.GetString() == "rail" ? "rail" : "row";
             if (args.TryGetProperty("theme", out var theme) && theme.ValueKind == JsonValueKind.String
                 && _themes.Find(theme.GetString()) is { Ok: true } selected)
                 settings.Theme = selected.Id;

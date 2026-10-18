@@ -1,0 +1,325 @@
+/* ============================================================
+   NOVA DESKTOP · IN-PLACE VIEWS
+   Home, game library and appearance share one content area.
+   Switching is a cross-fade of the content only: the top bar, the
+   backdrop and the navigation never move or get rebuilt.
+   ============================================================ */
+
+/* ---------- shell ---------- */
+
+.app {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.content {
+  position: relative;
+  /* Must sit above the atmosphere/grain layers that cover the backdrop. */
+  z-index: 4;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Every view fills the content area and is stacked on top of the others. */
+.view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px) scale(.997);
+  transition:
+    opacity .32s ease,
+    transform .46s var(--ease),
+    visibility .46s;
+}
+
+.view.is-current {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+}
+
+/* The outgoing view should not animate back down while it fades. */
+.view.is-leaving {
+  opacity: 0;
+  transform: translateY(-6px) scale(.998);
+  transition:
+    opacity .24s ease,
+    transform .34s var(--ease),
+    visibility .34s;
+}
+
+/* ---------- home ---------- */
+
+.view-home {
+  display: flex;
+  flex-direction: column;
+}
+
+.view-home .stage {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.view-home .dock {
+  flex: 0 0 auto;
+}
+
+/* ---------- library ---------- */
+
+.view-library,
+.view-appearance {
+  background:
+    radial-gradient(120% 90% at 20% 0%, rgba(6, 7, 10, .32), rgba(6, 7, 10, .72) 70%),
+    linear-gradient(180deg, rgba(6, 7, 10, .5) 0%, rgba(6, 7, 10, .34) 45%, rgba(6, 7, 10, .78) 100%);
+  backdrop-filter: blur(9px) saturate(1.02);
+  -webkit-backdrop-filter: blur(9px) saturate(1.02);
+}
+
+.view-library {
+  padding: 0;
+}
+
+.view-library .lib-shell {
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  opacity: 1;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Keep the library header aligned with the home header rhythm. */
+.view-library .lib-shell {
+  padding-top: clamp(10px, 2.2vh, 26px);
+  padding-bottom: clamp(18px, 3vh, 30px);
+}
+
+.view-library .lib-grid {
+  padding-bottom: 4px;
+}
+
+/* ---------- appearance ---------- */
+
+.view-appearance {
+  padding: clamp(10px, 2.2vh, 26px) clamp(24px, 4.6vw, 72px) clamp(16px, 2.6vh, 26px);
+}
+
+.view-appearance .appearance-shell {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  opacity: 1;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+}
+
+/* In a view the preview panel no longer needs its own rounded card chrome. */
+.view-appearance .appearance-preview {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  overflow: hidden;
+}
+
+.view-appearance .appearance-options {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(9, 10, 14, .5);
+}
+
+/* The old modal close button is gone; keep the header spacing balanced. */
+.view-appearance .appearance-head {
+  padding-top: clamp(20px, 3vh, 30px);
+}
+
+/* ---------- leaving state for interactive children ---------- */
+
+.view.is-current .hero-inner {
+  animation: viewHomeIn .5s var(--ease) both;
+}
+
+@keyframes viewHomeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- vertical rail layout ---------- */
+/* Covers move into a left column; the game stays on the right. */
+
+body.layout-rail .view-home {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+body.layout-rail .view-home .stage {
+  order: 2;
+  flex: 1 1 auto;
+  padding-left: clamp(8px, 1.4vw, 26px);
+  padding-right: clamp(24px, 5.2vw, 96px);
+}
+
+body.layout-rail .view-home .dock {
+  order: 1;
+  flex: 0 0 clamp(248px, 21vw, 340px);
+  width: clamp(248px, 21vw, 340px);
+  height: 100%;
+  padding: clamp(16px, 2.6vh, 30px) 0 clamp(16px, 2.4vh, 26px) clamp(24px, 3.4vw, 56px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+body.layout-rail .view-home .dock-head {
+  flex: 0 0 auto;
+  margin-bottom: 12px;
+}
+
+body.layout-rail .view-home .dock-foot {
+  display: none;
+}
+
+body.layout-rail .view-home .rail {
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  overflow-x: hidden;
+  overflow-y: auto;
+  gap: 8px;
+  width: 100%;
+  min-height: 0;
+  padding: 4px 8px 8px 0;
+  margin: 0;
+  scroll-snap-type: y proximity;
+  mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
+}
+
+body.layout-rail .view-home .tile {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  scroll-snap-align: center;
+}
+
+body.layout-rail .view-home .tile-art {
+  width: 92px;
+  border-radius: 9px;
+  aspect-ratio: 16 / 9;
+}
+
+body.layout-rail .view-home .tile-label {
+  padding: 0;
+  min-width: 0;
+}
+
+body.layout-rail .view-home .tile-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.layout-rail .view-home .tile-sub {
+  margin-top: 3px;
+}
+
+body.layout-rail .view-home .tile-progress {
+  display: none;
+}
+
+body.layout-rail .view-home .rail-empty {
+  width: 100%;
+}
+
+body.layout-rail .view-home .rail-empty-card {
+  width: 100%;
+  min-height: 84px;
+  padding: 14px 16px;
+}
+
+/* Fullscreen keeps the rail usable but trims the footer hints. */
+html.is-fullscreen body.layout-rail .view-home .dock {
+  padding-top: clamp(12px, 2vh, 22px);
+}
+
+/* ---------- narrow windows fall back to the row layout ---------- */
+
+@media (max-width: 1080px) {
+  body.layout-rail .view-home {
+    flex-direction: column;
+  }
+
+  body.layout-rail .view-home .dock {
+    order: 2;
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    padding: 0 clamp(24px, 5.2vw, 96px) clamp(12px, 2vh, 18px);
+  }
+
+  body.layout-rail .view-home .stage {
+    order: 1;
+    padding-left: clamp(24px, 5.2vw, 96px);
+  }
+
+  body.layout-rail .view-home .rail {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    mask-image: linear-gradient(90deg, #000 0%, #000 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 95%, transparent 100%);
+  }
+
+  body.layout-rail .view-home .tile {
+    display: block;
+    width: clamp(150px, 12.6vw, 248px);
+  }
+
+  body.layout-rail .view-home .tile-art {
+    width: 100%;
+  }
+}
+
+/* ---------- reduced motion ---------- */
+
+html.reduce-motion .view {
+  transition-duration: .001ms !important;
+  transform: none !important;
+}
+
+/* ---------- theme hook ---------- */
+
+html[data-layout="rail"] .view-home .dock {
+  border-right: 1px solid rgba(255, 255, 255, .06);
+}
+
+html.calm .view {
+  transition-duration: .2s;
+}
+
+/* The rail column is narrow: drop the secondary shortcut to the library,
+   the top navigation already offers it. */
+body.layout-rail .view-home .dock-head .all-btn { display: none; }
+
+body.layout-rail .view-home .dock-title {
+  gap: 8px;
+  letter-spacing: .16em;
+}

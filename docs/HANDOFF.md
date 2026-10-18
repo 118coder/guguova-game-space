@@ -1,9 +1,74 @@
 # NOVA 交接文档
 
 > 写给接手这个项目的人（或下一个 AI 会话）。
-> 最后更新：2026-10-19 · 对应版本 1.2.0
+> 最后更新：2026-10-19 · 对应版本 1.2.1
 
 先读这一页，再按需跳到具体章节。文中所有路径都相对于仓库根目录。
+
+---
+
+## 0.1 1.2.1 变更记录
+
+这一轮只做四件事，全部围绕「界面更像一个整体」。
+
+### 1. 游戏库 / 外观改成原地切换
+
+之前它们是全屏弹层：带遮罩、卡片边框、`inert` 和焦点陷阱，
+每次点击导航都像打开一个新窗口。现在改成同一内容区里的视图。
+
+- 新增 `<div class="content">`，里面并排三个 `.view`：
+  `#homeView`（主视觉 + 底部游戏条）、`#libraryOverlay`、`#appearanceOverlay`。
+- `.view` 绝对定位叠放，切换时只做 0.32s 的交叉淡入 + 10px 位移；
+  顶栏、背景、导航完全不动。
+- 新增 `state.view`（`home|library|appearance`）与 `setView()`；
+  `state.overlay` 现在只表示真正的模态层（详情 / 编辑器 / 扫描器 / 选择器 / 启动 / 睡眠）。
+- 库和外观不再设置 `app.inert`，也不再抢焦点；`NovaSurfaces` 里这两个 id 的注册保留，
+  但打开/关闭改由 `setView` 走。
+- 库与外观视图自带一层轻遮罩 + 9px 模糊，保证在明亮封面上文字依然可读，
+  但仍能看见背景，不会像换了个页面。
+- `content` 的 `z-index` 必须是 4：低于它会被 `.atmosphere` / `.grain` 压暗。
+  这是本轮踩到的第一个坑。
+
+### 2. 竖排模式
+
+- 顶栏新增布局按钮（`#layoutBtn`），在「底部横排」与「左侧竖排」之间切换。
+- 竖排时：封面缩成 92px 的横向小卡排在左侧，右侧仍是完整主视觉；
+  游戏条变成可纵向滚动的侧栏，`all-btn` 与底部提示隐藏。
+- 偏好写入 `PlayerSettings.Layout`（`row|rail`），下次启动保持。
+- 窗口宽度低于 1080px 自动退回横排，避免把主视觉压扁。
+
+### 3. 全屏
+
+- 最大化与全屏共用一个实现（`MainWindow.SetFullscreen`）：
+  按当前显示器的物理边界铺满，隐藏任务栏。
+- 「退出全屏」从悬浮胶囊移进顶栏，位置在窗口按钮左侧；
+  全屏时窗口按钮隐藏，它正好补位，不会再压住头像。
+- Esc 的层级：关模态 → 回首页视图 → 退出全屏。
+- 拖动全屏窗口会先退出全屏再开始拖动，避免卡在屏幕边缘。
+
+### 4. 单实例
+
+- 双击第二次不再启动第二个进程：`App.xaml.cs` 用命名互斥量拦住，
+  并通过命名事件把已运行的窗口唤到前台。
+- 原因：两个进程同时占用 WebView2 的用户数据目录会抛
+  `COMException 0x8007139F`，界面会空白。这是本轮实测到的崩溃。
+
+### 5. 缓存与构建
+
+- 本地 CSS/JS 全部加了 `?v=1.2.1`。**发版时必须同步改版本号**，
+  否则 WebView2 磁盘缓存会继续用旧文件。
+- 另一个更容易踩的坑：程序运行的是 `bin/Debug/net10.0-windows/win-x64/src` 里的副本。
+  改完 `src/` 不 `dotnet build` 就重启，看到的仍然是旧界面。
+  本轮排查「CSS 不生效」花了很久，实际就是这两件事叠加。
+
+### 验证
+
+- 导航三视图来回切换：`data-view` 正确，库 6 张卡渲染，顶栏不重建。
+- 竖排：`html[data-layout=rail]`，游戏条 `flex-direction: column`，
+  重启后 `settings.layout` 仍为 `rail`。
+- 全屏：窗口 2560×1440 @0,0；按钮在顶栏内，与头像包围盒不重叠；
+  Esc 退出后 `is-fullscreen` 与原生状态都回到 false。
+- `dotnet build -c Debug` 0 错误。
 
 ---
 
@@ -68,8 +133,9 @@
 - **原生按钮配色回归备份**：新增 `src/cta-palettes.css`，恢复原型的 8 套手调 CTA
   （Emberwaltz / Cobalt Hour / Sanctum / Shatterline / Sunroom / Moonbound / Neon Hearts / system）。
   已知游戏套对应 palette class；未知游戏继续用封面采样，保持形状不变。
-- **模式注册表**：新增 `src/surfaces.js`，library / appearance / details / editor / scanner
-  的 open/close、`inert`、body surface、焦点恢复由描述符统一处理；新增模式只需注册描述符。
+- **模式注册表**：`src/surfaces.js` 统一模态层（details / editor / scanner / picker /
+  launch / sleep）的 open/close、`inert` 与焦点恢复。
+  游戏库与外观在 1.2.1 之后是视图，不再走注册表（见 0.1）。
 - **玩家可编辑游戏资料与字体**：编辑器新增年龄分级、游玩模式、标题字体（8 套字标方案 +
   自动跟随封面）；`GameEntry.TypeRecipe` 持久化，`recipeFor` 优先使用玩家选择。
 
@@ -209,7 +275,8 @@ nova-game-space-desktop/
 │  ├─ theme.css              按钮、管理面板、外观工作室
 │  ├─ app.css                桌面版补充（编辑器、扫描器、空状态）
 │  ├─ motion.css             启动动画、沉稳模式、手柄提示条
-│  ├─ dialogs.css            对话框、文件浏览器、全屏小按钮
+│  ├─ views.css              ★ 原地视图、竖排模式、全屏退出按钮
+│  ├─ dialogs.css            对话框、文件浏览器
 │  ├─ themes.css             主题卡片 + 右键菜单
 │  ├─ polish.css             导航滑动、封面淡入等交互层
 │  ├─ intro.css              ★ 开场动画预设与可访问性降级
@@ -345,10 +412,13 @@ AURUM 的羊皮纸/鎏金按钮是附赠主题自己的语言，不会影响默�
 新建的 JS/CSS 不会自动打进输出目录。解决方式：渲染层文件逐个 `<Content Include>`。
 新增文件时**必须**在 csproj 里加一行，否则运行时报 404。
 
-**#2 WebView2 虚拟主机会缓存文件，`?v=` 查询串无效**
-改完主题 CSS 刷新看不到变化就是这个原因。现在的做法是在 `theme-engine.js` 里
-用 `fetch(url, {cache:'no-store'})` 取文本再内联成 `<style>`。
-如果以后加别的运行时资源，注意同样的问题。
+**#2 两层缓存：先看构建产物，再看 WebView 缓存**
+程序运行的是 `bin/Debug/net10.0-windows/win-x64/src`，不是仓库里的 `src/`。
+改了 `src/` 不 `dotnet build` 就重启，看到的永远是旧界面——本轮排查「CSS 不生效」
+一半时间耗在这里。
+另一半是 WebView2 的磁盘缓存：页面里的 CSS/JS 已经统一加 `?v=<版本>`，
+**发版必须同步改版本号**；主题 CSS 因为会在运行时被用户编辑，改用
+`fetch(url, {cache:'no-store'})` 取文本再内联成 `<style>`。
 
 **#3 内联 CSS 变量优先级高于样式表**
 「跟随封面」会给按钮写内联 `--cta-*`，主题样式压制不住。

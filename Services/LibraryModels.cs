@@ -65,6 +65,7 @@ public sealed class PlayerSettings
     public bool Sound { get; set; } = true;
     public bool ReduceMotion { get; set; }
     public bool Calm { get; set; }
+    public string Layout { get; set; } = "row";
     public string Theme { get; set; } = "nova";
     public string StyleMode { get; set; } = "adaptive";
     public int TypeSeed { get; set; }

@@ -359,34 +359,36 @@ body.fullscreen-entering .app { animation: fullscreenIn .5s var(--ease) both; }
 
 html.calm body.fullscreen-entering .app { animation-duration: .3s; }
 
-/* Exit-fullscreen control, top right, only in fullscreen. */
-.fullscreen-pill {
-  position: fixed;
-  top: 14px;
-  right: 16px;
-  z-index: 40;
+/* In fullscreen the window buttons are hidden and this chip takes their
+   place. It sits inside the top bar, so it can never overlap the avatar. */
+.fullscreen-exit {
   display: none;
   align-items: center;
   gap: 7px;
-  height: 30px;
+  height: 32px;
   padding: 0 13px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, .14);
-  background: rgba(8, 10, 14, .6);
-  backdrop-filter: blur(14px);
-  font-size: 11px;
+  margin-left: 2px;
+  flex: none;
+  border-radius: var(--hud-radius, 999px);
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(8, 10, 14, .5);
+  font-size: 11.5px;
   letter-spacing: .04em;
-  color: rgba(255, 255, 255, .55);
-  opacity: 0;
-  transition: opacity .4s ease, color .2s ease, border-color .2s ease;
+  color: rgba(255, 255, 255, .62);
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
 }
 
-html.is-fullscreen .fullscreen-pill { display: flex; opacity: 1; }
-.fullscreen-pill:hover { color: #fff; border-color: rgba(255, 255, 255, .3); }
-.fullscreen-pill .ic { width: 12px; height: 12px; }
+html.is-fullscreen .fullscreen-exit { display: flex; }
+.fullscreen-exit:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .34);
+  background: rgba(20, 22, 28, .7);
+}
 
-/* Auto-hide the pill after a few seconds of stillness. */
-html.is-fullscreen.idle .fullscreen-pill { opacity: 0; pointer-events: none; }
+.fullscreen-exit .ic { width: 13px; height: 13px; opacity: .8; }
+
+/* Fade the chip out while the pointer is still, and bring it back on move. */
+html.is-fullscreen.idle .fullscreen-exit { opacity: .35; }
 
 @media (max-width: 760px) {
   .picker-shell { width: 96vw; max-height: 92vh; }

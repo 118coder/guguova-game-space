@@ -108,6 +108,8 @@
     scan: null,
     theme: 'nova',
     menuOpen: false,
+    view: 'home',
+    layout: 'row',
     editorMode: 'create',
     editorId: null,
     editorManifest: null,
@@ -325,7 +327,9 @@
     themeCountTag: $('#themeCountTag'),
     themeRefresh: $('#themeRefresh'),
     themeFolder: $('#themeFolder'),
-    contextMenu: $('#contextMenu')
+    contextMenu: $('#contextMenu'),
+    homeView: $('#homeView'),
+    layoutBtn: $('#layoutBtn')
   };
 
   /* ============================================================
@@ -958,6 +962,7 @@
         styleMode: state.settings.styleMode,
         typeSeed: state.settings.typeSeed,
         calm: state.settings.calm,
+        layout: state.layout,
         playerName: state.settings.playername
       });
     }, 180);
@@ -1315,7 +1320,7 @@
     if (wrapped === previous) {
       if (options.scroll) centerTile(wrapped);
       if (options.sound) audio.select();
-      if (state.overlay === 'appearance') renderAppearance();
+      if (state.view === 'appearance') renderAppearance();
       return;
     }
 
@@ -1332,8 +1337,8 @@
     if (options.sound) audio.move(wrapped > previous ? 1 : -1);
 
     if (state.overlay === 'details') populateDetails(game);
-    if (state.overlay === 'appearance') renderAppearance();
-    if (!state.overlay) setNav('home');
+    if (state.view === 'appearance') renderAppearance();
+    if (!state.overlay) setNav(state.view);
     // Persistent CTAs (editor / scanner / pickers) must follow the new
     // game's palette too, not only the hero button.
     applyStyleModeUI();
@@ -1422,6 +1427,84 @@
     } else if (tileRect.right > railRect.right - margin) {
       els.rail.scrollBy({ left: tileRect.right - railRect.right + margin, behavior: 'auto' });
     }
+  }
+
+  /* ============================================================
+     VIEWS
+     Home, library and appearance share the content area. Switching
+     only cross-fades that area, so the shell never feels rebuilt.
+     ============================================================ */
+
+  const VIEW_IDS = { home: 'homeView', library: 'libraryOverlay', appearance: 'appearanceOverlay' };
+
+  function viewElement(name) {
+    return document.getElementById(VIEW_IDS[name]);
+  }
+
+  function setView(name, options = {}) {
+    if (name === state.view && !options.force) return;
+    const previous = state.view;
+    state.view = name;
+
+    Object.keys(VIEW_IDS).forEach((key) => {
+      const el = viewElement(key);
+      if (!el) return;
+      const current = key === name;
+      el.classList.toggle('is-current', current);
+      el.classList.toggle('is-leaving', false);
+      el.setAttribute('aria-hidden', current ? 'false' : 'true');
+    });
+
+    setNav(name);
+    document.documentElement.dataset.view = name;
+    scrollViewToTop(name);
+
+    if (name === 'library') renderLibrary();
+    if (name === 'appearance') {
+      renderAppearance();
+      syncAppearanceChips();
+      requestAnimationFrame(updateAppearanceScrollState);
+      setTimeout(refitLogos, 120);
+    }
+
+    if (previous !== name) {
+      if (name === 'home') audio.back();
+      else audio.open();
+    }
+  }
+
+  function scrollViewToTop(name) {
+    const el = viewElement(name);
+    if (!el) return;
+    const scroller = $('.lib-shell', el) || $('.appearance-options', el);
+    if (scroller) scroller.scrollTop = 0;
+  }
+
+  /* ============================================================
+     LAYOUT MODE
+     row  : the classic bottom rail
+     rail : vertical cover column on the left, game on the right
+     ============================================================ */
+
+  function applyLayout(mode, options = {}) {
+    const next = mode === 'rail' ? 'rail' : 'row';
+    state.layout = next;
+    document.body.classList.toggle('layout-rail', next === 'rail');
+    document.documentElement.dataset.layout = next;
+    if (els.layoutBtn) {
+      els.layoutBtn.setAttribute('aria-pressed', String(next === 'rail'));
+      els.layoutBtn.title = next === 'rail' ? '切换为横排' : '切换为竖排';
+      const use = els.layoutBtn.querySelector('use');
+      if (use) use.setAttribute('href', next === 'rail' ? '#i-layout-row' : '#i-layout-rail');
+    }
+    if (!options.silent) {
+      saveSettings();
+      toast(next === 'rail' ? '已切换为竖排' : '已切换为横排', 'check');
+    }
+  }
+
+  function toggleLayout() {
+    applyLayout(state.layout === 'rail' ? 'row' : 'rail');
   }
 
   /* ============================================================
@@ -1526,7 +1609,6 @@
 
   function openLibrary(options = {}) {
     if (state.overlay) return;
-    state.lastFocus = document.activeElement;
     closePopovers();
     state.libPadIndex = 0;
 
@@ -1538,25 +1620,18 @@
       els.libSearch.value = state.libQuery;
     }
 
-    renderLibrary();
-    audio.open();
-    state.overlay = 'library';
-    openSurface('library');
-    setNav('library');
+    setView('library');
 
-    setTimeout(() => {
-      try { (options.search ? els.libSearch : els.libBack).focus({ preventScroll: true }); } catch (error) {}
-    }, 90);
+    if (options.search) {
+      setTimeout(() => {
+        try { els.libSearch.focus({ preventScroll: true }); } catch (error) {}
+      }, 120);
+    }
   }
 
   function closeLibrary(options = {}) {
-    if (state.overlay !== 'library') return;
-    const { focus = true, sound = true } = options;
-    closeSurface('library');
-    state.overlay = null;
-    setNav('home');
-    if (sound) audio.back();
-    if (focus) restoreFocus();
+    if (state.view !== 'library') return;
+    setView('home');
   }
 
   /* ============================================================
@@ -1668,7 +1743,7 @@
     populateDetails(currentGame());
     state.overlay = 'details';
     openSurface('details');
-    setNav('home');
+    setNav(state.view);
     audio.select();
     setTimeout(() => {
       try { els.detailsClose.focus({ preventScroll: true }); } catch (error) {}
@@ -1698,7 +1773,7 @@
     els.detailFav.setAttribute('aria-pressed', String(game.favorite));
     audio.select();
     toast(game.favorite ? `已收藏《${shortName(game)}》` : `已取消收藏《${shortName(game)}》`, 'heart');
-    if (state.overlay === 'library') renderLibrary();
+    if (state.view === 'library') renderLibrary();
     updateRail();
   }
 
@@ -1823,7 +1898,7 @@
       chip.classList.toggle('is-active', active);
       chip.setAttribute('aria-current', active ? 'true' : 'false');
     });
-    if (state.overlay !== 'appearance') return;
+    if (state.view !== 'appearance') return;
     const chip = $('.game-chip.is-active', els.appearanceSwitcher);
     if (!chip) return;
     const switcherRect = els.appearanceSwitcher.getBoundingClientRect();
@@ -1870,7 +1945,7 @@
     });
 
     updateTypeReadout();
-    if (state.overlay === 'appearance') requestAnimationFrame(updateAppearanceScrollState);
+    if (state.view === 'appearance') requestAnimationFrame(updateAppearanceScrollState);
   }
 
   function setStyleMode(mode, options = {}) {
@@ -1924,31 +1999,13 @@
 
   function openAppearance() {
     if (state.overlay) return;
-    const active = document.activeElement;
-    state.lastFocus = els.profileMenu.contains(active) ? els.profileBtn : active;
     closePopovers();
-    renderAppearance();
-    state.overlay = 'appearance';
-    openSurface('appearance');
-    setNav('appearance');
-    syncAppearanceChips();
-    audio.open();
-    setTimeout(() => {
-      try { els.appearanceClose.focus({ preventScroll: true }); } catch (error) {}
-    }, 90);
-    setTimeout(refitLogos, 140);
-    requestAnimationFrame(updateAppearanceScrollState);
-    setTimeout(updateAppearanceScrollState, 180);
+    setView('appearance');
   }
 
   function closeAppearance(options = {}) {
-    if (state.overlay !== 'appearance') return;
-    const { focus = true, sound = true } = options;
-    closeSurface('appearance');
-    state.overlay = null;
-    setNav('home');
-    if (sound) audio.back();
-    if (focus) restoreFocus();
+    if (state.view !== 'appearance') return;
+    setView('home');
   }
 
   /* ============================================================
@@ -2376,8 +2433,8 @@
   /* keep "运行中" counters fresh every 30 s */
   function refreshLive() {
     if (state.overlay === 'details' && currentGame()) updateDetailProgress(currentGame());
-    if (state.overlay === 'library') renderLibrary();
-    if (!state.overlay && currentGame()) renderHero(currentGame(), false);
+    if (state.view === 'library') renderLibrary();
+    if (!state.overlay && state.view === 'home' && currentGame()) renderHero(currentGame(), false);
     updateRail();
   }
 
@@ -2430,9 +2487,8 @@
   }
 
   function openEditor(game = null) {
-    const allowed = !state.overlay || state.overlay === 'library' || state.overlay === 'scanner' || state.overlay === 'details';
+    const allowed = !state.overlay || state.overlay === 'scanner' || state.overlay === 'details';
     if (!allowed) return;
-    if (state.overlay === 'library') closeLibrary({ focus: false, sound: false });
     if (state.overlay === 'scanner') closeScanner({ focus: false, sound: false });
     if (state.overlay === 'details') closeDetails({ focus: false, sound: false });
 
@@ -2842,8 +2898,7 @@
   const scanSelection = new Set();
 
   function openScanner() {
-    if (state.overlay && state.overlay !== 'library') return;
-    if (state.overlay === 'library') closeLibrary({ focus: false, sound: false });
+    if (state.overlay) return;
     state.lastFocus = document.activeElement;
     scanSelection.clear();
     state.scan = null;
@@ -3079,8 +3134,8 @@
     const game = currentGame();
     if (!state.overlay) renderHero(game, false);
     document.body.classList.toggle('is-empty', !state.games.length);
-    if (state.overlay === 'library') renderLibrary();
-    if (state.overlay === 'appearance') renderAppearance();
+    if (state.view === 'library') renderLibrary();
+    if (state.view === 'appearance') renderAppearance();
     if (!game) {
       els.gameLogo.textContent = 'NOVA';
       els.gameTagline.textContent = '选择游戏开始。';
@@ -3143,7 +3198,7 @@
       }
 
       if (event.key === 'Escape') {
-        if (state.overlay === 'appearance') {
+        if (state.view === 'appearance') {
           event.preventDefault();
           closeAppearance();
           return;
@@ -3154,16 +3209,26 @@
           else closeDetails();
           return;
         }
-        if (state.overlay === 'library') {
+        if (state.view === 'library') {
           event.preventDefault();
           closeLibrary();
+          return;
+        }
+        if (state.menuOpen) {
+          event.preventDefault();
+          closeContextMenu();
+          return;
+        }
+        if (state.fullscreen) {
+          event.preventDefault();
+          applyFullscreen(false);
           return;
         }
         closePopovers();
         return;
       }
 
-      if (state.overlay === 'appearance') {
+      if (state.view === 'appearance') {
         if (event.key === 'ArrowLeft') {
           event.preventDefault();
           selectGame(state.index - 1, { sound: true, animate: true });
@@ -3213,7 +3278,7 @@
         return;
       }
 
-      if (state.overlay === 'library') {
+      if (state.view === 'library') {
         if (event.key === '/' && event.target !== els.libSearch) {
           event.preventDefault();
           els.libSearch.focus();
@@ -3262,12 +3327,14 @@
         case 'l':
         case 'L':
           event.preventDefault();
-          openLibrary();
+          if (state.view === 'library') setView('home');
+          else openLibrary();
           break;
         case 't':
         case 'T':
           event.preventDefault();
-          openAppearance();
+          if (state.view === 'appearance') setView('home');
+          else openAppearance();
           break;
         case '/':
           event.preventDefault();
@@ -3311,8 +3378,8 @@
     if (state.overlay === 'launch') return 'launch';
     if (state.overlay === 'editor') return 'editor';
     if (state.overlay === 'scanner') return 'scanner';
-    if (state.overlay === 'appearance') return 'appearance';
-    if (state.overlay === 'library') return 'library';
+    if (state.view === 'appearance') return 'appearance';
+    if (state.view === 'library') return 'library';
     if (state.overlay === 'details') return 'details';
     if (els.notifPanel.classList.contains('is-open')) return 'notifications';
     if (els.profileMenu.classList.contains('is-open')) return 'profile';
@@ -3620,15 +3687,20 @@
 
     $$('.nav-btn').forEach((button) => {
       button.addEventListener('click', () => {
+        if (state.overlay) return;
         const view = button.dataset.nav;
         if (view === 'library') openLibrary();
         else if (view === 'appearance') openAppearance();
-        else {
-          if (state.overlay === 'library') closeLibrary();
-          setNav('home');
-        }
+        else setView('home');
       });
     });
+
+    if (els.layoutBtn) {
+      els.layoutBtn.addEventListener('click', () => {
+        audio.select();
+        toggleLayout();
+      });
+    }
 
     els.allBtn.addEventListener('click', () => openLibrary());
     els.searchBtn.addEventListener('click', () => openLibrary({ search: true }));
@@ -3637,7 +3709,7 @@
     els.brandBtn.addEventListener('click', () => {
       if (state.overlay) return;
       selectGame(0, { sound: true, scroll: true });
-      setNav('home');
+      setView('home');
     });
 
     els.notifBtn.addEventListener('click', (event) => {
@@ -3665,7 +3737,7 @@
       audio.select();
       if (notice.gameId && findGame(notice.gameId)) {
         chooseGameById(notice.gameId);
-        setNav('home');
+        setView('home');
         toast(`已切换至《${findGame(notice.gameId).zh || findGame(notice.gameId).name}》`);
       }
     });
@@ -3695,7 +3767,9 @@
       }
     });
 
-    els.appearanceClose.addEventListener('click', () => closeAppearance());
+    if (els.appearanceClose) {
+      els.appearanceClose.addEventListener('click', () => closeAppearance());
+    }
     els.appearanceOverlay.addEventListener('pointerdown', (event) => {
       if (event.target === els.appearanceOverlay) closeAppearance();
     });
@@ -3864,7 +3938,8 @@
       styleMode: boot.settings?.styleMode === 'system' ? 'system' : 'adaptive',
       typeSeed: Number.isFinite(boot.settings?.typeSeed) ? boot.settings.typeSeed : 0,
       calm: boot.settings?.calm === true,
-      theme: boot.settings?.theme || 'nova'
+      theme: boot.settings?.theme || 'nova',
+      layout: boot.settings?.layout === 'rail' ? 'rail' : 'row'
     };
     state.dataFolder = boot.dataFolder || '';
     state.version = boot.version || '1.0.0';

@@ -7,17 +7,18 @@
 <meta name="theme-color" content="#0a0b0b">
 <title>NOVA · 游戏空间</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="fonts.css">
-<link rel="stylesheet" href="base.css">
-<link rel="stylesheet" href="theme.css">
-<link rel="stylesheet" href="cta-palettes.css">
-<link rel="stylesheet" href="type.css">
-<link rel="stylesheet" href="app.css">
-<link rel="stylesheet" href="motion.css">
-<link rel="stylesheet" href="dialogs.css">
-<link rel="stylesheet" href="themes.css">
-<link rel="stylesheet" href="polish.css">
-<link rel="stylesheet" href="intro.css">
+<link rel="stylesheet" href="fonts.css?v=1.2.1">
+<link rel="stylesheet" href="base.css?v=1.2.1">
+<link rel="stylesheet" href="theme.css?v=1.2.1">
+<link rel="stylesheet" href="cta-palettes.css?v=1.2.1">
+<link rel="stylesheet" href="type.css?v=1.2.1">
+<link rel="stylesheet" href="app.css?v=1.2.1">
+<link rel="stylesheet" href="motion.css?v=1.2.1">
+<link rel="stylesheet" href="views.css?v=1.2.1">
+<link rel="stylesheet" href="dialogs.css?v=1.2.1">
+<link rel="stylesheet" href="themes.css?v=1.2.1">
+<link rel="stylesheet" href="polish.css?v=1.2.1">
+<link rel="stylesheet" href="intro.css?v=1.2.1">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -59,6 +60,8 @@
   <symbol id="i-square" viewBox="0 0 24 24"><rect x="5.5" y="5.5" width="13" height="13" rx="1.5"/></symbol>
   <symbol id="i-restore" viewBox="0 0 24 24"><rect x="4.5" y="7.5" width="11" height="11" rx="1.5"/><path d="M8 7.5V6a1.5 1.5 0 0 1 1.5-1.5H18A1.5 1.5 0 0 1 19.5 6v8.5A1.5 1.5 0 0 1 18 16h-1.5"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4 20.4 19a1 1 0 0 1-.9 1.5H4.5a1 1 0 0 1-.9-1.5L12 4.4Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-layout-rail" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5v15"/><path d="M12.5 9h5M12.5 12h5M12.5 15h5"/></symbol>
+  <symbol id="i-layout-row" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 14.5h17"/><path d="M6.5 11V8M10 11V8M13.5 11V8M17 11V8"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M6.5 3.5h7l5 5v12h-12v-17Z"/><path d="M13.5 3.5v5h5"/></symbol>
   <symbol id="i-folder-fill" viewBox="0 0 24 24"><path d="M3.5 7.6c0-1.1.9-2 2-2h3.2l1.9 2.1h7.9c1.1 0 2 .9 2 2v7.7c0 1.1-.9 2-2 2h-13c-1.1 0-2-.9-2-2V7.6Z" fill="currentColor" stroke="none"/></symbol>
@@ -136,6 +139,9 @@
         <span class="clock-time" id="clockTime">--:--</span>
         <span class="clock-date" id="clockDate"></span>
       </div>
+      <button class="icon-btn" id="layoutBtn" aria-label="切换竖排/横排" title="切换为竖排" aria-pressed="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-layout-rail"/></svg>
+      </button>
       <button class="icon-btn" id="addBtn" aria-label="添加游戏" title="添加游戏 (A)">
         <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>
       </button>
@@ -150,6 +156,10 @@
         <span class="avatar" id="avatarLetter">N</span>
         <span class="online-dot"></span>
       </button>
+      <button class="fullscreen-exit" id="fullscreenPill" aria-label="退出全屏" title="退出全屏 (Esc)">
+        <svg class="ic" aria-hidden="true"><use href="#i-restore"/></svg>
+        <span>退出全屏</span>
+      </button>
       <div class="window-controls" aria-label="窗口控制">
         <button class="win-btn" id="minBtn" aria-label="最小化" title="最小化"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
         <button class="win-btn" id="maxBtn" aria-label="最大化" title="最大化"><svg class="ic" aria-hidden="true"><use href="#i-square"/></svg></button>
@@ -158,107 +168,338 @@
     </div>
   </header>
 
-  <main class="stage">
-    <section class="hero" aria-label="当前游戏">
-      <div class="hero-inner" id="heroInner">
-        <div class="kicker">
-          <span class="kicker-dot"></span>
-          <span id="kickerLabel">准备好开始</span>
-          <span class="kicker-sep"></span>
-          <span class="kicker-dim" id="kickerDim">从添加第一款游戏开始</span>
-        </div>
+    <div class="content" id="content">
+    <section class="view view-home is-current" id="homeView" aria-label="首页">
+      <main class="stage">
+          <section class="hero" aria-label="当前游戏">
+            <div class="hero-inner" id="heroInner">
+              <div class="kicker">
+                <span class="kicker-dot"></span>
+                <span id="kickerLabel">准备好开始</span>
+                <span class="kicker-sep"></span>
+                <span class="kicker-dim" id="kickerDim">从添加第一款游戏开始</span>
+              </div>
 
-        <h1 class="logo hero-logo type-gilded" id="gameLogo">NOVA</h1>
+              <h1 class="logo hero-logo type-gilded" id="gameLogo">NOVA</h1>
 
-        <p class="tagline" id="gameTagline">你的游戏，都在这里。</p>
+              <p class="tagline" id="gameTagline">你的游戏，都在这里。</p>
 
-        <div class="meta-row" id="metaRow">
-          <span>动作</span><i class="meta-dot"></i><span>冒险</span><i class="meta-dot"></i>
-          <span class="age-badge">12+</span><i class="meta-dot"></i><span>单人</span>
-        </div>
+              <div class="meta-row" id="metaRow">
+                <span>动作</span><i class="meta-dot"></i><span>冒险</span><i class="meta-dot"></i>
+                <span class="age-badge">12+</span><i class="meta-dot"></i><span>单人</span>
+              </div>
 
-        <div class="cta-row">
-          <button class="btn primary cta-adaptive" id="playBtn">
-            <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-            <span id="playLabel">开始游戏</span>
-          </button>
-          <button class="btn ghost" id="detailBtn">
-            <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>
-            <span>游戏详情</span>
-          </button>
-        </div>
+              <div class="cta-row">
+                <button class="btn primary cta-adaptive" id="playBtn">
+                  <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+                  <span id="playLabel">开始游戏</span>
+                </button>
+                <button class="btn ghost" id="detailBtn">
+                  <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>
+                  <span>游戏详情</span>
+                </button>
+              </div>
 
-        <div class="progress-block">
-          <div class="progress-head">
-            <span id="progressLabel">尚未添加游戏</span>
-            <span class="progress-pct" id="progressPct">—</span>
+              <div class="progress-block">
+                <div class="progress-head">
+                  <span id="progressLabel">尚未添加游戏</span>
+                  <span class="progress-pct" id="progressPct">—</span>
+                </div>
+                <div class="progress-track"><i id="progressFill" style="width:0%"></i></div>
+                <div class="progress-sub">
+                  <svg class="ic" id="progressSubIcon" aria-hidden="true"><use href="#i-clock"/></svg>
+                  <span id="progressSub">导入 Steam 游戏库，或添加任意游戏程序</span>
+                </div>
+              </div>
+
+              <button class="activity-strip" id="questCard" aria-label="导入游戏">
+                <span class="activity-icon">
+                  <svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg>
+                </span>
+                <span class="activity-text">
+                  <span class="activity-kicker" id="questKicker">快速开始</span>
+                  <span class="activity-title" id="questTitle">浏览本机游戏</span>
+                  <span class="activity-desc" id="questDesc">Steam 库与开始菜单</span>
+                </span>
+                <span class="activity-side">
+                  <span class="activity-pct" id="questPct">0</span>
+                  <span class="activity-meta" id="questMeta">已发现候选</span>
+                </span>
+                <span class="activity-track"><i id="questFill" style="width:0%"></i></span>
+                <svg class="ic activity-arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
+              </button>
+            </div>
+          </section>
+        </main>
+      <footer class="dock">
+          <div class="dock-head">
+            <div class="dock-title"><span>游戏</span><span class="dock-count" id="dockCount">0 款</span></div>
+            <button class="all-btn" id="allBtn">
+              <span>打开游戏库</span>
+              <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+            </button>
           </div>
-          <div class="progress-track"><i id="progressFill" style="width:0%"></i></div>
-          <div class="progress-sub">
-            <svg class="ic" id="progressSubIcon" aria-hidden="true"><use href="#i-clock"/></svg>
-            <span id="progressSub">导入 Steam 游戏库，或添加任意游戏程序</span>
-          </div>
-        </div>
 
-        <button class="activity-strip" id="questCard" aria-label="导入游戏">
-          <span class="activity-icon">
-            <svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg>
-          </span>
-          <span class="activity-text">
-            <span class="activity-kicker" id="questKicker">快速开始</span>
-            <span class="activity-title" id="questTitle">浏览本机游戏</span>
-            <span class="activity-desc" id="questDesc">Steam 库与开始菜单</span>
-          </span>
-          <span class="activity-side">
-            <span class="activity-pct" id="questPct">0</span>
-            <span class="activity-meta" id="questMeta">已发现候选</span>
-          </span>
-          <span class="activity-track"><i id="questFill" style="width:0%"></i></span>
-          <svg class="ic activity-arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
-        </button>
-      </div>
+          <div class="rail" id="rail" aria-label="游戏列表"></div>
+          <div class="rail-empty" id="railEmpty" hidden>
+            <button class="rail-empty-card" id="railAddCard">
+              <span class="rail-empty-icon"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></span>
+              <span class="rail-empty-title">添加第一款游戏</span>
+              <span class="rail-empty-sub">选择 EXE，或从 Steam 库导入</span>
+            </button>
+          </div>
+
+          <div class="dock-foot">
+            <div class="hints">
+              <span class="hint"><kbd class="key">←</kbd><kbd class="key">→</kbd><span>切换</span></span>
+              <span class="hint"><kbd class="key">Enter</kbd><span>启动</span></span>
+              <span class="hint"><kbd class="key">A</kbd><span>添加</span></span>
+              <span class="hint"><kbd class="key">L</kbd><span>游戏库</span></span>
+              <span class="hint"><kbd class="key">T</kbd><span>外观</span></span>
+            </div>
+            <div class="runtime">
+              <span class="runtime-item" id="dataFolderBtn" title="打开数据文件夹" role="button" tabindex="0">
+                <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+                <span>本地游戏库</span>
+              </span>
+              <span class="runtime-sep"></span>
+              <span class="runtime-item" id="inputStatus">
+                <svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg>
+                <span>键盘 / 鼠标</span>
+              </span>
+            </div>
+          </div>
+        </footer>
     </section>
-  </main>
 
-  <footer class="dock">
-    <div class="dock-head">
-      <div class="dock-title"><span>游戏</span><span class="dock-count" id="dockCount">0 款</span></div>
-      <button class="all-btn" id="allBtn">
-        <span>打开游戏库</span>
-        <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
-      </button>
-    </div>
+    <!-- 游戏库：与首页同层，切换不重建界面 -->
+    <section class="view view-library" id="libraryOverlay" aria-hidden="true">
+        <div class="lib-shell" role="dialog" aria-modal="true" aria-label="游戏库">
+          <header class="lib-head">
+            <button class="icon-btn lib-back" id="libBack" aria-label="返回首页">
+              <svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+            </button>
+            <div class="lib-title">
+              <div class="lib-eyebrow">NOVA · 游戏库</div>
+              <h2>游戏库</h2>
+            </div>
+            <div class="lib-search">
+              <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+              <input id="libSearch" type="text" placeholder="搜索游戏" autocomplete="off" spellcheck="false" aria-label="搜索游戏">
+              <span class="keycap">/</span>
+            </div>
+            <button class="btn ghost compact lib-add" id="libAdd">
+              <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>
+              <span>添加游戏</span>
+            </button>
+          </header>
 
-    <div class="rail" id="rail" aria-label="游戏列表"></div>
-    <div class="rail-empty" id="railEmpty" hidden>
-      <button class="rail-empty-card" id="railAddCard">
-        <span class="rail-empty-icon"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></span>
-        <span class="rail-empty-title">添加第一款游戏</span>
-        <span class="rail-empty-sub">选择 EXE，或从 Steam 库导入</span>
-      </button>
-    </div>
+          <div class="lib-meta">
+            <div class="lib-stats" id="libStats"></div>
+            <div class="lib-filters" id="libFilters">
+              <button class="filter is-active" data-filter="all">全部</button>
+              <button class="filter" data-filter="recent">最近游玩</button>
+              <button class="filter" data-filter="favorite">已收藏</button>
+              <button class="filter" data-filter="steam">Steam</button>
+            </div>
+          </div>
 
-    <div class="dock-foot">
-      <div class="hints">
-        <span class="hint"><kbd class="key">←</kbd><kbd class="key">→</kbd><span>切换</span></span>
-        <span class="hint"><kbd class="key">Enter</kbd><span>启动</span></span>
-        <span class="hint"><kbd class="key">A</kbd><span>添加</span></span>
-        <span class="hint"><kbd class="key">L</kbd><span>游戏库</span></span>
-        <span class="hint"><kbd class="key">T</kbd><span>外观</span></span>
-      </div>
-      <div class="runtime">
-        <span class="runtime-item" id="dataFolderBtn" title="打开数据文件夹" role="button" tabindex="0">
-          <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
-          <span>本地游戏库</span>
-        </span>
-        <span class="runtime-sep"></span>
-        <span class="runtime-item" id="inputStatus">
-          <svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg>
-          <span>键盘 / 鼠标</span>
-        </span>
-      </div>
-    </div>
-  </footer>
+          <div class="lib-grid" id="libGrid"></div>
+
+          <div class="lib-empty" id="libEmpty" hidden>
+            <div class="empty-icon">
+              <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+            </div>
+            <h3 id="libEmptyTitle">没有找到游戏</h3>
+            <p id="libEmptyText">试试其他关键词，或切换筛选条件。</p>
+            <button class="btn ghost compact" id="clearFilters">清除筛选</button>
+          </div>
+        </div>
+    </section>
+
+    <!-- 外观：与首页同层 -->
+    <section class="view view-appearance" id="appearanceOverlay" aria-hidden="true">
+        <div class="appearance-shell" role="dialog" aria-modal="true" aria-label="外观工作室">
+
+          <div class="appearance-preview">
+            <img class="appearance-bg" id="appearanceBg" src="assets/backdrop.jpg" alt="" aria-hidden="true">
+            <img class="appearance-image" id="appearanceImage" src="assets/backdrop.jpg" alt="">
+            <div class="appearance-preview-shade"></div>
+            <div class="appearance-preview-top">
+              <span class="live-pill"><i></i>实时预览</span>
+              <span class="appearance-index" id="appearanceIndex">01 / 01</span>
+            </div>
+            <div class="appearance-preview-copy">
+              <div class="appearance-eyebrow">当前外观</div>
+              <div class="logo appearance-logo type-gilded" id="appearanceLogo">NOVA</div>
+              <p class="appearance-tagline" id="appearanceTagline">你的游戏，都在这里。</p>
+              <div class="preview-cta-row">
+                <div class="btn primary preview-cta cta-adaptive" id="appearanceCta">
+                  <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+                  <span id="appearanceCtaLabel">开始游戏</span>
+                </div>
+                <span class="preview-cta-note" id="appearanceCtaNote">跟随封面</span>
+              </div>
+              <div class="appearance-progress">
+                <i id="appearanceProgressFill"></i>
+                <span id="appearanceProgressPct">0 小时</span>
+              </div>
+            </div>
+            <div class="appearance-switcher" id="appearanceSwitcher" role="group" aria-label="选择预览游戏"></div>
+          </div>
+
+          <div class="appearance-options" id="appearanceOptions">
+            <header class="appearance-head">
+              <div class="appearance-kicker">NOVA · 外观</div>
+              <h2>外观工作室</h2>
+              <p>按钮形状不变；字标随外观语言变化，主题可以接管整套配色。</p>
+            </header>
+
+            <section class="appearance-section">
+              <div class="section-head">
+                <div>
+                  <h3>外观语言</h3>
+                  <p>决定字标配方；配色由当前主题决定。</p>
+                </div>
+                <span class="section-tag" id="styleModeTag">跟随封面</span>
+              </div>
+              <div class="style-choice-grid" id="styleChoices">
+                <button class="style-choice is-active" data-style="adaptive" aria-pressed="true">
+                  <span class="style-choice-head">
+                    <span class="choice-radio"></span>
+                    <span>跟随封面</span>
+                    <em>随封面</em>
+                  </span>
+                  <span class="style-choice-preview">
+                    <span class="choice-look">
+                      <span class="logo choice-logo type-gilded" id="adaptiveChoiceLogo">NOVA</span>
+                    </span>
+                    <span class="btn primary preview-mini cta-adaptive" id="adaptivePreviewCta">
+                      <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+                      <span>开始游戏</span>
+                    </span>
+                  </span>
+                  <span class="style-choice-desc">字标取自封面；主题会覆盖颜色。</span>
+                </button>
+                <button class="style-choice" data-style="system" aria-pressed="false">
+                  <span class="style-choice-head">
+                    <span class="choice-radio"></span>
+                    <span>NOVA 默认</span>
+                    <em>统一</em>
+                  </span>
+                  <span class="style-choice-preview">
+                    <span class="choice-look">
+                      <span class="logo choice-logo type-system" id="systemChoiceLogo">NOVA</span>
+                    </span>
+                    <span class="btn primary preview-mini cta-system" id="systemPreviewCta">
+                      <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+                      <span>开始游戏</span>
+                    </span>
+                  </span>
+                  <span class="style-choice-desc">统一字体，中性配色。</span>
+                </button>
+              </div>
+              <div class="type-readout" id="typeReadout" aria-live="polite">
+                <div class="type-readout-main">
+                  <span class="type-readout-kicker">字标方案</span>
+                  <strong class="type-recipe-name" id="typeRecipeName">GILDED SERIF</strong>
+                  <span class="type-recipe-spec" id="typeRecipeSpec">Cormorant Garamond · Italic · 600</span>
+                </div>
+                <div class="type-readout-side">
+                  <span class="type-seed" id="typeSeedLabel">TYPE 01 · SEED 01</span>
+                  <button class="type-shuffle" id="typeShuffleBtn" type="button" title="重新编排 (R)">
+                    <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
+                    <span id="typeShuffleLabel">重新编排</span>
+                  </button>
+                </div>
+                <div class="type-dna" id="typeDna"></div>
+              </div>
+              <div class="palette-strip">
+                <span class="palette-strip-label">封面配色 · <em id="appearanceGameName">NOVA</em></span>
+                <div class="palette-row" id="appearancePalette"></div>
+              </div>
+            </section>
+
+            <section class="appearance-section">
+              <div class="section-head">
+                <div>
+                  <h3>界面主题</h3>
+                  <p>整套替换颜色、描边、按钮与图标。主题放在主题文件夹里，可以自己做。</p>
+                </div>
+                <span class="section-tag" id="themeCountTag">2 套</span>
+              </div>
+              <div class="theme-grid" id="themeGrid"></div>
+              <div class="theme-actions">
+                <button class="btn ghost compact" id="themeRefresh">
+                  <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
+                  <span>刷新</span>
+                </button>
+                <button class="btn ghost compact" id="themeFolder">
+                  <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+                  <span>打开主题文件夹</span>
+                </button>
+                <span class="theme-hint">把主题文件夹或 .zip 放进去，再点刷新</span>
+              </div>
+            </section>
+
+            <section class="appearance-section">
+              <div class="section-head">
+                <div>
+                  <h3>系统偏好</h3>
+                  <p>改动自动保存。</p>
+                </div>
+              </div>
+              <div class="pref-list">
+                <button class="pref-row" id="appearanceSoundRow" role="switch" aria-checked="true">
+                  <span class="pref-label">
+                    <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
+                    <span>界面音效</span>
+                  </span>
+                  <span class="switch on" id="appearanceSoundSwitch"></span>
+                </button>
+                <button class="pref-row" id="appearanceMotionRow" role="switch" aria-checked="false">
+                  <span class="pref-label">
+                    <svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>
+                    <span>减少动效</span>
+                  </span>
+                  <span class="switch" id="appearanceMotionSwitch"></span>
+                </button>
+                <button class="pref-row" id="appearanceCalmRow" role="switch" aria-checked="false">
+                  <span class="pref-label">
+                    <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+                    <span>沉稳模式</span>
+                  </span>
+                  <span class="pref-hint">更少动画 · 更平稳的过渡</span>
+                  <span class="switch" id="appearanceCalmSwitch"></span>
+                </button>
+                <button class="pref-row" id="appearanceFullscreenRow">
+                  <span class="pref-label">
+                    <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+                    <span>全屏显示</span>
+                  </span>
+                  <span class="pref-note">F</span>
+                </button>
+                <button class="pref-row" id="openDataRow">
+                  <span class="pref-label">
+                    <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+                    <span>打开数据文件夹</span>
+                  </span>
+                  <span class="pref-note">库文件 · 封面缓存</span>
+                </button>
+              </div>
+            </section>
+
+            <footer class="appearance-footer">
+              <span class="autosave">
+                <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+      自动保存
+              </span>
+              <span class="appearance-data" id="appearanceDataPath"></span>
+            </footer>
+          </div>
+        </div>
+    </section>
+  </div>
 </div>
 
 <!-- ============ NOTIFICATIONS ============ -->
@@ -425,236 +666,7 @@
 </div>
 
 <!-- ============ LIBRARY ============ -->
-<div class="overlay library-overlay" id="libraryOverlay" aria-hidden="true">
-  <div class="lib-shell" role="dialog" aria-modal="true" aria-label="游戏库">
-    <header class="lib-head">
-      <button class="icon-btn lib-back" id="libBack" aria-label="返回首页">
-        <svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>
-      </button>
-      <div class="lib-title">
-        <div class="lib-eyebrow">NOVA · 游戏库</div>
-        <h2>游戏库</h2>
-      </div>
-      <div class="lib-search">
-        <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
-        <input id="libSearch" type="text" placeholder="搜索游戏" autocomplete="off" spellcheck="false" aria-label="搜索游戏">
-        <span class="keycap">/</span>
-      </div>
-      <button class="btn ghost compact lib-add" id="libAdd">
-        <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>
-        <span>添加游戏</span>
-      </button>
-    </header>
-
-    <div class="lib-meta">
-      <div class="lib-stats" id="libStats"></div>
-      <div class="lib-filters" id="libFilters">
-        <button class="filter is-active" data-filter="all">全部</button>
-        <button class="filter" data-filter="recent">最近游玩</button>
-        <button class="filter" data-filter="favorite">已收藏</button>
-        <button class="filter" data-filter="steam">Steam</button>
-      </div>
-    </div>
-
-    <div class="lib-grid" id="libGrid"></div>
-
-    <div class="lib-empty" id="libEmpty" hidden>
-      <div class="empty-icon">
-        <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
-      </div>
-      <h3 id="libEmptyTitle">没有找到游戏</h3>
-      <p id="libEmptyText">试试其他关键词，或切换筛选条件。</p>
-      <button class="btn ghost compact" id="clearFilters">清除筛选</button>
-    </div>
-  </div>
-</div>
-
 <!-- ============ APPEARANCE ============ -->
-<div class="overlay appearance-overlay" id="appearanceOverlay" aria-hidden="true">
-  <div class="appearance-shell" role="dialog" aria-modal="true" aria-label="外观工作室">
-    <button class="icon-btn modal-close appearance-close" id="appearanceClose" aria-label="关闭外观工作室">
-      <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
-    </button>
-
-    <div class="appearance-preview">
-      <img class="appearance-bg" id="appearanceBg" src="assets/backdrop.jpg" alt="" aria-hidden="true">
-      <img class="appearance-image" id="appearanceImage" src="assets/backdrop.jpg" alt="">
-      <div class="appearance-preview-shade"></div>
-      <div class="appearance-preview-top">
-        <span class="live-pill"><i></i>实时预览</span>
-        <span class="appearance-index" id="appearanceIndex">01 / 01</span>
-      </div>
-      <div class="appearance-preview-copy">
-        <div class="appearance-eyebrow">当前外观</div>
-        <div class="logo appearance-logo type-gilded" id="appearanceLogo">NOVA</div>
-        <p class="appearance-tagline" id="appearanceTagline">你的游戏，都在这里。</p>
-        <div class="preview-cta-row">
-          <div class="btn primary preview-cta cta-adaptive" id="appearanceCta">
-            <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-            <span id="appearanceCtaLabel">开始游戏</span>
-          </div>
-          <span class="preview-cta-note" id="appearanceCtaNote">跟随封面</span>
-        </div>
-        <div class="appearance-progress">
-          <i id="appearanceProgressFill"></i>
-          <span id="appearanceProgressPct">0 小时</span>
-        </div>
-      </div>
-      <div class="appearance-switcher" id="appearanceSwitcher" role="group" aria-label="选择预览游戏"></div>
-    </div>
-
-    <div class="appearance-options" id="appearanceOptions">
-      <header class="appearance-head">
-        <div class="appearance-kicker">NOVA · 外观</div>
-        <h2>外观工作室</h2>
-        <p>按钮形状不变；字标随外观语言变化，主题可以接管整套配色。</p>
-      </header>
-
-      <section class="appearance-section">
-        <div class="section-head">
-          <div>
-            <h3>外观语言</h3>
-            <p>决定字标配方；配色由当前主题决定。</p>
-          </div>
-          <span class="section-tag" id="styleModeTag">跟随封面</span>
-        </div>
-        <div class="style-choice-grid" id="styleChoices">
-          <button class="style-choice is-active" data-style="adaptive" aria-pressed="true">
-            <span class="style-choice-head">
-              <span class="choice-radio"></span>
-              <span>跟随封面</span>
-              <em>随封面</em>
-            </span>
-            <span class="style-choice-preview">
-              <span class="choice-look">
-                <span class="logo choice-logo type-gilded" id="adaptiveChoiceLogo">NOVA</span>
-              </span>
-              <span class="btn primary preview-mini cta-adaptive" id="adaptivePreviewCta">
-                <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-                <span>开始游戏</span>
-              </span>
-            </span>
-            <span class="style-choice-desc">字标取自封面；主题会覆盖颜色。</span>
-          </button>
-          <button class="style-choice" data-style="system" aria-pressed="false">
-            <span class="style-choice-head">
-              <span class="choice-radio"></span>
-              <span>NOVA 默认</span>
-              <em>统一</em>
-            </span>
-            <span class="style-choice-preview">
-              <span class="choice-look">
-                <span class="logo choice-logo type-system" id="systemChoiceLogo">NOVA</span>
-              </span>
-              <span class="btn primary preview-mini cta-system" id="systemPreviewCta">
-                <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-                <span>开始游戏</span>
-              </span>
-            </span>
-            <span class="style-choice-desc">统一字体，中性配色。</span>
-          </button>
-        </div>
-        <div class="type-readout" id="typeReadout" aria-live="polite">
-          <div class="type-readout-main">
-            <span class="type-readout-kicker">字标方案</span>
-            <strong class="type-recipe-name" id="typeRecipeName">GILDED SERIF</strong>
-            <span class="type-recipe-spec" id="typeRecipeSpec">Cormorant Garamond · Italic · 600</span>
-          </div>
-          <div class="type-readout-side">
-            <span class="type-seed" id="typeSeedLabel">TYPE 01 · SEED 01</span>
-            <button class="type-shuffle" id="typeShuffleBtn" type="button" title="重新编排 (R)">
-              <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
-              <span id="typeShuffleLabel">重新编排</span>
-            </button>
-          </div>
-          <div class="type-dna" id="typeDna"></div>
-        </div>
-        <div class="palette-strip">
-          <span class="palette-strip-label">封面配色 · <em id="appearanceGameName">NOVA</em></span>
-          <div class="palette-row" id="appearancePalette"></div>
-        </div>
-      </section>
-
-      <section class="appearance-section">
-        <div class="section-head">
-          <div>
-            <h3>界面主题</h3>
-            <p>整套替换颜色、描边、按钮与图标。主题放在主题文件夹里，可以自己做。</p>
-          </div>
-          <span class="section-tag" id="themeCountTag">2 套</span>
-        </div>
-        <div class="theme-grid" id="themeGrid"></div>
-        <div class="theme-actions">
-          <button class="btn ghost compact" id="themeRefresh">
-            <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
-            <span>刷新</span>
-          </button>
-          <button class="btn ghost compact" id="themeFolder">
-            <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
-            <span>打开主题文件夹</span>
-          </button>
-          <span class="theme-hint">把主题文件夹或 .zip 放进去，再点刷新</span>
-        </div>
-      </section>
-
-      <section class="appearance-section">
-        <div class="section-head">
-          <div>
-            <h3>系统偏好</h3>
-            <p>改动自动保存。</p>
-          </div>
-        </div>
-        <div class="pref-list">
-          <button class="pref-row" id="appearanceSoundRow" role="switch" aria-checked="true">
-            <span class="pref-label">
-              <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
-              <span>界面音效</span>
-            </span>
-            <span class="switch on" id="appearanceSoundSwitch"></span>
-          </button>
-          <button class="pref-row" id="appearanceMotionRow" role="switch" aria-checked="false">
-            <span class="pref-label">
-              <svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>
-              <span>减少动效</span>
-            </span>
-            <span class="switch" id="appearanceMotionSwitch"></span>
-          </button>
-          <button class="pref-row" id="appearanceCalmRow" role="switch" aria-checked="false">
-            <span class="pref-label">
-              <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
-              <span>沉稳模式</span>
-            </span>
-            <span class="pref-hint">更少动画 · 更平稳的过渡</span>
-            <span class="switch" id="appearanceCalmSwitch"></span>
-          </button>
-          <button class="pref-row" id="appearanceFullscreenRow">
-            <span class="pref-label">
-              <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-              <span>全屏显示</span>
-            </span>
-            <span class="pref-note">F</span>
-          </button>
-          <button class="pref-row" id="openDataRow">
-            <span class="pref-label">
-              <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
-              <span>打开数据文件夹</span>
-            </span>
-            <span class="pref-note">库文件 · 封面缓存</span>
-          </button>
-        </div>
-      </section>
-
-      <footer class="appearance-footer">
-        <span class="autosave">
-          <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
-自动保存
-        </span>
-        <span class="appearance-data" id="appearanceDataPath"></span>
-      </footer>
-    </div>
-  </div>
-</div>
-
 <!-- ============ ADD / EDIT GAME ============ -->
 <div class="overlay editor-overlay" id="editorOverlay" aria-hidden="true">
   <div class="editor-shell" role="dialog" aria-modal="true" aria-label="添加游戏">
@@ -947,11 +959,6 @@
   </div>
 </div>
 
-<button class="fullscreen-pill" id="fullscreenPill" aria-label="退出全屏">
-  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-  <span>退出全屏</span>
-</button>
-
 <div class="context-menu" id="contextMenu" role="menu" aria-hidden="true"></div>
 
 <div class="toast" id="toast" role="status" aria-live="polite">
@@ -959,13 +966,13 @@
   <span id="toastText"></span>
 </div>
 
-<script src="motion.js" defer></script>
-<script src="focus.js" defer></script>
-<script src="surfaces.js" defer></script>
-<script src="gamepad.js" defer></script>
-<script src="overlays.js" defer></script>
-<script src="theme-engine.js" defer></script>
-<script src="intro.js" defer></script>
-<script src="app.js" defer></script>
+<script src="motion.js?v=1.2.1" defer></script>
+<script src="focus.js?v=1.2.1" defer></script>
+<script src="surfaces.js?v=1.2.1" defer></script>
+<script src="gamepad.js?v=1.2.1" defer></script>
+<script src="overlays.js?v=1.2.1" defer></script>
+<script src="theme-engine.js?v=1.2.1" defer></script>
+<script src="intro.js?v=1.2.1" defer></script>
+<script src="app.js?v=1.2.1" defer></script>
 </body>
 </html>
