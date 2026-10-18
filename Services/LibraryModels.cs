@@ -34,6 +34,11 @@ public sealed class GameEntry
     public string? SteamAppId { get; set; }
     public int LaunchCount { get; set; }
     public string? CustomLogo { get; set; }
+
+    /// <summary>Optional title recipe override ("gilded", "poster", …).
+    /// Empty means the cover director chooses automatically.</summary>
+    public string TypeRecipe { get; set; } = "";
+
     public CoverDna Dna { get; set; } = new();
 }
 
@@ -111,6 +116,7 @@ public sealed record GamePayload(
     string Args,
     string WorkDir,
     bool CustomLogo,
+    string TypeRecipe,
     CoverDna Dna);
 
 public sealed record SteamCandidate(

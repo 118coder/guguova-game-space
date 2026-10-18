@@ -1,0 +1,152 @@
+/* ============================================================
+   NOVA · POLISH
+   Small interaction behaviours that do not change the visual
+   language of the built-in shell or of a theme:
+     - the nav selection glides instead of teleporting
+     - cover art fades in after decode (the plate is the loader)
+     - keyboard focus stays visible without a stock outline
+   ============================================================ */
+
+/* ---------- sliding nav selection ---------- */
+
+.nav { position: relative; }
+
+.nav-glide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  width: 0;
+  border-radius: 999px;
+  background: #f2efe7;
+  box-shadow: 0 6px 22px -12px rgba(0, 0, 0, .7);
+  transform: translateX(0);
+  transition: transform .38s var(--ease), width .38s var(--ease);
+  pointer-events: none;
+}
+
+.nav-btn { position: relative; z-index: 1; }
+
+.nav-glide ~ .nav-btn.is-active {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Themes that draw their own glide keep it; this only supplies motion. */
+html.calm .nav-glide { transition-duration: .5s; }
+
+/* ---------- decoded cover art ---------- */
+
+.tile-art > img,
+.lib-art > img {
+  opacity: 0;
+  transition: opacity .45s ease;
+}
+
+.tile-art > img.is-loaded,
+.lib-art > img.is-loaded {
+  opacity: 1;
+}
+
+/* Broken artwork keeps its branded fallback visible. */
+.tile-art > img.is-missing,
+.lib-art > img.is-missing {
+  opacity: .45;
+}
+
+.tile-art,
+.lib-art {
+  background-color: #0a0c11;
+}
+
+/* ---------- focus ---------- */
+
+:focus-visible {
+  outline-offset: 3px;
+}
+
+/* ---------- no clipped labels ----------
+   The appearance palette strip can carry a two-line game name; let it
+   wrap instead of cutting the last glyphs off. */
+.palette-strip {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.palette-strip-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.palette-strip-label em {
+  white-space: normal;
+}
+
+.palette-strip .palette-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Library cards grow instead of cutting a long name. The Latin subtitle
+   is hidden by app.js when it would not fit. */
+.lib-card .lib-name,
+.lib-card .lib-en,
+.lib-card .lib-sub {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+
+.lib-card .lib-name-row { align-items: flex-start; }
+
+/* Dock labels grow to a second line instead of cutting a long Chinese
+   name. The rail height follows; the carousel mask still fades edges. */
+.tile-label {
+  align-items: flex-start;
+  white-space: normal;
+}
+
+.tile-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.tile-sub { padding-top: 1px; }
+
+/* Long local paths wrap instead of ending in an ellipsis. */
+.detail-sync { flex-wrap: wrap; }
+
+.detail-path,
+.appearance-data,
+.scan-sub,
+.picker-note {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-glide,
+  .tile-art > img,
+  .lib-art > img {
+    transition-duration: .001ms !important;
+  }
+}
+
+html.reduce-motion .nav-glide,
+html.reduce-motion .tile-art > img,
+html.reduce-motion .lib-art > img {
+  transition-duration: .001ms !important;
+}

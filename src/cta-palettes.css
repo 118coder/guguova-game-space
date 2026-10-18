@@ -1,0 +1,79 @@
+/* ============================================================
+   NOVA · COLOUR-ONLY CTA PALETTES
+   The original cover-directed button language: one capsule shape,
+   one typography, one icon treatment. Only colour changes.
+   These are the hand-tuned palettes from the original prototype;
+   unknown games still use the live cover sampler in app.js.
+   ============================================================ */
+
+.btn.primary.cta-emberwaltz {
+  --cta-bg: linear-gradient(135deg, #ffd88a 0%, #ffb05f 48%, #ff7e6d 100%);
+  --cta-bg-hover: linear-gradient(135deg, #ffe4a6 0%, #ffbd72 48%, #ff8e7b 100%);
+  --cta-fg: #2a110c;
+  --cta-border: rgba(255, 243, 216, .55);
+  --cta-shadow: 0 16px 44px -16px rgba(255, 151, 83, .66), inset 0 1px 0 rgba(255, 255, 255, .72);
+  --cta-shadow-hover: 0 22px 54px -16px rgba(255, 163, 92, .8), inset 0 1px 0 #fff4d9;
+}
+
+.btn.primary.cta-cobalt-hour {
+  --cta-bg: linear-gradient(180deg, #eaf8ff 0%, #bfe2ff 100%);
+  --cta-bg-hover: linear-gradient(180deg, #f7fdff 0%, #cdeaff 100%);
+  --cta-fg: #061a3a;
+  --cta-border: rgba(110, 185, 255, .66);
+  --cta-shadow: 0 14px 40px -18px rgba(72, 160, 255, .62), inset 0 1px 0 #ffffff;
+  --cta-shadow-hover: 0 20px 48px -17px rgba(72, 160, 255, .76), inset 0 1px 0 #fff;
+}
+
+.btn.primary.cta-sanctum {
+  --cta-bg: linear-gradient(180deg, #f8ecd2 0%, #d8b97a 100%);
+  --cta-bg-hover: linear-gradient(180deg, #fff4dd 0%, #e3c68a 100%);
+  --cta-fg: #2a1b10;
+  --cta-border: rgba(255, 239, 204, .78);
+  --cta-shadow: 0 16px 42px -16px rgba(224, 181, 108, .58), inset 0 1px 0 #fff6e4;
+  --cta-shadow-hover: 0 22px 52px -16px rgba(231, 193, 124, .72), inset 0 1px 0 #fffaf0;
+}
+
+.btn.primary.cta-shatterline {
+  --cta-bg: linear-gradient(100deg, #fff0cc 0%, #f2cf8d 50%, #ffd79a 100%);
+  --cta-bg-hover: linear-gradient(100deg, #fff5dc 0%, #f7dba0 50%, #ffe0a9 100%);
+  --cta-fg: #10161d;
+  --cta-border: rgba(255, 244, 217, .72);
+  --cta-shadow: 0 0 28px -10px rgba(121, 231, 255, .42), 0 15px 36px -20px #000, inset 0 1px 0 #fff8e8;
+  --cta-shadow-hover: 0 0 38px -8px rgba(121, 231, 255, .58), 0 20px 44px -20px #000, inset 0 1px 0 #fffaf0;
+}
+
+.btn.primary.cta-sunroom {
+  --cta-bg: linear-gradient(180deg, #f0f7e2 0%, #cfdfb4 100%);
+  --cta-bg-hover: linear-gradient(180deg, #f9fcef 0%, #dcebc4 100%);
+  --cta-fg: #27351f;
+  --cta-border: rgba(240, 248, 230, .82);
+  --cta-shadow: 0 16px 40px -16px rgba(156, 196, 120, .5), 0 0 24px -12px rgba(247, 201, 108, .35), inset 0 1px 0 #fbfdf6;
+  --cta-shadow-hover: 0 22px 50px -16px rgba(156, 196, 120, .65), 0 0 30px -10px rgba(247, 201, 108, .42), inset 0 1px 0 #fff;
+}
+
+.btn.primary.cta-moonbound {
+  --cta-bg: linear-gradient(180deg, #f6f5f1 0%, #cbd4df 100%);
+  --cta-bg-hover: linear-gradient(180deg, #fffefa 0%, #d9e1ea 100%);
+  --cta-fg: #0a0f16;
+  --cta-border: rgba(240, 244, 248, .78);
+  --cta-shadow: 0 14px 38px -18px rgba(183, 61, 72, .4), 0 0 24px -12px rgba(197, 210, 226, .45), inset 0 1px 0 #fff;
+  --cta-shadow-hover: 0 20px 46px -17px rgba(183, 61, 72, .52), 0 0 30px -10px rgba(197, 210, 226, .55), inset 0 1px 0 #fff;
+}
+
+.btn.primary.cta-neon-hearts {
+  --cta-bg: linear-gradient(100deg, #ff9fd5 0%, #ffd0ea 30%, #96efff 70%, #b9a1ff 100%);
+  --cta-bg-hover: linear-gradient(100deg, #ffb1df 0%, #ffe0f2 30%, #a9f4ff 70%, #c8b5ff 100%);
+  --cta-fg: #2a1233;
+  --cta-border: rgba(255, 255, 255, .78);
+  --cta-shadow: 0 16px 44px -16px rgba(255, 139, 203, .6), 0 0 26px -9px rgba(140, 239, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .7);
+  --cta-shadow-hover: 0 22px 52px -16px rgba(255, 154, 214, .72), 0 0 34px -8px rgba(140, 239, 255, .55), inset 0 1px 0 #fff;
+}
+
+.btn.primary.cta-system {
+  --cta-bg: linear-gradient(180deg, #fbf8f0 0%, #e9e4d8 100%);
+  --cta-bg-hover: linear-gradient(180deg, #ffffff 0%, #f0ece1 100%);
+  --cta-fg: #0b0c0f;
+  --cta-border: transparent;
+  --cta-shadow: 0 13px 42px -18px rgba(0, 0, 0, .58), inset 0 1px 0 rgba(255, 255, 255, .85);
+  --cta-shadow-hover: 0 20px 48px -17px rgba(0, 0, 0, .64), 0 0 0 1px rgba(255, 255, 255, .22), inset 0 1px 0 #fff;
+}

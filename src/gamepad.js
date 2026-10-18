@@ -129,6 +129,16 @@
 
     const now = performance.now();
     const next = snapshot(pad);
+
+    // The opening sequence swallows pad input. Any face/d-pad press
+    // only skips the intro; it must not also launch a game behind it.
+    if (window.NovaIntro && window.NovaIntro.active) {
+      const anyPressed = Object.keys(next).some((key) => next[key] && !state.prev.get(key));
+      Object.keys(next).forEach((key) => state.prev.set(key, next[key]));
+      if (anyPressed) window.NovaIntro.padSkip();
+      return;
+    }
+
     const pressedEdge = (key) => {
       const was = !!state.prev.get(key);
       state.prev.set(key, next[key]);
