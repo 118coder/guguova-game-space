@@ -1,9 +1,140 @@
 # NOVA 交接文档
 
 > 写给接手这个项目的人（或下一个 AI 会话）。
-> 最后更新：2026-10-19 · 对应版本 1.1.0
+> 最后更新：2026-10-19 · 对应版本 1.2.0
 
 先读这一页，再按需跳到具体章节。文中所有路径都相对于仓库根目录。
+
+---
+
+## 0. 1.2.0 变更记录（先看这里）
+
+这一轮的目标是「重做主题气质 + 把交互、开场、架构补齐」。方向经过一次纠偏：
+第一版尝试了浅色羊皮纸，实测在明亮封面上不成立，已整体回滚；最终保留原来的
+暗色电影感基座，把新主题做成暗色鎏金，并把封面颜色从主题 UI 中隔离出去。
+
+### 完成内容
+
+**视觉 / 主题**
+
+- 保留内置 `nova`（NOVA 原生，暗色电影感外观）作为默认主题，不做破坏性覆盖。
+- 新增内置附赠主题 `themes/aurum/`（鎏金圣所 · AURUM），替换原来的 `abyss` 附赠位：
+  - 墨绿铁底、双层鎏金描边、四角金属括号；
+  - 羊皮纸铭牌（导航 / 主按钮 / 筛选 / CURRENT / 主题标签）；
+  - 青玉能量条、细噪点、斜纹、铆钉；
+  - 标题统一为家族金色，封面配色只影响背景；
+  - Steam 徽章改为 meta 行内的小型刻印标签（细金线 + 菱形点），不再使用按钮式描边盒；
+  - 自带 `aurum` 开场预设。
+- 默认主题仍是 `nova`（NOVA 原生），AURUM 只是附赠主题；`PlayerSettings.Theme` 默认值保持 `nova`。
+- 长文本/截断专项：
+  - 主标题走 `fitLogo` 缩放，1110px / 960px 窄窗口不溢出；
+  - dock 与库卡片使用 `shortName()` 取中文头名，避免「中文 + 英文」被卡片切断；
+  - 外观的调色板标签允许换行，风格选择标题使用短名；
+  - 库卡片过长的拉丁副标题直接隐藏（`is-long-name`），而不是 ellipsis 硬切；
+  - 详情路径、外观数据路径、扫描路径允许换行；按钮文案与 meta 行不重叠。
+- 参考目录 `D:\EX\sprite_Interface` 只用于提炼语言，不复制任何素材：
+  - 深绿/近黑底 + 双层金线 + 奶油/羊皮纸内嵌铭牌；
+  - 暗绿格槽、金色角括号、青玉小信号；
+  - 暗底上的青色文字只出现在深色铭牌内，不再直接浮在亮封面上。
+- 重新绘制 `.ico`：黄铜罗盘环 + 菱形印章 + 青玉核心，
+  多尺寸 16–256，生成脚本 `tools/make-icon.py`；WPF 启动画面同步换成同款标记。
+- 移除旧的 `themes/abyss/` 源目录（用户数据目录里的旧副本不会被程序主动删除）。
+
+**交互 / 动效**
+
+- 新增 `src/motion.js`：统一「减少动效 / 沉稳 / 低性能」三种策略；
+  低性能自动移除背景模糊、噪点与漂移，并支持窗口不可见时暂停装饰动画。
+- 新增 `src/focus.js`：弹层焦点陷阱、打开时移入、关闭后恢复、输入模态标记。
+- 新增 `src/intro.js` + `src/intro.css`：开场动画注册表；
+  `gilded` / `aurum` / `ink` / `ember` / `veil` 五个预设；
+  罗盘描线、金色粒子、轨道环、光带扫过；AURUM 预设额外有 180° 印章旋转
+  与金色扩散环（`setup()` 挂 class，不改共同编排）；
+  主题清单用 `"intro": "aurum"` 选择；任意键、鼠标、手柄按键可跳过；
+  `prefers-reduced-motion` / 「减少动效」自动降为淡入。
+- 新增 `src/polish.css`：导航选中项滑动、封面解码后淡入、焦点偏移统一。
+- 开场逻辑接入 `app.js`：主题加载最多等 500 ms，失败也不会卡住界面；
+  默认 2.2 s，可跳过，结束用圆形 iris 揭示主界面。
+- 启动界面（launch）：
+  - 点火脉冲（`is-igniting`）、错误态（`is-error`）、就绪呼吸（`is-ready`）；
+  - 环形进度重新配色，步骤改为金色/青玉信号；
+  - 退出时折叠成一条金色封印线。
+- 模式切换：保留原有的 overlay / shell 过渡，新增 `setNav` 滑动指示器；
+  打开外观面板时 shell 有独立的入场动画（主题层）。
+- 加载/空/错误态：封面图先显示底板，解码后淡入；损坏封面保留 branded fallback；
+  空库、空筛选、扫描中、启动失败都有明确文案与视觉。
+- 主题 / 封面解耦：主题激活时 `applyAccent` 不再把封面的 `--accent` / `--accent-2`
+  写进主题 UI；只保留 `--scrim-rgb` 给背景遮罩。主题 token 会被恢复。
+- 键盘/手柄：开场期间输入只用于跳过；弹层 Tab 焦点循环；手柄任意键跳过开场。
+- **原生按钮配色回归备份**：新增 `src/cta-palettes.css`，恢复原型的 8 套手调 CTA
+  （Emberwaltz / Cobalt Hour / Sanctum / Shatterline / Sunroom / Moonbound / Neon Hearts / system）。
+  已知游戏套对应 palette class；未知游戏继续用封面采样，保持形状不变。
+- **模式注册表**：新增 `src/surfaces.js`，library / appearance / details / editor / scanner
+  的 open/close、`inert`、body surface、焦点恢复由描述符统一处理；新增模式只需注册描述符。
+- **玩家可编辑游戏资料与字体**：编辑器新增年龄分级、游玩模式、标题字体（8 套字标方案 +
+  自动跟随封面）；`GameEntry.TypeRecipe` 持久化，`recipeFor` 优先使用玩家选择。
+
+**架构**
+
+- 主题清单新增 `intro` 字段，C# `ThemeService` / `NativeBridge` 透传到渲染层。
+- 开场预设与主题系统解耦：主题只声明 id，动画注册表在 `intro.js`。
+- 动效策略与业务解耦：`motion.js` 只输出 CSS class 与 CSS 变量。
+- 焦点策略与业务解耦：`focus.js` 只观察可见弹层，不关心具体页面。
+- 新增渲染层文件都逐个写进 `NovaGameSpace.csproj`（坑 #1）。
+
+### 关键决策
+
+1. **暗色基座不推翻**。参考图的「气质」是暗底 + 鎏金 + 羊皮纸铭牌，
+   不是整页浅色。浅色版在明亮封面上对比度不可控，已回滚。
+   **默认主题仍是 NOVA 原生**（保留原来的封面配色算法）；AURUM 取代 abyss 作为附赠主题。
+2. **主题拥有自己的调色板**。主题激活后，封面颜色不再改写徽章、进度文字、按钮；
+   封面只影响背景遮罩和主视觉。这样 AURUM 不会因为《沉睡的法则》的蓝绿色封面
+   出现蓝色 STEAM 徽章和蓝色时长。
+3. **标题颜色由主题收口**。保留字标配方的字体与形制，但把填充色统一为家族金色，
+   避免封面渐变在亮图上消失。
+4. **开场是注册表，不是主题脚本**。主题不能执行代码的安全边界不变；
+   新开场只需要注册预设 + 一段 CSS 变量。
+5. **性能分级在运行时决定**。先看硬件核数/内存，再采样前 95 帧的中位帧时间；
+   只降级、不升级，避免在低端机上反复抖。
+6. **焦点陷阱由独立模块负责**。页面只负责开关弹层，焦点行为统一。
+7. **图标可复现**。`tools/make-icon.py` 生成，不依赖设计软件；
+   素材全部为几何绘制，无第三方图。
+
+### 验证记录（1.2.0）
+
+- `dotnet build -c Debug`：0 错误；发布版 `publish/NovaGameSpace.exe` 已实际启动验证。
+- 默认主题 Cobalt Hour CTA：`cta-cobalt-hour` → `#eaf8ff → #bfe2ff`，与备份一致；
+  Emberwaltz → 橙金 `#ffd88a → #ff7e6d`；Sunroom → 鼠尾草；未知游戏走封面采样。
+- AURUM 主题：CTA 由主题接管，Steam 标签为小型刻印标签；无蓝色封面串色。
+- 开场：`NovaIntro.presets()` 返回 5 个预设；AURUM 的 `setup` 增加 180° 印章旋转与金环脉冲。
+- 模式：`NovaSurfaces.ids` 返回 8 个 surface；library/editor 的 inert、body surface、焦点恢复均验证。
+- 编辑器：年龄/模式/字标方案字段可见；保存 `poster` 后 `#gameLogo` 变为 `type-poster`，
+  `library.json` 持久化 `typeRecipe`，再改回自动成功。
+- 布局：960 / 1110 / 1400 三档检查，长标题、Steam 标签、调色板标签、库卡片名称无截断/重叠。
+- 外观风格卡（计算冒险 / Monolith）：`choice-logo.scrollHeight === clientHeight`，底部字形完整；
+  双卡标题与 CTA、描述之间无重叠。
+- 960px dock 的「噩梦摇篮：献花于你」自动换行到两行，
+  `tile-name.scrollHeight === clientHeight`，不再出现 ellipsis 硬切。
+
+### 遗留问题
+
+- 入口 WebView2 冷启动约 3–5 s，WPF splash 会在此期间显示；开场动画在页面加载后开始。
+  后续可以把 splash 的进度与 WebView2 初始化事件打通，减少「splash → intro」的割裂。
+- 旧用户数据目录里可能残留 `themes/abyss`；程序不会自动删除用户主题。
+  如果要彻底清理，需要加「退役主题迁移」而非常规删除。
+- 主题预览图仍可能被 WebView2 缓存；改预览图后需要重启或换主题名/版本。
+  CSS 已经用 no-store 绕过。
+- 亮色封面下的截图对比度已经通过暗色进度牌与金色标题解决；
+  极亮的纯白封面仍建议用户在添加时提供更暗的 hero。
+- 手柄跳过开场只能通过轮询；没有专门的 `gamepadconnected` 事件处理。
+
+### 下一步建议
+
+1. 把 WPF splash 与 WebView2 初始化进度打通（最影响第一印象）。
+2. 给主题卡片加「开场预设预览」小按钮，方便主题作者试听/试看。
+3. 主题安装 UI（zip 导入）仍未接到界面；后端 `ThemeService.Install` 已具备。
+4. 200+ 游戏库的虚拟滚动。
+5. 主题预览图 cache-bust（在预览 URL 后加 `?v=版本`）。
+6. 多显示器 / 每游戏记忆显示器。
 
 ---
 
@@ -64,24 +195,32 @@ nova-game-space-desktop/
 │  └─ ShortcutResolver.cs    .lnk 解析
 │
 ├─ src/                      ★ 渲染层
-│  ├─ index.html             全部界面结构 + SVG 图标库
-│  ├─ app.js                 主逻辑（最大的一份，约 3.8k 行）
-│  ├─ gamepad.js             手柄轮询与按键映射
+│  ├─ index.html             全部界面结构 + SVG 图标库 + 开场层
+│  ├─ app.js                 主逻辑（最大的一份，约 3.9k 行）
+│  ├─ gamepad.js             手柄轮询与按键映射（开场可跳过）
 │  ├─ overlays.js            应用内对话框 + 文件浏览器
-│  ├─ theme-engine.js        主题加载与图标替换
+│  ├─ theme-engine.js        主题加载、token/图标替换
+│  ├─ motion.js              ★ 动效策略 / 性能分级 / 系统减少动效
+│  ├─ focus.js               ★ 焦点陷阱、恢复、输入模态
+│  ├─ surfaces.js            ★ 模式/弹层注册表（open/close/inert/焦点）
+│  ├─ intro.js               ★ 开场动画注册表
 │  ├─ base.css / type.css    原型的控制台设计系统
+│  ├─ cta-palettes.css       原生默认主题的手调 CTA 配色
 │  ├─ theme.css              按钮、管理面板、外观工作室
 │  ├─ app.css                桌面版补充（编辑器、扫描器、空状态）
 │  ├─ motion.css             启动动画、沉稳模式、手柄提示条
 │  ├─ dialogs.css            对话框、文件浏览器、全屏小按钮
 │  ├─ themes.css             主题卡片 + 右键菜单
+│  ├─ polish.css             导航滑动、封面淡入等交互层
+│  ├─ intro.css              ★ 开场动画预设与可访问性降级
 │  ├─ fonts.css              自托管字体（离线可用）
 │  └─ assets/                音效（CC0）、背景图、示例图
 │
-├─ themes/abyss/             自带主题：深渊 ABYSS
+├─ themes/aurum/             自带主题：鎏金圣所 AURUM
+├─ build/icon.ico            主图标；tools/make-icon.py 可复现
 ├─ docs/
 │  ├─ INTEGRATION.md         非 Steam 游戏接入规范
-│  ├─ THEMES.md              ★ 主题开发规范
+│  ├─ THEMES.md              ★ 主题开发规范（含开场预设）
 │  └─ HANDOFF.md             本文件
 └─ tools/                    开发期验证脚本（不参与发布）
 ```
@@ -161,6 +300,43 @@ nova-game-space-desktop/
 减少动效是关掉动画；沉稳模式是换一套更慢、更短位移、无弹跳的运动语言。
 两者都存在：`reduceMotion`（系统级，直接关闭）与 `calm`（设计级，换风格）。
 
+**默认主题的按钮算法不变（1.2.0）**
+NOVA 原生仍是原来的算法：`applyCtaVars` 从封面采样主色/副色，按亮度算文字黑/白，
+按钮形状固定。只有 `.theme-custom` 主题才走「主题 token 优先」的分支。
+AURUM 的羊皮纸/鎏金按钮是附赠主题自己的语言，不会影响默认外观。
+
+> 已对照用户备份 `E:\网页小工具\游戏启动器\nova-game-space.zip`：
+> 其中的 `base.css` 与 `type.css` 与当前 `src/` 完全一致；原型的 CTA 是
+> 每款游戏一组手调色（`cta-emberwaltz` 等），桌面版沿用同一「只改颜色、不改形状」
+> 的契约，但用封面色采样动态生成。默认主题没有被 AURUM 覆盖。
+
+**原生 CTA 颜色以备份为准（1.2.0）**
+原型 `theme.css` 的 `cta-emberwaltz` / `cta-cobalt-hour` 等是手调色；桌面版 1.1.0
+曾经完全依赖动态封面采样，导致 Cobalt 等游戏的颜色与备份不一致。
+1.2.0 把 8 套手调 palette 恢复为 CSS class，已知游戏优先匹配；
+未知游戏才走 `applyCtaVars` 采样。形状、字号、图标仍完全固定。
+
+**模式是注册表，不是复制粘贴的 open/close（1.2.0）**
+`src/surfaces.js` 用描述符管理 selector、body 属性、inert 与焦点；
+`app.js` 只负责业务状态、渲染和音频。新增模式 = 注册描述符，不再复制 DOM 开关代码。
+
+**玩家可以改游戏资料和字体（1.2.0）**
+`GameEntry.TypeRecipe` 持久化；编辑器提供「自动 / 8 套字标方案」，以及年龄分级、
+游玩模式、介绍、类型等字段。玩家不需要改 JSON。
+
+**主题拥有调色板，封面只影响背景（1.2.0）**
+主题激活（`.theme-custom`）后，`applyAccent` 不再把封面的 `--accent` / `--accent-2`
+写进 UI，只保留 `--scrim-rgb` 给遮罩；主题 token 会被恢复。
+不这样做，蓝色/粉色封面会把徽章、时长、标题渐变全部染成不属于主题的颜色。
+
+**开场是预设注册表，不是主题脚本（1.2.0）**
+主题只声明 `"intro": "aurum"`；动画本体在 `src/intro.js` / `src/intro.css`。
+新增预设 = 注册一个 id + 一段 CSS 变量，不改启动流程，也不破坏主题安全边界。
+
+**AURUM 的视觉语言（1.2.0）**
+参考目录只提炼语言：墨绿/近黑底、双层金线、羊皮纸铭牌、暗绿格槽、
+金色角括号、青玉小信号。所有纹理、图标、预览图都是本项目绘制，未复制素材。
+
 ---
 
 ## 6. 踩过的坑（别重复踩）
@@ -193,6 +369,53 @@ nova-game-space-desktop/
 **#7 生成图片时 `System.Drawing` 与 `System.Windows.Media` 类型重名**
 `MediaService.cs` 顶部用了一组 `using` 别名解决。
 
+**#8 自带主题只在「版本更高」时刷新用户副本**
+`SeedBundledThemes` 比较 `theme.json` 的 version。改了 `themes/aurum/theme.css`
+但没改 version，用户数据目录里的旧副本不会更新，看到的还是旧样式。
+改主题 CSS 后必须 bump version（本轮从 1.0.0 → 1.0.3）。
+
+**#9 `background-clip: text` + 亮色 text-shadow 会把标题变灰**
+标题的透明填充依赖背景裁切；在其后面加白色 text-shadow / 白色 drop-shadow，
+亮色会从字形里透出来，看起来像灰字。用暗色投影，或干脆去掉 shadow。
+参考 `themes/aurum/theme.css` 的标题段。
+
+**#10 封面色会污染主题 UI**
+主题激活后，`applyAccent` 如果继续写 `--accent` / `--accent-2`，
+蓝色封面会让 STEAM 徽章、0 小时、进度文字全部变蓝。1.2.0 已改成
+「主题 token 优先，封面只写 `--scrim-rgb`」。
+
+**#11 开场动画在 play 之前可能已经跑了一半**
+`intro.css` 在 `body:not(.is-playing)` 时暂停所有子元素动画；
+`NovaIntro.play()` 选好主题预设后再加 `is-playing`，保证第一帧从 0 开始。
+安全兜底：3.4 s 后强制隐藏，避免 JS 异常把用户困在开场层。
+
+**#12 WebView2 冷启动 3–5 s**
+WPF splash 显示期间页面还没加载，开场不会开始。不要以为开场「卡住」；
+用 `document.visibilityState` 和 WPF 日志区分启动耗时与动画耗时。
+
+**#16 外观风格卡的字标曾被 `overflow:hidden` 裁掉底部**
+`.style-choice-preview .choice-logo` 原来用 `overflow:hidden + ellipsis` 控制宽度，
+同时 `line-height` 小于字形墨迹高度，导致「计算冒险」底部被切平。
+现在宽度交给 `fitLogo`，字号/行高/`padding-bottom` 给足空间，overflow 改为 visible。
+以后任何小尺寸标题都要检查 `scrollHeight` 是否大于 `clientHeight`。
+
+**#14 从详情管理点「编辑」曾被 openEditor 的 overlay guard 拦住**
+`openEditor` 原来只允许 `library` / `scanner`；从详情 → 管理 → 编辑时
+`state.overlay === 'details'`，函数直接 return，编辑器打不开。
+现在允许 `details` 并先关详情；新增入口时记得同步 guard。
+
+**#15 CTA palette class 与 inline 变量会互相打架**
+`applyCtaVars` 写 `--cta-a/b`，`.cta-adaptive` 再从这些变量算渐变；
+如果只加 `cta-cobalt-hour` 类却不清 inline 变量，颜色仍是被采样色覆盖。
+`setElementCta` 在套 palette 时要 `clearCtaVars()`，并移除旧的 palette class。
+
+**#13 WebView2 虚拟主机会缓存 app.js / CSS**
+只改文件不升版本时，旧进程可能继续加载旧脚本，表现为「代码明明改了但界面没变」。
+`MainWindow.ClearRendererCacheIfVersionChanged()` 在程序集版本变化时删除
+`Cache` / `Code Cache` 等目录并写 `.renderer-version`。
+开发期如果不想升版本，先退出程序，删掉 `%LOCALAPPDATA%\NOVA Game Space\webview2`
+下的缓存目录与 `.renderer-version`，再启动。
+
 ---
 
 ## 7. 当前状态
@@ -206,7 +429,14 @@ nova-game-space-desktop/
 - 沉浸式启动与退出动画、沉稳模式、睡眠模式
 - 应用内对话框、文件浏览器、右键菜单（无系统弹窗）
 - 无边框全屏、托盘常驻、关闭确认
-- 主题系统 + 自带 ABYSS 主题 + 主题开发文档
+- 主题系统 + 自带 AURUM 主题 + 主题开发文档
+- 主题开场注册表（5 个预设）、主题按 id 选择开场
+- 焦点陷阱 / 恢复、键盘与手柄开场跳过
+- 模式/弹层注册表（`surfaces.js`）
+- 原生 CTA 手调配色（8 套）+ 未知游戏封面采样兜底
+- 玩家可编辑年龄分级、模式、介绍与标题字体（8 套字标方案）
+- 动效分级（减少动效 / 沉稳 / 低性能自动降级）
+- 导航滑动、封面解码淡入、错误态与空态完善、长文本不截断
 - CC0 音效、自托管字体、离线性
 - 50 款游戏压力测试通过
 
@@ -238,7 +468,7 @@ nova-game-space-desktop/
 
 **B. 主题换图标**
 `theme-engine.js` 已经支持 `icons` 字段，但没有内置主题真的用过。
-可以做一套 ABYSS 风格的图标，验证整条链路；
+可以做一套 AURUM 风格的图标，验证整条链路；
 或者提供一个图标预览页，让主题作者看到自己换的效果。
 
 **C. 多显示器支持**
@@ -275,14 +505,21 @@ NOVA_CDP_PORT=9223 ./NovaGameSpace.exe
 
 ### 手工验收清单
 
-- [ ] 启动 → 首页显示当前游戏
+- [ ] 启动 → splash → 主题开场 → 首页显示当前游戏
+- [ ] 开场播放中按任意键/点鼠标/按手柄 → 立即进入首页
+- [ ] 首页 `0 小时` 为金色、`STEAM` 徽章为金色（AURUM），不出现封面带来的蓝/粉
+- [ ] 切到明亮封面（如《沉睡的法则》）→ 标题仍可读，不灰不透明
 - [ ] 点开始游戏 → 启动画面走到 100% → 游戏真的打开
 - [ ] 关闭游戏 → 通知出现，时长增加
 - [ ] 最大化 → 铺满屏幕，无任务栏
 - [ ] 右键 → NOVA 菜单（不是浏览器菜单）
-- [ ] 外观 → 切主题 → 按钮/描边立刻变化
+- [ ] 外观 → 切主题 → 按钮/描边/标题/开场立刻变化
+- [ ] 外观 → NOVA 原生 → 封面配色恢复驱动按钮与标题
 - [ ] 添加游戏 → 文件浏览器选 exe → 封面生成
 - [ ] 手柄连上 → 底部出现按键提示 → A 启动
+- [ ] 打开弹层后按 Tab → 焦点在弹层内循环；Esc 关闭后焦点回到触发按钮
+- [ ] 系统开启「减少动效」→ 开场淡入、界面无位移
+- [ ] 设置 `NOVA_CDP_PORT` 后 `document.documentElement.className` 不含 `reduce-motion`（默认）
 
 ---
 
@@ -295,6 +532,14 @@ NOVA_CDP_PORT=9223 ./NovaGameSpace.exe
 5. **所有确认走 `NovaOverlays.dialog`**，不要引入系统弹窗。
 6. **改完跑一遍手工验收清单**，尤其是启动与计时。
 7. 提交前 `dotnet build -c Debug` 必须零错误；警告可以留。
+8. **主题 CSS 改动后 bump `theme.json` 的 version**，否则用户目录里的旧副本不会刷新（坑 #8）。
+9. **新增开场预设**：在 `intro.js` 注册 + `intro.css` 加 `[data-intro]` 变量，
+   不要把动画逻辑写进主题 CSS。
+10. **主题里不要再读取封面 `--accent` 作为 UI 文字色**；主题自己的 token 才是权威。
+11. **铁律：不允许文字/按钮被截断或重叠**。长标题必须走 `fitLogo` 缩放；
+    长标签允许换行，或用 `is-long-name` 隐藏冗余的拉丁副标题，**不要靠 ellipsis 硬切**；
+    徽章与 meta 行必须 flex-wrap，按钮文案必须在窄屏下完整可见。
+    验收时必须检查 960px / 1280px / 全屏三档。
 
 ---
 
@@ -311,4 +556,7 @@ NOVA_CDP_PORT=9223 ./NovaGameSpace.exe
 | 沉稳模式 / calm | 更慢更稳的运动语言 |
 | 会话 / session | 从进程创建到退出的时间片 |
 | 清单 / manifest | `nova-game.json`，游戏自带元数据 |
-| 主题 / theme | 一套 CSS + 图标，整套替换外观 |
+| 主题 / theme | 一套 CSS + 图标 + token，整套替换外观 |
+| 开场预设 / intro preset | `intro.js` 注册表里的命名动画，主题只引用 id |
+| 主题拥有调色板 | 主题激活后封面颜色不写进 UI，只影响背景遮罩 |
+| perf-low | 运行时自动加上的低性能 class，关闭模糊/噪点/漂移 |

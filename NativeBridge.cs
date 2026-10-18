@@ -204,6 +204,7 @@ public sealed class NativeBridge
                     author = t.Author,
                     version = t.Version,
                     description = t.Description,
+                    intro = t.Intro,
                     cssUrl = t.CssUrl,
                     previewUrl = t.PreviewUrl,
                     baseStyle = t.Base,
@@ -258,6 +259,8 @@ public sealed class NativeBridge
             {
                 id = theme.Id,
                 name = theme.Name,
+                description = theme.Description,
+                intro = theme.Intro,
                 cssUrl = theme.CssUrl,
                 previewUrl = theme.PreviewUrl,
                 baseStyle = theme.Base,
@@ -373,6 +376,7 @@ public sealed class NativeBridge
             game.Args,
             game.WorkDir,
             !string.IsNullOrWhiteSpace(game.CustomLogo),
+            game.TypeRecipe,
             game.Dna);
     }
 
@@ -685,6 +689,19 @@ public sealed class NativeBridge
         return new { ok = true, count = found.Count, items = found };
     }
 
+    private static readonly HashSet<string> TitleRecipes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "gilded", "poster", "grotesk", "inscription",
+        "boutique", "monolith", "kinetic", "outline"
+    };
+
+    private static string NormalizeTypeRecipe(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var clean = value.Trim().ToLowerInvariant();
+        return TitleRecipes.Contains(clean) ? clean : "";
+    }
+
     private object CreateGame(JsonElement args)
     {
         if (args.ValueKind != JsonValueKind.Object) return new { ok = false, error = "参数错误" };
@@ -720,6 +737,10 @@ public sealed class NativeBridge
                 if (!string.IsNullOrWhiteSpace(genre)) game.Genre = genre!;
                 var launchArgs = GetString(args, "args");
                 if (!string.IsNullOrWhiteSpace(launchArgs)) game.Args = launchArgs!;
+                var age = GetString(args, "ageRating");
+                if (!string.IsNullOrWhiteSpace(age)) game.AgeRating = age!;
+                var mode = GetString(args, "mode");
+                if (!string.IsNullOrWhiteSpace(mode)) game.Mode = mode!;
             }
             else
             {
@@ -738,6 +759,8 @@ public sealed class NativeBridge
                     Source = "manual"
                 };
             }
+
+            game.TypeRecipe = NormalizeTypeRecipe(GetString(args, "typeRecipe"));
 
             var explicitImage = GetString(args, "imagePath");
             if (string.IsNullOrWhiteSpace(explicitImage) && manifest != null)
@@ -785,6 +808,8 @@ public sealed class NativeBridge
             if (TryGetString(args, "workDir", out var workDir)) game.WorkDir = workDir ?? game.WorkDir;
             if (TryGetString(args, "logoText", out var logoText))
                 game.CustomLogo = string.IsNullOrWhiteSpace(logoText) ? null : logoText.Trim();
+            if (TryGetString(args, "typeRecipe", out var typeRecipe))
+                game.TypeRecipe = NormalizeTypeRecipe(typeRecipe);
 
             if (TryGetString(args, "exePath", out var exe) && !string.IsNullOrWhiteSpace(exe))
             {

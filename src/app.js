@@ -294,6 +294,9 @@
     fArgs: $('#fArgs'),
     fWorkDir: $('#fWorkDir'),
     fDesc: $('#fDesc'),
+    fAge: $('#fAge'),
+    fMode: $('#fMode'),
+    fTypeRecipe: $('#fTypeRecipe'),
     scannerOverlay: $('#scannerOverlay'),
     scannerClose: $('#scannerClose'),
     scannerSub: $('#scannerSub'),
@@ -482,6 +485,12 @@
   }
 
   function recipeFor(game) {
+    // A per-game override lets the player choose the title face directly
+    // from the editor; empty means the cover director decides.
+    if (game && game.typeRecipe) {
+      const chosen = TYPE_RECIPES.find((recipe) => recipe.id === game.typeRecipe);
+      if (chosen) return chosen;
+    }
     const map = getTypeMap();
     return TYPE_RECIPES.find((recipe) => recipe.id === map[game.id]) || TYPE_RECIPES[0];
   }
@@ -524,7 +533,9 @@
       const available = element.clientWidth;
       const required = element.scrollWidth;
       if (available <= 0 || !required || required <= available + 1) return;
-      const ratio = Math.max(.42, Math.min(1, (available / required) * .985));
+      // Italic overhang and the last glyph's side bearing need a little
+      // head-room. Never let a title spill out of the hero.
+      const ratio = Math.max(.34, Math.min(1, (available / required) * .955));
       element.style.setProperty('--logo-fit', ratio.toFixed(3));
     });
   }
@@ -544,21 +555,24 @@
     element.style.removeProperty('--logo-fit');
 
     const text = options.text ?? (game ? game.logo : 'NOVA');
+    const forced = options.recipe
+      ? TYPE_RECIPES.find((recipe) => recipe.id === options.recipe)
+      : null;
+    const recipe = forced || (game ? recipeFor(game) : null);
 
     if (mode === 'system') {
       element.className = `logo ${baseClass} type-system`;
       element.textContent = text;
       element.dataset.recipe = 'system';
-    } else if (!game) {
-      element.className = `logo ${baseClass} type-gilded`;
-      element.textContent = text;
-      element.dataset.recipe = 'gilded';
-    } else {
-      const recipe = recipeFor(game);
+    } else if (recipe) {
       element.className = `logo ${baseClass} type-${recipe.id}`;
       element.textContent = recipe.displayCase === 'title' ? toTitleCase(text) : text;
       element.dataset.recipe = recipe.id;
-      applyTypeVariables(element, game, recipe);
+      if (game) applyTypeVariables(element, game, recipe);
+    } else {
+      element.className = `logo ${baseClass} type-gilded`;
+      element.textContent = text;
+      element.dataset.recipe = 'gilded';
     }
 
     fitLogo(element);
@@ -619,7 +633,11 @@
     setLogo(els.detailLogo, game, 'detail-logo', { animate: true });
     setLogo(els.appearanceLogo, game, 'appearance-logo', { animate: true });
     setLogo(els.launchLogo, game, 'launch-logo', { animate: true });
-    setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', { forceMode: 'adaptive', animate: true });
+    setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', {
+      forceMode: 'adaptive',
+      text: game ? shortName(game) : 'NOVA',
+      animate: true
+    });
     setLogo(els.editorLogo, null, 'editor-logo', { text: editorLogoText() });
     updateTypeReadout();
     audio.select();
@@ -790,8 +808,44 @@
     if (!en || zh.toLowerCase() === en.toLowerCase()) return zh || en;
     return [zh, en].filter(Boolean).join(' · ');
   };
+
+  /**
+   * Steam imports sometimes store "中文名 English Name" in `zh`.
+   * Cards and the dock only want the Chinese head; the English stays
+   * available as the secondary line or the hero title.
+   */
+  const shortName = (game) => {
+    if (!game) return '';
+    const source = (game.zh || game.name || '').trim();
+    if (!source) return '';
+    // "沉睡的法则 Things as They Are" → "沉睡的法则"; pure Latin names
+    // (Emberwaltz) and pure Chinese names are returned unchanged.
+    const head = (source.match(/^[^A-Za-z\u00C0-\u024F]+/) || [''])[0].trim();
+    return head || source;
+  };
   const currentGame = () => state.games[state.index] || null;
   const clamp01Value = (value) => Math.max(0, Math.min(1, value));
+
+  /**
+   * Cover plates are the loading state: the skeleton shimmer stays until
+   * the image has decoded, then it cross-fades in. Broken art is marked
+   * once so the CSS fallback can take over.
+   */
+  function markMedia(root = document) {
+    $$('img', root).forEach((img) => {
+      if (img.dataset.mediaBound) return;
+      img.dataset.mediaBound = '1';
+      const done = () => img.classList.add('is-loaded');
+      if (img.complete && img.naturalWidth) done();
+      else img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', () => {
+        img.classList.add('is-missing');
+        img.classList.remove('is-loaded');
+      }, { once: true });
+    });
+  }
+
+  const motionMs = (name, fallback) => (window.NovaMotion ? window.NovaMotion.duration(name) : fallback);
 
   function toast(message, icon = 'check') {
     if (state.overlay === 'launch' || state.overlay === 'sleep') return;
@@ -855,8 +909,32 @@
     }, 70);
   }
 
+  /** The surface registry owns the shared open/close DOM contract.
+      Business state, rendering and audio stay in this file. */
+  function openSurface(id, options = {}) {
+    if (window.NovaSurfaces) window.NovaSurfaces.open(id, Object.assign({ focus: false }, options));
+  }
+
+  function closeSurface(id, options = {}) {
+    if (window.NovaSurfaces) window.NovaSurfaces.close(id, Object.assign({ focus: false }, options));
+  }
+
   function setNav(view) {
-    $$('.nav-btn').forEach((button) => button.classList.toggle('is-active', button.dataset.nav === view));
+    const buttons = $$('.nav-btn');
+    buttons.forEach((button) => {
+      const active = button.dataset.nav === view;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-current', active ? 'page' : 'false');
+    });
+    document.documentElement.dataset.view = view;
+
+    const glide = $('.nav-glide');
+    const active = buttons.find((button) => button.dataset.nav === view);
+    if (glide && active) {
+      const nav = active.parentElement;
+      glide.style.width = `${active.offsetWidth}px`;
+      glide.style.transform = `translateX(${active.offsetLeft - nav.clientLeft}px)`;
+    }
   }
 
   function closePopovers() {
@@ -892,6 +970,22 @@
   function applyAccent(game) {
     const root = document.documentElement;
     const system = state.settings.styleMode === 'system';
+    const themed = root.classList.contains('theme-custom');
+
+    // A theme owns its palette. Cover colours may still tint the backdrop
+    // scrim, but they must not repaint labels, badges or progress text.
+    // Tokens declared by a theme are restored instead of being wiped.
+    if (themed) {
+      const theme = window.NovaTheme ? window.NovaTheme.find(state.theme) : null;
+      const tokens = (theme && theme.tokens) || {};
+      ['--accent', '--accent-2', '--glow'].forEach((name) => {
+        if (tokens[name]) root.style.setProperty(name, tokens[name]);
+        else root.style.removeProperty(name);
+      });
+      root.style.setProperty('--scrim-rgb', game?.scrim || '10, 10, 8');
+      return;
+    }
+
     if (!game) {
       root.style.setProperty('--accent', system ? '#e7dcc9' : '#ffb45e');
       root.style.setProperty('--accent-2', system ? '#c7b79d' : '#ff6b79');
@@ -909,17 +1003,51 @@
     return state.settings.styleMode === 'adaptive' && game ? 'cta-adaptive' : 'cta-system';
   }
 
-  const CTA_CLASSES = ['cta-adaptive', 'cta-system'];
+  const CTA_VARS = [
+    '--cta-a', '--cta-b', '--cta-a-hover', '--cta-b-hover',
+    '--cta-fg', '--cta-border', '--cta-glow'
+  ];
+
+  /* The original cover-directed palettes. These are the prototype's
+     hand-tuned button colours; games we don't recognise fall back to the
+     live cover sampler below. */
+  const CTA_PALETTES = [
+    { className: 'cta-emberwaltz', match: /(emberwaltz|星火圆舞曲)/i },
+    { className: 'cta-cobalt-hour', match: /(cobalt\s*hour|钴蓝时刻)/i },
+    { className: 'cta-sanctum', match: /(sanctum|圣所)/i },
+    { className: 'cta-shatterline', match: /(shatterline|碎裂战线)/i },
+    { className: 'cta-sunroom', match: /(sunroom|晴日小屋)/i },
+    { className: 'cta-moonbound', match: /(moonbound|月誓)/i },
+    { className: 'cta-neon-hearts', match: /(neon\s*hearts|霓虹心跳)/i }
+  ];
+
+  const CTA_CLASSES = ['cta-adaptive', 'cta-system'].concat(CTA_PALETTES.map((p) => p.className));
+
+  function ctaPaletteFor(game) {
+    if (!game) return null;
+    const haystack = `${game.id || ''} ${game.name || ''} ${game.zh || ''}`;
+    return CTA_PALETTES.find((palette) => palette.match.test(haystack)) || null;
+  }
+
+  function clearCtaVars(element) {
+    CTA_VARS.forEach((name) => element.style.removeProperty(name));
+  }
 
   function setElementCta(element, className, game, forceAdaptive = false) {
     if (!element) return;
+    const themed = document.documentElement.classList.contains('theme-custom');
+    const effective = forceAdaptive ? 'cta-adaptive' : className;
     CTA_CLASSES.forEach((name) => element.classList.remove(name));
-    element.classList.add(forceAdaptive ? 'cta-adaptive' : className);
-    if (forceAdaptive || className === 'cta-adaptive') {
+    element.classList.add(effective);
+
+    const palette = !themed && effective === 'cta-adaptive' ? ctaPaletteFor(game) : null;
+    if (palette) {
+      element.classList.add(palette.className);
+      clearCtaVars(element);
+    } else if (effective === 'cta-adaptive') {
       applyCtaVars(element, game);
     } else {
-      ['--cta-a', '--cta-b', '--cta-a-hover', '--cta-b-hover', '--cta-fg', '--cta-border', '--cta-glow']
-        .forEach((name) => element.style.removeProperty(name));
+      clearCtaVars(element);
     }
   }
 
@@ -1151,7 +1279,7 @@
       const started = new Date(session.startedUtc).getTime();
       const minutes = Math.max(0, Math.floor((Date.now() - started) / 60000));
       els.questKicker.textContent = '运行中';
-      els.questTitle.textContent = `正在游玩 ${game.zh || game.name}`;
+      els.questTitle.textContent = `正在游玩 ${shortName(game)}`;
       els.questDesc.textContent = '打开游戏管理可以结束进程';
       els.questPct.textContent = minutes < 1 ? '刚刚' : `${minutes} 分钟`;
       els.questMeta.textContent = '计时中';
@@ -1206,6 +1334,9 @@
     if (state.overlay === 'details') populateDetails(game);
     if (state.overlay === 'appearance') renderAppearance();
     if (!state.overlay) setNav('home');
+    // Persistent CTAs (editor / scanner / pickers) must follow the new
+    // game's palette too, not only the hero button.
+    applyStyleModeUI();
     saveSettings();
   }
 
@@ -1221,18 +1352,20 @@
 
   function buildRail() {
     els.rail.innerHTML = state.games.map((game, index) => `
-      <button class="tile" data-index="${index}" aria-label="${esc(game.zh || game.name)}" aria-current="false">
+      <button class="tile" data-index="${index}" aria-label="${esc(fullName(game))}" aria-current="false">
         <div class="tile-art">
           <img src="${esc(game.coverUrl)}" alt="" loading="eager" draggable="false" style="object-position:${esc(game.coverPosition)}">
           <div class="tile-badges"></div>
           <div class="tile-progress"><i></i></div>
         </div>
         <div class="tile-label">
-          <span class="tile-name">${esc(game.zh || game.name)}</span>
+          <span class="tile-name">${esc(shortName(game))}</span>
           <span class="tile-sub"></span>
         </div>
       </button>
     `).join('');
+
+    markMedia(els.rail);
 
     const empty = state.games.length === 0;
     els.rail.style.display = empty ? 'none' : '';
@@ -1359,13 +1492,17 @@
       else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
       else if (game.source === 'steam') badges.push('<span class="tile-badge">STEAM</span>');
       const pct = Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100));
-      const displayName = game.zh || game.name;
-      const showLatin = !!game.zh && !!game.name
-        && game.zh.trim().toLowerCase() !== game.name.trim().toLowerCase()
-        && game.zh.trim().length <= 10;
+      const displayName = shortName(game);
+      const showLatin = !!game.name
+        && displayName.trim().toLowerCase() !== game.name.trim().toLowerCase()
+        && displayName.trim().length <= 10;
+      // A very long Latin subtitle would be clipped by the card width.
+      // Hide the redundant subtitle instead of truncating it.
+      const longName = (displayName.length + (game.name || '').length) > 22
+        || (game.name || '').length > 16;
 
       return `
-        <button class="lib-card${featured ? ' is-featured' : ''}" data-game="${game.id}" style="animation-delay:${Math.min(index * 34, 240)}ms" aria-label="${esc(game.zh || game.name)}">
+        <button class="lib-card${featured ? ' is-featured' : ''}${longName ? ' is-long-name' : ''}" data-game="${game.id}" style="animation-delay:${Math.min(index * 34, 240)}ms" aria-label="${esc(game.zh || game.name)}">
           <div class="lib-art">
             <img src="${esc(game.coverUrl)}" alt="" loading="lazy" draggable="false" style="object-position:${esc(game.coverPosition)}">
             <div class="lib-badges">${badges.join('')}</div>
@@ -1384,9 +1521,7 @@
       `;
     }).join('');
 
-    $$('img', els.libGrid).forEach((img) => {
-      img.addEventListener('error', () => img.classList.add('is-missing'), { once: true });
-    });
+    markMedia(els.libGrid);
   }
 
   function openLibrary(options = {}) {
@@ -1406,9 +1541,7 @@
     renderLibrary();
     audio.open();
     state.overlay = 'library';
-    els.libraryOverlay.classList.add('is-open');
-    els.libraryOverlay.setAttribute('aria-hidden', 'false');
-    els.app.inert = true;
+    openSurface('library');
     setNav('library');
 
     setTimeout(() => {
@@ -1419,10 +1552,8 @@
   function closeLibrary(options = {}) {
     if (state.overlay !== 'library') return;
     const { focus = true, sound = true } = options;
-    els.libraryOverlay.classList.remove('is-open');
-    els.libraryOverlay.setAttribute('aria-hidden', 'true');
+    closeSurface('library');
     state.overlay = null;
-    els.app.inert = false;
     setNav('home');
     if (sound) audio.back();
     if (focus) restoreFocus();
@@ -1536,9 +1667,7 @@
     closePopovers();
     populateDetails(currentGame());
     state.overlay = 'details';
-    els.detailsOverlay.classList.add('is-open');
-    els.detailsOverlay.setAttribute('aria-hidden', 'false');
-    els.app.inert = true;
+    openSurface('details');
     setNav('home');
     audio.select();
     setTimeout(() => {
@@ -1551,10 +1680,8 @@
     if (state.overlay !== 'details') return;
     const { focus = true, sound = true } = options;
     closeManage({ silent: true });
-    els.detailsOverlay.classList.remove('is-open');
-    els.detailsOverlay.setAttribute('aria-hidden', 'true');
+    closeSurface('details');
     state.overlay = null;
-    els.app.inert = false;
     if (sound) audio.close();
     if (focus) restoreFocus();
   }
@@ -1570,7 +1697,7 @@
     els.detailFav.classList.toggle('active', game.favorite);
     els.detailFav.setAttribute('aria-pressed', String(game.favorite));
     audio.select();
-    toast(game.favorite ? `已收藏《${game.zh || game.name}》` : `已取消收藏《${game.zh || game.name}》`, 'heart');
+    toast(game.favorite ? `已收藏《${shortName(game)}》` : `已取消收藏《${shortName(game)}》`, 'heart');
     if (state.overlay === 'library') renderLibrary();
     updateRail();
   }
@@ -1656,7 +1783,7 @@
     closeDetails({ focus: false, sound: false });
     rebuildAfterLibraryChange();
     audio.select();
-    toast(`已从游戏库移除《${game.zh || game.name}》`, 'check');
+    toast(`已从游戏库移除《${shortName(game)}》`, 'check');
   }
 
   async function resetArtwork() {
@@ -1723,8 +1850,9 @@
     setLogo(els.detailLogo, game, 'detail-logo');
     setLogo(els.appearanceLogo, game, 'appearance-logo');
     setLogo(els.launchLogo, game, 'launch-logo');
-    setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', { forceMode: 'adaptive' });
-    setLogo(els.systemChoiceLogo, game, 'choice-logo', { forceMode: 'system' });
+    const choiceText = game ? shortName(game) : 'NOVA';
+    setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', { forceMode: 'adaptive', text: choiceText });
+    setLogo(els.systemChoiceLogo, game, 'choice-logo', { forceMode: 'system', text: choiceText });
 
     const action = actionInfo(game);
     if (els.appearanceCtaLabel) els.appearanceCtaLabel.textContent = action.label;
@@ -1767,7 +1895,7 @@
     setLogo(els.appearanceLogo, game, 'appearance-logo');
     els.appearanceTagline.textContent = game ? (game.tagline || '') : '选择游戏开始。';
     els.appearanceIndex.textContent = game ? `${String(state.index + 1).padStart(2, '0')} / ${String(state.games.length).padStart(2, '0')}` : '00 / 00';
-    els.appearanceGameName.textContent = game ? (game.zh || game.name) : 'NOVA';
+    els.appearanceGameName.textContent = game ? shortName(game) : 'NOVA';
 
     els.appearanceProgressFill.style.width = `${game ? Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100)) : 0}%`;
     els.appearanceProgressPct.textContent = game ? formatHoursShort(game.playtimeSeconds) : '0 小时';
@@ -1801,9 +1929,7 @@
     closePopovers();
     renderAppearance();
     state.overlay = 'appearance';
-    els.appearanceOverlay.classList.add('is-open');
-    els.appearanceOverlay.setAttribute('aria-hidden', 'false');
-    els.app.inert = true;
+    openSurface('appearance');
     setNav('appearance');
     syncAppearanceChips();
     audio.open();
@@ -1818,10 +1944,8 @@
   function closeAppearance(options = {}) {
     if (state.overlay !== 'appearance') return;
     const { focus = true, sound = true } = options;
-    els.appearanceOverlay.classList.remove('is-open');
-    els.appearanceOverlay.setAttribute('aria-hidden', 'true');
+    closeSurface('appearance');
     state.overlay = null;
-    els.app.inert = false;
     setNav('home');
     if (sound) audio.back();
     if (focus) restoreFocus();
@@ -1854,8 +1978,15 @@
   }
 
   function syncMotionUI() {
-    document.documentElement.classList.toggle('reduce-motion', state.settings.reduceMotion);
-    document.documentElement.classList.toggle('calm', state.settings.calm);
+    if (window.NovaMotion) {
+      window.NovaMotion.configure({
+        calm: state.settings.calm,
+        reduceMotion: state.settings.reduceMotion
+      });
+    } else {
+      document.documentElement.classList.toggle('reduce-motion', state.settings.reduceMotion);
+      document.documentElement.classList.toggle('calm', state.settings.calm);
+    }
     if (els.appearanceMotionSwitch) els.appearanceMotionSwitch.classList.toggle('on', state.settings.reduceMotion);
     if (els.appearanceMotionRow) els.appearanceMotionRow.setAttribute('aria-checked', String(state.settings.reduceMotion));
     if (els.appearanceCalmSwitch) els.appearanceCalmSwitch.classList.toggle('on', state.settings.calm);
@@ -2078,7 +2209,7 @@
   async function launchGame(game) {
     if (state.overlay === 'launch' || !game) return;
     if (state.running.has(game.id)) {
-      toast(`《${game.zh || game.name}》正在运行中`, 'gamepad');
+      toast(`《${shortName(game)}》正在运行中`, 'gamepad');
       return;
     }
     if (!game.exists) {
@@ -2102,36 +2233,39 @@
     els.launchFootMeta.textContent = game.playtimeSeconds > 0
       ? `累计 ${formatHours(game.playtimeSeconds)} · 本次会计入`
       : '本次时长会计入统计';
-    setLaunchProgress(0);
+    setLaunchProgress(12);
     setLaunchStep(0);
 
-    els.launchOverlay.classList.remove('is-open', 'is-ready', 'is-leaving');
+    els.launchOverlay.classList.remove('is-open', 'is-ready', 'is-leaving', 'is-error', 'is-igniting');
     void els.launchOverlay.offsetWidth;
 
     state.lastFocus = els.playBtn;
     state.overlay = 'launch';
     document.body.dataset.overlay = 'launch';
-    els.launchOverlay.classList.add('is-open');
+    els.launchOverlay.classList.add('is-open', 'is-igniting');
     els.launchOverlay.setAttribute('aria-hidden', 'false');
     els.app.inert = true;
     audio.launch();
     try { els.launchOverlay.focus({ preventScroll: true }); } catch (error) {}
     refreshPadHints();
+    state.launchTimers.push(setTimeout(() => {
+      els.launchOverlay.classList.remove('is-igniting');
+    }, motionMs('cinematic', 900)));
 
     // Step 1 — load info. The visual sequence runs on wall-clock timers so
     // it feels the same whether the process starts in 80 ms or 4 s.
     state.launchTimers.push(setTimeout(() => {
-      setLaunchProgress(34);
+      setLaunchProgress(42);
       els.launchStatus.textContent = '启动进程…';
       setLaunchStep(1);
-    }, state.settings.calm ? 120 : 420));
+    }, state.settings.calm ? 160 : 420));
 
     const startedAt = performance.now();
     const result = await call('launch', { id: game.id });
     const ok = result && result.ok;
 
     // Step 2 — the process exists; give the surface a beat to hand over.
-    const minimum = state.settings.calm ? 900 : 1500;
+    const minimum = state.settings.calm ? 1000 : 1600;
     const elapsed = performance.now() - startedAt;
     const wait = Math.max(0, minimum - elapsed);
     await new Promise((resolve) => setTimeout(resolve, wait));
@@ -2139,8 +2273,8 @@
     if (ok) {
       game.launchCount = (game.launchCount || 0) + 1;
       game.lastPlayedUtc = new Date().toISOString();
-      setLaunchProgress(78);
-      els.launchStatus.textContent = '已启动';
+      setLaunchProgress(82);
+      els.launchStatus.textContent = '进程已创建';
       setLaunchStep(2);
       if (!state.running.has(game.id)) {
         state.running.set(game.id, {
@@ -2166,7 +2300,7 @@
       els.launchStatus.textContent = result?.error || '启动失败';
       els.launchSystem.textContent = '启动失败';
       els.launchFootMeta.textContent = '请检查可执行文件路径与权限';
-      els.launchOverlay.classList.add('is-ready');
+      els.launchOverlay.classList.add('is-ready', 'is-error');
       setLaunchStep(-1);
       audio.error();
       toast(result?.error || '启动失败', 'alert');
@@ -2178,9 +2312,9 @@
     clearLaunchTimers();
     if (options.quiet !== true) audio.exitGame();
     const reduce = state.settings.reduceMotion || state.settings.calm;
-    const duration = reduce ? 220 : 900;
+    const duration = reduce ? 240 : 900;
     els.launchOverlay.classList.add('is-leaving');
-    els.launchOverlay.classList.remove('is-ready');
+    els.launchOverlay.classList.remove('is-ready', 'is-igniting', 'is-error');
 
     state.launchTimers.push(setTimeout(() => {
       els.launchOverlay.classList.remove('is-open', 'is-leaving');
@@ -2231,8 +2365,8 @@
     });
     if (game && state.overlay !== 'launch') {
       toast(payload.crashed
-        ? `《${game.zh || game.name}》非正常退出 · 已记录 ${spent}`
-        : `《${game.zh || game.name}》已结束 · 本次 ${spent}`, payload.crashed ? 'alert' : 'check');
+        ? `《${shortName(game)}》非正常退出 · 已记录 ${spent}`
+        : `《${shortName(game)}》已结束 · 本次 ${spent}`, payload.crashed ? 'alert' : 'check');
     }
     refreshLive();
     if (state.overlay === 'details') populateDetails(currentGame());
@@ -2258,7 +2392,10 @@
 
   function syncEditorPreview() {
     const name = els.fLogo.value.trim() || els.fName.value.trim() || 'NOVA';
-    setLogo(els.editorLogo, currentGame(), 'editor-logo', { text: name.toUpperCase() });
+    setLogo(els.editorLogo, currentGame(), 'editor-logo', {
+      text: name.toUpperCase(),
+      recipe: els.fTypeRecipe ? els.fTypeRecipe.value : ''
+    });
     els.editorPreviewHint.textContent = els.fExe.value ? '保存后从真实封面或程序图标生成' : '从可执行文件或图片生成封面';
   }
 
@@ -2283,6 +2420,9 @@
     els.fArgs.value = '';
     els.fWorkDir.value = '';
     els.fDesc.value = '';
+    els.fAge.value = '';
+    els.fMode.value = '';
+    if (els.fTypeRecipe) els.fTypeRecipe.value = '';
     els.editorPreviewImg.classList.remove('is-loaded');
     els.editorPreviewImg.removeAttribute('src');
     els.editorSwatches.innerHTML = '';
@@ -2290,10 +2430,11 @@
   }
 
   function openEditor(game = null) {
-    if (state.overlay && state.overlay !== 'library' && state.overlay !== 'scanner') return;
-    const fromLibrary = state.overlay === 'library';
-    if (fromLibrary) closeLibrary({ focus: false, sound: false });
+    const allowed = !state.overlay || state.overlay === 'library' || state.overlay === 'scanner' || state.overlay === 'details';
+    if (!allowed) return;
+    if (state.overlay === 'library') closeLibrary({ focus: false, sound: false });
     if (state.overlay === 'scanner') closeScanner({ focus: false, sound: false });
+    if (state.overlay === 'details') closeDetails({ focus: false, sound: false });
 
     state.lastFocus = document.activeElement;
     state.editorMode = game ? 'edit' : 'create';
@@ -2315,6 +2456,9 @@
       els.fArgs.value = game.args || '';
       els.fWorkDir.value = game.workDir || '';
       els.fDesc.value = game.description || '';
+      els.fAge.value = game.ageRating || '';
+      els.fMode.value = game.mode || '';
+      if (els.fTypeRecipe) els.fTypeRecipe.value = game.typeRecipe || '';
       if (game.heroUrl) {
         els.editorPreviewImg.src = game.heroUrl;
         els.editorPreviewImg.onload = () => els.editorPreviewImg.classList.add('is-loaded');
@@ -2333,9 +2477,7 @@
 
     syncEditorPreview();
     state.overlay = 'editor';
-    els.editorOverlay.classList.add('is-open');
-    els.editorOverlay.setAttribute('aria-hidden', 'false');
-    els.app.inert = true;
+    openSurface('editor');
     audio.select();
     setTimeout(() => {
       const target = game ? els.fName : els.fExe;
@@ -2346,10 +2488,8 @@
   function closeEditor(options = {}) {
     if (state.overlay !== 'editor') return;
     const { focus = true, sound = true } = options;
-    els.editorOverlay.classList.remove('is-open');
-    els.editorOverlay.setAttribute('aria-hidden', 'true');
+    closeSurface('editor');
     state.overlay = null;
-    els.app.inert = false;
     if (sound) audio.back();
     if (focus) restoreFocus();
   }
@@ -2378,6 +2518,9 @@
       args: els.fArgs.value.trim(),
       workDir: els.fWorkDir.value.trim(),
       description: els.fDesc.value.trim(),
+      ageRating: els.fAge.value.trim() || '全年龄',
+      mode: els.fMode.value.trim() || '单人',
+      typeRecipe: els.fTypeRecipe ? els.fTypeRecipe.value : '',
       manifestPath: state.editorManifest || undefined
     };
 
@@ -2401,7 +2544,7 @@
     if (state.editorMode === 'edit') {
       const game = findGame(state.editorId);
       if (game) Object.assign(game, result.game);
-      toast(`《${result.game.zh || result.game.name}》已更新`, 'check');
+      toast(`《${shortName(result.game)}》已更新`, 'check');
       closeEditor({ focus: false, sound: false });
       rebuildAfterLibraryChange(false);
       audio.select();
@@ -2415,7 +2558,7 @@
       applyAccent(result.game);
       renderHero(result.game, true);
       audio.select();
-      toast(`已添加《${result.game.zh || result.game.name}》`, 'check');
+      toast(`已添加《${shortName(result.game)}》`, 'check');
     }
   }
 
@@ -2706,9 +2849,7 @@
     state.scan = null;
     els.scannerList.innerHTML = '';
     state.overlay = 'scanner';
-    els.scannerOverlay.classList.add('is-open');
-    els.scannerOverlay.setAttribute('aria-hidden', 'false');
-    els.app.inert = true;
+    openSurface('scanner');
     audio.select();
     startScan();
   }
@@ -2716,10 +2857,8 @@
   function closeScanner(options = {}) {
     if (state.overlay !== 'scanner') return;
     const { focus = true, sound = true } = options;
-    els.scannerOverlay.classList.remove('is-open');
-    els.scannerOverlay.setAttribute('aria-hidden', 'true');
+    closeSurface('scanner');
     state.overlay = null;
-    els.app.inert = false;
     if (sound) audio.back();
     if (focus) restoreFocus();
   }
@@ -2962,6 +3101,12 @@
 
   function bindKeyboard() {
     document.addEventListener('keydown', (event) => {
+      // The intro owns the first input only to skip itself.
+      if (window.NovaIntro && window.NovaIntro.active) {
+        event.preventDefault();
+        window.NovaIntro.skip();
+        return;
+      }
       // In-app dialog and file browser own the keyboard while open.
       if (window.NovaOverlays && window.NovaOverlays.dialogOpen()) return;
       if (window.NovaOverlays && window.NovaOverlays.pickerOpenState()) {
@@ -3598,7 +3743,7 @@
       if (index >= 0) state.games.splice(index, 1);
       if (state.index >= state.games.length) state.index = Math.max(0, state.games.length - 1);
       rebuildAfterLibraryChange(false);
-      toast(`已从游戏库移除《${game.zh || game.name}》`, 'check');
+      toast(`已从游戏库移除《${shortName(game)}》`, 'check');
     });
     els.fPickExe.addEventListener('click', async () => {
       const path = await window.NovaOverlays.pickerOpen({ filter: 'exe' });
@@ -3620,6 +3765,7 @@
       els.editorPreviewHint.textContent = '保存后会生成主视觉与封面';
     });
     [els.fName, els.fLogo].forEach((input) => input.addEventListener('input', syncEditorPreview));
+    if (els.fTypeRecipe) els.fTypeRecipe.addEventListener('change', syncEditorPreview);
 
     /* scanner */
     els.scannerClose.addEventListener('click', () => closeScanner());
@@ -3773,8 +3919,9 @@
       window.NovaOverlays.bind({ app: els.app, sound: audio, call });
     }
 
-    // Themes load asynchronously; init() must not wait on a stylesheet.
-    startThemes().catch((error) => console.warn('theme boot failed', error));
+    // Themes load asynchronously; the intro waits at most 500 ms for the
+    // theme so it can pick a preset without delaying the opening.
+    const themesReady = startThemes().catch((error) => console.warn('theme boot failed', error));
     bindContextMenu();
     bindThemePanel();
 
@@ -3798,17 +3945,38 @@
     if (currentGame()) setBackdrop(currentGame(), true);
 
     setTimeout(() => { audio.warm(); }, 1500);
-    setTimeout(() => document.body.classList.add('is-booted'), 900);
     setTimeout(ensureActiveTileVisible, 140);
     initParallax();
     startGamepad();
     setTimeout(refitLogos, 500);
+    setTimeout(() => setNav(document.documentElement.dataset.view || 'home'), 240);
 
-    if (!hasBridge) {
-      toast('未检测到桌面宿主，正在以预览模式运行', 'info');
-    } else if (!state.games.length) {
-      setTimeout(() => toast('游戏库是空的 · 按 A 或点击 + 添加游戏', 'spark'), 1200);
-    }
+    /* Opening ritual: the theme may name a preset ("intro": "ink").
+       If themes are slow, the default preset starts and the shell is
+       never held hostage by a stylesheet. */
+    const introPreset = Promise.race([
+      themesReady.then(() => {
+        const theme = window.NovaTheme ? window.NovaTheme.find(state.theme) : null;
+        return (theme && theme.intro) || 'gilded';
+      }),
+      new Promise((resolve) => setTimeout(() => resolve('gilded'), 500))
+    ]);
+
+    introPreset.then((preset) => {
+      if (!window.NovaIntro) {
+        document.body.classList.add('is-booted');
+        return;
+      }
+      return window.NovaIntro.play({ intro: preset }).then(() => {
+        ensureActiveTileVisible();
+        refitLogos();
+        if (!hasBridge) {
+          toast('未检测到桌面宿主，正在以预览模式运行', 'info');
+        } else if (!state.games.length) {
+          setTimeout(() => toast('游戏库是空的 · 按 A 或点击 + 添加游戏', 'spark'), 500);
+        }
+      });
+    });
 
     let resizeTimer = null;
     window.addEventListener('resize', () => {
@@ -3817,11 +3985,15 @@
         refitLogos();
         updateAppearanceScrollState();
         ensureActiveTileVisible();
+        setNav(document.documentElement.dataset.view || 'home');
       }, 160);
     }, { passive: true });
 
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => refitLogos()).catch(() => {});
+      document.fonts.ready.then(() => {
+        refitLogos();
+        setNav(document.documentElement.dataset.view || 'home');
+      }).catch(() => {});
     }
   }
 

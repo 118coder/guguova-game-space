@@ -56,6 +56,11 @@ public partial class MainWindow : Window
             Launcher = new LauncherService(Store);
             Bridge = new NativeBridge(Store, Media, Launcher);
 
+            // WebView2 caches the virtual-host renderer files. After an app
+            // update the old app.js/CSS would otherwise win; drop only the
+            // disk caches when the assembly version changes.
+            ClearRendererCacheIfVersionChanged();
+
             var cdpPort = Environment.GetEnvironmentVariable("NOVA_CDP_PORT");
             var options = new CoreWebView2EnvironmentOptions();
             if (!string.IsNullOrEmpty(cdpPort))
@@ -89,6 +94,46 @@ public partial class MainWindow : Window
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 TextAlignment = System.Windows.TextAlignment.Center
             };
+        }
+    }
+
+    /// <summary>
+    /// WebView2's virtual host caches renderer files aggressively. Wiping the
+    /// disk cache on a version bump guarantees that an updated app.js / CSS
+    /// actually reaches the screen, without clearing cookies or settings.
+    /// </summary>
+    private static void ClearRendererCacheIfVersionChanged()
+    {
+        try
+        {
+            var version = typeof(MainWindow).Assembly.GetName().Version?.ToString() ?? "0";
+            var root = Path.Combine(AppPaths.Root, "webview2");
+            var marker = Path.Combine(root, ".renderer-version");
+            if (Directory.Exists(root) && File.Exists(marker) && File.ReadAllText(marker) == version)
+                return;
+
+            var caches = new[]
+            {
+                Path.Combine(root, "EBWebView", "Default", "Cache"),
+                Path.Combine(root, "EBWebView", "Default", "Code Cache"),
+                Path.Combine(root, "EBWebView", "Default", "GPUCache"),
+                Path.Combine(root, "EBWebView", "GrShaderCache"),
+                Path.Combine(root, "EBWebView", "ShaderCache")
+            };
+
+            foreach (var dir in caches)
+            {
+                if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            }
+
+            Directory.CreateDirectory(root);
+            File.WriteAllText(marker, version);
+            Log.Write($"renderer cache reset for {version}");
+        }
+        catch (Exception ex)
+        {
+            // A locked cache is not fatal; the next launch will retry.
+            Log.Error("clear renderer cache", ex);
         }
     }
 

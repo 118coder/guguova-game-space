@@ -4,17 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#05060a">
+<meta name="theme-color" content="#0a0b0b">
 <title>NOVA · 游戏空间</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ffa477'/%3E%3Cellipse cx='16' cy='16' rx='14' ry='6.2' fill='none' stroke='%23ffffff' stroke-opacity='.55' stroke-width='1.2' transform='rotate(-28 16 16)'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="base.css">
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="cta-palettes.css">
 <link rel="stylesheet" href="type.css">
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="motion.css">
 <link rel="stylesheet" href="dialogs.css">
 <link rel="stylesheet" href="themes.css">
+<link rel="stylesheet" href="polish.css">
+<link rel="stylesheet" href="intro.css">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -64,6 +67,45 @@
   <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.7.4-1.2 1-1.2 1.8v.3"/><circle cx="12" cy="16.7" r=".9" fill="currentColor" stroke="none"/></symbol>
 </svg>
 
+<!-- ============ THEME-AWARE INTRO (preset chosen by theme manifest) ============ -->
+<div class="intro" id="introOverlay" aria-hidden="true" data-intro="gilded">
+  <div class="intro-grain" aria-hidden="true"></div>
+  <div class="intro-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="intro-stage">
+    <div class="intro-emblem" aria-hidden="true">
+      <svg class="intro-astrolabe" viewBox="0 0 240 240">
+        <circle class="intro-orbit" cx="120" cy="120" r="116"/>
+        <circle class="intro-ring outer" cx="120" cy="120" r="102"/>
+        <circle class="intro-ring inner" cx="120" cy="120" r="78"/>
+        <circle class="intro-dial" cx="120" cy="120" r="90"/>
+        <path class="intro-cross" d="M120 26v18M120 196v18M26 120h18M196 120h18"/>
+        <rect class="intro-diamond" x="96" y="96" width="48" height="48" transform="rotate(45 120 120)"/>
+        <circle class="intro-core" cx="120" cy="120" r="5"/>
+        <circle class="intro-spark" cx="184" cy="56" r="4"/>
+      </svg>
+      <span class="intro-flare"></span>
+      <span class="intro-particles">
+        <i style="--a:0deg;--d:132px;--delay:.55s"></i>
+        <i style="--a:30deg;--d:152px;--delay:.7s"></i>
+        <i style="--a:60deg;--d:118px;--delay:.62s"></i>
+        <i style="--a:90deg;--d:168px;--delay:.82s"></i>
+        <i style="--a:120deg;--d:126px;--delay:.68s"></i>
+        <i style="--a:150deg;--d:158px;--delay:.9s"></i>
+        <i style="--a:180deg;--d:140px;--delay:.74s"></i>
+        <i style="--a:210deg;--d:172px;--delay:.86s"></i>
+        <i style="--a:240deg;--d:122px;--delay:.6s"></i>
+        <i style="--a:270deg;--d:150px;--delay:.78s"></i>
+        <i style="--a:300deg;--d:130px;--delay:.66s"></i>
+        <i style="--a:330deg;--d:164px;--delay:.92s"></i>
+      </span>
+    </div>
+    <div class="intro-word" aria-label="NOVA">NOVA</div>
+    <div class="intro-sub"><span>游戏空间</span><i></i><span>GAME SPACE</span></div>
+    <div class="intro-meter" aria-hidden="true"><i></i></div>
+  </div>
+  <div class="intro-hint">点击或按任意键跳过</div>
+</div>
+
 <div class="app" id="app">
   <div class="scene-stack" id="sceneStack" aria-hidden="true"></div>
   <div class="atmosphere" aria-hidden="true"></div>
@@ -73,14 +115,17 @@
     <div class="window-drag" id="windowDrag" aria-hidden="true"></div>
     <button class="brand" id="brandBtn" aria-label="回到首页">
       <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <ellipse cx="16" cy="16" rx="13.4" ry="6.1" transform="rotate(-27 16 16)" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".48"/>
-        <circle cx="16" cy="16" r="4.2" fill="currentColor"/>
-        <circle cx="26.4" cy="9.2" r="1.9" fill="var(--accent)"/>
+        <circle cx="16" cy="16" r="11.4" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".62"/>
+        <path d="M16 2.4v3.4M16 26.2v3.4M2.4 16h3.4M26.2 16h3.4" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".85"/>
+        <rect x="10.8" y="10.8" width="10.4" height="10.4" transform="rotate(45 16 16)" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <circle cx="16" cy="16" r="2.5" fill="currentColor"/>
+        <circle cx="24.4" cy="7.6" r="1.7" fill="var(--accent)"/>
       </svg>
       <span class="brand-word">NOVA</span>
     </button>
 
     <nav class="nav" aria-label="主导航">
+      <span class="nav-glide" aria-hidden="true"></span>
       <button class="nav-btn is-active" data-nav="home">首页</button>
       <button class="nav-btn" data-nav="library">游戏库</button>
       <button class="nav-btn" data-nav="appearance">外观</button>
@@ -462,14 +507,14 @@
       <header class="appearance-head">
         <div class="appearance-kicker">NOVA · 外观</div>
         <h2>外观工作室</h2>
-        <p>按钮形状不变，颜色跟着封面走。</p>
+        <p>按钮形状不变；字标随外观语言变化，主题可以接管整套配色。</p>
       </header>
 
       <section class="appearance-section">
         <div class="section-head">
           <div>
             <h3>外观语言</h3>
-            <p>只改颜色和字标。</p>
+            <p>决定字标配方；配色由当前主题决定。</p>
           </div>
           <span class="section-tag" id="styleModeTag">跟随封面</span>
         </div>
@@ -489,7 +534,7 @@
                 <span>开始游戏</span>
               </span>
             </span>
-            <span class="style-choice-desc">颜色与字标取自封面。</span>
+            <span class="style-choice-desc">字标取自封面；主题会覆盖颜色。</span>
           </button>
           <button class="style-choice" data-style="system" aria-pressed="false">
             <span class="style-choice-head">
@@ -669,6 +714,32 @@
           </label>
         </div>
 
+        <div class="field-row two">
+          <label class="field">
+            <span class="field-label">年龄分级 <em>可选</em></span>
+            <input id="fAge" type="text" placeholder="全年龄 / 12+ / 16+" autocomplete="off">
+          </label>
+          <label class="field">
+            <span class="field-label">游玩模式 <em>可选</em></span>
+            <input id="fMode" type="text" placeholder="单人 / 多人" autocomplete="off">
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field-label">标题字体 / 字标方案 <em>可选 · 留空自动跟随封面</em></span>
+          <select id="fTypeRecipe" class="field-select">
+            <option value="">自动（跟随封面）</option>
+            <option value="gilded">描金衬线 · GILDED</option>
+            <option value="poster">海报压缩 · POSTER</option>
+            <option value="grotesk">新怪诞 · GROTESK</option>
+            <option value="inscription">铭文 · INSCRIPTION</option>
+            <option value="boutique">精品衬线 · BOUTIQUE</option>
+            <option value="monolith">巨碑 · MONOLITH</option>
+            <option value="kinetic">动感斜体 · KINETIC</option>
+            <option value="outline">描边 · OUTLINE</option>
+          </select>
+        </label>
+
         <label class="field">
           <span class="field-label">一句话介绍 <em>可选</em></span>
           <input id="fTagline" type="text" placeholder="显示在首页主视觉下方" autocomplete="off">
@@ -816,9 +887,11 @@
 
   <div class="launch-brand">
     <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-      <ellipse cx="16" cy="16" rx="13.4" ry="6.1" transform="rotate(-27 16 16)" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".48"/>
-      <circle cx="16" cy="16" r="4.2" fill="currentColor"/>
-      <circle cx="26.4" cy="9.2" r="1.9" fill="var(--accent)"/>
+      <circle cx="16" cy="16" r="11.4" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".62"/>
+      <path d="M16 2.4v3.4M16 26.2v3.4M2.4 16h3.4M26.2 16h3.4" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".85"/>
+      <rect x="10.8" y="10.8" width="10.4" height="10.4" transform="rotate(45 16 16)" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <circle cx="16" cy="16" r="2.5" fill="currentColor"/>
+      <circle cx="24.4" cy="7.6" r="1.7" fill="var(--accent)"/>
     </svg>
     <span>NOVA</span>
   </div>
@@ -886,9 +959,13 @@
   <span id="toastText"></span>
 </div>
 
+<script src="motion.js" defer></script>
+<script src="focus.js" defer></script>
+<script src="surfaces.js" defer></script>
 <script src="gamepad.js" defer></script>
 <script src="overlays.js" defer></script>
 <script src="theme-engine.js" defer></script>
+<script src="intro.js" defer></script>
 <script src="app.js" defer></script>
 </body>
 </html>

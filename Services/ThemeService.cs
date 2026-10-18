@@ -34,6 +34,10 @@ public sealed class ThemeService
         public string? Css { get; set; }
         public string? Preview { get; set; }
         public string? Base { get; set; }
+
+        /// <summary>Opening-sequence preset id (see src/intro.js).</summary>
+        public string? Intro { get; set; }
+
         public Dictionary<string, string>? Tokens { get; set; }
         public Dictionary<string, string>? Icons { get; set; }
         public bool Dark { get; set; } = true;
@@ -45,6 +49,7 @@ public sealed class ThemeService
         string Author,
         string Version,
         string Description,
+        string? Intro,
         string Folder,
         string? CssUrl,
         string? PreviewUrl,
@@ -107,8 +112,9 @@ public sealed class ThemeService
         BuiltInId,
         "NOVA 原生",
         "NOVA",
-        "1.0.0",
-        "默认外观：电影感镜头、暖色胶囊按钮。",
+        "2.0.0",
+        "电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。",
+        "gilded",
         "",
         null,
         null,
@@ -179,12 +185,19 @@ public sealed class ThemeService
                           ?? ResolveAsset(folder, "preview.png", null)
                           ?? ResolveAsset(folder, "preview.jpg", null);
 
+            // WebView2's virtual-host cache ignores query strings on CSS but
+            // does honour them for images; versioning the preview means a
+            // theme author sees their new card art after bumping version.
+            if (!string.IsNullOrWhiteSpace(previewUrl))
+                previewUrl += (previewUrl.Contains('?') ? "&" : "?") + "v=" + Uri.EscapeDataString(manifest.Version ?? "1.0.0");
+
             return new ThemeInfo(
                 id,
                 manifest.Name!,
                 manifest.Author ?? "未署名",
                 manifest.Version ?? "1.0.0",
                 manifest.Description ?? "",
+                NormalizeIntro(manifest.Intro),
                 folder,
                 cssUrl,
                 previewUrl,
@@ -212,6 +225,7 @@ public sealed class ThemeService
         manifest?.Author ?? "未署名",
         manifest?.Version ?? "—",
         manifest?.Description ?? "",
+        NormalizeIntro(manifest?.Intro),
         folder,
         null,
         null,
@@ -241,6 +255,15 @@ public sealed class ThemeService
 
     private static string NormalizeBase(string? value) =>
         value is "adaptive" or "system" ? value : "";
+
+    /// <summary>Intro presets are ids resolved by src/intro.js; an unknown id
+    /// simply falls back to the default preset at runtime.</summary>
+    private static string NormalizeIntro(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        var clean = value.Trim().ToLowerInvariant();
+        return System.Text.RegularExpressions.Regex.IsMatch(clean, "^[a-z0-9][a-z0-9-]{0,31}$") ? clean : "";
+    }
 
     private static Dictionary<string, string> CleanDictionary(Dictionary<string, string>? source)
     {

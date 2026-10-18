@@ -281,7 +281,8 @@ body.is-empty .cta-row .btn.primary { opacity: .55; }
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   padding: 10px 13px;
   border-radius: 10px;
@@ -294,15 +295,39 @@ body.is-empty .cta-row .btn.primary { opacity: .55; }
   transition: border-color .2s ease, background .2s ease;
 }
 
+.field input[type="text"],
+.field select { height: 40px; }
+
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, .5) 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, .5) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 17px,
+    calc(100% - 12px) 17px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.field select option {
+  background: #14151a;
+  color: #f3eee3;
+}
+
 .field textarea { resize: vertical; min-height: 66px; font-family: inherit; }
 
 .field input::placeholder,
 .field textarea::placeholder { color: rgba(255, 255, 255, .26); }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   border-color: color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, .24));
-  background: rgba(255, 255, 255, .06);
+  background-color: rgba(255, 255, 255, .06);
 }
 
 .field-combo {
@@ -654,16 +679,23 @@ body.is-long-logo .hero-logo { --logo-size-hero: clamp(30px, 4.6vw, 72px); }
   body.is-long-logo .hero { width: min(100%, 92vw); }
 }
 
-/* The style-choice previews are small; long wordmarks must ellipsize
-   rather than run past the card edge. */
+/* Style-choice previews keep one line but must never clip glyph ink.
+   fitLogo() handles width; line-height/padding handles descenders. */
 .style-choice-preview .choice-logo {
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
   white-space: nowrap;
+  line-height: 1.18;
+  padding-bottom: 3px;
 }
 
-.choice-look { min-width: 0; overflow: hidden; }
+.choice-look {
+  min-width: 0;
+  min-height: 34px;
+  overflow: visible;
+}
+
 .style-choice { overflow: hidden; }
 
 /* ---------- manage stats: long paths must wrap, never clip ---------- */
