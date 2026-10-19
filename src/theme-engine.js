@@ -234,6 +234,9 @@
         inlineSheet.textContent = css;
         // Always last in <head> so a theme outranks every base sheet.
         document.head.appendChild(inlineSheet);
+        // Capability overrides must stay after the theme sheet.
+        const compat = document.getElementById('compat-style');
+        if (compat) document.head.appendChild(compat);
         link.removeAttribute('href');
       } else {
         // Fall back to a plain link if the fetch is blocked.

@@ -48,7 +48,7 @@ public static class BackupService
             {
                 foreach (var file in Directory.EnumerateFiles(AppPaths.Media, "*", SearchOption.AllDirectories))
                 {
-                    var relative = Path.GetRelativePath(AppPaths.Media, file);
+                    var relative = CompatUtil.RelativePath(AppPaths.Media, file);
                     var destination = Path.Combine(mediaRoot, relative);
                     Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
                     File.Copy(file, destination, true);
@@ -141,7 +141,7 @@ public static class BackupService
                         return new ImportResult(false, "数据包包含非法路径", null, 0, 0, 0, 0, 0);
                 }
             }
-            ZipFile.ExtractToDirectory(packPath, temp, true);
+            CompatUtil.ExtractZip(packPath, temp);
 
             var manifestPath = Path.Combine(temp, "manifest.json");
             var libraryPath = Path.Combine(temp, "library.json");
@@ -237,7 +237,7 @@ public static class BackupService
         var count = 0;
         foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {
-            var relative = Path.GetRelativePath(source, file);
+            var relative = CompatUtil.RelativePath(source, file);
             var destination = Path.Combine(AppPaths.Media, relative);
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
             File.Copy(file, destination, true);

@@ -501,3 +501,19 @@ body.layout-rail .view-home .dock-title {
   .session-row { grid-template-columns: minmax(0, 1fr) auto; }
   .session-row span:last-child { grid-column: 1 / -1; }
 }
+
+/* Compatibility tier select */
+.settings-field select {
+  flex: 1 1 240px;
+  min-width: 0;
+  height: 38px;
+  padding: 0 32px 0 12px;
+  border: 1px solid var(--hair, rgba(255, 255, 255, .16));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--ink, #f5f2ea) 5%, transparent);
+  color: var(--ink, #f5f2ea);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+.settings-field select option { color: #111; background: #f4f2ec; }

@@ -333,9 +333,22 @@ dotnet publish -c Release -r win-x64 --self-contained true \
 
 ---
 
+## 系统兼容性
+
+- **Modern 构建（当前发布）**：Windows 10 1809+ / Windows 11，.NET 10，WebView2 Evergreen，完整效果。
+- **Legacy 构建（计划）**：Windows 7 SP1 / 8.1，.NET Framework 4.8 + WebView2 109，安全档。
+- 启动时会自动读取 Windows 版本与 WebView2 版本，写入 `html[data-tier]`：
+  `full`（完整）/ `balanced`（无 color-mix）/ `safe`（低特效，旧系统）。
+- 设置 → 系统与兼容性可查看检测结果并手动切换档位。
+- **当前 `NovaGameSpace.exe` 不能直接在 Win7 运行**（.NET 10 不支持 Win7）；
+  Win7 需要单独的 Legacy 宿主，方案与构建步骤见
+  [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)。
+
+---
+
 ## 已知限制
 
-- 只支持 Windows。
+- 只支持 Windows；当前发布版需要 Windows 10 1809+（Win7/8.1 用 Legacy 构建）。
 - 计时跟随被启动的那个进程；若游戏先启动自身启动器再拉起本体，统计的是启动器存活时长。
 - 不绕过 DRM、不改游戏文件、不注入进程。
 - Steam 封面取的是本地缓存；缓存里没有的游戏会用 exe 图标生成封面。

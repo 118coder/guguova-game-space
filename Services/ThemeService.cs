@@ -340,7 +340,7 @@ public sealed class ThemeService
         try
         {
             Directory.CreateDirectory(temp);
-            ZipFile.ExtractToDirectory(zipPath, temp, true);
+            CompatUtil.ExtractZip(zipPath, temp);
 
             // The archive may wrap everything in a single folder.
             var root = FindManifestRoot(temp);

@@ -90,6 +90,8 @@ public sealed class PlayerSettings
     public bool AutoBackup { get; set; } = true;
     public string? LastBackupUtc { get; set; }
     public string LibrarySort { get; set; } = "recent";
+    /// <summary>auto | full | balanced | safe. Auto is the recommended default.</summary>
+    public string CompatibilityTier { get; set; } = "auto";
 }
 
 /// <summary>Payload returned to the UI after a launch is started.</summary>
