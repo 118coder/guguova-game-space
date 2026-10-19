@@ -165,6 +165,16 @@ public sealed class LauncherService
         {
             game.PlaytimeSeconds += seconds;
             game.LastPlayedUtc = DateTime.UtcNow.ToString("o");
+            game.Sessions ??= new List<PlaySession>();
+            game.Sessions.Add(new PlaySession
+            {
+                StartedUtc = started.ToUniversalTime().ToString("o"),
+                EndedUtc = DateTime.UtcNow.ToString("o"),
+                Seconds = seconds,
+                Crashed = crashed
+            });
+            if (game.Sessions.Count > 200)
+                game.Sessions.RemoveRange(0, game.Sessions.Count - 200);
             _store.Save();
         }
 

@@ -53,8 +53,8 @@ const SIZES = String(SIZE_ARG).split(',').map((s) => {
 
 const CORE_VIEWS = ['home', 'library', 'appearance', 'detail'];
 const ALL_VIEWS = [
-  'home', 'home-row', 'home-stress', 'library', 'library-search', 'appearance', 'detail',
-  'context', 'scanner', 'editor', 'dialog', 'notif', 'profile', 'launching', 'sleep'
+  'home', 'home-row', 'home-stress', 'library', 'library-search', 'appearance', 'settings',
+  'detail', 'context', 'scanner', 'editor', 'dialog', 'notif', 'profile', 'launching', 'sleep'
 ];
 
 const VIEWS = flags.views && flags.views !== 'all'
@@ -151,6 +151,10 @@ const HELPERS = String.raw`
         break;
       case 'appearance':
         click('.nav-btn[data-nav="appearance"]');
+        await sleep(800);
+        break;
+      case 'settings':
+        click('.nav-btn[data-nav="settings"]');
         await sleep(800);
         break;
       case 'detail':

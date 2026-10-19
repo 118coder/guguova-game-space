@@ -56,6 +56,10 @@ public partial class MainWindow : Window
             Launcher = new LauncherService(Store);
             Bridge = new NativeBridge(Store, Media, Launcher);
 
+            // Offline daily backup: one pack per day, keep five. Runs after the
+            // library is loaded and never blocks the window.
+            _ = Task.Run(async () => { await Task.Delay(5000); BackupService.EnsureDailyBackup(Store); });
+
             // WebView2 caches the virtual-host renderer files. After an app
             // update the old app.js/CSS would otherwise win; drop only the
             // disk caches when the assembly version changes.

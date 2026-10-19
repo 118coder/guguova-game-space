@@ -224,6 +224,7 @@ docs/themes/<id>.md       单主题接口卡
 | 首页 | `#homeView` | 标题 30 字、进度、活动条、dock |
 | 游戏库 | `#libraryOverlay` | 搜索/筛选/卡片/空态 |
 | 外观 | `#appearanceOverlay` | 预览、主题网格、偏好、字标 |
+| 设置 | `#settingsView` | 玩家名、关闭到托盘、自动备份、数据包/CSV、统计 |
 | 详情 | `.overlay` + `.detail-modal` | 统计格数值、路径、按钮 |
 | 启动 | `.launch` | 背景、标题、状态、退出 |
 | 开屏 | `.intro` | 舞台、跳过提示、reduce-motion |
@@ -263,7 +264,7 @@ docs/themes/<id>.md       单主题接口卡
 | grimoire | 1.5.1 | parchment / plate / rule / plates-off | seal | grStamp |
 | mnemo | 1.1.2 | map / emboss / folder | mnemo | mnUnfold |
 
-静态资源版本：`src/index.html` 的 `?v=1.4.0`。
+静态资源版本：`src/index.html` 的 `?v=1.5.0`。
 
 ---
 

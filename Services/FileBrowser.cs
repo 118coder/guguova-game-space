@@ -116,6 +116,7 @@ public static class FileBrowser
         "exe" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".exe", ".bat", ".cmd", ".lnk", ".url" },
         "image" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif" },
         "manifest" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".json" },
+        "pack" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".nova-pack", ".zip" },
         _ => null
     };
 }

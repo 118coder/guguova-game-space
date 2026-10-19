@@ -40,7 +40,20 @@ public sealed class GameEntry
     /// Empty means the cover director chooses automatically.</summary>
     public string TypeRecipe { get; set; } = "";
 
+    /// <summary>Recent play sessions, newest last. Capped at 200 per game.</summary>
+    public List<PlaySession> Sessions { get; set; } = new();
+
     public CoverDna Dna { get; set; } = new();
+}
+
+/// <summary>One real launch-to-exit interval. Persisted so play history
+/// survives restarts and can travel inside an exported data pack.</summary>
+public sealed class PlaySession
+{
+    public string StartedUtc { get; set; } = "";
+    public string EndedUtc { get; set; } = "";
+    public long Seconds { get; set; }
+    public bool Crashed { get; set; }
 }
 
 /// <summary>Fingerprint sampled from the cover, used by the title director.</summary>
@@ -63,6 +76,8 @@ public sealed class LibraryFile
 public sealed class PlayerSettings
 {
     public string Playername { get; set; } = "Yuki";
+    /// <summary>False means the display name follows the Windows account.</summary>
+    public bool PlayerNameCustom { get; set; }
     public bool Sound { get; set; } = true;
     public bool ReduceMotion { get; set; }
     public bool Calm { get; set; }
@@ -72,6 +87,9 @@ public sealed class PlayerSettings
     public int TypeSeed { get; set; }
     public bool FirstRunDone { get; set; }
     public bool CloseToTray { get; set; }
+    public bool AutoBackup { get; set; } = true;
+    public string? LastBackupUtc { get; set; }
+    public string LibrarySort { get; set; } = "recent";
 }
 
 /// <summary>Payload returned to the UI after a launch is started.</summary>
@@ -130,8 +148,37 @@ public sealed record SteamCandidate(
     string? HeroPath,
     string? CoverPath);
 
+public sealed record SessionInfo(
+    string GameId,
+    string GameName,
+    string StartedUtc,
+    string EndedUtc,
+    long Seconds,
+    bool Crashed);
+
+public sealed record LauncherStats(
+    long TotalSeconds,
+    int TotalLaunches,
+    int SessionCount,
+    long TodaySeconds,
+    long WeekSeconds,
+    int MissingCount,
+    string? TopGameName,
+    long TopGameSeconds,
+    SessionInfo[] Recent);
+
+public sealed record StorageInfo(
+    string Root,
+    string Backups,
+    string Exports,
+    long LibraryBytes,
+    long MediaBytes,
+    int MediaFiles,
+    string? LastBackupUtc);
+
 [JsonSerializable(typeof(LibraryFile))]
 [JsonSerializable(typeof(GameEntry))]
+[JsonSerializable(typeof(PlaySession))]
 [JsonSerializable(typeof(PlayerSettings))]
 [JsonSerializable(typeof(LaunchResult))]
 [JsonSerializable(typeof(GamePayload))]
