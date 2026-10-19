@@ -27,6 +27,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The legacy host and publish output live under the repo; never let
+         the modern project's default globs compile their generated files. -->
+    <Compile Remove="legacy\**" />
+    <Page Remove="legacy\**" />
+    <ApplicationDefinition Remove="legacy\**" />
+    <None Remove="legacy\**" />
+    <Content Remove="legacy\**" />
+    <EmbeddedResource Remove="legacy\**" />
+    <Compile Remove="publish\**" />
+    <Page Remove="publish\**" />
+    <ApplicationDefinition Remove="publish\**" />
+    <None Remove="publish\**" />
+    <EmbeddedResource Remove="publish\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
   </ItemGroup>
 
@@ -91,6 +107,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="src\compat.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="src\settings-themes.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="src\polish.css">

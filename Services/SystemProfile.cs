@@ -24,6 +24,7 @@ public static class SystemProfile
         bool SupportColorMix,
         bool SupportBackdropFilter,
         bool LegacyHost,
+        bool LegacyBuild,
         string Tier,
         string TierLabel,
         string Notes);
@@ -84,6 +85,11 @@ public static class SystemProfile
         var colorMix = webViewMajor == 0 || webViewMajor >= 111;
         var backdrop = webViewMajor == 0 || webViewMajor >= 76;
         var legacy = is7 || is8;
+#if NETFRAMEWORK
+        var legacyBuild = true;
+#else
+        var legacyBuild = false;
+#endif
         var tier = legacy || (webViewMajor > 0 && webViewMajor < 111)
             ? (legacy ? "safe" : "balanced")
             : "full";
@@ -105,7 +111,7 @@ public static class SystemProfile
             is7, is8, is10, is11,
             webView, webViewMajor,
             colorMix, backdrop,
-            legacy, tier, Label(tier, legacy, webViewMajor), notes);
+            legacy, legacyBuild, tier, Label(tier, legacy, webViewMajor), notes);
     }
 
     private static string Label(string tier, bool legacy, int webViewMajor) => tier switch

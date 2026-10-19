@@ -424,7 +424,7 @@ public sealed class ThemeService
     private static string SafeFolderName(string value)
     {
         var cleaned = System.Text.RegularExpressions.Regex.Replace(value ?? "", "[^A-Za-z0-9._-]", "-");
-        if (string.IsNullOrWhiteSpace(cleaned)) cleaned = "theme-" + Guid.NewGuid().ToString("N")[..8];
+        if (string.IsNullOrWhiteSpace(cleaned)) cleaned = "theme-" + Guid.NewGuid().ToString("N").Substring(0, 8);
         return cleaned.Trim('-').ToLowerInvariant();
     }
 

@@ -1,0 +1,326 @@
+/* ============================================================
+   SETTINGS · per-theme signatures
+   The settings view reuses the appearance shell, but its fields,
+   stat cards and history rows get a theme-specific treatment here.
+   Loaded after compat.css; themes do not target .settings-* themselves.
+   ============================================================ */
+
+/* ---------- NOVA (built-in cinematic) ---------- */
+
+html[data-theme="nova"] .settings-field input,
+html[data-theme="nova"] .settings-field select,
+html[data-theme="nova"] .settings-stat {
+  background: rgba(9, 10, 14, .56);
+  border: 1px solid rgba(255, 255, 255, .14);
+  color: #f5f2ea;
+}
+html[data-theme="nova"] .settings-field input:focus,
+html[data-theme="nova"] .settings-field select:focus { border-color: var(--accent); }
+html[data-theme="nova"] .settings-stat span,
+html[data-theme="nova"] .settings-stat em { color: rgba(245, 242, 234, .55); }
+
+/* ---------- AURUM · gilded sanctum ---------- */
+
+html[data-theme="aurum"] .settings-field input,
+html[data-theme="aurum"] .settings-field select {
+  background: var(--aurum-well);
+  border: 1px solid rgba(232, 201, 138, .3);
+  border-radius: 0;
+  color: var(--aurum-text);
+  font-family: var(--font-serif);
+  box-shadow: inset 0 1px 0 rgba(232, 201, 138, .08);
+}
+html[data-theme="aurum"] .settings-field input:focus,
+html[data-theme="aurum"] .settings-field select:focus {
+  border-color: var(--aurum-bronze-hi);
+  box-shadow: 0 0 0 1px var(--aurum-bronze-glow), inset 0 1px 0 rgba(232, 201, 138, .12);
+}
+html[data-theme="aurum"] .settings-field label { color: var(--aurum-bronze-hi); letter-spacing: .14em; }
+html[data-theme="aurum"] .settings-stat {
+  background: linear-gradient(180deg, rgba(232, 201, 138, .08), rgba(0, 0, 0, .22)), var(--aurum-panel);
+  border: 1px solid rgba(232, 201, 138, .32);
+  border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(232, 201, 138, .16);
+}
+html[data-theme="aurum"] .settings-stat span { color: var(--aurum-bronze-hi); }
+html[data-theme="aurum"] .settings-stat b { color: var(--aurum-text); font-family: var(--font-serif); }
+html[data-theme="aurum"] .settings-stat em { color: var(--aurum-text-dim); }
+html[data-theme="aurum"] .settings-note b { color: var(--aurum-bronze-hi); }
+html[data-theme="aurum"] .session-row { border-color: var(--aurum-hair); }
+html[data-theme="aurum"] .session-row em { color: var(--aurum-bronze-hi); }
+
+/* ---------- ENDFIELD · industrial paper ---------- */
+
+html[data-theme="endfield"] .settings-field input,
+html[data-theme="endfield"] .settings-field select {
+  background: var(--ef-panel);
+  border: 1px solid var(--ef-ink);
+  border-radius: 0;
+  color: var(--ef-ink);
+  box-shadow: 3px 3px 0 var(--ef-rule);
+  font-family: 'Saira', var(--font-ui);
+}
+html[data-theme="endfield"] .settings-field input:focus,
+html[data-theme="endfield"] .settings-field select:focus {
+  border-color: var(--ef-ink);
+  box-shadow: 3px 3px 0 var(--ef-signal);
+}
+html[data-theme="endfield"] .settings-field label {
+  color: var(--ef-ink);
+  font-family: 'Saira', var(--font-ui);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+html[data-theme="endfield"] .settings-stat {
+  background: var(--ef-paper);
+  border: 1px solid var(--ef-ink);
+  border-top: 4px solid var(--ef-signal);
+  border-radius: 0;
+}
+html[data-theme="endfield"] .settings-stat span {
+  color: var(--ef-ink-2);
+  font-family: 'Saira', var(--font-ui);
+  letter-spacing: .18em;
+}
+html[data-theme="endfield"] .settings-stat b { color: var(--ef-ink); font-family: 'Saira', var(--font-ui); }
+html[data-theme="endfield"] .settings-stat em { color: var(--ef-ink-2); }
+html[data-theme="endfield"] .settings-note b { color: var(--ef-ink); }
+html[data-theme="endfield"] .session-row { border-color: var(--ef-rule); }
+html[data-theme="endfield"] .session-row em { color: var(--ef-ink); }
+
+/* ---------- ZERO HOUR · command deck ---------- */
+
+html[data-theme="zerohour"] .settings-field input,
+html[data-theme="zerohour"] .settings-field select {
+  background: var(--zh-panel);
+  border: 1px solid rgba(201, 247, 58, .34);
+  border-radius: 0;
+  color: var(--zh-white);
+  font-family: var(--mn-mono, Consolas, monospace);
+  box-shadow: inset 0 0 0 1px rgba(201, 247, 58, .06);
+}
+html[data-theme="zerohour"] .settings-field input:focus,
+html[data-theme="zerohour"] .settings-field select:focus {
+  border-color: var(--zh-yellow);
+  box-shadow: 0 0 0 1px rgba(201, 247, 58, .28);
+}
+html[data-theme="zerohour"] .settings-field label { color: var(--zh-yellow); letter-spacing: .18em; }
+html[data-theme="zerohour"] .settings-stat {
+  background: var(--zh-panel);
+  border: 1px solid rgba(201, 247, 58, .28);
+  border-left: 4px solid var(--zh-yellow);
+  border-radius: 0;
+}
+html[data-theme="zerohour"] .settings-stat span { color: var(--zh-yellow); }
+html[data-theme="zerohour"] .settings-stat b { color: var(--zh-white); font-family: var(--mn-mono, Consolas, monospace); }
+html[data-theme="zerohour"] .settings-stat em { color: var(--zh-gray); }
+html[data-theme="zerohour"] .settings-note b { color: var(--zh-yellow); }
+html[data-theme="zerohour"] .session-row { border-color: rgba(201, 247, 58, .18); }
+html[data-theme="zerohour"] .session-row em { color: var(--zh-yellow); }
+
+/* ---------- CODEX · copperplate dossier ---------- */
+
+html[data-theme="codex"] .settings-field input,
+html[data-theme="codex"] .settings-field select {
+  background: var(--cx-well);
+  border: 1px solid var(--cx-gold-line);
+  border-radius: 0;
+  color: var(--cx-cream);
+  font-family: var(--font-serif);
+  box-shadow: inset 0 0 0 3px var(--cx-bg);
+}
+html[data-theme="codex"] .settings-field input:focus,
+html[data-theme="codex"] .settings-field select:focus {
+  border-color: var(--cx-gold);
+  box-shadow: inset 0 0 0 3px var(--cx-bg), 0 0 0 1px var(--cx-gold-line);
+}
+html[data-theme="codex"] .settings-field label { color: var(--cx-gold); letter-spacing: .16em; }
+html[data-theme="codex"] .settings-stat {
+  background: var(--cx-panel);
+  border: 1px solid var(--cx-gold-line);
+  box-shadow: inset 0 0 0 3px var(--cx-bg), inset 0 0 0 4px var(--cx-gold-line-soft);
+  border-radius: 0;
+}
+html[data-theme="codex"] .settings-stat span { color: var(--cx-gold); font-family: var(--font-serif); letter-spacing: .16em; }
+html[data-theme="codex"] .settings-stat b { color: var(--cx-cream); font-family: var(--font-serif); }
+html[data-theme="codex"] .settings-stat em { color: var(--cx-cream-3); }
+html[data-theme="codex"] .settings-note b { color: var(--cx-gold-hi); }
+html[data-theme="codex"] .session-row { border-color: var(--cx-gold-line-soft); }
+html[data-theme="codex"] .session-row em { color: var(--cx-gold); }
+
+/* ---------- BROADCAST · late-night paper ---------- */
+
+html[data-theme="broadcast"] .settings-field input,
+html[data-theme="broadcast"] .settings-field select {
+  background: #f3f1eb;
+  border: 1px solid #101010;
+  border-radius: 0;
+  color: #101010;
+  box-shadow: 4px 4px 0 rgba(16, 16, 16, .12);
+}
+html[data-theme="broadcast"] .settings-field input:focus,
+html[data-theme="broadcast"] .settings-field select:focus {
+  border-color: #101010;
+  box-shadow: 4px 4px 0 rgba(16, 16, 16, .26);
+}
+html[data-theme="broadcast"] .settings-field label { color: #101010; letter-spacing: .18em; text-transform: uppercase; }
+html[data-theme="broadcast"] .settings-stat {
+  background: #f3f1eb;
+  border: 1px solid #101010;
+  border-top: 3px solid #101010;
+  border-radius: 0;
+}
+html[data-theme="broadcast"] .settings-stat span { color: #55544e; }
+html[data-theme="broadcast"] .settings-stat b { color: #101010; font-family: var(--font-serif); }
+html[data-theme="broadcast"] .settings-stat em { color: #7a7a76; }
+html[data-theme="broadcast"] .settings-note b { color: #101010; }
+html[data-theme="broadcast"] .session-row { border-color: rgba(16, 16, 16, .18); }
+html[data-theme="broadcast"] .session-row em { color: #101010; }
+
+/* ---------- SUMMER · white paper ---------- */
+
+html[data-theme="summer"] .settings-field input,
+html[data-theme="summer"] .settings-field select {
+  background: #ffffff;
+  border: 1px solid #101820;
+  border-radius: 0;
+  color: #101820;
+  font-family: var(--font-ui);
+}
+html[data-theme="summer"] .settings-field input:focus,
+html[data-theme="summer"] .settings-field select:focus {
+  border-color: #1f93c8;
+  box-shadow: 0 0 0 1px #1f93c8;
+}
+html[data-theme="summer"] .settings-field label { color: #1f93c8; letter-spacing: .14em; }
+html[data-theme="summer"] .settings-stat {
+  background: #ffffff;
+  border: 1px solid #101820;
+  border-left: 6px solid #e8f21f;
+  border-radius: 0;
+}
+html[data-theme="summer"] .settings-stat span { color: #1f93c8; }
+html[data-theme="summer"] .settings-stat b { color: #101820; font-family: var(--font-serif); }
+html[data-theme="summer"] .settings-stat em { color: #4a5a66; }
+html[data-theme="summer"] .settings-note b { color: #101820; }
+html[data-theme="summer"] .session-row { border-color: #d8e2e4; }
+html[data-theme="summer"] .session-row em { color: #101820; }
+
+/* ---------- RISO · two-ink poster ---------- */
+
+html[data-theme="riso"] .settings-field input,
+html[data-theme="riso"] .settings-field select {
+  background: #fbf9f0;
+  border: 2px solid #101014;
+  border-radius: 0;
+  color: #101014;
+  box-shadow: 4px 4px 0 #e8ff2a;
+}
+html[data-theme="riso"] .settings-field input:focus,
+html[data-theme="riso"] .settings-field select:focus {
+  border-color: #101014;
+  box-shadow: 4px 4px 0 #2b2fa8;
+}
+html[data-theme="riso"] .settings-field label { color: #2b2fa8; letter-spacing: .14em; }
+html[data-theme="riso"] .settings-stat {
+  background: #fbf9f0;
+  border: 2px solid #101014;
+  box-shadow: 4px 4px 0 #e8ff2a;
+  border-radius: 0;
+}
+html[data-theme="riso"] .settings-stat span { color: #2b2fa8; }
+html[data-theme="riso"] .settings-stat b { color: #2b2fa8; font-family: var(--font-serif); }
+html[data-theme="riso"] .settings-stat em { color: #4a4a55; }
+html[data-theme="riso"] .settings-note b { color: #101014; }
+html[data-theme="riso"] .session-row { border-color: #d6d2c2; }
+html[data-theme="riso"] .session-row em { color: #2b2fa8; }
+
+/* ---------- RIOT · album sleeve ---------- */
+
+html[data-theme="riot"] .settings-field input,
+html[data-theme="riot"] .settings-field select {
+  background: #fbf7ee;
+  border: 2px solid #111111;
+  border-radius: 0;
+  color: #111111;
+  box-shadow: 4px 4px 0 #e2001a;
+  font-family: var(--font-ui);
+}
+html[data-theme="riot"] .settings-field input:focus,
+html[data-theme="riot"] .settings-field select:focus {
+  border-color: #111111;
+  box-shadow: 4px 4px 0 #111111;
+}
+html[data-theme="riot"] .settings-field label { color: #e2001a; letter-spacing: .14em; }
+html[data-theme="riot"] .settings-stat {
+  background: #fbf7ee;
+  border: 2px solid #111111;
+  border-top: 6px solid #e2001a;
+  border-radius: 0;
+}
+html[data-theme="riot"] .settings-stat span { color: #e2001a; }
+html[data-theme="riot"] .settings-stat b { color: #111111; font-family: var(--font-hero, var(--font-display)); }
+html[data-theme="riot"] .settings-stat em { color: #4a463f; }
+html[data-theme="riot"] .settings-note b { color: #111111; }
+html[data-theme="riot"] .session-row { border-color: #ded7c9; }
+html[data-theme="riot"] .session-row em { color: #e2001a; }
+
+/* ---------- GRIMOIRE · adventurer record ---------- */
+
+html[data-theme="grimoire"] .settings-field input,
+html[data-theme="grimoire"] .settings-field select {
+  background: #f1e4c6;
+  border: 1px solid #8a6a3a;
+  border-radius: 0;
+  color: #2a1b12;
+  font-family: var(--font-serif);
+  box-shadow: inset 0 0 0 3px #f1e4c6, inset 0 0 0 4px #b08a3e;
+}
+html[data-theme="grimoire"] .settings-field input:focus,
+html[data-theme="grimoire"] .settings-field select:focus {
+  border-color: #7a1f2b;
+  box-shadow: inset 0 0 0 3px #f1e4c6, inset 0 0 0 4px #7a1f2b;
+}
+html[data-theme="grimoire"] .settings-field label { color: #7a1f2b; letter-spacing: .14em; }
+html[data-theme="grimoire"] .settings-stat {
+  background: #f1e4c6;
+  border: 1px solid #8a6a3a;
+  border-top: 4px solid #7a1f2b;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 3px #f1e4c6, inset 0 0 0 4px #b08a3e;
+}
+html[data-theme="grimoire"] .settings-stat span { color: #7a1f2b; }
+html[data-theme="grimoire"] .settings-stat b { color: #2a1b12; font-family: var(--font-serif); }
+html[data-theme="grimoire"] .settings-stat em { color: #5a3a25; }
+html[data-theme="grimoire"] .settings-note b { color: #2a1b12; }
+html[data-theme="grimoire"] .session-row { border-color: #d8c49a; }
+html[data-theme="grimoire"] .session-row em { color: #7a1f2b; }
+
+/* ---------- MNEMO · mystery bureau ---------- */
+
+html[data-theme="mnemo"] .settings-field input,
+html[data-theme="mnemo"] .settings-field select {
+  background: var(--mn-panel);
+  border: 1px solid var(--mn-hair);
+  border-radius: 8px;
+  color: var(--mn-ink);
+  font-family: var(--mn-mono, Consolas, monospace);
+}
+html[data-theme="mnemo"] .settings-field input:focus,
+html[data-theme="mnemo"] .settings-field select:focus {
+  border-color: var(--mn-violet);
+  box-shadow: 0 0 0 2px var(--mn-violet-soft);
+}
+html[data-theme="mnemo"] .settings-field label { color: var(--mn-violet); letter-spacing: .12em; }
+html[data-theme="mnemo"] .settings-stat {
+  background: var(--mn-panel);
+  border: 1px solid var(--mn-hair);
+  border-top: 3px solid var(--mn-violet);
+  border-radius: 8px;
+}
+html[data-theme="mnemo"] .settings-stat span { color: var(--mn-violet); font-family: var(--mn-mono, Consolas, monospace); }
+html[data-theme="mnemo"] .settings-stat b { color: var(--mn-ink); }
+html[data-theme="mnemo"] .settings-stat em { color: var(--mn-ink-2); }
+html[data-theme="mnemo"] .settings-note b { color: var(--mn-ink); }
+html[data-theme="mnemo"] .session-row { border-color: var(--mn-line); }
+html[data-theme="mnemo"] .session-row em { color: var(--mn-plum); }

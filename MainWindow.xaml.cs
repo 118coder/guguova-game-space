@@ -1,5 +1,6 @@
 using System.Drawing;
 using Color = System.Windows.Media.Color;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -81,7 +82,11 @@ public partial class MainWindow : Window
 
             if (browserArgs.Count > 0)
                 options.AdditionalBrowserArguments = string.Join(" ", browserArgs);
-            var env = await CoreWebView2Environment.CreateAsync(null, CacheRoot(), options);
+            // A fixed WebView2 runtime can be dropped next to the exe for a
+            // fully offline legacy package (Windows 7 uses 109).
+            var fixedRuntime = Path.Combine(AppContext.BaseDirectory, "WebView2Runtime");
+            var browserFolder = Directory.Exists(fixedRuntime) ? fixedRuntime : null;
+            var env = await CoreWebView2Environment.CreateAsync(browserFolder, CacheRoot(), options);
             await Web.EnsureCoreWebView2Async(env);
             Bridge.Attach(Web);
             Web.CoreWebView2.ProcessFailed += (_, args) =>
@@ -343,7 +348,7 @@ public partial class MainWindow : Window
         menu.Items.Add("退出", null, (_, _) => ExitApplication());
         _tray = new WinForms.NotifyIcon
         {
-            Icon = System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath ?? "") ?? System.Drawing.SystemIcons.Application,
+            Icon = System.Drawing.Icon.ExtractAssociatedIcon(Process.GetCurrentProcess().MainModule?.FileName ?? "") ?? System.Drawing.SystemIcons.Application,
             Text = "NOVA · 游戏空间",
             Visible = true,
             ContextMenuStrip = menu

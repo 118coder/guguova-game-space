@@ -405,7 +405,7 @@ public sealed class NativeBridge
     private static string[] SplitGenres(string genre)
     {
         if (string.IsNullOrWhiteSpace(genre)) return Array.Empty<string>();
-        return genre.Split(new[] { '·', '/', ',', '，', '、' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToArray();
+        return genre.Split(new[] { '·', '/', ',', '，', '、' }, StringSplitOptions.RemoveEmptyEntries).Select(part => part.Trim()).Where(part => part.Length > 0).ToArray();
     }
 
     private static string MediaUrl(string path, string gameId, string fallbackName)
@@ -1076,13 +1076,13 @@ public sealed class NativeBridge
         var match = System.Text.RegularExpressions.Regex.Match(
             value, @"^\s*([0-9.]+)\s*%\s+([0-9.]+)\s*%\s*$");
         if (!match.Success) return "50% 45%";
-        var x = Math.Clamp(ParseDouble(match.Groups[1].Value, 50), 0, 100);
-        var y = Math.Clamp(ParseDouble(match.Groups[2].Value, 45), 0, 100);
+        var x = CompatUtil.Clamp(ParseDouble(match.Groups[1].Value, 50), 0, 100);
+        var y = CompatUtil.Clamp(ParseDouble(match.Groups[2].Value, 45), 0, 100);
         return $"{x:0.#}% {y:0.#}%";
     }
 
     private static double NormalizeHeroZoom(double value) =>
-        Math.Clamp(double.IsFinite(value) ? value : 1, 1, 2.4);
+        CompatUtil.Clamp(!double.IsNaN(value) && !double.IsInfinity(value) ? value : 1, 1, 2.4);
 
     private static double ParseDouble(string text, double fallback) =>
         double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : fallback;

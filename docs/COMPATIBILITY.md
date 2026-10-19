@@ -10,13 +10,14 @@
 | 构建 | 目标框架 | 系统 | WebView2 | 档位 | 状态 |
 |---|---|---|---|---|---|
 | **Modern**（当前发布） | `net10.0-windows` | Win10 1809+ / Win11 | Evergreen（当前 156） | `full` | ✅ 已构建/验收 |
-| **Legacy**（计划） | `.NET Framework 4.8` | Win7 SP1 / Win8.1 | 固定 109.0.1518.78 | `safe` | 🚧 需要独立 legacy 工程 |
+| **Legacy**（已落地） | `.NET Framework 4.8` | Win7 SP1 / Win8.1 | 固定 109.0.1518.78 | `safe` | ✅ 已构建；Win10/11 已跑通，Win7 VM 待验收 |
 
-> **必须说清楚**：当前 `NovaGameSpace.exe` 是 .NET 10 自包含程序，**不能直接在 Win7 运行**。
-> 系统判定与降级层已经就绪；要真正在 Win7 启动，需要按 §4 产出 Legacy 宿主。
-> 直接把同一个工程多目标到 `net48` 在 .NET SDK 10 的 WPF XAML 编译器上会报
-> `System.Private.CoreLib` 错误；Legacy 工程必须用 .NET SDK 7 / VS 2022 +
-> .NET Framework 4.8 Targeting Pack 单独构建。
+> **交付形态**：Modern 版仍是 `NovaGameSpace.exe`（.NET 10，Win10 1809+）；
+> Win7/8.1 使用 `legacy/NovaGameSpace.Legacy.csproj` 产出的
+> `NovaGameSpace-Legacy.exe`（net48 + WebView2 109），与 Modern 共用
+> `src/`、`themes/` 与数据格式。直接用 SDK 10 多目标 net48 会报
+> `System.Private.CoreLib`，因此 Legacy 工程用 `legacy/global.json` 固定 SDK 7，
+> 通过 `bash tools/build-legacy.sh` 构建。
 
 ---
 
@@ -67,7 +68,18 @@
 
 ---
 
-## 4. Legacy 宿主计划（Win7 / Win8.1）
+## 4. Legacy 宿主（Win7 / Win8.1）
+
+### 4.0 构建
+
+```bash
+bash tools/build-legacy.sh          # Release
+bash tools/build-legacy.sh Debug    # Debug
+```
+
+产物：`legacy/bin/<Config>/net48/NovaGameSpace-Legacy.exe`。
+`legacy/global.json` 固定 .NET SDK 7.0.401；构建机需要 .NET Framework 4.8
+Developer Pack。**不要**从仓库根目录直接 `dotnet build legacy/...`。
 
 ### 4.1 目标
 
@@ -126,6 +138,10 @@
 - Win7 SP1 虚拟机：启动、扫描游戏、启动进程、计时、设置、导出/导入、主题切换、关闭到托盘。
 - Win10：Legacy 构建可运行，`getSystem` 应报 `balanced`（如果 110+）或 `safe`（109）。
 - Modern 构建：`full`，现有 330+ 张截图与 `probe-graphics` 基线不变。
+- 已在本机 Win11 上用 WebView2 156 跑通 Legacy 宿主：
+  `legacyBuild=true`、6 款游戏、设置页、导出数据包、手动 safe 档均正常。
+  强制 safe 后重启：`is-booted=true`、`is-intro=false`、`tier=safe`。
+- 仍待 Win7 SP1 虚拟机 + WebView2 109 实机复测（见 §7）。
 
 ---
 
@@ -189,7 +205,7 @@ node tools/probe-graphics.js
 
 ## 7. 下一步
 
-1. 新建 `legacy/NovaGameSpace.Legacy.csproj`（按 §4.2），先让它在 Win10 跑通。
+1. ~~新建 `legacy/NovaGameSpace.Legacy.csproj`，先让它在 Win10 跑通。~~ **已完成**。
 2. Win7 SP1 虚拟机安装 .NET 4.8 + WebView2 109，跑 §4.3 验收。
 3. 把 `bump-version.js` 接入发布脚本，同时产出
    `NOVA-<version>-modern.zip` 与 `NOVA-<version>-legacy.zip`。

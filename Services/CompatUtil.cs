@@ -1,19 +1,18 @@
 using System.IO;
 using System.IO.Compression;
 
-#if NETFRAMEWORK
-namespace System.Runtime.CompilerServices
-{
-    // C# records / init setters need this marker on .NET Framework.
-    internal static class IsExternalInit { }
-}
-#endif
-
 namespace NovaGameSpace.Services;
 
 /// <summary>Small helpers shared by the modern and the .NET Framework hosts.</summary>
 public static class CompatUtil
 {
+    public static T Clamp<T>(T value, T min, T max) where T : IComparable<T>
+    {
+        if (value.CompareTo(min) < 0) return min;
+        if (value.CompareTo(max) > 0) return max;
+        return value;
+    }
+
     public static string RelativePath(string root, string path)
     {
         var rootFull = Path.GetFullPath(root)
@@ -45,3 +44,13 @@ public static class CompatUtil
         }
     }
 }
+
+
+#if NETFRAMEWORK
+public static class StringCompatExtensions
+{
+    /// <summary>.NET Framework lacks string.Contains(string, StringComparison).</summary>
+    public static bool Contains(this string source, string value, StringComparison comparison) =>
+        source != null && source.IndexOf(value, comparison) >= 0;
+}
+#endif
