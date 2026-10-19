@@ -109,6 +109,18 @@
 - `version.json` + `tools/bump-version.js`：一次更新 csproj 版本、`index.html` 的
   `?v=` 与 `version.json`；boot 版本读程序集版本，不再手写。
 
+### 测试条目与发布流水线
+
+- 系统目录里的 manual 条目（notepad/calc/powershell）由 `StoreService.Normalize`
+  自动标记 `DeveloperOnly`；boot/统计默认过滤。开发者用 `NOVA_DEV=1` 或
+  **Ctrl+Shift+D** 查看；条目仍保留在 `library.json` 与 `.nova-pack`。
+- 发布：`bash tools/pipeline.sh`（审计 + Legacy 包），`--modern` 额外产出
+  self-contained 大包，`--skip-audit` 快速打包。产物在 `dist/`，
+  `release-manifest.json` 含大小与 SHA-256。
+- 默认包是 **Legacy net48（zip 约 3.1 MB / 解压 6.9 MB）**，依赖
+  .NET Framework 4.8 + WebView2；Win10/11 通常已内置，Win7 用 109。
+  `launch.cmd` 会检查依赖。详见 `docs/RELEASE.md`。
+
 ### 注意
 
 - 数据包**不包含游戏本体与主题**；主题在用户目录 `themes/`，可单独复制。

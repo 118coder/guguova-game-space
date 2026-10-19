@@ -94,6 +94,8 @@
     stats: null,
     storage: null,
     system: null,
+    developerMode: false,
+    developerModeEnv: false,
     index: 0,
     overlay: null,
     libFilter: 'all',
@@ -364,6 +366,7 @@
     settingsTierTag: $('#settingsTierTag'),
     settingsSystemStats: $('#settingsSystemStats'),
     settingsSystemNote: $('#settingsSystemNote'),
+    settingsDevNote: $('#settingsDevNote'),
     settingsStorageStats: $('#settingsStorageStats'),
     settingsPlayStats: $('#settingsPlayStats'),
     settingsSessions: $('#settingsSessions'),
@@ -2283,6 +2286,14 @@
       ].join('');
     }
     if (els.settingsSystemNote) els.settingsSystemNote.textContent = system.notes || '检测结果会在启动时应用到界面；切换档位可立即预览。';
+    if (els.settingsDevNote) {
+      els.settingsDevNote.hidden = !state.developerMode;
+      els.settingsDevNote.textContent = state.developerMode
+        ? (state.developerModeEnv
+          ? '开发者模式已由 NOVA_DEV=1 强制开启 · 测试条目可见'
+          : '开发者模式已开启 · 测试条目可见（Ctrl+Shift+D 关闭并重新载入）')
+        : '';
+    }
     setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
     setPrefSwitch(els.settingsAutoBackupRow, els.settingsAutoBackupSwitch, state.settings.autoBackup !== false);
 
@@ -4483,6 +4494,22 @@
     };
     dragZone();
 
+    // Hidden developer switch: test entries stay in the library file but are
+    // filtered out of the normal UI. Ctrl+Shift+D shows them again.
+    document.addEventListener('keydown', (event) => {
+      if (!event.ctrlKey || !event.shiftKey || String(event.key).toLowerCase() !== 'd') return;
+      event.preventDefault();
+      const next = !state.developerMode;
+      call('saveSettings', { developerMode: next }).then(() => {
+        if (state.developerModeEnv && !next) {
+          toast('NOVA_DEV=1 已强制开启开发者模式', 'spark');
+        } else {
+          toast(next ? '开发者模式已开启 · 正在重新载入' : '开发者模式已关闭 · 正在重新载入', 'check');
+        }
+        setTimeout(() => location.reload(), 650);
+      });
+    }, true);
+
     els.minBtn.addEventListener('click', () => call('minimizeWindow'));
     els.maxBtn.addEventListener('click', async () => {
       await call('toggleMaximizeWindow');
@@ -4825,8 +4852,11 @@
       closeToTray: boot.settings?.closeToTray === true,
       autoBackup: boot.settings?.autoBackup !== false,
       librarySort: boot.settings?.librarySort || 'recent',
-      compatibilityTier: boot.settings?.compatibilityTier || 'auto'
+      compatibilityTier: boot.settings?.compatibilityTier || 'auto',
+      developerMode: boot.settings?.developerMode === true
     };
+    state.developerMode = boot.developerMode === true;
+    state.developerModeEnv = boot.developerModeEnv === true;
     state.system = boot.system || null;
     applySystemTier(state.system);
     state.userName = boot.userName || '';
