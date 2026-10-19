@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240">
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/>
+      <stop offset=".16" stop-color="#000" stop-opacity=".95"/>
+      <stop offset=".5" stop-color="#000" stop-opacity=".6"/>
+      <stop offset=".78" stop-color="#000" stop-opacity=".18"/>
+      <stop offset=".95" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="m"><rect width="900" height="240" fill="url(#fade)"/></mask>
+  </defs>
+  <text x="0" y="188" font-family="Georgia, 'Times New Roman', serif" font-size="152" letter-spacing="6" textLength="870" lengthAdjust="spacingAndGlyphs" fill="#101010" mask="url(#m)">BROADCAST</text>
+</svg>

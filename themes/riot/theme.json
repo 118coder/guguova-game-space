@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "riot",
+  "name": "少女乐队的呐喊 · RIOT",
+  "author": "NOVA",
+  "version": "1.5.2",
+  "description": "纸面唱片封套：黑色黑胶 + 红色刷圈插画、硬偏移标题与墨点。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": false,
+  "intro": "vinyl",
+  "tokens": {
+    "--accent": "#e2001a",
+    "--accent-2": "#111111",
+    "--glow": "rgba(226,0,26,.22)"
+  },
+  "features": {
+    "texture": "paper",
+    "type": "ink",
+    "panel": "none",
+    "hero": "plate",
+    "header": "rule",
+    "cards": "rule",
+    "plates": "off"
+  }
+}

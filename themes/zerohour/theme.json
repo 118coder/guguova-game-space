@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "zerohour",
+  "name": "零点街区 · ZERO HOUR",
+  "author": "NOVA",
+  "version": "1.0.7",
+  "description": "黑底白字的街区命令台：荧光青柠选中、警示黄、品红稀有度、斜纹面板与 CRT 开场。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": true,
+  "intro": "zerohour",
+  "tokens": {
+    "--accent": "#c9f73a",
+    "--accent-2": "#ffd60a",
+    "--glow": "rgba(201, 247, 58, .18)"
+  },
+  "features": {
+    "texture": "scanline",
+    "panel": "bracket"
+  }
+}

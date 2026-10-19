@@ -631,6 +631,15 @@ body {
   font-style: var(--logo-style, normal);
   letter-spacing: var(--logo-track, 0);
   line-height: var(--logo-line, .9);
+  /* 铁律 3（任何文字都不许被截断）——这里**不加**任何墨迹 padding。
+     实测各主题 logo 字体的 ascent+descent = 1.20–1.57em，而 --logo-line 只有
+     .86–.94，所以墨迹一定比行盒高（上下各溢出 (墨迹em − 行高em)/2，最大 ~0.34em）。
+     这个差值本身不是问题：只要宿主**不裁纵向**就看得见。真正的截断来自
+     `overflow:hidden` 的宿主（`.appearance-logo`），已在 `theme.css` 里改成
+     只裁横向（`overflow-x: clip; overflow-y: visible`）。
+     上一轮曾用 `padding-block:.1em` 顶出余量，但 0.1em 只有需求量的一半
+     （nova 在 1439×1124 仍被切 4px），而且要改就得给所有 logo 加 0.34em 高度，
+     白白撑开版式。留这段注释是为了别把它加回来。 */
   text-transform: var(--logo-case, none);
   color: var(--logo-color, var(--text-ink));
   background: var(--logo-bg, none);

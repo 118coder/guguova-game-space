@@ -1,0 +1,232 @@
+/* ============================================================
+   NOVA · 主题统一视觉框架（THEME KIT）
+   ------------------------------------------------------------
+   目的：把「每个主题各写一套版式」收敛成「一套版式 + 每个主题只提供
+   调色板、字体、插画」。主题在 theme.json 的 features 里逐项开关模块，
+   不声明就不生效，因此内置 nova / endfield 完全不受影响。
+
+   模块（features 键 → data-fx-*）
+     hero     plate | none   文字列 + 右侧插画位；图形永不压字（铁律 1）
+     header   rule  | none   顶栏实色 + 1px 分界线 + 单行导航
+     controls hard  | none   方角按钮 + 硬偏移阴影
+     cards    rule  | none   1px 描边卡片，去渐变、去玻璃
+     plates   none  | off    清掉旧签名层加在标题/说明上的底板与硬影
+
+   主题提供的变量（在 theme.css 的 :root 或 html[data-theme] 里）
+     --kit-paper        主视觉板 / 顶栏底色
+     --kit-panel        卡片、弹层底色
+     --kit-ink          主文字与描边
+     --kit-ink-2        次级文字
+     --kit-line         1px 分隔线
+     --kit-accent       主操作 / 当前项
+     --kit-accent-2     高亮条
+     --kit-on-accent    主操作上的文字
+     --kit-r            圆角（0 / 2px / 6px；不要超过 10px）
+     --kit-art          插画列宽（0 表示收起）
+     --kit-art-url      插画（url("assets/xxx.svg?v=1")）
+     --kit-art-rule     插画与文字列之间的分隔线
+     --kit-shadow       硬偏移阴影颜色（不写则用 --kit-ink）
+   ============================================================ */
+
+/* ---------- 1. hero plate：文字列 + 插画位 ---------- */
+
+html[data-fx-hero="plate"] .hero-inner {
+  /* 只保留插画列的让位；上下左的内边距一律归零，
+     否则 ::after 的 -24/-22 会被主题自带的 padding 推歪，插画和面板错位。 */
+  padding: 0 calc(var(--kit-art, 0px) + 26px) 0 0 !important;
+}
+
+html[data-fx-hero="plate"] .hero-inner::before {
+  /* 面板必须完整包住内容：旧主题常给 ::before 写死 top/height，
+     换了版式后就会「板比内容短」，底部卡片被裁掉。 */
+  top: -24px !important;
+  right: -28px !important;
+  bottom: -22px !important;
+  left: -28px !important;
+  background-color: var(--kit-paper, #f7f5ef) !important;
+  border: 1px solid var(--kit-line, rgba(20, 24, 28, .28)) !important;
+  border-radius: var(--kit-r, 4px) !important;
+}
+
+html[data-fx-hero="plate"] .hero-inner::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  top: -24px !important;
+  right: -28px !important;
+  bottom: -22px !important;
+  left: auto !important;
+  width: var(--kit-art, 0px) !important;
+  height: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+  background: var(--kit-art-url, none) center / cover no-repeat !important;
+  border-left: var(--kit-art-rule, 2px solid var(--kit-ink, #14181c)) !important;
+  border-radius: 0 var(--kit-r, 4px) var(--kit-r, 4px) 0 !important;
+  pointer-events: none !important;
+}
+
+html[data-fx-hero="plate"] .hero-inner > * { position: relative; z-index: 2; }
+
+/* 文字列的有效宽度由 padding 保证；这里只兜底，防止主题自己写死宽度 */
+html[data-fx-hero="plate"] .hero-inner :is(.tagline, .meta-row) { max-width: 100%; }
+
+/* ---------- 2. header rule：单行导航 + 1px 分界 ---------- */
+
+html[data-fx-header="rule"] .topbar {
+  background: var(--kit-header-bg, var(--kit-paper, #f7f5ef)) !important;
+  border-bottom: 1px solid var(--kit-line, rgba(20, 24, 28, .28)) !important;
+}
+
+html[data-fx-header="rule"] .nav-btn {
+  color: var(--kit-ink-2) !important;
+  padding: 7px 14px !important;
+  border-radius: var(--kit-r, 2px) !important;
+  font-size: 12px !important;
+  letter-spacing: .08em !important;
+}
+
+html[data-fx-header="rule"] .nav-btn::before,
+html[data-fx-header="rule"] .nav-btn::after { content: none !important; }
+
+html[data-fx-header="rule"] .nav-btn.is-active {
+  background: var(--kit-ink, #14181c) !important;
+  color: var(--kit-paper, #f7f5ef) !important;
+  border-color: var(--kit-ink, #14181c) !important;
+}
+
+html[data-fx-header="rule"] .nav-glide {
+  border-radius: var(--kit-r, 2px) !important;
+  background: var(--kit-ink, #14181c) !important;
+  box-shadow: none !important;
+}
+
+html[data-fx-header="rule"] .clock {
+  border: 1px solid var(--kit-line, rgba(20, 24, 28, .28)) !important;
+  border-radius: var(--kit-r, 2px) !important;
+  background: var(--kit-panel, transparent) !important;
+}
+
+/* ---------- 3. controls hard：方角 + 硬偏移 ---------- */
+
+html[data-fx-controls="hard"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  --cta-a: var(--kit-accent) !important;
+  --cta-b: var(--kit-accent) !important;
+  --cta-bg: var(--kit-accent) !important;
+  --cta-fg: var(--kit-on-accent) !important;
+  --cta-border: var(--kit-ink) !important;
+  --cta-radius: var(--kit-r, 2px) !important;
+  background: var(--kit-accent) !important;
+  background-image: none !important;
+  color: var(--kit-on-accent) !important;
+  border: 1px solid var(--kit-ink) !important;
+  border-radius: var(--kit-r, 2px) !important;
+  box-shadow: 4px 4px 0 0 var(--kit-shadow, var(--kit-ink)) !important;
+  text-shadow: none !important;
+}
+
+html[data-fx-controls="hard"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system):hover {
+  background: var(--kit-accent-2, var(--kit-accent)) !important;
+  background-image: none !important;
+  color: var(--kit-on-accent) !important;
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0 0 var(--kit-shadow, var(--kit-ink)) !important;
+}
+
+html[data-fx-controls="hard"] .btn.ghost {
+  background: var(--kit-panel, transparent) !important;
+  color: var(--kit-ink) !important;
+  border: 1px solid var(--kit-line, var(--kit-ink)) !important;
+  border-radius: var(--kit-r, 2px) !important;
+  box-shadow: none !important;
+}
+
+html[data-fx-controls="hard"] .btn.ghost:hover {
+  background: var(--kit-accent-2, var(--kit-accent)) !important;
+  color: var(--kit-ink) !important;
+  border-color: var(--kit-ink) !important;
+}
+
+/* ---------- 4. cards rule：1px 描边，去渐变 ---------- */
+
+html[data-fx-cards="rule"] .tile-art,
+html[data-fx-cards="rule"] .lib-art {
+  border: 1px solid var(--kit-line, rgba(20, 24, 28, .28)) !important;
+  border-radius: var(--kit-r, 2px) !important;
+}
+
+html[data-fx-cards="rule"] .tile-art::after,
+html[data-fx-cards="rule"] .lib-art::after { background: none !important; }
+
+html[data-fx-cards="rule"] .activity-strip {
+  background: var(--kit-panel, #fff) !important;
+  border: 1px solid var(--kit-line, rgba(20, 24, 28, .28)) !important;
+  border-radius: var(--kit-r, 2px) !important;
+  box-shadow: none !important;
+}
+
+html[data-fx-cards="rule"] .activity-strip:hover {
+  box-shadow: 5px 5px 0 0 var(--kit-accent-2, var(--kit-accent)) !important;
+}
+
+html[data-fx-cards="rule"] :is(.theme-card, .style-choice) {
+  background: var(--kit-panel, #fff) !important;
+  border: 1px solid var(--kit-line, rgba(20, 24, 28, .28)) !important;
+  border-radius: var(--kit-r, 2px) !important;
+  box-shadow: none !important;
+}
+
+/* ---------- 5. plates off：撤掉旧签名层的重影 ---------- */
+
+html[data-fx-plates="off"] .hero-inner :is(.hero-logo, .tagline, .meta-row, .kicker) {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html[data-fx-plates="off"] .hero-inner .hero-logo { padding: 0 !important; }
+html[data-fx-plates="off"] .hero-inner .meta-row { padding: 0 !important; }
+html[data-fx-plates="off"] .hero-inner .kicker { padding: 0 !important; }
+
+html[data-fx-plates="off"] .hero-inner .hero-logo::before,
+html[data-fx-plates="off"] .hero-inner .hero-logo::after { content: none !important; display: none !important; }
+
+/* 旧签名层常把「档案号小条 / 章 / 纸片」挂在进度、meta、眉标、按钮行上。
+   这些伪元素在旧版式里定位，换到统一版式后必压字，整组撤掉。 */
+html[data-fx-plates="off"] .hero-inner :is(.progress-block, .meta-row, .kicker, .cta-row, .activity-strip)::before,
+html[data-fx-plates="off"] .hero-inner :is(.progress-block, .meta-row, .kicker, .cta-row, .activity-strip)::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ---------- 6. 窄窗自适应：插画列收起，文字恢复整幅 ---------- */
+
+@media (max-width: 1024px) {
+  html[data-fx-hero="plate"] .hero-inner { padding-right: 0 !important; }
+  html[data-fx-hero="plate"] .hero-inner::after { display: none !important; }
+}
+
+/* ---------- 7. 长游戏名：换行而不是省略号（铁律 3） ---------- */
+
+html[data-fx-cards="rule"] .tile-label { align-items: flex-start !important; }
+
+html[data-fx-cards="rule"] .tile-name {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+html[data-fx-cards="rule"] .tile-sub { padding-top: 1px; }
+html[data-fx-cards="rule"] .tile-label { color: var(--kit-ink-2) !important; }
+html[data-fx-cards="rule"] .tile.is-active .tile-label { color: var(--kit-ink) !important; }
+
+/* ---------- 8. 封面必须保留颜色（铁律：界面不能死气沉沉） ---------- */
+
+html[data-fx-cards="rule"] :is(.lib-art, .lib-art img, .tile-art, .tile-art img,
+  .detail-art, .detail-art-img, .appearance-image, .theme-preview) {
+  filter: none !important;
+}
+
+/* 背景封面只做极轻微的明度整理，不再整体去色 */
+html[data-fx-cards="rule"] .scene > img { filter: saturate(1.04) contrast(1.02) !important; }

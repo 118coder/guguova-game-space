@@ -1,0 +1,642 @@
+/* ============================================================
+   NOVA · THEME FEATURE FRAMEWORK  (src/theme-fx.css)
+   Version 2 — the shared visual skeleton every theme builds on.
+
+   A theme declares what it wants in theme.json; the theme engine
+   turns each entry into a root data attribute. Nothing here runs
+   unless a theme asks for it, so an empty "features" block has
+   zero side effects.
+
+   ── Channels ────────────────────────────────────────────────
+     "texture":  <recipe>   surface grain        → .fx-surface-a
+     "texture2": <recipe>   second imprint       → .fx-surface-b
+     "grade":    <recipe>   colour grade / vignette → .fx-surface-c
+     "layer":    <recipe>   display-type blending options (fx-layers.css)
+     "panel":    <shape>    hero panel silhouette
+     "type":     <recipe>   legacy display-type stack
+
+   ── Texture recipes are exported as variables ───────────────
+   Each recipe publishes
+       --fx-tex         background-image list
+       --fx-tex-size    matching background-size
+       --fx-tex-repeat  matching background-repeat
+       --fx-tex-opacity intended opacity
+   so a theme can reuse the same algorithm on any element it
+   likes, not just the global surface:
+       .hero-inner::before { background-image: var(--fx-tex); }
+   That is the point of the framework: one recipe, many hosts.
+
+   ── Designer variables (all optional) ───────────────────────
+     --fx-paper --fx-ink --fx-accent --fx-accent-2 --fx-line
+     --fx-foil-1..5
+     --fx-type-x / --fx-type-y / --fx-type-blur
+     --fx-grade-tint / --fx-grade-strength
+   ============================================================ */
+
+:root {
+  --fx-paper: #f4f4f2;
+  --fx-ink: #111111;
+  --fx-accent: #e2001a;
+  --fx-accent-2: #111111;
+  --fx-line: rgba(0, 0, 0, .22);
+  --fx-panel: var(--fx-paper);
+  --fx-foil-1: #6b4518;
+  --fx-foil-2: #d8b266;
+  --fx-foil-3: #fff4cf;
+  --fx-foil-4: #a8782e;
+  --fx-foil-5: #f3d79a;
+  --fx-type-x: 4px;
+  --fx-type-y: 4px;
+  --fx-type-blur: 0px;
+  --fx-grade-tint: transparent;
+  --fx-grade-strength: .5;
+  --fx-tile: 1;         /* recipe scale: 1 = 1440px design width */
+}
+
+/* Record bridge defaults (src/fx-record.js). A theme may print any of these
+   straight into `content:` without guarding for "nothing selected yet". */
+:root {
+  --nova-no: "";
+  --nova-count: "";
+  --nova-record: "";
+  --nova-index: 0;
+  --nova-hours: "0.0";
+  --nova-minutes: 0;
+  --nova-launches: 0;
+  --nova-days: "";
+  --nova-state: "none";
+}
+
+/* ------------------------------------------------------------
+   1 · SURFACES
+   Three fixed overlay plates. The engine injects them as the
+   first children of .app, so they paint above the shell
+   background and below every piece of chrome.
+   ------------------------------------------------------------ */
+
+.fx-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+
+html[data-fx-texture] .fx-surface-a,
+html[data-fx-texture2] .fx-surface-b,
+html[data-fx-grade] .fx-surface-c {
+  display: block;
+}
+
+.fx-surface-a {
+  background-image: var(--fx-tex);
+  background-size: var(--fx-tex-size, auto);
+  background-repeat: var(--fx-tex-repeat, repeat);
+  opacity: var(--fx-tex-opacity, .7);
+}
+
+.fx-surface-b {
+  background-image: var(--fx-tex2);
+  background-size: var(--fx-tex2-size, auto);
+  background-repeat: var(--fx-tex2-repeat, repeat);
+  opacity: var(--fx-tex2-opacity, .5);
+  mix-blend-mode: var(--fx-tex2-blend, multiply);
+}
+
+.fx-surface-c {
+  background-image: var(--fx-grade-image, none);
+  opacity: var(--fx-grade-strength, .5);
+  mix-blend-mode: var(--fx-grade-blend, multiply);
+}
+
+/* ------------------------------------------------------------
+   2 · TEXTURE RECIPES
+   Every recipe is a pair of custom properties. They are written
+   as "html[data-fx-texture=…]" so a theme can also assign the
+   root attribute directly in CSS to reuse a recipe.
+   ------------------------------------------------------------ */
+
+/* --- paper: fine tooth, slight diagonal weave --- */
+html[data-fx-texture="paper"], html[data-fx-texlib="paper"] {
+  --fx-tex:
+    radial-gradient(circle, rgba(0, 0, 0, .05) 1px, transparent 1.5px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .028) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .018) 0 1px, transparent 1px 9px);
+  --fx-tex-size: 7px 7px, auto, auto;
+  --fx-tex-repeat: repeat, repeat, repeat;
+  --fx-tex-opacity: .66;
+}
+
+/* --- vellum: smooth translucent skin, faint fibre --- */
+html[data-fx-texture="vellum"], html[data-fx-texlib="vellum"] {
+  --fx-tex:
+    repeating-linear-gradient(88deg, rgba(120, 96, 64, .05) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(2deg, rgba(120, 96, 64, .035) 0 1px, transparent 1px 7px),
+    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, .5) 0%, transparent 60%);
+  --fx-tex-size: auto, auto, auto;
+  --fx-tex-opacity: .9;
+}
+
+/* --- parchment: aged skin, mineral flecks and stains --- */
+html[data-fx-texture="parchment"], html[data-fx-texlib="parchment"] {
+  --fx-tex:
+    radial-gradient(circle at 12% 18%, rgba(90, 58, 37, .13) 0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 68% 62%, rgba(176, 138, 62, .16) 0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 34% 82%, rgba(122, 31, 43, .08) 0 1px, transparent 1.8px),
+    repeating-linear-gradient(0deg, rgba(42, 27, 18, .035) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgba(42, 27, 18, .022) 0 1px, transparent 1px 11px);
+  --fx-tex-size: 43px 43px, 61px 61px, 37px 37px, auto, auto;
+  --fx-tex-opacity: .85;
+}
+
+/* --- linen: warp and weft of a woven canvas --- */
+html[data-fx-texture="linen"], html[data-fx-texlib="linen"] {
+  --fx-tex:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(60, 48, 34, .12) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(60, 48, 34, .06) 0 1px, transparent 1px 9px);
+  --fx-tex-size: 3px 3px, 3px 3px, 9px 9px;
+  --fx-tex-opacity: .5;
+}
+
+/* --- kraft: recycled board, coarse fibres and chips --- */
+html[data-fx-texture="kraft"], html[data-fx-texlib="kraft"] {
+  --fx-tex:
+    repeating-linear-gradient(112deg, rgba(92, 66, 38, .09) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(24deg, rgba(92, 66, 38, .06) 0 1px, transparent 1px 7px),
+    radial-gradient(circle at 40% 30%, rgba(120, 88, 50, .16) 0 2px, transparent 2.6px),
+    radial-gradient(circle at 76% 70%, rgba(120, 88, 50, .12) 0 1.6px, transparent 2.2px);
+  --fx-tex-size: auto, auto, 53px 47px, 71px 61px;
+  --fx-tex-opacity: .8;
+}
+
+/* --- concrete: cast stone, mottled pores --- */
+html[data-fx-texture="concrete"], html[data-fx-texlib="concrete"] {
+  --fx-tex:
+    radial-gradient(circle at 22% 34%, rgba(0, 0, 0, .09) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 68% 22%, rgba(0, 0, 0, .07) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 44% 78%, rgba(255, 255, 255, .5) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 84% 62%, rgba(0, 0, 0, .06) 0 1.4px, transparent 2px);
+  --fx-tex-size: 37px 41px, 53px 47px, 61px 59px, 43px 67px;
+  --fx-tex-opacity: .7;
+}
+
+/* --- blueprint: drafting grid with a heavier every-5 rule --- */
+html[data-fx-texture="blueprint"], html[data-fx-texlib="blueprint"] {
+  --fx-tex:
+    repeating-linear-gradient(0deg, rgba(190, 220, 255, .3) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, rgba(190, 220, 255, .3) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(0deg, rgba(190, 220, 255, .5) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, rgba(190, 220, 255, .5) 0 1px, transparent 1px 40px);
+  --fx-tex-size: auto, auto, auto, auto;
+  --fx-tex-opacity: .55;
+}
+
+/* --- graph: engineering dot paper --- */
+html[data-fx-texture="graph"], html[data-fx-texlib="graph"] {
+  --fx-tex:
+    radial-gradient(circle, rgba(0, 0, 0, .22) 0 .8px, transparent 1.2px),
+    radial-gradient(circle, rgba(0, 0, 0, .1) 0 .6px, transparent 1px);
+  --fx-tex-size: 16px 16px, 4px 4px;
+  --fx-tex-opacity: .7;
+}
+
+/* --- carbon: twill weave --- */
+html[data-fx-texture="carbon"], html[data-fx-texlib="carbon"] {
+  --fx-tex:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .07) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .32) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, .22) 0 1px, transparent 1px 10px);
+  --fx-tex-size: 5px 5px, 5px 5px, 10px 10px;
+  --fx-tex-opacity: .5;
+}
+
+/* --- dune: wind-carved horizontal bands --- */
+html[data-fx-texture="dune"], html[data-fx-texlib="dune"] {
+  --fx-tex:
+    repeating-radial-gradient(120% 60% at 20% 10%, transparent 0 22px,
+      rgba(80, 58, 34, .07) 23px 24px, transparent 25px 46px),
+    repeating-radial-gradient(90% 40% at 80% 90%, transparent 0 17px,
+      rgba(80, 58, 34, .05) 18px 19px, transparent 20px 38px),
+    repeating-linear-gradient(0deg, rgba(80, 58, 34, .03) 0 1px, transparent 1px 4px);
+  --fx-tex-size: auto, auto, auto;
+  --fx-tex-opacity: .85;
+}
+
+/* --- streaks: brushed vertical fibre --- */
+html[data-fx-texture="streaks"], html[data-fx-texlib="streaks"] {
+  --fx-tex:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .07) 0 1px, transparent 1px 2px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .07) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .04) 0 1px, transparent 1px 17px);
+  --fx-tex-size: auto, auto, auto;
+  --fx-tex-opacity: .45;
+}
+
+/* --- stipple: engraving dots in two densities --- */
+html[data-fx-texture="stipple"], html[data-fx-texlib="stipple"] {
+  --fx-tex:
+    radial-gradient(circle, rgba(0, 0, 0, .3) 0 .7px, transparent 1.1px),
+    radial-gradient(circle, rgba(0, 0, 0, .18) 0 .9px, transparent 1.3px),
+    radial-gradient(circle, rgba(0, 0, 0, .1) 0 1.1px, transparent 1.6px);
+  --fx-tex-size: 6px 6px, 11px 11px, 17px 17px;
+  --fx-tex-opacity: .6;
+}
+
+/* --- cel: graduated halftone screen --- */
+html[data-fx-texture="cel"], html[data-fx-texlib="cel"] {
+  --fx-tex:
+    radial-gradient(circle, rgba(16, 16, 20, .3) 1.3px, transparent 2px),
+    radial-gradient(circle, rgba(16, 16, 20, .18) 1px, transparent 1.6px);
+  --fx-tex-size: 8px 8px, 5px 5px;
+  --fx-tex-opacity: .55;
+}
+
+/* --- halftone: classic print screen --- */
+html[data-fx-texture="halftone"], html[data-fx-texlib="halftone"] {
+  --fx-tex: radial-gradient(circle, rgba(16, 16, 20, .2) 1.2px, transparent 1.9px);
+  --fx-tex-size: 5px 5px;
+  --fx-tex-opacity: .5;
+}
+
+/* --- hex: honeycomb lattice --- */
+html[data-fx-texture="hex"], html[data-fx-texlib="hex"] {
+  --fx-tex:
+    repeating-linear-gradient(60deg, rgba(0, 0, 0, .07) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(-60deg, rgba(0, 0, 0, .07) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .05) 0 1px, transparent 1px 31px);
+  --fx-tex-size: auto, auto, auto;
+  --fx-tex-opacity: .55;
+}
+
+/* --- moire: two screens fighting, print interference --- */
+html[data-fx-texture="moire"], html[data-fx-texlib="moire"] {
+  --fx-tex:
+    repeating-linear-gradient(11deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-7deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, .05) 0 1px, transparent 1px 2px);
+  --fx-tex-size: auto, auto, auto;
+  --fx-tex-opacity: .35;
+}
+
+/* --- riso: two ink screens out of register --- */
+html[data-fx-texture="riso"], html[data-fx-texlib="riso"] {
+  --fx-tex:
+    radial-gradient(circle, color-mix(in srgb, var(--fx-accent) 26%, transparent) 1.2px, transparent 1.9px),
+    radial-gradient(circle, color-mix(in srgb, var(--fx-accent-2) 28%, transparent) 1.2px, transparent 1.9px);
+  --fx-tex-size: 6px 6px, 11px 11px;
+  --fx-tex-repeat: repeat, repeat;
+  --fx-tex-opacity: .62;
+}
+
+/* --- film: gate weave plus vignette ring --- */
+html[data-fx-texture="film"], html[data-fx-texlib="film"] {
+  --fx-tex:
+    radial-gradient(circle at 50% 50%, transparent 46%, rgba(20, 20, 20, .26) 100%),
+    radial-gradient(circle, rgba(20, 20, 20, .16) 1px, transparent 1.6px);
+  --fx-tex-size: auto, 4px 4px;
+  --fx-tex-opacity: .5;
+}
+html[data-fx-texture="film"] .grain { opacity: .1; mix-blend-mode: multiply; }
+
+/* --- map: contour rings on a survey grid --- */
+html[data-fx-texture="map"], html[data-fx-texlib="map"] {
+  --fx-tex:
+    repeating-radial-gradient(circle at 78% 24%, transparent 0 47px,
+      color-mix(in srgb, var(--fx-accent-2) 16%, transparent) 48px 49px, transparent 50px 78px),
+    repeating-radial-gradient(circle at 78% 24%, transparent 0 96px,
+      color-mix(in srgb, var(--fx-accent-2) 10%, transparent) 97px 98px, transparent 99px 128px),
+    linear-gradient(color-mix(in srgb, var(--fx-accent-2) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--fx-accent-2) 9%, transparent) 1px, transparent 1px);
+  --fx-tex-size: auto, auto, 64px 64px, 64px 64px;
+  --fx-tex-opacity: .85;
+}
+
+/* --- contour: layered topographic section lines --- */
+html[data-fx-texture="contour"], html[data-fx-texlib="contour"] {
+  --fx-tex:
+    repeating-radial-gradient(70% 45% at 30% 20%, transparent 0 26px,
+      color-mix(in srgb, var(--fx-ink) 12%, transparent) 27px 28px, transparent 29px 55px),
+    repeating-radial-gradient(50% 70% at 74% 66%, transparent 0 19px,
+      color-mix(in srgb, var(--fx-ink) 9%, transparent) 20px 21px, transparent 22px 41px);
+  --fx-tex-size: auto, auto;
+  --fx-tex-opacity: .8;
+}
+
+/* --- scanline: CRT raster --- */
+html[data-fx-texture="scanline"], html[data-fx-texlib="scanline"] {
+  --fx-tex:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 5px);
+  --fx-tex-size: auto, auto;
+  --fx-tex-opacity: .9;
+}
+
+/* --- starfield: scattered chart stars --- */
+html[data-fx-texture="starfield"], html[data-fx-texlib="starfield"] {
+  --fx-tex:
+    radial-gradient(circle at 18% 24%, rgba(226, 199, 142, .7) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 34% 66%, rgba(226, 199, 142, .55) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 62% 18%, rgba(226, 199, 142, .5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 74% 52%, rgba(226, 199, 142, .62) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 52% 78%, rgba(226, 199, 142, .45) 0 1px, transparent 1.6px);
+  --fx-tex-size: 210px 190px, 210px 190px, 210px 190px, 210px 190px, 210px 190px;
+  --fx-tex-opacity: .8;
+}
+
+/* --- chalk: dusty slate --- */
+html[data-fx-texture="chalk"], html[data-fx-texlib="chalk"] {
+  --fx-tex:
+    radial-gradient(circle, rgba(255, 255, 255, .22) 0 .9px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, .12) 0 1.6px, transparent 2.4px),
+    repeating-linear-gradient(64deg, rgba(255, 255, 255, .04) 0 1px, transparent 1px 9px);
+  --fx-tex-size: 7px 7px, 19px 19px, auto;
+  --fx-tex-opacity: .45;
+}
+
+/* --- noise: fine monochrome grain, three offsets --- */
+html[data-fx-texture="noise"], html[data-fx-texlib="noise"] {
+  --fx-tex:
+    radial-gradient(circle, rgba(0, 0, 0, .16) .6px, transparent 1px),
+    radial-gradient(circle, rgba(0, 0, 0, .1) .5px, transparent .9px),
+    radial-gradient(circle, rgba(255, 255, 255, .18) .5px, transparent .9px);
+  --fx-tex-size: 3px 3px, 5px 5px, 7px 7px;
+  --fx-tex-opacity: .5;
+}
+
+/* --- photo: print haze for photographic backdrops --- */
+html[data-fx-texture="photo"], html[data-fx-texlib="photo"] {
+  --fx-tex:
+    radial-gradient(60% 50% at 14% 10%, rgba(255, 255, 255, .28) 0%, transparent 70%),
+    radial-gradient(48% 42% at 88% 18%, color-mix(in srgb, var(--fx-accent-2) 16%, transparent) 0%, transparent 70%),
+    radial-gradient(circle, rgba(23, 52, 90, .07) 1px, transparent 1.5px);
+  --fx-tex-size: auto, auto, 5px 5px;
+  --fx-tex-opacity: .7;
+}
+
+/* ------------------------------------------------------------
+   3 · GRADE RECIPES  (colour wash + vignette on .fx-surface-c)
+   ------------------------------------------------------------ */
+
+html[data-fx-grade="vignette"] {
+  --fx-grade-image: radial-gradient(120% 90% at 50% 42%, transparent 52%, rgba(0, 0, 0, .5) 100%);
+  --fx-grade-blend: multiply;
+  --fx-grade-strength: .8;
+}
+
+html[data-fx-grade="warm"] {
+  --fx-grade-image:
+    linear-gradient(180deg, rgba(255, 214, 150, .16), transparent 46%, rgba(70, 40, 16, .22));
+  --fx-grade-blend: soft-light;
+  --fx-grade-strength: .9;
+}
+
+html[data-fx-grade="cool"] {
+  --fx-grade-image: linear-gradient(180deg, rgba(150, 200, 255, .18), transparent 52%, rgba(10, 24, 48, .26));
+  --fx-grade-blend: soft-light;
+  --fx-grade-strength: .9;
+}
+
+html[data-fx-grade="duotone"] {
+  --fx-grade-image: linear-gradient(160deg,
+    color-mix(in srgb, var(--fx-accent) 34%, transparent),
+    transparent 46%,
+    color-mix(in srgb, var(--fx-accent-2) 34%, transparent));
+  --fx-grade-blend: color;
+  --fx-grade-strength: .55;
+}
+
+html[data-fx-grade="ink"] {
+  --fx-grade-image: radial-gradient(90% 70% at 30% 22%,
+    color-mix(in srgb, var(--fx-accent) 22%, transparent), transparent 62%);
+  --fx-grade-blend: multiply;
+  --fx-grade-strength: .6;
+}
+
+html[data-fx-grade="fade"] {
+  --fx-grade-image: linear-gradient(180deg, rgba(196, 188, 172, .3), rgba(58, 54, 48, .3));
+  --fx-grade-blend: overlay;
+  --fx-grade-strength: .5;
+}
+
+/* ------------------------------------------------------------
+   4 · LEGACY TYPE LAYER  (features.type)
+   Superseded by the layer styles in fx-layers.css, kept so
+   existing themes keep working.
+   ------------------------------------------------------------ */
+
+html[data-theme][data-fx-type]:not(:where([data-fx-type="none"])) :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  text-shadow: none;
+  filter: none;
+  -webkit-text-stroke: 0;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+}
+
+html[data-theme][data-fx-type="ink"] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  color: var(--fx-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow:
+    var(--fx-type-x) var(--fx-type-y) 0 var(--fx-accent),
+    0 1px 0 rgba(255, 255, 255, .34),
+    0 -1px 0 rgba(0, 0, 0, .1);
+}
+
+html[data-theme][data-fx-type="misreg"] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  color: var(--fx-accent);
+  -webkit-text-fill-color: currentColor;
+  text-shadow:
+    var(--fx-type-x) var(--fx-type-y) 0 var(--fx-accent-2),
+    calc(var(--fx-type-x) * -.4) calc(var(--fx-type-y) * -.4) 0 rgba(255, 255, 255, .28);
+}
+
+html[data-theme][data-fx-type="letterpress"] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  color: var(--fx-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, .58),
+    0 -1px 0 rgba(0, 0, 0, .24),
+    0 2px 0 rgba(0, 0, 0, .06);
+}
+
+html[data-theme][data-fx-type="emboss"] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  color: var(--fx-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, .5),
+    0 -1px 0 rgba(0, 0, 0, .3),
+    0 2px 3px rgba(0, 0, 0, .14);
+}
+
+html[data-theme][data-fx-type="foil"] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  background-image: linear-gradient(104deg,
+    var(--fx-foil-1) 0%, var(--fx-foil-2) 20%, var(--fx-foil-3) 34%,
+    var(--fx-foil-4) 50%, var(--fx-foil-5) 68%, var(--fx-foil-1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter:
+    drop-shadow(0 2px 0 rgba(0, 0, 0, .55))
+    drop-shadow(0 1px 0 rgba(255, 244, 207, .28));
+}
+
+html[data-theme][data-fx-type="outline"] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 2px var(--fx-accent-2);
+  paint-order: stroke fill;
+  text-shadow: var(--fx-type-x) var(--fx-type-y) 0 var(--fx-accent);
+}
+
+html[data-theme][data-fx-type="papercut"] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  background-image:
+    repeating-linear-gradient(-45deg, rgba(17, 17, 17, .28) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, var(--fx-paper), color-mix(in srgb, var(--fx-paper) 72%, var(--fx-ink)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--fx-ink);
+  paint-order: stroke fill;
+  filter: drop-shadow(3px 3px 0 var(--fx-accent));
+}
+
+html[data-theme][data-fx-type] .choice-logo {
+  text-shadow: calc(var(--fx-type-x) * .5) calc(var(--fx-type-y) * .5) 0 var(--fx-accent);
+}
+
+/* ------------------------------------------------------------
+   5 · PANEL SHAPES  (features.panel)
+   ------------------------------------------------------------ */
+
+html[data-theme][data-fx-panel] .hero-inner::before { pointer-events: none; }
+
+html[data-theme][data-fx-panel="torn"] .hero-inner::before {
+  background-color: var(--fx-panel);
+  border: 2px solid var(--fx-ink);
+  border-radius: 0;
+  box-shadow: 10px 10px 0 var(--fx-accent);
+  clip-path: polygon(
+    0 2%, 9% 0.6%, 21% 2.2%, 34% 0.4%, 48% 1.8%, 62% 0.2%, 76% 1.6%, 89% 0.4%, 100% 2%,
+    99.2% 12%, 100% 24%, 99% 37%, 100% 50%, 99.2% 64%, 100% 78%, 99% 91%, 100% 97%,
+    88% 99.6%, 74% 98.2%, 60% 100%, 46% 98.4%, 32% 99.8%, 18% 98.1%, 7% 100%, 0 97%,
+    0.8% 84%, 0 70%, 1% 56%, 0 42%, 0.8% 28%, 0 14%);
+}
+
+html[data-theme][data-fx-panel="double"] .hero-inner::before {
+  border: 3px double var(--fx-accent-2);
+  border-radius: 0;
+  outline: 1px solid var(--fx-accent);
+  outline-offset: -10px;
+  box-shadow:
+    inset 0 0 0 6px color-mix(in srgb, var(--fx-accent-2) 13%, transparent),
+    inset 0 0 0 7px color-mix(in srgb, var(--fx-accent-2) 34%, transparent);
+}
+
+html[data-theme][data-fx-panel="shard"] .hero-inner::before {
+  border: 2px solid var(--fx-accent);
+  border-radius: 0;
+  box-shadow: 10px 10px 0 var(--fx-accent-2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%);
+}
+
+html[data-theme][data-fx-panel="photo"] .hero-inner::before {
+  background-color: rgba(255, 255, 255, .97);
+  background-image:
+    linear-gradient(135deg, var(--fx-accent) 0 9px, transparent 9px),
+    linear-gradient(225deg, var(--fx-accent) 0 9px, transparent 9px),
+    linear-gradient(45deg, var(--fx-accent) 0 9px, transparent 9px),
+    linear-gradient(315deg, var(--fx-accent) 0 9px, transparent 9px);
+  background-size: 26px 26px;
+  background-position: top left, top right, bottom left, bottom right;
+  background-repeat: no-repeat;
+  border: 1px solid var(--fx-line);
+  border-radius: 4px;
+  box-shadow: 9px 9px 0 var(--fx-accent-2);
+}
+
+html[data-theme][data-fx-panel="hairline"] .hero-inner::before {
+  border: 1px solid var(--fx-ink);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-theme][data-fx-panel="folder"] .hero-inner::before {
+  background-color: var(--fx-panel);
+  border: 1px solid var(--fx-accent-2);
+  border-radius: 0;
+  outline: 1px solid var(--fx-line);
+  outline-offset: -8px;
+  box-shadow: 8px 8px 0 color-mix(in srgb, var(--fx-accent-2) 16%, transparent);
+  clip-path: polygon(0 18px, 86px 18px, 104px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+html[data-theme][data-fx-panel="bracket"] .hero-inner::before {
+  border: 1px solid var(--fx-line);
+  border-radius: 20px;
+  background-image:
+    linear-gradient(90deg, transparent 0 calc(100% - 30px), var(--fx-accent) calc(100% - 30px) calc(100% - 28px), transparent calc(100% - 28px)),
+    linear-gradient(180deg, var(--fx-accent) 0 28px, transparent 28px);
+  background-size: 100% 2px, 2px 100%;
+  background-position: top right, top right;
+  background-repeat: no-repeat, no-repeat;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+/* --- plate: engraved sheet with a seeded corner block --- */
+html[data-theme][data-fx-panel="plate"] .hero-inner::before {
+  background-color: var(--fx-panel);
+  border: 1px solid var(--fx-ink);
+  border-radius: 0;
+  outline: 1px solid color-mix(in srgb, var(--fx-ink) 40%, transparent);
+  outline-offset: -7px;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--fx-accent) 30%, transparent),
+    12px 12px 0 color-mix(in srgb, var(--fx-ink) 14%, transparent);
+}
+
+/* --- ticket: perforated stub edge --- */
+html[data-theme][data-fx-panel="ticket"] .hero-inner::before {
+  background-color: var(--fx-panel);
+  border: 1px solid var(--fx-ink);
+  border-radius: 0;
+  clip-path: polygon(
+    0 0, 100% 0, 100% 42%, calc(100% - 10px) 45%, 100% 48%, 100% 100%,
+    0 100%, 0 52%, 10px 49%, 0 46%);
+  box-shadow: 8px 8px 0 color-mix(in srgb, var(--fx-accent) 70%, transparent);
+}
+
+/* ------------------------------------------------------------
+   6 · SHARED FIXES
+   Long recipe names must wrap, never ellipsis (project rule:
+   no text may be truncated). Applies to every theme.
+   ------------------------------------------------------------ */
+
+.type-recipe-name,
+.type-recipe-spec {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------
+   7 · BACKDROP CHANNELS
+   The photographic scrim lives in theme.css: `.atmosphere` carries a
+   dark vignette and `.atmosphere::before` lays a horizontal
+   rgba(var(--scrim-rgb), .97 → 0) veil over it. That veil keeps
+   cover art readable behind text, but it also washes out 55–97% of
+   anything a theme paints on `.atmosphere`.
+   A theme that paints its own world declares `"scrim": "none"` in
+   theme.json (→ data-fx-scrim="none") and owns the backdrop instead.
+   The two `--glow` radials on `.atmosphere::after` are kept: they are
+   the world's light, not a veil.
+   ------------------------------------------------------------ */
+
+html[data-fx-scrim="none"] .atmosphere,
+html[data-fx-scrim="none"] .atmosphere::before {
+  background: none;
+}

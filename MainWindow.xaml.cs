@@ -63,9 +63,21 @@ public partial class MainWindow : Window
 
             var cdpPort = Environment.GetEnvironmentVariable("NOVA_CDP_PORT");
             var options = new CoreWebView2EnvironmentOptions();
+            var browserArgs = new List<string>();
             if (!string.IsNullOrEmpty(cdpPort))
-                options.AdditionalBrowserArguments = $"--remote-debugging-port={cdpPort} --remote-allow-origins=*";
-            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.Root, "webview2"), options);
+                browserArgs.Add($"--remote-debugging-port={cdpPort} --remote-allow-origins=*");
+
+            // Development escape hatch: a wedged GPU process (driver reset,
+            // stale shader cache) otherwise takes the whole WebView down with
+            // "GPU process isn't usable. Goodbye." Software rendering is
+            // perfectly fine for headless capture.
+            var extraArgs = Environment.GetEnvironmentVariable("NOVA_WEBVIEW_ARGS");
+            if (!string.IsNullOrWhiteSpace(extraArgs))
+                browserArgs.Add(extraArgs);
+
+            if (browserArgs.Count > 0)
+                options.AdditionalBrowserArguments = string.Join(" ", browserArgs);
+            var env = await CoreWebView2Environment.CreateAsync(null, CacheRoot(), options);
             await Web.EnsureCoreWebView2Async(env);
             Bridge.Attach(Web);
             Web.CoreWebView2.ProcessFailed += (_, args) =>
@@ -98,6 +110,19 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Renderer cache lives under the app data folder by default. Development
+    /// sessions can point NOVA_CACHE_ROOT at a scratch folder on another drive,
+    /// so the throw-away WebView2 cache never has to live on the system disk.
+    /// </summary>
+    private static string CacheRoot()
+    {
+        var over = Environment.GetEnvironmentVariable("NOVA_CACHE_ROOT");
+        if (string.IsNullOrWhiteSpace(over)) return Path.Combine(AppPaths.Root, "webview2");
+        Directory.CreateDirectory(over);
+        return over;
+    }
+
+    /// <summary>
     /// WebView2's virtual host caches renderer files aggressively. Wiping the
     /// disk cache on a version bump guarantees that an updated app.js / CSS
     /// actually reaches the screen, without clearing cookies or settings.
@@ -107,7 +132,7 @@ public partial class MainWindow : Window
         try
         {
             var version = typeof(MainWindow).Assembly.GetName().Version?.ToString() ?? "0";
-            var root = Path.Combine(AppPaths.Root, "webview2");
+            var root = CacheRoot();
             var marker = Path.Combine(root, ".renderer-version");
             if (Directory.Exists(root) && File.Exists(marker) && File.ReadAllText(marker) == version)
                 return;

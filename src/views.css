@@ -31,11 +31,12 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(10px) scale(.997);
+  transform: translate3d(0, 10px, 0);
+  contain: layout style;
   transition:
-    opacity .32s ease,
-    transform .46s var(--ease),
-    visibility .46s;
+    opacity .2s ease,
+    transform .28s var(--ease),
+    visibility .28s;
 }
 
 .view.is-current {
@@ -48,11 +49,11 @@
 /* The outgoing view should not animate back down while it fades. */
 .view.is-leaving {
   opacity: 0;
-  transform: translateY(-6px) scale(.998);
+  transform: translate3d(0, -6px, 0);
   transition:
-    opacity .24s ease,
-    transform .34s var(--ease),
-    visibility .34s;
+    opacity .16s ease,
+    transform .22s var(--ease),
+    visibility .22s;
 }
 
 /* ---------- home ---------- */
@@ -75,11 +76,13 @@
 
 .view-library,
 .view-appearance {
+  /* A full-window backdrop-filter used to sit here. It forced Chromium to
+     re-blur a 1439x1124 backdrop on every frame of the view cross-fade,
+     which is what made library/appearance switches feel heavy. A slightly
+     denser gradient gives the same separation at compositor cost zero. */
   background:
-    radial-gradient(120% 90% at 20% 0%, rgba(6, 7, 10, .32), rgba(6, 7, 10, .72) 70%),
-    linear-gradient(180deg, rgba(6, 7, 10, .5) 0%, rgba(6, 7, 10, .34) 45%, rgba(6, 7, 10, .78) 100%);
-  backdrop-filter: blur(9px) saturate(1.02);
-  -webkit-backdrop-filter: blur(9px) saturate(1.02);
+    radial-gradient(120% 90% at 20% 0%, rgba(6, 7, 10, .52), rgba(6, 7, 10, .82) 70%),
+    linear-gradient(180deg, rgba(6, 7, 10, .66) 0%, rgba(6, 7, 10, .52) 45%, rgba(6, 7, 10, .86) 100%);
 }
 
 .view-library {
@@ -150,14 +153,10 @@
 
 /* ---------- leaving state for interactive children ---------- */
 
-.view.is-current .hero-inner {
-  animation: viewHomeIn .5s var(--ease) both;
-}
-
-@keyframes viewHomeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: none; }
-}
+/* The hero used to replay a 0.5s entrance animation on every return to
+   home, which re-rasterised the whole panel each time. The view cross-fade
+   already carries the transition; keep the hero stable. */
+.view.is-current .hero-inner { animation: none; }
 
 /* ---------- vertical rail layout ---------- */
 /* Covers move into a left column; the game stays on the right. */

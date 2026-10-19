@@ -40,6 +40,10 @@ public sealed class ThemeService
 
         public Dictionary<string, string>? Tokens { get; set; }
         public Dictionary<string, string>? Icons { get; set; }
+
+        /// <summary>Optional visual feature modules (texture / type / panel).
+        /// The renderer applies them as root data attributes; see theme-fx.css.</summary>
+        public Dictionary<string, string>? Features { get; set; }
         public bool Dark { get; set; } = true;
     }
 
@@ -50,6 +54,7 @@ public sealed class ThemeService
         string Version,
         string Description,
         string? Intro,
+        Dictionary<string, string> Features,
         string Folder,
         string? CssUrl,
         string? PreviewUrl,
@@ -115,9 +120,10 @@ public sealed class ThemeService
         "2.0.0",
         "电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。",
         "gilded",
+        new Dictionary<string, string>(),
         "",
         null,
-        null,
+        "https://nova.site/assets/theme-nova-preview.jpg?v=1.2.9",
         "",
         true,
         true,
@@ -198,6 +204,7 @@ public sealed class ThemeService
                 manifest.Version ?? "1.0.0",
                 manifest.Description ?? "",
                 NormalizeIntro(manifest.Intro),
+                CleanDictionary(manifest.Features),
                 folder,
                 cssUrl,
                 previewUrl,
@@ -226,6 +233,7 @@ public sealed class ThemeService
         manifest?.Version ?? "—",
         manifest?.Description ?? "",
         NormalizeIntro(manifest?.Intro),
+        CleanDictionary(manifest?.Features),
         folder,
         null,
         null,

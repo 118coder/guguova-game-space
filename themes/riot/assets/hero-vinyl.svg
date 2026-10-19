@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 440" preserveAspectRatio="xMidYMid meet">
+  <!-- RIOT · floating vinyl: transparent field, hard black disc, one red brush ring -->
+  <g transform="translate(175 220)">
+    <circle r="150" fill="#101010"/>
+    <g fill="none" stroke="#2b2b2b" stroke-width="1.1">
+      <circle r="140"/><circle r="130"/><circle r="120"/><circle r="110"/>
+      <circle r="100"/><circle r="90"/><circle r="80"/><circle r="70"/>
+      <circle r="60"/>
+    </g>
+    <path d="M-136-58a150 150 0 0 1 96-74" fill="none" stroke="#5c5c58" stroke-width="3" opacity=".7"/>
+    <circle r="48" fill="#f4f1e9" stroke="#101010" stroke-width="2.4"/>
+    <circle r="5.5" fill="#101010"/>
+    <path d="M0-48v96M-48 0h96" stroke="#101010" stroke-width="1" opacity=".3"/>
+    <circle r="18" fill="#d92b1f"/>
+    <circle r="18" fill="none" stroke="#101010" stroke-width="2"/>
+  </g>
+
+  <!-- one continuous crimson brush stroke, cropped at the sleeve edge -->
+  <g fill="none" stroke="#d92b1f" stroke-linecap="round">
+    <path d="M175 52a168 168 0 1 1-168 168" stroke-width="18"/>
+    <path d="M175 78a142 142 0 0 1 142 142" stroke-width="5" opacity=".5"/>
+  </g>
+</svg>

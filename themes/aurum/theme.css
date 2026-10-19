@@ -1558,3 +1558,65 @@ html[data-theme="aurum"] :is(.hero-logo, .detail-logo, .launch-logo, .appearance
   box-shadow: none;
   transform: rotate(45deg);
 }
+
+/* ------------------------------------------------------------
+   right-click menu + framing controls (1.2.2 coverage pass)
+   ------------------------------------------------------------ */
+
+.context-menu {
+  border-radius: 2px;
+  border: 1px solid rgba(232, 201, 138, .3);
+  background: linear-gradient(180deg, #14140f 0%, #0b0b0a 100%);
+  box-shadow: 0 34px 90px -30px #000, inset 0 1px 0 rgba(255, 235, 200, .08);
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.context-item {
+  border-radius: 2px;
+  color: var(--aurum-text-soft);
+  font-size: 12px;
+}
+
+.context-item:hover,
+.context-item:focus-visible {
+  background: rgba(232, 201, 138, .08);
+  color: var(--aurum-bronze-hi);
+  outline: none;
+}
+
+.context-item.is-disabled,
+.context-item:disabled { opacity: .4; }
+.context-item .ic { opacity: .8; }
+.menu-label { overflow: visible; white-space: normal; text-overflow: clip; }
+.menu-key { color: var(--aurum-bronze); font-size: 10px; }
+.menu-separator { background: rgba(232, 201, 138, .12); }
+
+.editor-framing {
+  border-radius: 2px;
+  border: 1px solid rgba(232, 201, 138, .3);
+  background: rgba(8, 9, 9, .9);
+  color: var(--aurum-text-soft);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.editor-framing button {
+  border-radius: 2px;
+  border: 1px solid rgba(232, 201, 138, .28);
+  background: rgba(232, 201, 138, .06);
+  color: var(--aurum-bronze);
+}
+
+.editor-framing button:hover { background: rgba(232, 201, 138, .14); color: var(--aurum-bronze-hi); }
+.editor-framing-sep { background: rgba(232, 201, 138, .16); }
+
+/* 进游戏动画：金色菱形光圈（只动 launch 层，主题本体不变） */
+html[data-theme="aurum"] .launch.is-open .launch-art {
+  animation: auLaunch 760ms cubic-bezier(.3, .9, .2, 1) both;
+}
+@keyframes auLaunch {
+  from { clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); transform: scale(1.1); filter: brightness(.35) sepia(.3); }
+  to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: none; filter: brightness(.78) saturate(1.08); }
+}

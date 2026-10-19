@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "riso",
+  "name": "电波海报 · RISO",
+  "author": "NOVA",
+  "version": "1.4.1",
+  "description": "蓝黄双色海报：纸面文字井、实色蓝插画窗、网点与酸黄斜楔。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": false,
+  "intro": "riso",
+  "tokens": {
+    "--accent": "#2f3fd4",
+    "--accent-2": "#e8ff2a",
+    "--glow": "rgba(47,63,212,.2)"
+  },
+  "features": {
+    "texture": "riso",
+    "type": "none",
+    "panel": "none",
+    "hero": "plate",
+    "header": "rule",
+    "cards": "rule",
+    "plates": "off"
+  }
+}

@@ -7,18 +7,21 @@
 <meta name="theme-color" content="#0a0b0b">
 <title>NOVA · 游戏空间</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="fonts.css?v=1.2.1">
-<link rel="stylesheet" href="base.css?v=1.2.1">
-<link rel="stylesheet" href="theme.css?v=1.2.1">
-<link rel="stylesheet" href="cta-palettes.css?v=1.2.1">
-<link rel="stylesheet" href="type.css?v=1.2.1">
-<link rel="stylesheet" href="app.css?v=1.2.1">
-<link rel="stylesheet" href="motion.css?v=1.2.1">
-<link rel="stylesheet" href="views.css?v=1.2.1">
-<link rel="stylesheet" href="dialogs.css?v=1.2.1">
-<link rel="stylesheet" href="themes.css?v=1.2.1">
-<link rel="stylesheet" href="polish.css?v=1.2.1">
-<link rel="stylesheet" href="intro.css?v=1.2.1">
+<link rel="stylesheet" href="fonts.css?v=1.4.0">
+<link rel="stylesheet" href="base.css?v=1.4.0">
+<link rel="stylesheet" href="theme.css?v=1.4.0">
+<link rel="stylesheet" href="cta-palettes.css?v=1.4.0">
+<link rel="stylesheet" href="type.css?v=1.4.0">
+<link rel="stylesheet" href="app.css?v=1.4.0">
+<link rel="stylesheet" href="motion.css?v=1.4.0">
+<link rel="stylesheet" href="views.css?v=1.4.0">
+<link rel="stylesheet" href="dialogs.css?v=1.4.0">
+<link rel="stylesheet" href="themes.css?v=1.4.0">
+<link rel="stylesheet" href="theme-fx.css?v=1.4.0">
+<link rel="stylesheet" href="fx-layers.css?v=1.4.0">
+<link rel="stylesheet" href="theme-kit.css?v=1.4.0">
+<link rel="stylesheet" href="polish.css?v=1.4.0">
+<link rel="stylesheet" href="intro.css?v=1.4.0">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -322,8 +325,8 @@
         <div class="appearance-shell" role="dialog" aria-modal="true" aria-label="外观工作室">
 
           <div class="appearance-preview">
-            <img class="appearance-bg" id="appearanceBg" src="assets/backdrop.jpg" alt="" aria-hidden="true">
-            <img class="appearance-image" id="appearanceImage" src="assets/backdrop.jpg" alt="">
+            <img class="appearance-bg" id="appearanceBg" src="assets/backdrop.jpg" alt="" aria-hidden="true" draggable="false">
+            <img class="appearance-image" id="appearanceImage" src="assets/backdrop.jpg" alt="" draggable="false">
             <div class="appearance-preview-shade"></div>
             <div class="appearance-preview-top">
               <span class="live-pill"><i></i>实时预览</span>
@@ -429,6 +432,10 @@
                 <span class="section-tag" id="themeCountTag">2 套</span>
               </div>
               <div class="theme-grid" id="themeGrid"></div>
+              <button class="btn ghost compact theme-more" id="themeToggle" aria-expanded="false">
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+                <span id="themeToggleLabel">展开全部</span>
+              </button>
               <div class="theme-actions">
                 <button class="btn ghost compact" id="themeRefresh">
                   <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>
@@ -682,13 +689,25 @@
 
     <div class="editor-body">
       <div class="editor-preview" id="editorPreview">
-        <img id="editorPreviewImg" alt="">
+        <img id="editorPreviewImg" alt="" draggable="false">
         <div class="editor-preview-shade"></div>
         <div class="editor-preview-copy">
           <div class="logo editor-logo type-gilded" id="editorLogo">NOVA</div>
           <span class="editor-preview-hint" id="editorPreviewHint">从可执行文件或图片生成封面</span>
         </div>
         <div class="editor-preview-swatches" id="editorSwatches"></div>
+        <div class="editor-framing" id="editorFraming" role="group" aria-label="主视觉构图">
+          <span class="editor-framing-label">构图</span>
+          <button type="button" data-frame="left" aria-label="向左移动主视觉">←</button>
+          <button type="button" data-frame="up" aria-label="向上移动主视觉">↑</button>
+          <button type="button" data-frame="down" aria-label="向下移动主视觉">↓</button>
+          <button type="button" data-frame="right" aria-label="向右移动主视觉">→</button>
+          <span class="editor-framing-sep" aria-hidden="true"></span>
+          <button type="button" data-frame="zoom-out" aria-label="缩小主视觉">−</button>
+          <span class="editor-framing-value" id="framingZoom">100%</span>
+          <button type="button" data-frame="zoom-in" aria-label="放大主视觉">+</button>
+          <button type="button" data-frame="reset" aria-label="重置主视觉构图">重置</button>
+        </div>
       </div>
 
       <div class="editor-fields">
@@ -892,7 +911,7 @@
 <!-- ============ IMMERSIVE LAUNCH / EXIT ============ -->
 <div class="launch" id="launchOverlay" role="dialog" aria-modal="true" aria-label="正在启动游戏" aria-hidden="true" tabindex="-1">
   <div class="launch-backdrop">
-    <img class="launch-art" id="launchArt" alt="">
+    <img class="launch-art" id="launchArt" alt="" draggable="false">
   </div>
   <div class="launch-veil"></div>
   <div class="launch-bars" aria-hidden="true"><i></i><i></i></div>
@@ -959,6 +978,18 @@
   </div>
 </div>
 
+<!-- ============ THEME SWITCH CURTAIN ============ -->
+<div class="theme-curtain" id="themeCurtain" aria-hidden="true">
+  <span class="tc-half tc-top"></span>
+  <span class="tc-half tc-bottom"></span>
+  <span class="tc-rule"></span>
+  <span class="tc-label">
+    <i class="tc-kicker">INTERFACE THEME</i>
+    <b id="themeCurtainName">NOVA</b>
+    <i class="tc-sub">正在切换外观</i>
+  </span>
+</div>
+
 <div class="context-menu" id="contextMenu" role="menu" aria-hidden="true"></div>
 
 <div class="toast" id="toast" role="status" aria-live="polite">
@@ -966,13 +997,14 @@
   <span id="toastText"></span>
 </div>
 
-<script src="motion.js?v=1.2.1" defer></script>
-<script src="focus.js?v=1.2.1" defer></script>
-<script src="surfaces.js?v=1.2.1" defer></script>
-<script src="gamepad.js?v=1.2.1" defer></script>
-<script src="overlays.js?v=1.2.1" defer></script>
-<script src="theme-engine.js?v=1.2.1" defer></script>
-<script src="intro.js?v=1.2.1" defer></script>
-<script src="app.js?v=1.2.1" defer></script>
+<script src="motion.js?v=1.4.0" defer></script>
+<script src="focus.js?v=1.4.0" defer></script>
+<script src="surfaces.js?v=1.4.0" defer></script>
+<script src="gamepad.js?v=1.4.0" defer></script>
+<script src="overlays.js?v=1.4.0" defer></script>
+<script src="theme-engine.js?v=1.4.0" defer></script>
+<script src="intro.js?v=1.4.0" defer></script>
+<script src="fx-record.js?v=1.4.0" defer></script>
+<script src="app.js?v=1.4.0" defer></script>
 </body>
 </html>

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "codex",
+  "name": "星轨秘典 · CODEX",
+  "author": "NOVA",
+  "version": "1.7.1",
+  "description": "星轨秘典：铜金双线内凹框、金/白刻字、铜牌按钮系统，无右侧插画。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": true,
+  "intro": "codex",
+  "tokens": {
+    "--accent": "#e2c78e",
+    "--accent-2": "#8a2f28",
+    "--glow": "rgba(226, 199, 142, .26)"
+  },
+  "features": {
+    "texture": "starfield",
+    "type": "none",
+    "panel": "none",
+    "hero": "plate",
+    "header": "rule",
+    "cards": "rule",
+    "plates": "off"
+  }
+}

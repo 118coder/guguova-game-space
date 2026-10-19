@@ -19,6 +19,7 @@ public sealed class GameEntry
     public string HeroPath { get; set; } = "";
     public string CoverPath { get; set; } = "";
     public string HeroPosition { get; set; } = "50% 45%";
+    public double HeroZoom { get; set; } = 1;
     public string CoverPosition { get; set; } = "50% 45%";
     public string Accent { get; set; } = "#ffb45e";
     public string Accent2 { get; set; } = "#ff6b79";
@@ -97,6 +98,7 @@ public sealed record GamePayload(
     string HeroUrl,
     string CoverUrl,
     string HeroPosition,
+    double HeroZoom,
     string CoverPosition,
     string Accent,
     string Accent2,

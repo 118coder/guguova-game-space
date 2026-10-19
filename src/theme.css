@@ -321,23 +321,24 @@
   color: rgba(255, 255, 255, .33);
 }
 
+/* The activity card carries the real game name (up to 30 characters by rule).
+   Ellipsis used to cut it in half; the strip has no fixed height, so it wraps
+   instead and the card grows. */
 .activity-title {
-  overflow: hidden;
   font-family: var(--font-display);
   font-size: 12.5px;
   letter-spacing: .005em;
   color: #f4f0e8;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .activity-desc {
-  overflow: hidden;
   font-size: 9.5px;
   letter-spacing: .015em;
   color: rgba(255, 255, 255, .35);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .activity-side {
@@ -945,7 +946,14 @@
 
 .appearance-logo {
   --logo-size: clamp(27px, 3.2vw, 47px);
-  overflow: hidden;
+  /* 铁律 3：这个宿主需要裁的是**横向**（nowrap 长名不许横向溢出版面），
+     纵向必须放开——logo 字体的墨迹（ascent+descent 1.2–1.57em）天生比
+     --logo-line(.86–.94) 的行盒高，用 `overflow:hidden` 会实打实切掉上下墨迹
+     （nova 在 1439×1124 被切 4px，grimoire 曾被切 5px）。
+     `overflow-x: clip` + `overflow-y: visible` 是唯一能"一轴裁一轴放"的写法；
+     `overflow-y: hidden` 与 `visible` 都不行（后者会被强制算成 auto）。 */
+  overflow-x: clip;
+  overflow-y: visible;
   max-width: 100%;
   margin-top: 10px;
   white-space: nowrap;
