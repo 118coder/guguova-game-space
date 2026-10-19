@@ -1,8 +1,11 @@
 # NOVA 交接文档
 
 > 写给接手这个项目的人（或下一个 AI 会话）。
-> 最后更新：2026-10-19 · 渲染层版本 **1.5.1**（本文正文写于 1.2.9，改版记录在 0.0 各段，
+> 最后更新：2026-10-20 · 渲染层版本 **1.5.3**（本文正文写于 1.2.9，改版记录在 0.0 各段，
 > 主题/接口的最新状态在 `docs/HANDOFF-THEMES.md` 与 `docs/THEME-INTERFACES.md`）
+>
+> **下一轮从这里开始：`docs/HANDOFF-NEXT.md`**（1.5.3 状态、已完成、P0/P1 待办、
+> 验收命令、绝对不要回退的约定）。
 
 先读这一页，再按需跳到具体章节。文中所有路径都相对于仓库根目录。
 
@@ -81,9 +84,10 @@
   `.nova-pack` 导出/导入、每日自动备份、游玩记录/统计、CSV、库排序/缺失筛选都在 1.5.0。
 - **主题精修单独交接**：见 **`docs/HANDOFF-THEMES.md`**（本轮进度、量化方法、
   坑与下一轮清单）。**它的 §0.00c 是最新状态**，旧表只作历史。
-- 交接文件：本文件 + `docs/HANDOFF-THEMES.md` + `docs/THEME-INTERFACES.md` +
-  `docs/themes/`（单主题接口卡）+ `docs/LAUNCHER-FEATURES.md` + `docs/THEME-COVERAGE.md` +
-  `docs/THEMES.md` + `docs/DESIGN-PHILOSOPHY.md`（设计理念/维护手册）+ `docs/SFX-MAP.md`（音效对照）+ `README.md`。
+- 交接文件：**`docs/HANDOFF-NEXT.md`（下一轮优先读）** + 本文件 + `docs/HANDOFF-THEMES.md` +
+  `docs/THEME-INTERFACES.md` + `docs/themes/`（单主题接口卡）+ `docs/LAUNCHER-FEATURES.md` +
+  `docs/THEME-COVERAGE.md` + `docs/THEMES.md` + `docs/DESIGN-PHILOSOPHY.md`（设计理念/维护手册）+
+  `docs/SFX-MAP.md`（音效对照）+ `README.md`。
 
 ---
 

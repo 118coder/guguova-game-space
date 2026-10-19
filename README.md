@@ -314,7 +314,9 @@ nova-game-space-desktop/
 ├─ build/icon.ico            主图标（tools/make-icon.py 可复现）
 ├─ docs/INTEGRATION.md       非 Steam 游戏接入规范
 ├─ docs/THEMES.md            主题开发规范
-├─ docs/HANDOFF-THEMES.md    主题精修交接（进度 / 量化方法 / 下一轮清单）
+├─ docs/DESIGN-PHILOSOPHY.md 设计理念 / 11 套主题卡 / 维护手册
+├─ docs/HANDOFF-THEMES.md    主题精修交接（进度 / 量化方法 / 历史细节）
+├─ docs/HANDOFF-NEXT.md      下一轮交接（1.5.3 状态 / 待办 / 验收 / 不要回退的约定）
 └─ tools/                    开发期使用的验证脚本
 ```
 

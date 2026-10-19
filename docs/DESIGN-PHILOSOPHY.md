@@ -2,7 +2,7 @@
 
 > 适用版本：**1.5.3**
 > 最后整理：2026-10-20
-> 配套文档：`docs/HANDOFF.md`（项目全貌）、`docs/HANDOFF-THEMES.md`（本轮细节）、
+> 配套文档：`docs/HANDOFF-NEXT.md`（下一轮交接）、`docs/HANDOFF.md`（项目全貌）、`docs/HANDOFF-THEMES.md`（本轮细节）、
 > `docs/THEME-INTERFACES.md`（接口契约）、`docs/themes/*.md`（单主题卡）、
 > `docs/SFX-MAP.md`（音效触发表）。
 
