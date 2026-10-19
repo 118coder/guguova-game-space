@@ -64,6 +64,18 @@ public sealed class StoreService
 
     public LibraryFile Library => _library;
 
+    /// <summary>NOVA_DEV=1 (or true) forces developer mode; otherwise the
+    /// persisted setting decides. Test entries stay on disk either way.</summary>
+    public bool DeveloperMode
+    {
+        get
+        {
+            var env = Environment.GetEnvironmentVariable("NOVA_DEV");
+            if (env == "1" || string.Equals(env, "true", StringComparison.OrdinalIgnoreCase)) return true;
+            return _library.Settings.DeveloperMode;
+        }
+    }
+
     public void Load()
     {
         lock (_gate)
@@ -107,6 +119,9 @@ public sealed class StoreService
             game.Sessions ??= new List<PlaySession>();
             if (game.Sessions.Count > 200)
                 game.Sessions.RemoveRange(0, game.Sessions.Count - 200);
+
+            if (!game.DeveloperOnly && IsDeveloperTestEntry(game))
+                game.DeveloperOnly = true;
 
             // Early Steam imports wrote the install folder into the blurb,
             // which read poorly on the hero. Drop that generated sentence.
@@ -159,7 +174,7 @@ public sealed class StoreService
         return true;
     }
 
-    public LauncherStats BuildStats()
+    public LauncherStats BuildStats(bool includeDeveloper = false)
     {
         var now = DateTimeOffset.Now;
         var today = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset);
@@ -169,7 +184,11 @@ public sealed class StoreService
         long todaySeconds = 0;
         long weekSeconds = 0;
 
-        foreach (var game in _library.Games)
+        var visibleGames = _library.Games
+            .Where(game => includeDeveloper || !game.DeveloperOnly)
+            .ToList();
+
+        foreach (var game in visibleGames)
         {
             foreach (var session in game.Sessions ?? Enumerable.Empty<PlaySession>())
             {
@@ -188,13 +207,13 @@ public sealed class StoreService
             }
         }
 
-        var top = _library.Games.OrderByDescending(g => g.PlaytimeSeconds).FirstOrDefault();
-        var missing = _library.Games.Count(g =>
+        var top = visibleGames.OrderByDescending(g => g.PlaytimeSeconds).FirstOrDefault();
+        var missing = visibleGames.Count(g =>
             string.IsNullOrWhiteSpace(g.ExePath) || !File.Exists(g.ExePath));
 
         return new LauncherStats(
-            _library.Games.Sum(g => Math.Max(0, g.PlaytimeSeconds)),
-            _library.Games.Sum(g => Math.Max(0, g.LaunchCount)),
+            visibleGames.Sum(g => Math.Max(0, g.PlaytimeSeconds)),
+            visibleGames.Sum(g => Math.Max(0, g.LaunchCount)),
             sessions.Count,
             todaySeconds,
             weekSeconds,
@@ -240,6 +259,26 @@ public sealed class StoreService
             mediaBytes,
             mediaFiles,
             _library.Settings.LastBackupUtc);
+    }
+
+    private static bool IsDeveloperTestEntry(GameEntry game)
+    {
+        if (string.Equals(game.Source, "demo", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(game.Source, "steam", StringComparison.OrdinalIgnoreCase)) return false;
+        if (string.IsNullOrWhiteSpace(game.ExePath)) return false;
+        try
+        {
+            var full = Path.GetFullPath(game.ExePath);
+            var system = Path.GetFullPath(Environment.SystemDirectory) + Path.DirectorySeparatorChar;
+            var windows = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)) + Path.DirectorySeparatorChar;
+            if (full.StartsWith(system, StringComparison.OrdinalIgnoreCase)) return true;
+            var system32 = Path.Combine(windows, "System32") + Path.DirectorySeparatorChar;
+            return full.StartsWith(system32, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static DateTimeOffset? ParseSessionTime(string? value)

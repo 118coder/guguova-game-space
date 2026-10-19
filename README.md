@@ -55,6 +55,8 @@ Windows 11 与近两年的 Windows 10 通常已预装；若提示缺失，从微
 | 记录导出 | 全部游玩会话导出 CSV |
 | 游戏库排序 | 最近游玩 / 名称 / 游玩时长 / 添加时间 / 启动次数；支持“程序缺失”筛选 |
 | 离线原则 | 不登录、不联网、不上传；Steam 只读本机清单与缓存 |
+| 测试条目隐藏 | 系统目录里的假游戏默认不可见；开发者用 `NOVA_DEV=1` 或 `Ctrl+Shift+D` 查看 |
+| 发布流水线 | `bash tools/pipeline.sh` 一次完成审计、Legacy/Modern 构建、打包与 SHA-256 |
 | 低性能降级 | 自动检测弱 GPU 并关闭模糊、噪点与漂移；尊重系统减少动效设置 |
 
 ---
@@ -330,6 +332,18 @@ dotnet publish -c Release -r win-x64 --self-contained true \
 ```
 
 发布产物在 `publish/`，约 163 MB（含 .NET 运行时与本地字体）。
+
+正式发布建议使用流水线，默认产出**约 3.1 MB 的 Legacy 包**：
+
+```bash
+bash tools/pipeline.sh                 # 审计 + Legacy 包
+bash tools/pipeline.sh --skip-audit    # 快速打包
+bash tools/pipeline.sh --modern        # 额外产出 Modern 自包含大包
+```
+
+Legacy 包依赖 .NET Framework 4.8 + WebView2（Win10/11 通常已内置；Win7 用 109），
+解压后双击 `launch.cmd`。详见 [docs/RELEASE.md](docs/RELEASE.md) 与
+[legacy/README.md](legacy/README.md)。
 
 ---
 

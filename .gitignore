@@ -47,3 +47,6 @@ _shots/
 # dev-only ad-hoc probes
 tools/_*.tmp.js
 tools/__pycache__/
+
+# ---------- release staging ----------
+dist/

@@ -149,7 +149,7 @@ public sealed class NativeBridge
                 "exportPack" => ExportPack(),
                 "importPack" => ImportPack(args),
                 "exportRecords" => ExportRecords(),
-                "getStats" => new { ok = true, stats = _store.BuildStats(), storage = _store.BuildStorage() },
+                "getStats" => new { ok = true, stats = _store.BuildStats(_store.DeveloperMode), storage = _store.BuildStorage() },
                 "getSystem" => new { ok = true, system = SystemProfile.Detect(GetString(args, "tier") ?? _store.Library.Settings.CompatibilityTier) },
                 "minimizeWindow" => DoWindow(w => w.WindowState = System.Windows.WindowState.Minimized),
                 "beginDrag" => DoWindow(w => w.BeginNativeDrag()),
@@ -334,7 +334,13 @@ public sealed class NativeBridge
     {
         _store.EnsurePlayerIdentity();
         var library = _store.Library;
-        var current = _store.Find(library.CurrentGameId ?? "") ?? library.Games.FirstOrDefault();
+        var developerMode = _store.DeveloperMode;
+        var visible = library.Games
+            .Where(game => developerMode || !game.DeveloperOnly)
+            .ToList();
+        var current = visible.FirstOrDefault(game => game.Id == library.CurrentGameId)
+            ?? visible.FirstOrDefault();
+        var envDev = Environment.GetEnvironmentVariable("NOVA_DEV");
         return new
         {
             ok = true,
@@ -343,11 +349,13 @@ public sealed class NativeBridge
             userName = Environment.UserName,
             dataFolder = AppPaths.Root,
             backupsFolder = AppPaths.Backups,
+            developerMode,
+            developerModeEnv = envDev == "1" || string.Equals(envDev, "true", StringComparison.OrdinalIgnoreCase),
             currentGameId = current?.Id,
             settings = library.Settings,
-            games = library.Games.Select(ToPayload).ToList(),
+            games = visible.Select(ToPayload).ToList(),
             running = _launcher.Running,
-            stats = _store.BuildStats(),
+            stats = _store.BuildStats(developerMode),
             storage = _store.BuildStorage(),
             system = SystemProfile.Detect(library.Settings.CompatibilityTier),
             steamRoot = GameScanner.FindSteamRoot()
@@ -479,6 +487,8 @@ public sealed class NativeBridge
                 settings.CompatibilityTier = value is "auto" or "full" or "balanced" or "safe"
                     ? value : "auto";
             }
+            if (args.TryGetProperty("developerMode", out var developer) && developer.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.DeveloperMode = developer.GetBoolean();
         }
         _store.Save();
         return new { ok = true };

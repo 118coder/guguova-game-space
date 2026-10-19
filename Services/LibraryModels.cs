@@ -28,6 +28,10 @@ public sealed class GameEntry
     public List<string> Colors { get; set; } = new() { "#ffb45e", "#ff6b79", "#f3e3c3", "#251318" };
     public bool Favorite { get; set; }
     public bool AutoUpdate { get; set; } = true;
+
+    /// <summary>Test/demo entries (notepad, calc, powershell …). Hidden unless
+    /// NOVA_DEV=1 or the developer-mode setting is on.</summary>
+    public bool DeveloperOnly { get; set; }
     public long PlaytimeSeconds { get; set; }
     public string? LastPlayedUtc { get; set; }
     public string AddedUtc { get; set; } = DateTime.UtcNow.ToString("o");
@@ -88,6 +92,7 @@ public sealed class PlayerSettings
     public bool FirstRunDone { get; set; }
     public bool CloseToTray { get; set; }
     public bool AutoBackup { get; set; } = true;
+    public bool DeveloperMode { get; set; }
     public string? LastBackupUtc { get; set; }
     public string LibrarySort { get; set; } = "recent";
     /// <summary>auto | full | balanced | safe. Auto is the recommended default.</summary>

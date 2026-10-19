@@ -85,7 +85,7 @@ public partial class MainWindow : Window
             // A fixed WebView2 runtime can be dropped next to the exe for a
             // fully offline legacy package (Windows 7 uses 109).
             var fixedRuntime = Path.Combine(AppContext.BaseDirectory, "WebView2Runtime");
-            var browserFolder = Directory.Exists(fixedRuntime) ? fixedRuntime : null;
+            var browserFolder = Directory.Exists(fixedRuntime) && File.Exists(Path.Combine(fixedRuntime, "msedgewebview2.exe")) ? fixedRuntime : null;
             var env = await CoreWebView2Environment.CreateAsync(browserFolder, CacheRoot(), options);
             await Web.EnsureCoreWebView2Async(env);
             Bridge.Attach(Web);

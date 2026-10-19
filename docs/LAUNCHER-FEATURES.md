@@ -38,6 +38,8 @@
 | 12 | **离线收口** | 隐藏 Steam 商店在线入口；关于页明确“完全离线”；移除远程预览 URL | ✅ 已完成 |
 | 13 | **版本/数据信息** | 设置页显示版本、数据目录、封面大小、游戏数、最近备份 | ✅ 已完成 |
 | 14 | **系统兼容判定** | 读取 Windows 与 WebView2，自动选 full/balanced/safe；设置页可覆盖 | ✅ 已完成 |
+| 15 | **测试条目隐藏** | 系统目录假游戏默认隐藏；`NOVA_DEV=1` / `Ctrl+Shift+D` 开发者可见 | ✅ 已完成 |
+| 16 | **发布流水线** | `pipeline.sh` 审计 + Legacy/Modern 构建 + zip + SHA-256；Legacy 包约 3.1 MB | ✅ 已完成 |
 
 ---
 
@@ -101,6 +103,10 @@ NOVA-YYYYMMDD-HHmm.nova-pack   (zip)
   `is-booted=true / is-intro=false`）；Win7 SP1 + WebView2 109 虚拟机验收待做。
 - 设置页主题化：`src/settings-themes.css` 覆盖 11 套主题的输入框/下拉/统计卡/
   记录行；11 主题 × 2 尺寸 22 张 0 告警。
+- 测试条目：正常 boot 2 款真实游戏；`developerMode=true` 时 6 款；`Ctrl+Shift+D`
+  往返切换已验证。
+- 发布包：`dist/NOVA-1.5.0-legacy.zip` **3.12 MB**；解压 6.9 MB；manifest 含 SHA-256。
+  包内 `launch.cmd` 的 .NET 4.8 / WebView2 检查已实测。
 
 ## 6. 离线原则
 
