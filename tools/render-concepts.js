@@ -9,6 +9,17 @@ const PORT = Number(process.env.NOVA_CDP_PORT || 9223);
 const outDir = process.argv[2] || '_shots';
 const boards = ['nova', 'aurum', 'endfield', 'codex', 'zerohour', 'mnemo', 'riot', 'grimoire', 'riso', 'summer', 'broadcast'];
 
+// The boards are served from the app's virtual host (nova.site → WebRoot),
+// not from the repo tools/ folder. Stage the source there for the render and
+// remove it on exit, so `node tools/render-concepts.js out` works without a
+// manual copy.
+const roots = ['Debug', 'Release'].map((cfg) => path.join(__dirname, '..', 'bin', cfg, 'net10.0-windows', 'win-x64', 'src'));
+const webRoot = roots.find((root) => fs.existsSync(path.join(root, 'index.html')));
+if (!webRoot) throw new Error('web root not found — build the launcher first (dotnet build)');
+const stagedBoard = path.join(webRoot, 'theme-concepts.html');
+fs.copyFileSync(path.join(__dirname, 'theme-concepts.html'), stagedBoard);
+process.on('exit', () => { try { fs.rmSync(stagedBoard, { force: true }); } catch (error) {} });
+
 const get = (p) => new Promise((resolve, reject) => {
   http.get({ host: '127.0.0.1', port: PORT, path: p }, (res) => {
     let data = '';
@@ -53,6 +64,9 @@ async function main() {
     }
   }
 
+  // Return the shell to the launcher after rendering the dev boards.
+  await send('Page.navigate', { url: 'https://nova.site/index.html' });
+  await new Promise((r) => setTimeout(r, 600));
   await send('Emulation.clearDeviceMetricsOverride');
   ws.close();
 }
