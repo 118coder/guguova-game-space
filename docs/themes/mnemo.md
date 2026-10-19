@@ -2,6 +2,8 @@
 
 > 版本 **1.1.3** · 开屏 `mnemo（档案解密）` · 进游戏 `mnUnfold（卷宗展开）`
 
+> 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.11
+
 ## 1. 设计理念
 雾紫神秘档案：档案夹切口、CLASSIFIED 印章、等高线地图、EXHIBIT 展签。
 

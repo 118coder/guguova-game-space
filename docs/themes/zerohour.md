@@ -2,6 +2,8 @@
 
 > 版本 **1.0.8** · 开屏 `zerohour（CRT 信号接入）` · 进游戏 `zhLaunch（CRT 同步）`
 
+> 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.4
+
 ## 1. 设计理念
 街区命令台：黑底、CRT 扫描线、L 形青柠角标、分段信号轨。
 
