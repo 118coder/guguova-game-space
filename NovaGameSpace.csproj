@@ -11,7 +11,7 @@
     <RootNamespace>NovaGameSpace</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>build\icon.ico</ApplicationIcon>
-    <Version>1.3.1</Version>
+    <Version>1.5.0</Version>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <DebugType>none</DebugType>

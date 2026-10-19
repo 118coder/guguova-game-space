@@ -35,6 +35,11 @@
       title: '选择 nova-game.json',
       note: '清单会填好名称、介绍与配色'
     },
+    pack: {
+      kicker: 'SELECT · DATA PACK',
+      title: '选择 NOVA 数据包',
+      note: '选择 .nova-pack 或 .zip；导入前会自动备份本机库'
+    },
     any: {
       kicker: 'SELECT · FILE',
       title: '选择文件',

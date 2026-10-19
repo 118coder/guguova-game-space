@@ -85,8 +85,14 @@
       reduceMotion: false,
       styleMode: 'adaptive',
       typeSeed: 0,
-      calm: false
+      calm: false,
+      closeToTray: false,
+      autoBackup: true,
+      librarySort: 'recent'
     },
+    userName: '',
+    stats: null,
+    storage: null,
     index: 0,
     overlay: null,
     libFilter: 'all',
@@ -115,7 +121,8 @@
     editorManifest: null,
     editorFraming: { x: 50, y: 45, zoom: 1 },
     dataFolder: '',
-    version: '1.0.0'
+    backupsFolder: '',
+    version: '1.5.0'
   };
 
   const notices = [];
@@ -214,7 +221,6 @@
     manageClose: $('#manageClose'),
     manageStats: $('#manageStats'),
     editRow: $('#editRow'),
-    steamRow: $('#steamRow'),
     resetArtRow: $('#resetArtRow'),
     removeGameBtn: $('#removeGameBtn'),
     manageDoneBtn: $('#manageDoneBtn'),
@@ -335,6 +341,30 @@
     themeFolder: $('#themeFolder'),
     themeCurtain: $('#themeCurtain'),
     themeCurtainName: $('#themeCurtainName'),
+    profileVersion: $('#profileVersion'),
+    settingsRow: $('#settingsRow'),
+    libSort: $('#libSort'),
+    settingsPlayerName: $('#settingsPlayerName'),
+    settingsSaveName: $('#settingsSaveName'),
+    settingsUseSystemName: $('#settingsUseSystemName'),
+    settingsOsUser: $('#settingsOsUser'),
+    settingsUserTag: $('#settingsUserTag'),
+    settingsTrayRow: $('#settingsTrayRow'),
+    settingsTraySwitch: $('#settingsTraySwitch'),
+    settingsAutoBackupRow: $('#settingsAutoBackupRow'),
+    settingsAutoBackupSwitch: $('#settingsAutoBackupSwitch'),
+    settingsFullscreenRow: $('#settingsFullscreenRow'),
+    settingsExport: $('#settingsExport'),
+    settingsImport: $('#settingsImport'),
+    settingsCsv: $('#settingsCsv'),
+    settingsOpenData: $('#settingsOpenData'),
+    settingsOpenBackups: $('#settingsOpenBackups'),
+    settingsStorageStats: $('#settingsStorageStats'),
+    settingsPlayStats: $('#settingsPlayStats'),
+    settingsSessions: $('#settingsSessions'),
+    settingsSessionTag: $('#settingsSessionTag'),
+    settingsVersion: $('#settingsVersion'),
+    settingsBackupNote: $('#settingsBackupNote'),
     contextMenu: $('#contextMenu'),
     homeView: $('#homeView'),
     layoutBtn: $('#layoutBtn')
@@ -1091,7 +1121,9 @@
         typeSeed: state.settings.typeSeed,
         calm: state.settings.calm,
         layout: state.layout,
-        playerName: state.settings.playername
+        closeToTray: state.settings.closeToTray,
+        autoBackup: state.settings.autoBackup,
+        librarySort: state.settings.librarySort
       });
     }, 180);
   }
@@ -1589,7 +1621,7 @@
      only cross-fades that area, so the shell never feels rebuilt.
      ============================================================ */
 
-  const VIEW_IDS = { home: 'homeView', library: 'libraryOverlay', appearance: 'appearanceOverlay' };
+  const VIEW_IDS = { home: 'homeView', library: 'libraryOverlay', appearance: 'appearanceOverlay', settings: 'settingsView' };
 
   function viewElement(name) {
     return document.getElementById(VIEW_IDS[name]);
@@ -1618,6 +1650,11 @@
       renderAppearance();
       syncAppearanceChips();
       requestAnimationFrame(updateAppearanceScrollState);
+      setTimeout(refitLogos, 120);
+    }
+    if (name === 'settings') {
+      renderSettings();
+      refreshSettingsData();
       setTimeout(refitLogos, 120);
     }
 
@@ -1671,6 +1708,7 @@
       if (state.libFilter === 'recent' && !game.lastPlayedUtc) return false;
       if (state.libFilter === 'favorite' && !game.favorite) return false;
       if (state.libFilter === 'steam' && game.source !== 'steam') return false;
+      if (state.libFilter === 'missing' && game.exists) return false;
       if (query) {
         const haystack = `${game.zh} ${game.name} ${(game.genres || []).join(' ')} ${game.genre || ''}`.toLowerCase();
         if (!haystack.includes(query)) return false;
@@ -1683,6 +1721,7 @@
     const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
     const favorites = state.games.filter((game) => game.favorite).length;
     const steamCount = state.games.filter((game) => game.source === 'steam').length;
+    const missingCount = state.games.filter((game) => !game.exists).length;
 
     els.libStats.innerHTML = `
       <span><b>${state.games.length}</b> 款游戏</span>
@@ -1692,13 +1731,32 @@
       <span><b>${steamCount}</b> 款来自 Steam</span>
       <span class="lib-sep"></span>
       <span><b>${favorites}</b> 款收藏</span>
+      ${missingCount ? `<span class="lib-sep"></span><span><b>${missingCount}</b> 款程序缺失</span>` : ''}
     `;
 
     $$('.filter', els.libFilters).forEach((button) => {
       button.classList.toggle('is-active', button.dataset.filter === state.libFilter);
     });
+    if (els.libSort) els.libSort.value = state.settings.librarySort || 'recent';
 
     const list = filterGames();
+    const sort = state.settings.librarySort || 'recent';
+    const byRecent = (a, b) => {
+      const at = a.lastPlayedUtc ? new Date(a.lastPlayedUtc).getTime() : 0;
+      const bt = b.lastPlayedUtc ? new Date(b.lastPlayedUtc).getTime() : 0;
+      return bt - at;
+    };
+    if (sort === 'name') {
+      list.sort((a, b) => String(a.zh || a.name || '').localeCompare(String(b.zh || b.name || ''), 'zh-Hans-CN'));
+    } else if (sort === 'playtime') {
+      list.sort((a, b) => (b.playtimeSeconds || 0) - (a.playtimeSeconds || 0));
+    } else if (sort === 'added') {
+      list.sort((a, b) => String(b.addedUtc || '').localeCompare(String(a.addedUtc || '')));
+    } else if (sort === 'launches') {
+      list.sort((a, b) => (b.launchCount || 0) - (a.launchCount || 0));
+    } else {
+      list.sort(byRecent);
+    }
     if (state.games.length === 0) {
       els.libGrid.style.display = 'none';
       els.libEmpty.hidden = false;
@@ -1709,13 +1767,7 @@
     }
 
     const current = currentGame();
-    const currentPos = current ? list.findIndex((game) => game.id === current.id) : -1;
-    let featuredId = null;
-    if (currentPos >= 0) {
-      const [featured] = list.splice(currentPos, 1);
-      list.unshift(featured);
-      featuredId = featured.id;
-    }
+    const featuredId = current && list.some((game) => game.id === current.id) ? current.id : null;
 
     els.libEmpty.hidden = list.length !== 0;
     els.libGrid.style.display = list.length ? '' : 'none';
@@ -1945,7 +1997,6 @@
       ['版本 / 来源', game.source === 'steam' ? `Steam · App ${game.steamAppId || '—'}` : '手动添加']
     ].map(([label, value]) => `<div class="manage-stat"><span>${esc(label)}</span><b title="${esc(value)}">${esc(value)}</b></div>`).join('');
 
-    els.steamRow.hidden = game.source !== 'steam';
     els.resetArtRow.hidden = !game.exists;
     resetRemoveConfirm();
   }
@@ -2152,6 +2203,223 @@
     el.classList.toggle('is-at-end', !scrollable || el.scrollTop + el.clientHeight >= el.scrollHeight - 10);
   }
 
+  /* ============================================================
+     SETTINGS · local identity, offline data, play history
+     ============================================================ */
+
+  function formatBytes(bytes) {
+    const value = Number(bytes) || 0;
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    if (value < 1024 * 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB`;
+    return `${(value / 1024 / 1024 / 1024).toFixed(2)} GB`;
+  }
+
+  function formatSessionTime(iso) {
+    if (!iso) return '—';
+    const date = new Date(iso);
+    if (!Number.isFinite(date.getTime())) return '—';
+    const pad = (value) => String(value).padStart(2, '0');
+    return `${date.getMonth() + 1}/${date.getDate()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  function setPrefSwitch(row, control, value) {
+    if (row) row.setAttribute('aria-checked', String(!!value));
+    if (control) control.classList.toggle('on', !!value);
+  }
+
+  function statCard(label, value, sub) {
+    return `<div class="settings-stat"><span>${esc(label)}</span><b>${esc(value)}</b><em>${esc(sub || '')}</em></div>`;
+  }
+
+  function renderSettings() {
+    if (!els.settingsPlayerName) return;
+    const stats = state.stats || {};
+    const storage = state.storage || {};
+    const games = state.games || [];
+
+    els.settingsPlayerName.value = state.settings.playername || '';
+    if (els.settingsOsUser) els.settingsOsUser.textContent = state.userName || '—';
+    if (els.settingsVersion) els.settingsVersion.textContent = state.version;
+    if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
+    setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
+    setPrefSwitch(els.settingsAutoBackupRow, els.settingsAutoBackupSwitch, state.settings.autoBackup !== false);
+
+    if (els.settingsStorageStats) {
+      els.settingsStorageStats.innerHTML = [
+        statCard('游戏库', `${games.length} 款`, formatBytes(storage.libraryBytes)),
+        statCard('封面文件', `${storage.mediaFiles || 0} 个`, formatBytes(storage.mediaBytes)),
+        statCard('游玩记录', `${stats.sessionCount || 0} 次`, storage.lastBackupUtc ? `上次备份 ${formatSessionTime(storage.lastBackupUtc)}` : '尚未备份'),
+        statCard('缺失程序', `${stats.missingCount || 0} 款`, state.settings.autoBackup !== false ? '自动备份已开' : '自动备份已关')
+      ].join('');
+    }
+
+    if (els.settingsPlayStats) {
+      els.settingsPlayStats.innerHTML = [
+        statCard('总游玩', formatHoursShort(stats.totalSeconds || 0), `${stats.totalLaunches || 0} 次启动`),
+        statCard('今日', formatHoursShort(stats.todaySeconds || 0), '本机真实计时'),
+        statCard('最近 7 天', formatHoursShort(stats.weekSeconds || 0), '含今天'),
+        statCard('最常玩', stats.topGameName || '—', formatHoursShort(stats.topGameSeconds || 0))
+      ].join('');
+    }
+    if (els.settingsSessionTag) els.settingsSessionTag.textContent = `${stats.sessionCount || 0} 次`;
+
+    if (els.settingsSessions) {
+      const recent = Array.isArray(stats.recent) ? stats.recent.slice(0, 10) : [];
+      els.settingsSessions.innerHTML = recent.length
+        ? recent.map((session) => `
+            <div class="session-row">
+              <b>${esc(session.gameName || '游戏')}</b>
+              <span>${esc(formatSessionTime(session.endedUtc))}${session.crashed ? ' · 异常退出' : ''}</span>
+              <em>${esc(formatHoursShort(session.seconds || 0))}</em>
+            </div>`).join('')
+        : '<div class="session-empty">还没有游玩记录。启动游戏后，时长会记录在这里。</div>';
+    }
+
+    if (els.settingsBackupNote) {
+      els.settingsBackupNote.textContent = storage.lastBackupUtc
+        ? `数据包包含游戏库、设置、游玩记录与封面；不包含游戏本体与主题。上次备份：${formatSessionTime(storage.lastBackupUtc)}。`
+        : '数据包包含游戏库、设置、游玩记录与封面；不包含游戏本体与主题文件。';
+    }
+    if (els.settingsOpenBackups) els.settingsOpenBackups.hidden = !state.backupsFolder;
+    if (els.settingsUserTag) els.settingsUserTag.textContent = state.settings.playername ? '本机用户' : 'Windows 用户';
+  }
+
+  async function refreshSettingsData() {
+    if (!hasBridge) return;
+    const result = await call('getStats');
+    if (!result || !result.ok) return;
+    state.stats = result.stats || state.stats;
+    state.storage = result.storage || state.storage;
+    renderSettings();
+  }
+
+  async function useSystemPlayerName() {
+    const name = state.userName || '';
+    if (!name) {
+      toast('没有读取到 Windows 用户名', 'alert');
+      return;
+    }
+    state.settings.playername = name;
+    els.settingsPlayerName.value = name;
+    els.profileName.textContent = name;
+    const letter = name.slice(0, 1).toUpperCase();
+    els.avatarLetter.textContent = letter;
+    els.avatarLarge.textContent = letter;
+    const result = await call('saveSettings', { useSystemPlayerName: true });
+    if (result && result.ok === false) toast(result.error || '保存失败', 'alert');
+    else toast(`显示名已跟随 Windows 用户 · ${name}`, 'check');
+    renderSettings();
+  }
+
+  async function savePlayerName() {
+    const name = (els.settingsPlayerName.value || '').trim();
+    if (!name) {
+      toast('请输入显示名称', 'alert');
+      els.settingsPlayerName.focus();
+      return;
+    }
+    state.settings.playername = name;
+    els.profileName.textContent = name;
+    const letter = name.slice(0, 1).toUpperCase();
+    els.avatarLetter.textContent = letter;
+    els.avatarLarge.textContent = letter;
+    const result = await call('saveSettings', { playerName: name });
+    if (result && result.ok === false) toast(result.error || '保存失败', 'alert');
+    else toast('玩家名称已保存', 'check');
+  }
+
+  function toggleTraySetting() {
+    state.settings.closeToTray = !state.settings.closeToTray;
+    setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
+    saveSettings();
+    toast(state.settings.closeToTray ? '关闭窗口时最小化到托盘' : '关闭窗口时每次询问', 'moon');
+  }
+
+  function toggleAutoBackup() {
+    state.settings.autoBackup = state.settings.autoBackup === false;
+    setPrefSwitch(els.settingsAutoBackupRow, els.settingsAutoBackupSwitch, state.settings.autoBackup);
+    saveSettings();
+    toast(state.settings.autoBackup ? '每天自动备份已开启' : '每天自动备份已关闭', 'check');
+  }
+
+  function showExportResult(title, path, detail) {
+    return window.NovaOverlays.dialog({
+      title,
+      text: `${detail || ''}\n${path}`,
+      icon: 'check',
+      actions: [
+        { label: '在资源管理器中显示', value: 'reveal', icon: 'folder' },
+        { label: '知道了', value: 'ok', style: 'primary' }
+      ]
+    }).then((choice) => {
+      if (choice === 'reveal') call('revealPath', { path });
+    });
+  }
+
+  async function exportPack() {
+    if (!els.settingsExport || els.settingsExport.disabled) return;
+    els.settingsExport.disabled = true;
+    const label = els.settingsExport.querySelector('span');
+    if (label) label.textContent = '正在导出…';
+    const result = await call('exportPack');
+    els.settingsExport.disabled = false;
+    if (label) label.textContent = '导出数据包';
+    if (!result || !result.ok) {
+      toast(result?.error || '导出失败', 'alert');
+      return;
+    }
+    if (state.storage) state.storage.lastBackupUtc = new Date().toISOString();
+    renderSettings();
+    await showExportResult('数据包已导出', result.path,
+      `${result.games} 款游戏 · ${result.mediaFiles} 个封面 · ${formatBytes(result.size)}`);
+  }
+
+  async function exportRecords() {
+    const result = await call('exportRecords');
+    if (!result || !result.ok) {
+      toast(result?.error || '导出失败', 'alert');
+      return;
+    }
+    await showExportResult('游玩记录已导出', result.path, 'CSV 可用 Excel 或文本编辑器打开。');
+  }
+
+  async function importPack() {
+    if (!window.NovaOverlays || !window.NovaOverlays.pickerOpen) return;
+    const path = await window.NovaOverlays.pickerOpen({
+      filter: 'pack',
+      title: '选择数据包',
+      note: '选择 .nova-pack 或 .zip；导入前会自动备份本机库',
+      startPath: (state.storage && (state.storage.exports || state.storage.root)) || state.dataFolder || ''
+    });
+    if (!path) return;
+    const mode = await window.NovaOverlays.dialog({
+      title: '导入数据包',
+      text: '「合并」保留本机游戏并按 Steam ID / 路径 / 名称去重；「替换」用数据包覆盖本机游戏库与设置。导入前会自动备份当前 library.json。',
+      icon: 'up',
+      actions: [
+        { label: '合并到本机', value: 'merge', style: 'primary', icon: 'shuffle' },
+        { label: '替换本机库', value: 'replace', icon: 'alert' },
+        { label: '取消', value: null }
+      ]
+    });
+    if (!mode) return;
+    const result = await call('importPack', { path, mode });
+    if (!result || !result.ok) {
+      toast(result?.error || '导入失败', 'alert');
+      return;
+    }
+    const missing = result.missing ? `其中 ${result.missing} 款需要重新指定程序路径。` : '所有游戏程序路径都可用。';
+    await window.NovaOverlays.dialog({
+      title: '导入完成',
+      text: `共 ${result.games} 款游戏：新增 ${result.added}，合并 ${result.replaced}，封面 ${result.mediaFiles} 个。${missing}`,
+      icon: 'check',
+      actions: [{ label: '重新载入界面', value: 'reload', style: 'primary' }]
+    });
+    location.reload();
+  }
+
+
   function openAppearance() {
     if (state.overlay) return;
     closePopovers();
@@ -2160,6 +2428,17 @@
 
   function closeAppearance(options = {}) {
     if (state.view !== 'appearance') return;
+    setView('home');
+  }
+
+  function openSettings() {
+    if (state.overlay) return;
+    closePopovers();
+    setView('settings');
+  }
+
+  function closeSettings() {
+    if (state.view !== 'settings') return;
     setView('home');
   }
 
@@ -2263,6 +2542,11 @@
 
   /** The window's close button and Alt+F4 both land here. */
   async function askClose() {
+    if (state.settings.closeToTray) {
+      call('hideToTray');
+      toast('已最小化到托盘 · 游戏仍在计时', 'moon');
+      return;
+    }
     const choice = await window.NovaOverlays.dialog({
       title: '关闭 NOVA',
       text: '可以最小化到托盘，让游戏继续计时。',
@@ -3165,6 +3449,41 @@
     else setTimeout(warm, 900);
   }
 
+  function bindSettings() {
+    if (els.settingsSaveName) els.settingsSaveName.addEventListener('click', savePlayerName);
+    if (els.settingsUseSystemName) els.settingsUseSystemName.addEventListener('click', useSystemPlayerName);
+    if (els.settingsPlayerName) {
+      els.settingsPlayerName.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          savePlayerName();
+        }
+      });
+    }
+    if (els.settingsTrayRow) els.settingsTrayRow.addEventListener('click', toggleTraySetting);
+    if (els.settingsAutoBackupRow) els.settingsAutoBackupRow.addEventListener('click', toggleAutoBackup);
+    if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));
+    if (els.settingsExport) els.settingsExport.addEventListener('click', exportPack);
+    if (els.settingsImport) els.settingsImport.addEventListener('click', importPack);
+    if (els.settingsCsv) els.settingsCsv.addEventListener('click', exportRecords);
+    if (els.settingsOpenData) els.settingsOpenData.addEventListener('click', () => call('openDataFolder'));
+    if (els.settingsOpenBackups) els.settingsOpenBackups.addEventListener('click', () => call('openBackupsFolder'));
+    if (els.libSort) {
+      els.libSort.addEventListener('change', () => {
+        state.settings.librarySort = els.libSort.value;
+        saveSettings();
+        renderLibrary();
+        audio.select();
+      });
+    }
+    if (els.settingsRow) {
+      els.settingsRow.addEventListener('click', () => {
+        closePopovers();
+        openSettings();
+      });
+    }
+  }
+
   function bindThemePanel() {
     if (els.themeToggle) {
       els.themeToggle.addEventListener('click', () => {
@@ -3842,6 +4161,13 @@
           if (state.view === 'appearance') setView('home');
           else openAppearance();
           break;
+        case 's':
+        case 'S':
+          if (event.ctrlKey || event.metaKey) return;
+          event.preventDefault();
+          if (state.view === 'settings') setView('home');
+          else openSettings();
+          break;
         case '/':
           event.preventDefault();
           openLibrary({ search: true });
@@ -3885,6 +4211,7 @@
     if (state.overlay === 'editor') return 'editor';
     if (state.overlay === 'scanner') return 'scanner';
     if (state.view === 'appearance') return 'appearance';
+    if (state.view === 'settings') return 'settings';
     if (state.view === 'library') return 'library';
     if (state.overlay === 'details') return 'details';
     if (els.notifPanel.classList.contains('is-open')) return 'notifications';
@@ -3951,6 +4278,10 @@
       els.appearanceOptions.scrollBy({ top: delta * 260, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
       return;
     }
+    if (scope === 'settings') {
+      $('.settings-options')?.scrollBy({ top: delta * 260, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+      return;
+    }
     if (scope === 'details') {
       $('.detail-body', els.detailsOverlay)?.scrollBy({ top: delta * 240, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
     }
@@ -4000,6 +4331,7 @@
       if (scope === 'editor') { closeEditor(); return; }
       if (scope === 'scanner') { closeScanner(); return; }
       if (scope === 'appearance') { closeAppearance(); return; }
+      if (scope === 'settings') { closeSettings(); return; }
       if (scope === 'details') {
         if (state.manageOpen) closeManage();
         else closeDetails();
@@ -4139,10 +4471,6 @@
       closeDetails({ focus: false, sound: false });
       openEditor(game);
     });
-    els.steamRow.addEventListener('click', () => {
-      const game = currentGame();
-      if (game) call('openStorePage', { steamAppId: game.steamAppId });
-    });
     els.resetArtRow.addEventListener('click', resetArtwork);
     els.revealBtn.addEventListener('click', () => {
       const game = currentGame();
@@ -4199,6 +4527,7 @@
         const view = button.dataset.nav;
         if (view === 'library') openLibrary();
         else if (view === 'appearance') openAppearance();
+        else if (view === 'settings') openSettings();
         else setView('home');
       });
     });
@@ -4440,17 +4769,26 @@
   function applyBoot(boot) {
     state.games = Array.isArray(boot.games) ? boot.games : [];
     state.settings = {
-      playername: boot.settings?.playername || '玩家',
+      playername: boot.settings?.playername || boot.userName || '玩家',
       sound: boot.settings?.sound !== false,
       reduceMotion: boot.settings?.reduceMotion === true,
       styleMode: boot.settings?.styleMode === 'system' ? 'system' : 'adaptive',
       typeSeed: Number.isFinite(boot.settings?.typeSeed) ? boot.settings.typeSeed : 0,
       calm: boot.settings?.calm === true,
       theme: boot.settings?.theme || 'nova',
-      layout: boot.settings?.layout === 'rail' ? 'rail' : 'row'
+      layout: boot.settings?.layout === 'rail' ? 'rail' : 'row',
+      closeToTray: boot.settings?.closeToTray === true,
+      autoBackup: boot.settings?.autoBackup !== false,
+      librarySort: boot.settings?.librarySort || 'recent'
     };
+    state.userName = boot.userName || '';
+    state.stats = boot.stats || null;
+    state.storage = boot.storage || null;
     state.dataFolder = boot.dataFolder || '';
-    state.version = boot.version || '1.0.0';
+    state.backupsFolder = boot.backupsFolder || '';
+    state.version = boot.version || '1.5.0';
+    if (els.libSort) els.libSort.value = state.settings.librarySort;
+    if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
     state.running = new Map();
     (boot.running || []).forEach((session) => state.running.set(session.gameId, session));
 
@@ -4509,6 +4847,7 @@
     bindNativeGuards();
     bindContextMenu();
     bindThemePanel();
+    bindSettings();
 
     document.body.classList.toggle('is-empty', !state.games.length);
     applyAccent(currentGame());

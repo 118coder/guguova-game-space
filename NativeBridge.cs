@@ -142,9 +142,14 @@ public sealed class NativeBridge
                 "deleteGame" => DeleteGame(args),
                 "setFavorite" => SetFavorite(args),
                 "revealGame" => RevealGame(args),
-                "openStorePage" => OpenStorePage(args),
+                "revealPath" => RevealPath(args),
                 "browseFile" => BrowseFile(args),
                 "openDataFolder" => OpenDataFolder(),
+                "openBackupsFolder" => OpenBackupsFolder(),
+                "exportPack" => ExportPack(),
+                "importPack" => ImportPack(args),
+                "exportRecords" => ExportRecords(),
+                "getStats" => new { ok = true, stats = _store.BuildStats(), storage = _store.BuildStorage() },
                 "minimizeWindow" => DoWindow(w => w.WindowState = System.Windows.WindowState.Minimized),
                 "beginDrag" => DoWindow(w => w.BeginNativeDrag()),
                 "toggleMaximizeWindow" => DoWindow(w => w.ToggleMaximize()),
@@ -326,18 +331,23 @@ public sealed class NativeBridge
 
     private object BuildBootPayload()
     {
+        _store.EnsurePlayerIdentity();
         var library = _store.Library;
         var current = _store.Find(library.CurrentGameId ?? "") ?? library.Games.FirstOrDefault();
         return new
         {
             ok = true,
-            version = "1.0.0",
+            version = "1.5.0",
             platform = "win32",
+            userName = Environment.UserName,
             dataFolder = AppPaths.Root,
+            backupsFolder = AppPaths.Backups,
             currentGameId = current?.Id,
             settings = library.Settings,
             games = library.Games.Select(ToPayload).ToList(),
             running = _launcher.Running,
+            stats = _store.BuildStats(),
+            storage = _store.BuildStorage(),
             steamRoot = GameScanner.FindSteamRoot()
         };
     }
@@ -438,7 +448,29 @@ public sealed class NativeBridge
             if (args.TryGetProperty("typeSeed", out var seed) && seed.TryGetInt32(out var seedValue))
                 settings.TypeSeed = seedValue;
             if (args.TryGetProperty("playerName", out var player) && player.ValueKind == JsonValueKind.String)
-                settings.Playername = player.GetString() ?? settings.Playername;
+            {
+                var name = (player.GetString() ?? "").Trim();
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    settings.Playername = name;
+                    settings.PlayerNameCustom = true;
+                }
+            }
+            if (args.TryGetProperty("useSystemPlayerName", out var systemName) && systemName.ValueKind == JsonValueKind.True)
+            {
+                settings.Playername = Environment.UserName;
+                settings.PlayerNameCustom = false;
+            }
+            if (args.TryGetProperty("closeToTray", out var tray) && tray.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.CloseToTray = tray.GetBoolean();
+            if (args.TryGetProperty("autoBackup", out var backup) && backup.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.AutoBackup = backup.GetBoolean();
+            if (args.TryGetProperty("librarySort", out var sort) && sort.ValueKind == JsonValueKind.String)
+            {
+                var value = sort.GetString() ?? "recent";
+                settings.LibrarySort = value is "recent" or "name" or "playtime" or "added" or "launches"
+                    ? value : "recent";
+            }
         }
         _store.Save();
         return new { ok = true };
@@ -898,22 +930,23 @@ public sealed class NativeBridge
         }
     }
 
-    private object OpenStorePage(JsonElement args)
+    private object RevealPath(JsonElement args)
     {
-        var appId = GetString(args, "steamAppId");
-        if (string.IsNullOrWhiteSpace(appId)) return new { ok = false };
+        var path = GetString(args, "path");
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return new { ok = false };
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = $"https://store.steampowered.com/app/{appId}",
+                FileName = "explorer.exe",
+                Arguments = $"/select,\"{path}\"",
                 UseShellExecute = true
             });
             return new { ok = true };
         }
-        catch
+        catch (Exception ex)
         {
-            return new { ok = false };
+            return new { ok = false, error = ex.Message };
         }
     }
 
@@ -949,6 +982,70 @@ public sealed class NativeBridge
         catch
         {
             return new { ok = false };
+        }
+    }
+
+    private object OpenBackupsFolder()
+    {
+        try
+        {
+            AppPaths.Ensure();
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = AppPaths.Backups,
+                UseShellExecute = true
+            });
+            return new { ok = true, path = AppPaths.Backups };
+        }
+        catch (Exception ex)
+        {
+            return new { ok = false, error = ex.Message };
+        }
+    }
+
+    private object ExportPack()
+    {
+        var result = BackupService.Export(_store);
+        return new
+        {
+            ok = result.Ok,
+            error = result.Error,
+            path = result.Path,
+            size = result.Size,
+            games = result.Games,
+            mediaFiles = result.MediaFiles
+        };
+    }
+
+    private object ImportPack(JsonElement args)
+    {
+        var path = GetString(args, "path");
+        var mode = GetString(args, "mode") == "replace" ? "replace" : "merge";
+        var result = BackupService.Import(_store, path ?? "", mode);
+        return new
+        {
+            ok = result.Ok,
+            error = result.Error,
+            backupPath = result.BackupPath,
+            games = result.Games,
+            added = result.Added,
+            replaced = result.Replaced,
+            mediaFiles = result.MediaFiles,
+            missing = result.Missing
+        };
+    }
+
+    private object ExportRecords()
+    {
+        try
+        {
+            var path = BackupService.ExportRecordsCsv(_store);
+            return new { ok = true, path };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("export records", ex);
+            return new { ok = false, error = ex.Message };
         }
     }
 

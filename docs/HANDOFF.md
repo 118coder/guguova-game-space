@@ -1,16 +1,16 @@
 # NOVA 交接文档
 
 > 写给接手这个项目的人（或下一个 AI 会话）。
-> 最后更新：2026-10-19 · 渲染层版本 **1.4.0**（本文正文写于 1.2.9，改版记录在 0.0 各段，
+> 最后更新：2026-10-19 · 渲染层版本 **1.5.0**（本文正文写于 1.2.9，改版记录在 0.0 各段，
 > 主题/接口的最新状态在 `docs/HANDOFF-THEMES.md` 与 `docs/THEME-INTERFACES.md`）
 
 先读这一页，再按需跳到具体章节。文中所有路径都相对于仓库根目录。
 
 ---
 
-## 0.00 30 秒交接（2026-10-19 · v1.4.0）
+## 0.00 30 秒交接（2026-10-19 · v1.5.0）
 
-- 渲染层版本 **1.4.0**；共 **11 套主题**：`nova` + `aurum` / `endfield` / `codex` / `zerohour` / `mnemo` / `riot` / `grimoire` / `riso` / `summer` / `broadcast`。
+- 渲染层版本 **1.5.0**；共 **11 套主题**：`nova` + `aurum` / `endfield` / `codex` / `zerohour` / `mnemo` / `riot` / `grimoire` / `riso` / `summer` / `broadcast`。
 - **开屏 11 套 preset 全部互不相同**：`gilded`（NOVA 星核）/ `aurum`（金门）/
   `endfield` / `zerohour` / `codex`（星轨展开）/ `broadcast` / `draft`（SUMMER）/
   `riso`（三色套印）/ `vinyl`（RIOT）/ `seal`（GRIMOIRE）/ `mnemo`。
@@ -33,10 +33,68 @@
 - ZERO HOUR 的主视觉是**黑底白字的 command 台**：青柠做选中、警示黄做提醒、品红只做稀有度；
   不要改回白纸卡片、粗白边、胶带贴纸或硬偏移阴影。MNEMO 已改名**神秘管理局**，
   色相为雾紫/靛紫/梅红/琥珀；梅红错误牌只用于开场/错误态。
+- **正式启动器数据层**：`docs/LAUNCHER-FEATURES.md` 是本轮补齐表；设置中心（快捷键 `S`）、
+  `.nova-pack` 导出/导入、每日自动备份、游玩记录/统计、CSV、库排序/缺失筛选都在 1.5.0。
 - **主题精修单独交接**：见 **`docs/HANDOFF-THEMES.md`**（本轮进度、量化方法、
   坑与下一轮清单）。**它的 §0.00b 是最新状态**，旧表只作历史。
 - 交接文件：本文件 + `docs/HANDOFF-THEMES.md` + `docs/THEME-INTERFACES.md` +
-  `docs/themes/`（单主题接口卡）+ `docs/THEME-COVERAGE.md` + `docs/THEMES.md` + `README.md`。
+  `docs/themes/`（单主题接口卡）+ `docs/LAUNCHER-FEATURES.md` + `docs/THEME-COVERAGE.md` +
+  `docs/THEMES.md` + `README.md`。
+
+---
+
+## 0.0a 2026-10-19 · v1.5.0 正式启动器
+
+从「主题展示型启动器」升级为**离线单机启动器**。功能补齐表在
+[`docs/LAUNCHER-FEATURES.md`](LAUNCHER-FEATURES.md)。
+
+### 新增
+
+1. **本机用户**：`PlayerSettings.PlayerNameCustom` 为 false 时，显示名跟随
+   `Environment.UserName`；旧默认 `Yuki/玩家` 会在首次 boot 时迁移成系统账户。
+   设置页可改显示名，保存后置 `PlayerNameCustom=true`。
+2. **设置中心**：第 4 个导航「设置」（快捷键 `S`），单栏面板：
+   玩家 / 启动与关闭 / 数据与备份 / 游玩统计 / 关于。
+3. **数据包 `.nova-pack`**（`Services/BackupService.cs`）：
+   - 导出：`library.json` + `manifest.json` + `media/` 打 zip；手动导出到
+     `Documents/NOVA Backups`，返回路径/大小/封面数。
+   - 导入：`merge`（按 SteamAppId → exePath → name 去重合并）或 `replace`；
+     导入前自动复制 `library.json.before-import-<stamp>.json`；封面路径重写为本机
+     `media/<id>/...`；缺失 exe 标为“程序缺失”；完成后 UI reload。
+   - 自动备份：`MainWindow.OnLoaded` 后台 `EnsureDailyBackup`，每天一次到
+     `%LOCALAPPDATA%/NOVA Game Space/backups/NOVA-auto-*.nova-pack`，保留 5 份。
+4. **游玩记录**：`GameEntry.Sessions`（最近 200 条）记录开始/结束/秒数/是否异常退出；
+   `StoreService.BuildStats()` 输出总时长、今日、最近 7 天、总启动、缺失数、最常玩与
+   最近 20 条会话；设置页显示统计与最近记录。
+5. **CSV 导出**：`exportRecords` 输出 `NOVA-playtime-*.csv`。
+6. **游戏库排序/筛选**：最近游玩 / 名称 / 时长 / 添加时间 / 启动次数；
+   新增“程序缺失”筛选；排序写入 `settings.librarySort`，随数据包迁移。
+7. **关闭到托盘**：设置 `closeToTray`；关闭窗口时直接 `hideToTray`，不再每次询问。
+8. **离线收口**：移除 Steam 商店在线入口与 `openStorePage` 桥接；设置页明确
+   “不登录、不联网、不上传”；预览/资源全部本地。
+
+### 新增桥接方法
+
+`exportPack` / `importPack` / `exportRecords` / `getStats` / `revealPath` /
+`openBackupsFolder`；`saveSettings` 新增 `closeToTray` / `autoBackup` /
+`librarySort` / `playerName`（写入 custom 标记）；`boot` 新增 `userName` /
+`stats` / `storage` / `backupsFolder`。
+
+### 验收
+
+- boot：`userName=12290`、`playername=12290`、`version=1.5.0`。
+- 导出：6 款游戏 / 100 封面 / 约 14 MB；CSV 成功。
+- 导入 merge：新增 0、合并 6、封面 100、缺失 0，自动生成 before-import 备份。
+- 自动备份：启动后生成 `NOVA-auto-20261019-205114.nova-pack`。
+- 设置页在 1439×1124 / 960×600、深色/浅色主题下可读可滚动。
+- 关闭到托盘、自动备份、玩家名、排序均实测持久化。
+
+### 注意
+
+- 数据包**不包含游戏本体与主题**；主题在用户目录 `themes/`，可单独复制。
+- 导入到另一台电脑后，exe 路径通常不同；在游戏详情→管理→编辑里重新指定。
+- 手动导出在 Documents；自动备份在 AppData；两者都是本地，不上传。
+- `themes/` 与 `docs/` 的版本仍按主题表；应用版本以 `NovaGameSpace.csproj` 为准。
 
 ---
 

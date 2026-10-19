@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using NovaGameSpace.Models;
@@ -11,6 +12,7 @@ public static class AppPaths
 
     public static string Media { get; } = Path.Combine(Root, "media");
     public static string Themes { get; } = Path.Combine(Root, "themes");
+    public static string Backups { get; } = Path.Combine(Root, "backups");
     public static string LibraryFile { get; } = Path.Combine(Root, "library.json");
     public static string LogFile { get; } = Path.Combine(Root, "nova.log");
     public static string WebRoot { get; } = Path.Combine(AppContext.BaseDirectory, "src");
@@ -21,6 +23,7 @@ public static class AppPaths
         Directory.CreateDirectory(Root);
         Directory.CreateDirectory(Media);
         Directory.CreateDirectory(Themes);
+        Directory.CreateDirectory(Backups);
     }
 }
 
@@ -101,6 +104,9 @@ public sealed class StoreService
             }
             game.Colors ??= new List<string>();
             game.Dna ??= new Models.CoverDna();
+            game.Sessions ??= new List<PlaySession>();
+            if (game.Sessions.Count > 200)
+                game.Sessions.RemoveRange(0, game.Sessions.Count - 200);
 
             // Early Steam imports wrote the install folder into the blurb,
             // which read poorly on the hero. Drop that generated sentence.
@@ -134,6 +140,114 @@ public sealed class StoreService
     }
 
     public GameEntry? Find(string id) => _library.Games.FirstOrDefault(g => g.Id == id);
+
+    /// <summary>
+    /// The display name follows the Windows account until the player types
+    /// their own. Older builds shipped "Yuki" / "玩家" as the default; those
+    /// are treated as untouched defaults and replaced once with the OS user.
+    /// </summary>
+    public bool EnsurePlayerIdentity()
+    {
+        var settings = _library.Settings;
+        if (settings.PlayerNameCustom) return false;
+        var user = Environment.UserName?.Trim();
+        if (string.IsNullOrWhiteSpace(user)) return false;
+        if (!string.IsNullOrWhiteSpace(settings.Playername) &&
+            settings.Playername != "Yuki" && settings.Playername != "玩家") return false;
+        settings.Playername = user;
+        Save();
+        return true;
+    }
+
+    public LauncherStats BuildStats()
+    {
+        var now = DateTimeOffset.Now;
+        var today = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset);
+        var weekStart = today.AddDays(-6);
+
+        var sessions = new List<(DateTimeOffset Ended, SessionInfo Info)>();
+        long todaySeconds = 0;
+        long weekSeconds = 0;
+
+        foreach (var game in _library.Games)
+        {
+            foreach (var session in game.Sessions ?? Enumerable.Empty<PlaySession>())
+            {
+                var ended = ParseSessionTime(session.EndedUtc);
+                if (ended == null) continue;
+                var local = ended.Value.ToLocalTime();
+                if (local >= today) todaySeconds += Math.Max(0, session.Seconds);
+                if (local >= weekStart) weekSeconds += Math.Max(0, session.Seconds);
+                sessions.Add((ended.Value, new SessionInfo(
+                    game.Id,
+                    string.IsNullOrWhiteSpace(game.Zh) ? game.Name : game.Zh,
+                    session.StartedUtc,
+                    session.EndedUtc,
+                    Math.Max(0, session.Seconds),
+                    session.Crashed)));
+            }
+        }
+
+        var top = _library.Games.OrderByDescending(g => g.PlaytimeSeconds).FirstOrDefault();
+        var missing = _library.Games.Count(g =>
+            string.IsNullOrWhiteSpace(g.ExePath) || !File.Exists(g.ExePath));
+
+        return new LauncherStats(
+            _library.Games.Sum(g => Math.Max(0, g.PlaytimeSeconds)),
+            _library.Games.Sum(g => Math.Max(0, g.LaunchCount)),
+            sessions.Count,
+            todaySeconds,
+            weekSeconds,
+            missing,
+            top != null && top.PlaytimeSeconds > 0 ? (string.IsNullOrWhiteSpace(top.Zh) ? top.Name : top.Zh) : null,
+            top?.PlaytimeSeconds ?? 0,
+            sessions.OrderByDescending(s => s.Ended).Take(20).Select(s => s.Info).ToArray());
+    }
+
+    public StorageInfo BuildStorage()
+    {
+        long mediaBytes = 0;
+        var mediaFiles = 0;
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(AppPaths.Media, "*", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    mediaBytes += new FileInfo(file).Length;
+                    mediaFiles += 1;
+                }
+                catch { }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("storage media", ex);
+        }
+
+        long libraryBytes = 0;
+        try
+        {
+            if (File.Exists(AppPaths.LibraryFile)) libraryBytes = new FileInfo(AppPaths.LibraryFile).Length;
+        }
+        catch { }
+
+        return new StorageInfo(
+            AppPaths.Root,
+            AppPaths.Backups,
+            BackupService.DefaultExportDirectory,
+            libraryBytes,
+            mediaBytes,
+            mediaFiles,
+            _library.Settings.LastBackupUtc);
+    }
+
+    private static DateTimeOffset? ParseSessionTime(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        return DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind, out var parsed) ? parsed : null;
+    }
 
     public GameEntry? FindBySteam(string appId) => _library.Games.FirstOrDefault(g => g.SteamAppId == appId);
 

@@ -7,21 +7,21 @@
 <meta name="theme-color" content="#0a0b0b">
 <title>NOVA · 游戏空间</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="fonts.css?v=1.4.0">
-<link rel="stylesheet" href="base.css?v=1.4.0">
-<link rel="stylesheet" href="theme.css?v=1.4.0">
-<link rel="stylesheet" href="cta-palettes.css?v=1.4.0">
-<link rel="stylesheet" href="type.css?v=1.4.0">
-<link rel="stylesheet" href="app.css?v=1.4.0">
-<link rel="stylesheet" href="motion.css?v=1.4.0">
-<link rel="stylesheet" href="views.css?v=1.4.0">
-<link rel="stylesheet" href="dialogs.css?v=1.4.0">
-<link rel="stylesheet" href="themes.css?v=1.4.0">
-<link rel="stylesheet" href="theme-fx.css?v=1.4.0">
-<link rel="stylesheet" href="fx-layers.css?v=1.4.0">
-<link rel="stylesheet" href="theme-kit.css?v=1.4.0">
-<link rel="stylesheet" href="polish.css?v=1.4.0">
-<link rel="stylesheet" href="intro.css?v=1.4.0">
+<link rel="stylesheet" href="fonts.css?v=1.5.0">
+<link rel="stylesheet" href="base.css?v=1.5.0">
+<link rel="stylesheet" href="theme.css?v=1.5.0">
+<link rel="stylesheet" href="cta-palettes.css?v=1.5.0">
+<link rel="stylesheet" href="type.css?v=1.5.0">
+<link rel="stylesheet" href="app.css?v=1.5.0">
+<link rel="stylesheet" href="motion.css?v=1.5.0">
+<link rel="stylesheet" href="views.css?v=1.5.0">
+<link rel="stylesheet" href="dialogs.css?v=1.5.0">
+<link rel="stylesheet" href="themes.css?v=1.5.0">
+<link rel="stylesheet" href="theme-fx.css?v=1.5.0">
+<link rel="stylesheet" href="fx-layers.css?v=1.5.0">
+<link rel="stylesheet" href="theme-kit.css?v=1.5.0">
+<link rel="stylesheet" href="polish.css?v=1.5.0">
+<link rel="stylesheet" href="intro.css?v=1.5.0">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -135,6 +135,7 @@
       <button class="nav-btn is-active" data-nav="home">首页</button>
       <button class="nav-btn" data-nav="library">游戏库</button>
       <button class="nav-btn" data-nav="appearance">外观</button>
+      <button class="nav-btn" data-nav="settings">设置</button>
     </nav>
 
     <div class="top-right">
@@ -304,7 +305,18 @@
               <button class="filter" data-filter="recent">最近游玩</button>
               <button class="filter" data-filter="favorite">已收藏</button>
               <button class="filter" data-filter="steam">Steam</button>
+              <button class="filter" data-filter="missing">程序缺失</button>
             </div>
+            <label class="lib-sort">
+              <span>排序</span>
+              <select id="libSort" aria-label="游戏排序">
+                <option value="recent">最近游玩</option>
+                <option value="name">名称</option>
+                <option value="playtime">游玩时长</option>
+                <option value="added">添加时间</option>
+                <option value="launches">启动次数</option>
+              </select>
+            </label>
           </div>
 
           <div class="lib-grid" id="libGrid"></div>
@@ -506,6 +518,114 @@
           </div>
         </div>
     </section>
+
+    <!-- 设置：本机用户、启动行为、离线数据与记录 -->
+    <section class="view view-appearance view-settings" id="settingsView" aria-label="设置" aria-hidden="true">
+      <div class="appearance-shell settings-shell">
+        <div class="appearance-options settings-options">
+          <header class="appearance-head">
+            <div class="appearance-kicker">NOVA · SETTINGS</div>
+            <h2>设置</h2>
+            <p>本机用户、启动行为与离线数据。所有内容只保存在这台电脑。</p>
+          </header>
+
+          <section class="appearance-section">
+            <div class="section-head">
+              <div><h3>玩家</h3><p>默认读取 Windows 账户名，可以改成自己的显示名。</p></div>
+              <span class="section-tag" id="settingsUserTag">本机用户</span>
+            </div>
+            <div class="settings-field">
+              <label for="settingsPlayerName">显示名称</label>
+              <input id="settingsPlayerName" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Windows 用户名">
+              <button class="btn primary compact" id="settingsSaveName">保存</button>
+              <button class="btn ghost compact" id="settingsUseSystemName">使用 Windows 用户名</button>
+            </div>
+            <div class="settings-note">本机账户：<b id="settingsOsUser">—</b> · 离线运行，不上传</div>
+          </section>
+
+          <section class="appearance-section">
+            <div class="section-head">
+              <div><h3>启动与关闭</h3><p>游戏运行时也可以最小化到托盘继续计时。</p></div>
+            </div>
+            <div class="pref-list">
+              <button class="pref-row" id="settingsTrayRow" role="switch" aria-checked="false">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+                  <span>关闭窗口时最小化到托盘</span>
+                </span>
+                <span class="switch" id="settingsTraySwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsAutoBackupRow" role="switch" aria-checked="true">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+                  <span>每天自动备份数据</span>
+                </span>
+                <span class="pref-hint">保留最近 5 份</span>
+                <span class="switch on" id="settingsAutoBackupSwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsFullscreenRow">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+                  <span>全屏显示</span>
+                </span>
+                <span class="pref-note">F</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="appearance-section">
+            <div class="section-head">
+              <div><h3>数据与备份</h3><p>导出后复制到另一台电脑导入，游戏记录与封面会一起带过去。</p></div>
+              <span class="section-tag" id="settingsDataTag">离线</span>
+            </div>
+            <div class="settings-stats" id="settingsStorageStats"></div>
+            <div class="settings-actions">
+              <button class="btn primary compact" id="settingsExport">
+                <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
+                <span>导出数据包</span>
+              </button>
+              <button class="btn ghost compact" id="settingsImport">
+                <svg class="ic" aria-hidden="true"><use href="#i-up"/></svg>
+                <span>导入数据包</span>
+              </button>
+              <button class="btn ghost compact" id="settingsCsv">
+                <svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>
+                <span>导出游玩记录 CSV</span>
+              </button>
+              <button class="btn ghost compact" id="settingsOpenData">
+                <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+                <span>打开数据文件夹</span>
+              </button>
+              <button class="btn ghost compact" id="settingsOpenBackups">
+                <svg class="ic" aria-hidden="true"><use href="#i-folder-fill"/></svg>
+                <span>打开备份文件夹</span>
+              </button>
+            </div>
+            <div class="settings-note" id="settingsBackupNote">数据包包含游戏库、设置、游玩记录与封面；不包含游戏本体与主题文件。</div>
+          </section>
+
+          <section class="appearance-section">
+            <div class="section-head">
+              <div><h3>游玩统计</h3><p>来自本机真实进程计时。</p></div>
+              <span class="section-tag" id="settingsSessionTag">0 次</span>
+            </div>
+            <div class="settings-stats" id="settingsPlayStats"></div>
+            <div class="recent-sessions" id="settingsSessions"></div>
+          </section>
+
+          <section class="appearance-section">
+            <div class="section-head">
+              <div><h3>关于</h3><p>NOVA Game Space · 离线单机启动器</p></div>
+              <span class="section-tag" id="settingsVersion">1.5.0</span>
+            </div>
+            <div class="settings-about">
+              <p>完全离线：不登录、不联网、不上传。游戏库、游玩记录和封面都保存在本机。</p>
+              <p>迁移：在「数据与备份」导出 <code>.nova-pack</code>，复制到另一台电脑后导入；缺失的游戏程序可在「编辑游戏」里重新指定。</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -571,6 +691,13 @@
       </span>
       <svg class="ic row-chevron" aria-hidden="true"><use href="#i-arrow-right"/></svg>
     </button>
+    <button class="menu-row" id="settingsRow">
+      <span class="row-main">
+        <svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>
+        <span>设置与数据</span>
+      </span>
+      <svg class="ic row-chevron" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+    </button>
     <button class="menu-row" id="quitRow">
       <span class="row-main">
         <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
@@ -580,7 +707,7 @@
   </div>
   <div class="profile-foot">
     <span>NOVA OS</span>
-    <span>1.0.0 · 桌面版</span>
+    <span id="profileVersion">1.5.0 · 桌面版</span>
   </div>
 </div>
 
@@ -639,10 +766,6 @@
           <button class="manage-row" id="editRow">
             <span>编辑游戏信息与封面</span>
             <svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg>
-          </button>
-          <button class="manage-row" id="steamRow">
-            <span>在 Steam 商店中查看</span>
-            <svg class="ic" aria-hidden="true"><use href="#i-external"/></svg>
           </button>
           <button class="manage-row" id="resetArtRow">
             <span>重新生成封面（从程序图标）</span>
@@ -997,14 +1120,14 @@
   <span id="toastText"></span>
 </div>
 
-<script src="motion.js?v=1.4.0" defer></script>
-<script src="focus.js?v=1.4.0" defer></script>
-<script src="surfaces.js?v=1.4.0" defer></script>
-<script src="gamepad.js?v=1.4.0" defer></script>
-<script src="overlays.js?v=1.4.0" defer></script>
-<script src="theme-engine.js?v=1.4.0" defer></script>
-<script src="intro.js?v=1.4.0" defer></script>
-<script src="fx-record.js?v=1.4.0" defer></script>
-<script src="app.js?v=1.4.0" defer></script>
+<script src="motion.js?v=1.5.0" defer></script>
+<script src="focus.js?v=1.5.0" defer></script>
+<script src="surfaces.js?v=1.5.0" defer></script>
+<script src="gamepad.js?v=1.5.0" defer></script>
+<script src="overlays.js?v=1.5.0" defer></script>
+<script src="theme-engine.js?v=1.5.0" defer></script>
+<script src="intro.js?v=1.5.0" defer></script>
+<script src="fx-record.js?v=1.5.0" defer></script>
+<script src="app.js?v=1.5.0" defer></script>
 </body>
 </html>
