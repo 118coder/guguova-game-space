@@ -105,8 +105,13 @@ NOVA-YYYYMMDD-HHmm.nova-pack   (zip)
   记录行；11 主题 × 2 尺寸 22 张 0 告警。
 - 测试条目：正常 boot 2 款真实游戏；`developerMode=true` 时 6 款；`Ctrl+Shift+D`
   往返切换已验证。
-- 发布包：`dist/NOVA-1.5.0-legacy.zip` **3.12 MB**；解压 6.9 MB；manifest 含 SHA-256。
-  包内 `launch.cmd` 的 .NET 4.8 / WebView2 检查已实测。
+- 发布包：
+  - 单文件版 `NOVA-1.5.0-legacy-single.zip` **3.13 MB**：只有一个 exe，
+    Costura 合并托管 DLL，内嵌 WebView2 loader + `src/` + `themes/`；
+    首次运行解压资源；已从干净目录实测启动。
+  - 全主题文件夹版 `NOVA-1.5.0-legacy-full.zip` **5.38 MB**：EXE + `src/` + `themes/`；
+    实测 11 套主题可选。
+  - `launch.cmd` 的 .NET 4.8 / WebView2 检查已实测。
 
 ## 6. 离线原则
 

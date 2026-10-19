@@ -15,8 +15,8 @@ public static class AppPaths
     public static string Backups { get; } = Path.Combine(Root, "backups");
     public static string LibraryFile { get; } = Path.Combine(Root, "library.json");
     public static string LogFile { get; } = Path.Combine(Root, "nova.log");
-    public static string WebRoot { get; } = Path.Combine(AppContext.BaseDirectory, "src");
-    public static string BundledThemes { get; } = Path.Combine(AppContext.BaseDirectory, "themes");
+    public static string WebRoot { get; set; } = Path.Combine(AppContext.BaseDirectory, "src");
+    public static string BundledThemes { get; set; } = Path.Combine(AppContext.BaseDirectory, "themes");
 
     public static void Ensure()
     {

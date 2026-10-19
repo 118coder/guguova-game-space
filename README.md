@@ -333,13 +333,18 @@ dotnet publish -c Release -r win-x64 --self-contained true \
 
 发布产物在 `publish/`，约 163 MB（含 .NET 运行时与本地字体）。
 
-正式发布建议使用流水线，默认产出**约 3.1 MB 的 Legacy 包**：
+正式发布建议使用流水线，默认产出两个 Legacy 包：
 
 ```bash
-bash tools/pipeline.sh                 # 审计 + Legacy 包
+bash tools/pipeline.sh                 # 审计 + 单文件版 + 全主题文件夹版
 bash tools/pipeline.sh --skip-audit    # 快速打包
 bash tools/pipeline.sh --modern        # 额外产出 Modern 自包含大包
 ```
+
+- **单文件版**：约 **3.13 MB** zip，只有一个 `NovaGameSpace-Legacy.exe`，
+  前端与 11 套主题内嵌；首次运行解压到数据目录。
+- **全主题文件夹版**：约 **5.38 MB** zip，EXE + `src/` + `themes/`，
+  主题可直接编辑。
 
 Legacy 包依赖 .NET Framework 4.8 + WebView2（Win10/11 通常已内置；Win7 用 109），
 解压后双击 `launch.cmd`。详见 [docs/RELEASE.md](docs/RELEASE.md) 与

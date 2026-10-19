@@ -18,6 +18,17 @@ public sealed partial class App : System.Windows.Application
     {
         base.OnStartup(e);
         AppPaths.Ensure();
+#if NETFRAMEWORK
+        try
+        {
+            AssetBootstrapper.Ensure();
+            WebView2Bootstrapper.Ensure();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("legacy bootstrap", ex);
+        }
+#endif
 
         // Only one process may own the WebView2 user-data folder. A second
         // launch would fail to create the browser and show an empty window,

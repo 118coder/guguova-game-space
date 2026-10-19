@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Package the offline release.
 
-Default (recommended): the .NET Framework 4.8 legacy host, ~7 MB, Windows
-7 SP1 / 8.1 / 10 / 11 x64, requiring .NET Framework 4.8 + WebView2.
+Default (recommended): the .NET Framework 4.8 legacy host, ~3.5 MB single exe
+with embedded web assets and all themes, plus a full-themes-folder variant.
 Optional: a self-contained .NET 10 modern host (large) for machines without
-.NET Framework 4.8; the pipeline can publish it with --modern.
+.NET Framework 4.8.
 """
 import argparse
 import hashlib
@@ -46,31 +46,30 @@ def copy_tree(source: Path, destination: Path, skip_names=()):
         shutil.copy2(item, target)
 
 
-def write_legacy_readme(stage: Path):
-    text = f"""NOVA Game Space {VERSION} · Legacy
-========================================
+def readme_common(title: str, extra: str) -> str:
+    return f"""NOVA Game Space {VERSION} · {title}
+==========================================
 
 离线单机启动器。游戏库、游玩记录、封面与备份全部保存在本机。
 
 启动
   launch.cmd
 
-系统
+系统 / 依赖
   Windows 7 SP1 / 8.1 / 10 / 11（64 位）
-  这是 Legacy 宿主：.NET Framework 4.8 + WebView2。
-
-依赖
   · .NET Framework 4.8
     Windows 10 1903+ / 11 通常已内置；Win7 SP1 / 8.1 需要安装。
   · Microsoft Edge WebView2 Runtime
     Windows 10 / 11 通常已随 Edge 安装；Win7 / 8.1 请使用 109 版。
-    完全离线时，可把 109 固定运行时解压到：
-      WebView2Runtime\\msedgewebview2.exe
+    完全离线时，可把 109 固定运行时解压到 WebView2Runtime\\
+    （该目录需要包含 msedgewebview2.exe）。
   launch.cmd 会检查这两项，缺失时给出说明。
+
+{extra}
 
 数据目录
   %LOCALAPPDATA%\\NOVA Game Space
-  library.json / media / backups / webview2
+  library.json / media / backups / runtime（内嵌资源）/ webview2
 
 迁移
   设置 → 数据与备份 → 导出 .nova-pack
@@ -78,14 +77,25 @@ def write_legacy_readme(stage: Path):
 
 说明
   · 数据包不包含游戏本体与主题。
-  · 主题在程序目录 themes\\；可单独复制。
   · 测试用假游戏默认隐藏；开发者使用 NOVA_DEV=1 或 Ctrl+Shift+D 查看。
-  · 缓存默认在数据目录 webview2\\，可通过 NOVA_CACHE_ROOT 指向其他磁盘。
+  · 缓存可用 NOVA_CACHE_ROOT 指向其他磁盘。
 
-版本
-  {VERSION} · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+版本 {VERSION} · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}
 """
-    (stage / "README.txt").write_text(text, encoding="utf-8")
+
+
+def write_single_readme(stage: Path):
+    extra = """单文件版
+  只有一个 NovaGameSpace-Legacy.exe（外加 launch.cmd）。首次运行会把内嵌的
+  前端资源与 11 套主题解压到数据目录；主题可在设置里打开主题文件夹编辑。"""
+    (stage / "README.txt").write_text(readme_common("Legacy 单文件版", extra), encoding="utf-8")
+
+
+def write_full_readme(stage: Path):
+    extra = """全主题文件夹版
+  程序目录包含 src\\ 与 themes\\，全部 11 套主题可直接查看、编辑或替换。
+  首次运行仍会把它们同步到用户主题目录。"""
+    (stage / "README.txt").write_text(readme_common("Legacy 全主题文件夹版", extra), encoding="utf-8")
 
 
 def make_zip(stage: Path, output: Path):
@@ -99,25 +109,37 @@ def make_zip(stage: Path, output: Path):
     return output
 
 
-def package_legacy(config: str):
-    source = ROOT / "legacy" / "bin" / config / "net48"
-    stage = DIST / f"NOVA-{VERSION}-legacy"
+def stage_common(source: Path, stage: Path):
     if stage.exists():
         shutil.rmtree(stage)
-    copy_tree(source, stage)
+    copy_tree(source, stage, skip_names={"src", "themes", "runtimes"})
     shutil.copy2(ROOT / "tools" / "launch-legacy.cmd", stage / "launch.cmd")
     shutil.copy2(ROOT / "version.json", stage / "version.json")
-    write_legacy_readme(stage)
     fixed = stage / "WebView2Runtime"
     fixed.mkdir(exist_ok=True)
     (fixed / "README.txt").write_text(
         "把 WebView2 109 固定运行时解压到这里，确保本目录包含 msedgewebview2.exe。\n"
         "如果系统已安装 WebView2 Runtime，则不需要这个目录。\n",
         encoding="utf-8")
-    return stage
 
 
-def package_modern(config: str, modern_dir: Path):
+def package_legacy(config: str):
+    source = ROOT / "legacy" / "bin" / config / "net48"
+    single = DIST / f"NOVA-{VERSION}-legacy-single"
+    stage_common(source, single)
+    write_single_readme(single)
+
+    full = DIST / f"NOVA-{VERSION}-legacy-full"
+    if full.exists():
+        shutil.rmtree(full)
+    shutil.copytree(single, full)
+    copy_tree(source / "src", full / "src")
+    copy_tree(source / "themes", full / "themes")
+    write_full_readme(full)
+    return single, full
+
+
+def package_modern(modern_dir: Path):
     stage = DIST / f"NOVA-{VERSION}-modern"
     if stage.exists():
         shutil.rmtree(stage)
@@ -126,18 +148,9 @@ def package_modern(config: str, modern_dir: Path):
         "@echo off\r\nchcp 65001 >nul\r\ncd /d \"%~dp0\"\r\nstart \"\" NovaGameSpace.exe\r\n",
         encoding="utf-8")
     shutil.copy2(ROOT / "version.json", stage / "version.json")
-    readme = f"""NOVA Game Space {VERSION} · Modern
-====================================
-
-自包含 .NET 10 版本（体积较大，无需安装 .NET）。
-需要 Microsoft Edge WebView2 Runtime（Win10/11 通常已随 Edge 安装）。
-启动：launch.cmd
-
-数据和迁移方式与 Legacy 版相同：
-  %LOCALAPPDATA%\\NOVA Game Space
-  设置 → 数据与备份 → 导出/导入 .nova-pack
-"""
-    (stage / "README.txt").write_text(readme, encoding="utf-8")
+    (stage / "README.txt").write_text(
+        readme_common("Modern", "自包含 .NET 10 版本（体积较大，无需安装 .NET）。"),
+        encoding="utf-8")
     return stage
 
 
@@ -151,14 +164,15 @@ def main():
     DIST.mkdir(exist_ok=True)
     packages = []
 
-    legacy = package_legacy(args.config)
+    single, full = package_legacy(args.config)
     if not args.no_zip:
-        packages.append(make_zip(legacy, DIST / f"{legacy.name}.zip"))
+        packages.append(make_zip(single, DIST / f"{single.name}.zip"))
+        packages.append(make_zip(full, DIST / f"{full.name}.zip"))
     else:
-        packages.append(legacy)
+        packages.extend([single, full])
 
     if args.modern_dir:
-        modern = package_modern(args.config, Path(args.modern_dir))
+        modern = package_modern(Path(args.modern_dir))
         if not args.no_zip:
             packages.append(make_zip(modern, DIST / f"{modern.name}.zip"))
         else:
