@@ -89,6 +89,21 @@
 - 设置页在 1439×1124 / 960×600、深色/浅色主题下可读可滚动。
 - 关闭到托盘、自动备份、玩家名、排序均实测持久化。
 
+### 系统兼容性（1.5.0）
+
+- `Services/SystemProfile.cs`：`RtlGetVersion` + WebView2 版本 → `boot.system`；
+  `tier=full/balanced/safe`，写 `html[data-tier]`。
+- `src/compat.css`：`balanced` 关闭 `backdrop-filter`/颗粒/粒子；`safe` 再关闭开屏、
+  背景装饰与全部重动画，并给关键按钮/选中态纯色兜底。主题 CSS 之后重新 append，
+  防止主题签名反压。
+- 设置 → 系统与兼容性：显示系统/WebView2/档位，支持 auto/full/balanced/safe 覆盖。
+- **Win7 真相**：当前 `net10.0-windows` 自包含程序不能在 Win7 运行。Legacy 宿主
+  需要单独 `net48` 工程 + WebView2 109；直接多目标在 SDK 10 的 WPF XAML 编译器上
+  会报 `System.Private.CoreLib`。完整方案、工程骨架、验收矩阵见
+  [`docs/COMPATIBILITY.md`](COMPATIBILITY.md)。
+- `version.json` + `tools/bump-version.js`：一次更新 csproj 版本、`index.html` 的
+  `?v=` 与 `version.json`；boot 版本读程序集版本，不再手写。
+
 ### 注意
 
 - 数据包**不包含游戏本体与主题**；主题在用户目录 `themes/`，可单独复制。

@@ -150,6 +150,7 @@ public sealed class NativeBridge
                 "importPack" => ImportPack(args),
                 "exportRecords" => ExportRecords(),
                 "getStats" => new { ok = true, stats = _store.BuildStats(), storage = _store.BuildStorage() },
+                "getSystem" => new { ok = true, system = SystemProfile.Detect(GetString(args, "tier") ?? _store.Library.Settings.CompatibilityTier) },
                 "minimizeWindow" => DoWindow(w => w.WindowState = System.Windows.WindowState.Minimized),
                 "beginDrag" => DoWindow(w => w.BeginNativeDrag()),
                 "toggleMaximizeWindow" => DoWindow(w => w.ToggleMaximize()),
@@ -337,7 +338,7 @@ public sealed class NativeBridge
         return new
         {
             ok = true,
-            version = "1.5.0",
+            version = typeof(NativeBridge).Assembly.GetName().Version?.ToString(3) ?? "1.5.0",
             platform = "win32",
             userName = Environment.UserName,
             dataFolder = AppPaths.Root,
@@ -348,6 +349,7 @@ public sealed class NativeBridge
             running = _launcher.Running,
             stats = _store.BuildStats(),
             storage = _store.BuildStorage(),
+            system = SystemProfile.Detect(library.Settings.CompatibilityTier),
             steamRoot = GameScanner.FindSteamRoot()
         };
     }
@@ -416,7 +418,7 @@ public sealed class NativeBridge
                 var mediaRoot = Path.GetFullPath(AppPaths.Media);
                 if (full.StartsWith(mediaRoot, StringComparison.OrdinalIgnoreCase))
                 {
-                    var relative = Path.GetRelativePath(AppPaths.Media, full).Replace('\\', '/');
+                    var relative = CompatUtil.RelativePath(AppPaths.Media, full).Replace('\\', '/');
                     return $"https://nova.media/{relative}";
                 }
             }
@@ -470,6 +472,12 @@ public sealed class NativeBridge
                 var value = sort.GetString() ?? "recent";
                 settings.LibrarySort = value is "recent" or "name" or "playtime" or "added" or "launches"
                     ? value : "recent";
+            }
+            if (args.TryGetProperty("compatibilityTier", out var tier) && tier.ValueKind == JsonValueKind.String)
+            {
+                var value = tier.GetString() ?? "auto";
+                settings.CompatibilityTier = value is "auto" or "full" or "balanced" or "safe"
+                    ? value : "auto";
             }
         }
         _store.Save();

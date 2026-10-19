@@ -453,7 +453,7 @@ public sealed class MediaService
         try
         {
             var value = hex.TrimStart('#');
-            if (value.Length == 8) value = value[2..];
+            if (value.Length == 8) value = value.Substring(2);
             if (value.Length != 6) return Color.FromArgb(255, 180, 94);
             return Color.FromArgb(
                 Convert.ToInt32(value[..2], 16),

@@ -93,6 +93,7 @@
     userName: '',
     stats: null,
     storage: null,
+    system: null,
     index: 0,
     overlay: null,
     libFilter: 'all',
@@ -359,6 +360,10 @@
     settingsCsv: $('#settingsCsv'),
     settingsOpenData: $('#settingsOpenData'),
     settingsOpenBackups: $('#settingsOpenBackups'),
+    settingsTier: $('#settingsTier'),
+    settingsTierTag: $('#settingsTierTag'),
+    settingsSystemStats: $('#settingsSystemStats'),
+    settingsSystemNote: $('#settingsSystemNote'),
     settingsStorageStats: $('#settingsStorageStats'),
     settingsPlayStats: $('#settingsPlayStats'),
     settingsSessions: $('#settingsSessions'),
@@ -2232,6 +2237,30 @@
     return `<div class="settings-stat"><span>${esc(label)}</span><b>${esc(value)}</b><em>${esc(sub || '')}</em></div>`;
   }
 
+  function applySystemTier(system) {
+    const root = document.documentElement;
+    root.dataset.tier = (system && system.tier) || 'full';
+    root.dataset.os = (system && system.osLabel) || '';
+    root.dataset.wv = String((system && system.webView2Major) || 0);
+    if (system && system.supportColorMix === false) root.dataset.colorMix = 'off';
+    else delete root.dataset.colorMix;
+  }
+
+  async function changeCompatibilityTier() {
+    if (!els.settingsTier) return;
+    const value = els.settingsTier.value;
+    state.settings.compatibilityTier = value;
+    saveSettings();
+    const result = await call('getSystem', { tier: value });
+    if (result && result.ok && result.system) {
+      state.system = result.system;
+      applySystemTier(result.system);
+      renderSettings();
+      audio.select();
+      toast(`效果档位 · ${result.system.tierLabel}`, 'check');
+    }
+  }
+
   function renderSettings() {
     if (!els.settingsPlayerName) return;
     const stats = state.stats || {};
@@ -2242,6 +2271,18 @@
     if (els.settingsOsUser) els.settingsOsUser.textContent = state.userName || '—';
     if (els.settingsVersion) els.settingsVersion.textContent = state.version;
     if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
+    const system = state.system || {};
+    if (els.settingsTier) els.settingsTier.value = state.settings.compatibilityTier || 'auto';
+    if (els.settingsTierTag) els.settingsTierTag.textContent = system.tierLabel || '完整效果';
+    if (els.settingsSystemStats) {
+      els.settingsSystemStats.innerHTML = [
+        statCard('系统', system.osLabel || '—', `build ${system.build || '—'}`),
+        statCard('WebView2', system.webView2Version || '未检测到', `Chromium ${system.webView2Major || '—'}`),
+        statCard('效果档位', system.tierLabel || '—', system.supportColorMix === false ? '无 color-mix' : 'color-mix 可用'),
+        statCard('宿主', system.legacyHost ? 'Legacy .NET 4.8' : 'Modern .NET 10', system.legacyHost ? '兼容模式' : '完整效果')
+      ].join('');
+    }
+    if (els.settingsSystemNote) els.settingsSystemNote.textContent = system.notes || '检测结果会在启动时应用到界面；切换档位可立即预览。';
     setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
     setPrefSwitch(els.settingsAutoBackupRow, els.settingsAutoBackupSwitch, state.settings.autoBackup !== false);
 
@@ -3339,7 +3380,8 @@
 
   function playThemeCurtain(theme) {
     return new Promise((resolve) => {
-      if (!els.themeCurtain || state.settings.reduceMotion) { resolve(); return; }
+      if (!els.themeCurtain || state.settings.reduceMotion ||
+          (state.system && state.system.tier === 'safe')) { resolve(); return; }
       const tokens = theme.tokens || {};
       els.themeCurtain.style.setProperty('--tc-accent', tokens['--accent'] || '#ffa477');
       els.themeCurtain.style.setProperty('--tc-accent-2', tokens['--accent-2'] || '#ff6f6f');
@@ -3372,7 +3414,8 @@
       return;
     }
     const before = window.NovaTheme.activeId;
-    const animate = !options.silent && before !== id && !state.settings.reduceMotion;
+    const animate = !options.silent && before !== id && !state.settings.reduceMotion &&
+      !(state.system && state.system.tier === 'safe');
     if (animate) {
       themeSwitching = true;
       await playThemeCurtain(theme);
@@ -3463,6 +3506,7 @@
     if (els.settingsTrayRow) els.settingsTrayRow.addEventListener('click', toggleTraySetting);
     if (els.settingsAutoBackupRow) els.settingsAutoBackupRow.addEventListener('click', toggleAutoBackup);
     if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));
+    if (els.settingsTier) els.settingsTier.addEventListener('change', changeCompatibilityTier);
     if (els.settingsExport) els.settingsExport.addEventListener('click', exportPack);
     if (els.settingsImport) els.settingsImport.addEventListener('click', importPack);
     if (els.settingsCsv) els.settingsCsv.addEventListener('click', exportRecords);
@@ -4746,6 +4790,7 @@
 
   function initParallax() {
     if (state.settings.reduceMotion) return;
+    if (state.system && state.system.tier !== 'full') return;
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     let frame = null;
     let targetX = 0;
@@ -4779,8 +4824,11 @@
       layout: boot.settings?.layout === 'rail' ? 'rail' : 'row',
       closeToTray: boot.settings?.closeToTray === true,
       autoBackup: boot.settings?.autoBackup !== false,
-      librarySort: boot.settings?.librarySort || 'recent'
+      librarySort: boot.settings?.librarySort || 'recent',
+      compatibilityTier: boot.settings?.compatibilityTier || 'auto'
     };
+    state.system = boot.system || null;
+    applySystemTier(state.system);
     state.userName = boot.userName || '';
     state.stats = boot.stats || null;
     state.storage = boot.storage || null;
@@ -4888,6 +4936,10 @@
 
     introPreset.then((preset) => {
       if (!window.NovaIntro) {
+        document.body.classList.add('is-booted');
+        return;
+      }
+      if (state.system && state.system.tier === 'safe') {
         document.body.classList.add('is-booted');
         return;
       }

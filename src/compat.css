@@ -1,0 +1,85 @@
+/* ============================================================
+   NOVA · capability tiers
+   data-tier is written from SystemProfile at boot:
+     full     Win10/11 + Chromium >= 111 (color-mix available)
+     balanced older Chromium (no color-mix), reduce heavy effects
+     safe     Win7/8.1 legacy host, WebView2 109; flatter/faster
+   The stylesheet is re-appended after theme CSS by theme-engine.js so
+   these overrides win over theme signatures.
+   ============================================================ */
+
+/* ---------- balanced: drop the most expensive full-screen effects ---------- */
+
+html[data-tier="balanced"] .grain,
+html[data-tier="balanced"] .intro-grain,
+html[data-tier="balanced"] .intro-particles,
+html[data-tier="balanced"] .intro-flare {
+  display: none !important;
+}
+
+html[data-tier="balanced"] .scene > img,
+html[data-tier="safe"] .scene > img {
+  animation: none !important;
+}
+
+html[data-tier="balanced"] *,
+html[data-tier="balanced"] *::before,
+html[data-tier="balanced"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* color-mix() is missing below Chromium 111. Keep the key outlines
+   readable with the plain accent variable. */
+html[data-tier="balanced"] .theme-card.is-active {
+  border-color: var(--accent, currentColor) !important;
+  box-shadow: 0 0 0 1px var(--accent, currentColor) !important;
+}
+html[data-tier="balanced"] :is(.dialog-action.is-primary, .filter.is-active, .game-chip.is-active) {
+  outline: 1px solid var(--accent, currentColor);
+  outline-offset: -2px;
+}
+
+/* ---------- safe: legacy host / Win7 ---------- */
+
+html[data-tier="safe"] .grain,
+html[data-tier="safe"] .intro,
+html[data-tier="safe"] .intro-grain,
+html[data-tier="safe"] .intro-particles,
+html[data-tier="safe"] .intro-flare,
+html[data-tier="safe"] .scene-stack::after,
+html[data-tier="safe"] .scene::after {
+  display: none !important;
+}
+
+html[data-tier="safe"] *,
+html[data-tier="safe"] *::before,
+html[data-tier="safe"] *::after {
+  animation-duration: .001ms !important;
+  animation-delay: 0s !important;
+  transition-duration: .001ms !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-tier="safe"] .scene-stack {
+  transform: none !important;
+}
+
+html[data-tier="safe"] :is(.theme-curtain, .view, .launch) {
+  transition: none !important;
+}
+
+/* A flat but readable fallback for color-mix-dependent chrome. */
+html[data-tier="safe"] :is(.btn.primary, .nav-btn.is-active, .filter.is-active) {
+  background: var(--t-accent, var(--accent, #f5f2ea)) !important;
+  color: var(--t-on-accent, #111) !important;
+  border-color: var(--t-accent, var(--accent, #f5f2ea)) !important;
+}
+html[data-tier="safe"] .theme-card.is-active {
+  border-color: var(--accent, currentColor) !important;
+  box-shadow: 0 0 0 1px var(--accent, currentColor) !important;
+}
+html[data-tier="safe"] :is(.dialog, .popover, .context-menu) {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .28) !important;
+}

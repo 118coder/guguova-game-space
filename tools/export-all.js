@@ -41,6 +41,7 @@ const SCALE = Number(flags.scale || 1);
 const SETTLE = Number(flags.settle || 0);
 const STRESS_NAME = '沉默的法则：第七夜的回声与未尽之诗·终章特别加长版 Remastered Deluxe Edition';
 const STRESS = !!flags.stress;
+const TIER = flags.tier ? String(flags.tier) : '';
 const JSON_ONLY = !!flags.json;
 const THEME_FILTER = flags.themes && flags.themes !== 'all'
   ? String(flags.themes).split(',').map((s) => s.trim()).filter(Boolean)
@@ -421,6 +422,7 @@ async function main() {
     for (const theme of themes) {
       await cdp.ev(`(async () => {
         await window.NovaTheme.activate(${JSON.stringify(theme)}, { silent: true });
+        ${TIER ? `document.documentElement.dataset.tier = ${JSON.stringify(TIER)};` : ''}
         if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
         await new Promise((r) => setTimeout(r, 420));
         return document.documentElement.dataset.theme;

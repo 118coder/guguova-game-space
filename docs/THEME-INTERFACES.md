@@ -18,6 +18,7 @@ src/fx-layers.css         Photoshop 式文本图层
 src/fx-record.js          真实数据 → --nova-* 自定义属性
 src/intro.js / intro.css  开屏 preset 注册表与舞台
 src/motion.css            通用 launch、主题切换幕布、reduce-motion
+src/compat.css            能力档位：full / balanced / safe 的降级覆盖
 themes/<id>/theme.json    主题清单（id / version / features / intro / tokens）
 themes/<id>/theme.css     主题样式（基础层 → 修正层 → 签名层，后写覆盖先写）
 themes/<id>/assets/       预览图 + 专属 SVG/字体
@@ -28,6 +29,14 @@ docs/themes/<id>.md       单主题接口卡
 `html[data-theme="<id>"]` 前缀 + 末尾追加 + `!important` 才能稳定覆盖。
 `.scene.is-active > img` 的特异性是 `(0,2,1)`，主题必须写
 `html[data-theme="<id>"] .scene > img` 才能压过它（RISO 曾因此整轮失效）。
+
+---
+
+## 1.1 能力档位（1.5.0）
+
+`SystemProfile` 在 boot 写入 `html[data-tier]`，`compat.css` 在主题 CSS 之后注入：
+`full` 全效果；`balanced` 关全屏模糊/颗粒/粒子；`safe` 再关开屏、背景装饰与重动画。
+Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](COMPATIBILITY.md)。
 
 ---
 

@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="theme-kit.css?v=1.5.0">
 <link rel="stylesheet" href="polish.css?v=1.5.0">
 <link rel="stylesheet" href="intro.css?v=1.5.0">
+<link rel="stylesheet" href="compat.css?v=1.5.0" id="compat-style">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -611,6 +612,24 @@
             </div>
             <div class="settings-stats" id="settingsPlayStats"></div>
             <div class="recent-sessions" id="settingsSessions"></div>
+          </section>
+
+          <section class="appearance-section">
+            <div class="section-head">
+              <div><h3>系统与兼容性</h3><p>自动检测 Windows 与 WebView2，选择最合适的特效档位。</p></div>
+              <span class="section-tag" id="settingsTierTag">完整效果</span>
+            </div>
+            <div class="settings-stats" id="settingsSystemStats"></div>
+            <div class="settings-field">
+              <label for="settingsTier">效果档位</label>
+              <select id="settingsTier" aria-label="效果档位">
+                <option value="auto">自动（推荐）</option>
+                <option value="full">完整效果</option>
+                <option value="balanced">平衡（无 color-mix）</option>
+                <option value="safe">安全（低特效 / 旧系统）</option>
+              </select>
+            </div>
+            <div class="settings-note" id="settingsSystemNote">检测结果会在启动时应用到界面；切换档位可立即预览。</div>
           </section>
 
           <section class="appearance-section">
