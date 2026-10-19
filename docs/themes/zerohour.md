@@ -1,6 +1,6 @@
 # 零点街区 · ZERO HOUR
 
-> 版本 **1.0.7** · 开屏 `zerohour（CRT 信号接入）` · 进游戏 `zhLaunch（CRT 同步）`
+> 版本 **1.0.8** · 开屏 `zerohour（CRT 信号接入）` · 进游戏 `zhLaunch（CRT 同步）`
 
 ## 1. 设计理念
 街区命令台：黑底、CRT 扫描线、L 形青柠角标、分段信号轨。

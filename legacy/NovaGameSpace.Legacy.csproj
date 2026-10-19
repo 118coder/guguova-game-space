@@ -14,7 +14,7 @@
     <RootNamespace>NovaGameSpace</RootNamespace>
     <ApplicationManifest>..\app.manifest</ApplicationManifest>
     <ApplicationIcon>..\build\icon.ico</ApplicationIcon>
-    <Version>1.5.1</Version>
+    <Version>1.5.2</Version>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <Product>NOVA Game Space (Legacy)</Product>

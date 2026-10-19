@@ -127,7 +127,7 @@
     editorFraming: { x: 50, y: 45, zoom: 1 },
     dataFolder: '',
     backupsFolder: '',
-    version: '1.5.1'
+    version: '1.5.2'
   };
 
   const notices = [];
@@ -5011,7 +5011,7 @@
     state.storage = boot.storage || null;
     state.dataFolder = boot.dataFolder || '';
     state.backupsFolder = boot.backupsFolder || '';
-    state.version = boot.version || '1.5.1';
+    state.version = boot.version || '1.5.2';
     if (els.libSort) els.libSort.value = state.settings.librarySort;
     if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
     state.running = new Map();
