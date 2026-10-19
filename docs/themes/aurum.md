@@ -1,6 +1,6 @@
 # 鎏金圣所 · AURUM
 
-> 版本 **1.0.9** · 开屏 `aurum（金门展开）` · 进游戏 `auLaunch（菱形光圈）`
+> 版本 **1.0.10** · 开屏 `aurum（金门展开）` · 进游戏 `auLaunch（菱形光圈）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.2
 

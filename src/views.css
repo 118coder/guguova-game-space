@@ -788,3 +788,13 @@ body.layout-rail .view-home .dock-title {
   outline: none;
 }
 .settings-field select option { color: #111; background: #f4f2ec; }
+
+/* Gamepad focus ring: the pad moves real DOM focus, so every theme gets a
+   visible ring around the exact option the player is about to press. */
+html[data-input="gamepad"] .is-pad-focus {
+  outline: 3px solid var(--accent) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  position: relative;
+  z-index: 4;
+}

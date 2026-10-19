@@ -1,6 +1,6 @@
 # 终末地 · ENDFIELD
 
-> 版本 **1.0.5** · 开屏 `endfield（启动序列）` · 进游戏 `efLaunch（工业闸门）`
+> 版本 **1.0.6** · 开屏 `endfield（启动序列）` · 进游戏 `efLaunch（工业闸门）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.3
 

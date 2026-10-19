@@ -240,7 +240,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | `nova` | 上下双幕布 + 中央光缝 | 360ms |
 | `aurum` | 左右青铜门 + 竖金缝 + 门环 | 400ms |
 | `endfield` | 蓝图面板横向推进 + 信号条 | 380ms |
-| `zerohour` | 斜切漫画面板 + 危险条 + 网点 | 420ms |
+| `zerohour` | 漫画分页：黑板 + 白框分镜 + 青柠字幕带 | 420ms |
 | `codex` | 整页 3D 翻下/翻开 | 430ms |
 | `broadcast` | CRT 开关机（闪白 → 横线） | 360ms |
 | `summer` | 白纸印版扫入 + 黑/黄块压版 | 470ms |
@@ -301,18 +301,18 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | 主题 | 版本 | features | intro | launch |
 |---|---|---|---|---|
 | nova（内置） | 2.0.0 | — | gilded | nvLaunch |
-| aurum | 1.0.9 | — | aurum | auLaunch |
-| endfield | 1.0.5 | — | endfield | efLaunch |
-| zerohour | 1.0.8 | scanline / bracket | zerohour | zhLaunch |
-| codex | 1.7.2 | starfield / plate / rule / plates-off | codex | cxIris |
-| broadcast | 1.4.2 | film / plate / rule / plates-off | broadcast | bcSweep |
-| summer | 1.8.3 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
-| riso | 1.4.2 | riso / plate / rule / plates-off | riso | rsRoll |
-| riot | 1.5.3 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
-| grimoire | 1.5.2 | parchment / plate / rule / plates-off | seal | grStamp |
-| mnemo | 1.1.3 | map / emboss / folder | mnemo | mnUnfold |
+| aurum | 1.0.10 | — | aurum | auLaunch |
+| endfield | 1.0.6 | — | endfield | efLaunch |
+| zerohour | 1.0.9 | scanline / bracket | zerohour | zhLaunch |
+| codex | 1.7.3 | starfield / plate / rule / plates-off | codex | cxIris |
+| broadcast | 1.4.3 | film / plate / rule / plates-off | broadcast | bcSweep |
+| summer | 1.8.4 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
+| riso | 1.4.3 | riso / plate / rule / plates-off | riso | rsRoll |
+| riot | 1.5.4 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
+| grimoire | 1.5.3 | parchment / plate / rule / plates-off | seal | grStamp |
+| mnemo | 1.1.4 | map / emboss / folder | mnemo | mnUnfold |
 
-静态资源版本：`src/index.html` 的 `?v=1.5.2`。
+静态资源版本：`src/index.html` 的 `?v=1.5.3`。
 
 ---
 

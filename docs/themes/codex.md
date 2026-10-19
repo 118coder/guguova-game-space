@@ -1,6 +1,6 @@
 # 星轨秘典 · CODEX
 
-> 版本 **1.7.2** · 开屏 `codex（星轨展开）` · 进游戏 `cxIris（菱形虹膜）`
+> 版本 **1.7.3** · 开屏 `codex（星轨展开）` · 进游戏 `cxIris（菱形虹膜）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.5
 

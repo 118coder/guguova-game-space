@@ -157,6 +157,7 @@
     focusables,
     focusFirst,
     refresh() { state.current = null; return current(); },
+    setModality(value) { setModality(value); },
     get modality() { return state.modality; }
   };
 })();

@@ -1,6 +1,6 @@
 # 夏日轻程 · SUMMER
 
-> 版本 **1.8.3** · 开屏 `draft（白纸排版）` · 进游戏 `suShutter（快门下落）`
+> 版本 **1.8.4** · 开屏 `draft（白纸排版）` · 进游戏 `suShutter（快门下落）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.7
 

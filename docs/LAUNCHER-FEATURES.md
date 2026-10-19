@@ -14,11 +14,11 @@
 | 记录 | 累计时长、最近游玩、启动次数、收藏 |
 | 媒体 | 16:9 主视觉、封面裁切、从 exe 图标生成、配色采样、构图调整 |
 | 游戏库 | 搜索、最近/收藏/Steam 筛选、详情、编辑、移除、重新定位（编辑 exe） |
-| 桌面体验 | 托盘常驻、真全屏、睡眠模式、手柄导航、键盘快捷键、沉稳/减少动效、每主题界面音效 |
+| 桌面体验 | 托盘常驻、真全屏、睡眠模式、手柄全选项焦点导航（A 选择 / B 返回 / LB-RB 翻页）、键盘快捷键、沉稳/减少动效、每主题界面音效 |
 | 主题 | 11 套主题、概念板预览、11 套不同的切换动画、每主题开屏/进游戏动画、思源黑体/宋体配对 |
 | 数据 | `%LOCALAPPDATA%\NOVA Game Space` 本地存储、损坏文件备份、日志 |
 
-> 1.5.2 备注：设置页已从 980px 单列升级为 `min(1640px,100%)` 双栏；顶部用户卡
+> 1.5.3 备注：设置页已从 980px 单列升级为 `min(1640px,100%)` 双栏；顶部用户卡
 > 按 11 套主题分别设计；音效来源与许可见 `src/assets/sfx/LICENSE-SFX.md`。
 > 字体使用本机思源黑体/宋体，未安装时回退 Noto SC / 微软雅黑 / 宋体。
 
@@ -67,7 +67,7 @@
 ```
 NOVA-YYYYMMDD-HHmm.nova-pack   (zip)
 ├─ manifest.json
-│   { schema: 1, app: "NOVA Game Space", version: "1.5.2",
+│   { schema: 1, app: "NOVA Game Space", version: "1.5.3",
 │     exportedUtc, gameCount, mediaCount }
 ├─ library.json                完整 LibraryFile（游戏、设置、游玩会话）
 └─ media/
@@ -87,7 +87,7 @@ NOVA-YYYYMMDD-HHmm.nova-pack   (zip)
 
 ## 5. 验收结果（2026-10-19）
 
-- 启动 payload：`userName=12290`、`playername=12290`（默认读取 Windows 账户）、`version=1.5.2`。
+- 启动 payload：`userName=12290`、`playername=12290`（默认读取 Windows 账户）、`version=1.5.3`。
 - 设置中心：`设置` 导航可进入；玩家名保存、关闭到托盘、自动备份开关均持久化。
 - 数据包：导出 `NOVA-*.nova-pack` 成功（6 款游戏 / 100 个封面 / 约 14 MB）；
   `merge` 导入成功（新增 0、合并 6、封面 100、缺失 0），并生成
@@ -110,10 +110,10 @@ NOVA-YYYYMMDD-HHmm.nova-pack   (zip)
 - 测试条目：正常 boot 2 款真实游戏；`developerMode=true` 时 6 款；`Ctrl+Shift+D`
   往返切换已验证。
 - 发布包：
-  - 单文件版 `NOVA-1.5.2-legacy-single.zip` **2.34 MB**：只有一个 exe，
+  - 单文件版 `NOVA-1.5.3-legacy-single.zip` **2.34 MB**：只有一个 exe，
     Costura 合并托管 DLL，内嵌 WebView2 loader + `src/` + `themes/`；
     首次运行解压资源；已从干净目录实测启动。
-  - 全主题文件夹版 `NOVA-1.5.2-legacy-full.zip` **3.81 MB**：EXE + `src/` + `themes/`；
+  - 全主题文件夹版 `NOVA-1.5.3-legacy-full.zip` **3.81 MB**：EXE + `src/` + `themes/`；
     实测 11 套主题可选。
   - `launch.cmd` 的 .NET 4.8 / WebView2 检查已实测。
 

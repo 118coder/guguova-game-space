@@ -1,6 +1,6 @@
 # 深夜广播 · BROADCAST
 
-> 版本 **1.4.2** · 开屏 `broadcast（调频）` · 进游戏 `bcSweep（扫描揭示）`
+> 版本 **1.4.3** · 开屏 `broadcast（调频）` · 进游戏 `bcSweep（扫描揭示）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.6
 

@@ -184,6 +184,7 @@ html.calm .scene-stack { transform: none !important; }
 .nav-btn[data-nav="home"]::before { content: "I · 首页"; }
 .nav-btn[data-nav="library"]::before { content: "II · 游戏库"; }
 .nav-btn[data-nav="appearance"]::before { content: "III · 外观"; }
+.nav-btn[data-nav="settings"]::before { content: "IV · 设置"; }
 
 .nav-btn:hover { color: var(--cx-cream); background: rgba(226, 199, 142, .07); }
 
@@ -2457,3 +2458,9 @@ html[data-theme="codex"] .hero-inner .meta-dot {
   border-radius: 0 !important;
   opacity: .9;
 }
+
+/* 字体设定可读性：铜版小字提亮 */
+html[data-theme="codex"] .type-recipe-spec,
+html[data-theme="codex"] .style-choice-desc,
+html[data-theme="codex"] .type-dna span { color: var(--cx-cream-2); }
+html[data-theme="codex"] .type-readout-kicker { color: var(--cx-gold-hi); }
