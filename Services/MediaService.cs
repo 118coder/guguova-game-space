@@ -223,8 +223,8 @@ public sealed class MediaService
             cropH = (int)Math.Round(source.Width / ratio);
         }
 
-        var offsetX = (int)Math.Round(Math.Clamp((focusX / 100d), 0, 1) * (source.Width - cropW));
-        var offsetY = (int)Math.Round(Math.Clamp((focusY / 100d), 0, 1) * (source.Height - cropH));
+        var offsetX = (int)Math.Round(CompatUtil.Clamp((focusX / 100d), 0, 1) * (source.Width - cropW));
+        var offsetY = (int)Math.Round(CompatUtil.Clamp((focusY / 100d), 0, 1) * (source.Height - cropH));
         var rect = new Rectangle(offsetX, offsetY, Math.Max(1, cropW), Math.Max(1, cropH));
 
         var output = new Bitmap(targetW, targetH);
@@ -456,7 +456,7 @@ public sealed class MediaService
             if (value.Length == 8) value = value.Substring(2);
             if (value.Length != 6) return Color.FromArgb(255, 180, 94);
             return Color.FromArgb(
-                Convert.ToInt32(value[..2], 16),
+                Convert.ToInt32(value.Substring(0, 2), 16),
                 Convert.ToInt32(value.Substring(2, 2), 16),
                 Convert.ToInt32(value.Substring(4, 2), 16));
         }
@@ -468,7 +468,7 @@ public sealed class MediaService
 
     public static Color Mix(Color a, Color b, double amount)
     {
-        amount = Math.Clamp(amount, 0, 1);
+        amount = CompatUtil.Clamp(amount, 0, 1);
         return Color.FromArgb(
             (int)(a.R * (1 - amount) + b.R * amount),
             (int)(a.G * (1 - amount) + b.G * amount),

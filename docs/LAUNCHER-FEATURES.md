@@ -96,6 +96,11 @@ NOVA-YYYYMMDD-HHmm.nova-pack   (zip)
   + stress = 132 张，0 告警；`probe-graphics.js` 11 套全 clear。
 - 端到端会话：临时用 `notepad.exe` 建测试条目 → 启动 → 退出 → `getStats` 记录
   1 条会话（seconds=1、crashed=false）→ 删除条目后库恢复 6 款。
+- Legacy 宿主：`legacy/NovaGameSpace.Legacy.csproj`（net48 + WebView2 1774.30）
+  已构建并在 Win11 跑通（6 款游戏、设置、导出、强制 safe 重启
+  `is-booted=true / is-intro=false`）；Win7 SP1 + WebView2 109 虚拟机验收待做。
+- 设置页主题化：`src/settings-themes.css` 覆盖 11 套主题的输入框/下拉/统计卡/
+  记录行；11 主题 × 2 尺寸 22 张 0 告警。
 
 ## 6. 离线原则
 

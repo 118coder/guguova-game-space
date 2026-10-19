@@ -2279,7 +2279,7 @@
         statCard('系统', system.osLabel || '—', `build ${system.build || '—'}`),
         statCard('WebView2', system.webView2Version || '未检测到', `Chromium ${system.webView2Major || '—'}`),
         statCard('效果档位', system.tierLabel || '—', system.supportColorMix === false ? '无 color-mix' : 'color-mix 可用'),
-        statCard('宿主', system.legacyHost ? 'Legacy .NET 4.8' : 'Modern .NET 10', system.legacyHost ? '兼容模式' : '完整效果')
+        statCard('宿主', system.legacyBuild ? 'Legacy .NET 4.8' : 'Modern .NET 10', system.legacyBuild ? '兼容构建' : '完整效果')
       ].join('');
     }
     if (els.settingsSystemNote) els.settingsSystemNote.textContent = system.notes || '检测结果会在启动时应用到界面；切换档位可立即预览。';

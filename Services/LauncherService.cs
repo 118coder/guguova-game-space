@@ -122,7 +122,23 @@ public sealed class LauncherService
                 {
                     if (process.WaitForExit(6000)) return true;
                 }
+#if NETFRAMEWORK
+                try
+                {
+                    var killer = Process.Start(new ProcessStartInfo("taskkill", $"/PID {process.Id} /T /F")
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    killer?.WaitForExit(4000);
+                }
+                catch
+                {
+                    try { process.Kill(); } catch { }
+                }
+#else
                 process.Kill(true);
+#endif
                 return true;
             }
         }

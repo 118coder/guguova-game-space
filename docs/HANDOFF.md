@@ -54,7 +54,9 @@
    `Environment.UserName`；旧默认 `Yuki/玩家` 会在首次 boot 时迁移成系统账户。
    设置页可改显示名，保存后置 `PlayerNameCustom=true`。
 2. **设置中心**：第 4 个导航「设置」（快捷键 `S`），单栏面板：
-   玩家 / 启动与关闭 / 数据与备份 / 游玩统计 / 关于。
+   玩家 / 启动与关闭 / 数据与备份 / 游玩统计 / 系统与兼容性 / 关于。
+   控件（输入框/下拉/统计卡/记录行）由 `src/settings-themes.css` 按主题签名；
+   11 套主题 × 2 尺寸设置页审计 0 告警。
 3. **数据包 `.nova-pack`**（`Services/BackupService.cs`）：
    - 导出：`library.json` + `manifest.json` + `media/` 打 zip；手动导出到
      `Documents/NOVA Backups`，返回路径/大小/封面数。
@@ -97,10 +99,13 @@
   背景装饰与全部重动画，并给关键按钮/选中态纯色兜底。主题 CSS 之后重新 append，
   防止主题签名反压。
 - 设置 → 系统与兼容性：显示系统/WebView2/档位，支持 auto/full/balanced/safe 覆盖。
-- **Win7 真相**：当前 `net10.0-windows` 自包含程序不能在 Win7 运行。Legacy 宿主
-  需要单独 `net48` 工程 + WebView2 109；直接多目标在 SDK 10 的 WPF XAML 编译器上
-  会报 `System.Private.CoreLib`。完整方案、工程骨架、验收矩阵见
-  [`docs/COMPATIBILITY.md`](COMPATIBILITY.md)。
+- **Win7 宿主已落地**：`legacy/NovaGameSpace.Legacy.csproj`（net48 + WebView2
+  1.0.1774.30 / 运行时 109），与 Modern 共用 `src/`、`themes/` 和数据格式。
+  `bash tools/build-legacy.sh` 构建；本机 Win11 已跑通（6 款游戏、设置、导出、
+  强制 safe 重启后 `is-booted=true`）。Win7 SP1 虚拟机 + WebView2 109 实机验收
+  仍待完成。直接多目标 net48 在 SDK 10 的 WPF 编译器上会报
+  `System.Private.CoreLib`，所以 legacy 用 `legacy/global.json` 固定 SDK 7。
+  见 [`docs/COMPATIBILITY.md`](COMPATIBILITY.md) 与 [`legacy/README.md`](../legacy/README.md)。
 - `version.json` + `tools/bump-version.js`：一次更新 csproj 版本、`index.html` 的
   `?v=` 与 `version.json`；boot 版本读程序集版本，不再手写。
 

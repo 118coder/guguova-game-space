@@ -93,7 +93,7 @@ public static class CoverAnalyzer
         var avgR = sumR / count / 255d;
         var avgG = sumG / count / 255d;
         var avgB = sumB / count / 255d;
-        var warmth = Math.Clamp(0.5 + (avgR - avgB) * 0.9, 0, 1);
+        var warmth = CompatUtil.Clamp(0.5 + (avgR - avgB) * 0.9, 0, 1);
 
         // Dominant hues: pick strongest coloured bucket, then a complementary
         // or adjacent bucket with enough presence.
@@ -101,14 +101,14 @@ public static class CoverAnalyzer
             .OrderByDescending(i => hueBucketCounts[i])
             .ToList();
         var primary = bucketOrder[0];
-        var secondary = bucketOrder.FirstOrDefault(i => Math.Abs(CircularDistance(i, primary)) > 3, bucketOrder[1 % 24]);
+        var secondary = bucketOrder.Where(i => Math.Abs(CircularDistance(i, primary)) > 3).DefaultIfEmpty(bucketOrder[1 % 24]).First();
 
         var primaryHue = (primary * 15 + 7.5) % 360;
         var primarySat = hueBucketCounts[primary] > 0.0001
-            ? Math.Clamp(hueBucketSat[primary] / hueBucketCounts[primary], .32, .82)
+            ? CompatUtil.Clamp(hueBucketSat[primary] / hueBucketCounts[primary], .32, .82)
             : .5;
         var primaryVal = hueBucketCounts[primary] > 0.0001
-            ? Math.Clamp(hueBucketVal[primary] / hueBucketCounts[primary], .55, .95)
+            ? CompatUtil.Clamp(hueBucketVal[primary] / hueBucketCounts[primary], .55, .95)
             : .7;
 
         var accent = HsvToHex(primaryHue, primarySat, primaryVal);
@@ -116,8 +116,8 @@ public static class CoverAnalyzer
         if (hueBucketCounts[secondary] > 0.0001)
         {
             var secondaryHue = (secondary * 15 + 7.5) % 360;
-            var secondarySat = Math.Clamp(hueBucketSat[secondary] / hueBucketCounts[secondary], .38, .8);
-            var secondaryVal = Math.Clamp(hueBucketVal[secondary] / hueBucketCounts[secondary], .55, .9);
+            var secondarySat = CompatUtil.Clamp(hueBucketSat[secondary] / hueBucketCounts[secondary], .38, .8);
+            var secondaryVal = CompatUtil.Clamp(hueBucketVal[secondary] / hueBucketCounts[secondary], .55, .9);
             accent2 = HsvToHex(secondaryHue, secondarySat, secondaryVal);
         }
         else
@@ -127,12 +127,12 @@ public static class CoverAnalyzer
 
         var avgLuma = sumLuma / count;
         var avgSat = sumSat / count;
-        var lightSource = HsvToHex(primaryHue, Math.Clamp(avgSat * .45, .1, .4), .95);
+        var lightSource = HsvToHex(primaryHue, CompatUtil.Clamp(avgSat * .45, .1, .4), .95);
         if (avgLuma > .62) lightSource = "#f6f1e6";
-        var darkSource = HsvToHex(primaryHue, Math.Clamp(primarySat * .55, .28, .72), Math.Clamp(primaryVal * .24, .08, .25));
+        var darkSource = HsvToHex(primaryHue, CompatUtil.Clamp(primarySat * .55, .28, .72), CompatUtil.Clamp(primaryVal * .24, .08, .25));
 
         var accentRgb = ParseRgb(accent);
-        var scrim = $"{Math.Clamp(accentRgb.r / 9, 4, 30)}, {Math.Clamp(accentRgb.g / 9, 3, 26)}, {Math.Clamp(accentRgb.b / 9, 3, 30)}";
+        var scrim = $"{CompatUtil.Clamp(accentRgb.r / 9, 4, 30)}, {CompatUtil.Clamp(accentRgb.g / 9, 3, 26)}, {CompatUtil.Clamp(accentRgb.b / 9, 3, 30)}";
 
         return new CoverAnalysis
         {
@@ -191,14 +191,14 @@ public static class CoverAnalyzer
         return $"#{ToByte(r + m):x2}{ToByte(g + m):x2}{ToByte(b + m):x2}";
     }
 
-    private static int ToByte(double v) => Math.Clamp((int)Math.Round(v * 255), 0, 255);
+    private static int ToByte(double v) => CompatUtil.Clamp((int)Math.Round(v * 255), 0, 255);
 
     private static (int r, int g, int b) ParseRgb(string hex)
     {
         try
         {
             var value = hex.TrimStart('#');
-            return (Convert.ToInt32(value[..2], 16), Convert.ToInt32(value.Substring(2, 2), 16), Convert.ToInt32(value.Substring(4, 2), 16));
+            return (Convert.ToInt32(value.Substring(0, 2), 16), Convert.ToInt32(value.Substring(2, 2), 16), Convert.ToInt32(value.Substring(4, 2), 16));
         }
         catch
         {

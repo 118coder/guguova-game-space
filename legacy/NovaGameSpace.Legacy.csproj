@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>NovaGameSpace-Legacy</AssemblyName>
+    <RootNamespace>NovaGameSpace</RootNamespace>
+    <ApplicationManifest>..\app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\build\icon.ico</ApplicationIcon>
+    <Version>1.5.0</Version>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Product>NOVA Game Space (Legacy)</Product>
+    <AssemblyTitle>NOVA 游戏空间 · Legacy</AssemblyTitle>
+    <Company>NOVA</Company>
+    <Copyright>NOVA</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1774.30" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="..\App.xaml" Link="App.xaml" />
+    <Page Include="..\MainWindow.xaml" Link="MainWindow.xaml" />
+    <Compile Include="..\App.xaml.cs" Link="App.xaml.cs" />
+    <Compile Include="..\MainWindow.xaml.cs" Link="MainWindow.xaml.cs" />
+    <Compile Include="..\NativeBridge.cs" Link="NativeBridge.cs" />
+    <Compile Include="..\Services\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\src\**\*" Link="src\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\themes\**\*" Link="themes\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+
+</Project>

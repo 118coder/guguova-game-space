@@ -336,13 +336,13 @@ dotnet publish -c Release -r win-x64 --self-contained true \
 ## 系统兼容性
 
 - **Modern 构建（当前发布）**：Windows 10 1809+ / Windows 11，.NET 10，WebView2 Evergreen，完整效果。
-- **Legacy 构建（计划）**：Windows 7 SP1 / 8.1，.NET Framework 4.8 + WebView2 109，安全档。
+- **Legacy 构建（已落地）**：Windows 7 SP1 / 8.1，.NET Framework 4.8 + WebView2 109，安全档；`bash tools/build-legacy.sh`，详见 [legacy/README.md](legacy/README.md)。
 - 启动时会自动读取 Windows 版本与 WebView2 版本，写入 `html[data-tier]`：
   `full`（完整）/ `balanced`（无 color-mix）/ `safe`（低特效，旧系统）。
 - 设置 → 系统与兼容性可查看检测结果并手动切换档位。
-- **当前 `NovaGameSpace.exe` 不能直接在 Win7 运行**（.NET 10 不支持 Win7）；
-  Win7 需要单独的 Legacy 宿主，方案与构建步骤见
-  [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)。
+- `NovaGameSpace.exe`（Modern）需要 Win10 1809+；Win7/8.1 请使用
+  `NovaGameSpace-Legacy.exe`（Legacy 宿主）。两者共用数据目录与 `.nova-pack`，
+  方案见 [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)。
 
 ---
 

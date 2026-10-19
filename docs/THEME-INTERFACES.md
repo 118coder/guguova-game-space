@@ -19,6 +19,7 @@ src/fx-record.js          真实数据 → --nova-* 自定义属性
 src/intro.js / intro.css  开屏 preset 注册表与舞台
 src/motion.css            通用 launch、主题切换幕布、reduce-motion
 src/compat.css            能力档位：full / balanced / safe 的降级覆盖
+src/settings-themes.css   设置页控件（输入框/下拉/统计卡/记录行）的每主题签名
 themes/<id>/theme.json    主题清单（id / version / features / intro / tokens）
 themes/<id>/theme.css     主题样式（基础层 → 修正层 → 签名层，后写覆盖先写）
 themes/<id>/assets/       预览图 + 专属 SVG/字体
@@ -233,7 +234,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | 首页 | `#homeView` | 标题 30 字、进度、活动条、dock |
 | 游戏库 | `#libraryOverlay` | 搜索/筛选/卡片/空态 |
 | 外观 | `#appearanceOverlay` | 预览、主题网格、偏好、字标 |
-| 设置 | `#settingsView` | 玩家名、关闭到托盘、自动备份、数据包/CSV、统计 |
+| 设置 | `#settingsView` | 玩家名、关闭到托盘、自动备份、数据包/CSV、统计；控件样式在 `settings-themes.css` 按主题覆盖 |
 | 详情 | `.overlay` + `.detail-modal` | 统计格数值、路径、按钮 |
 | 启动 | `.launch` | 背景、标题、状态、退出 |
 | 开屏 | `.intro` | 舞台、跳过提示、reduce-motion |
