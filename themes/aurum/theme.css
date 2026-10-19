@@ -1611,3 +1611,12 @@ html[data-theme="aurum"] :is(.hero-logo, .detail-logo, .launch-logo, .appearance
 
 .editor-framing button:hover { background: rgba(232, 201, 138, .14); color: var(--aurum-bronze-hi); }
 .editor-framing-sep { background: rgba(232, 201, 138, .16); }
+
+/* 进游戏动画：金色菱形光圈（只动 launch 层，主题本体不变） */
+html[data-theme="aurum"] .launch.is-open .launch-art {
+  animation: auLaunch 760ms cubic-bezier(.3, .9, .2, 1) both;
+}
+@keyframes auLaunch {
+  from { clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); transform: scale(1.1); filter: brightness(.35) sepia(.3); }
+  to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: none; filter: brightness(.78) saturate(1.08); }
+}

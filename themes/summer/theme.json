@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "summer",
+  "name": "夏日轻程 · SUMMER",
+  "author": "NOVA",
+  "version": "1.8.1",
+  "description": "白纸线稿主题：纯白底 + 青色制图线作为背景，黑块白字正文、黄块黑字副文与排序式标题。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": false,
+  "intro": "draft",
+  "tokens": {
+    "--accent": "#1a9bd7",
+    "--accent-2": "#d8f24a",
+    "--glow": "rgba(26,155,215,.18)"
+  },
+  "features": {
+    "texture": "photo",
+    "type": "none",
+    "panel": "none",
+    "scrim": "none",
+    "hero": "plate",
+    "header": "rule",
+    "cards": "rule",
+    "plates": "off"
+  }
+}

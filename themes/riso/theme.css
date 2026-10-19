@@ -1,0 +1,2431 @@
+/* ============================================================
+   RISO · 电波海报
+   Two-ink risograph poster: electric blue, acid yellow, halftone, shards and oversized serif.
+   ============================================================ */
+
+:root {
+  --t-paper: #f4f2e9;
+  --t-paper-2: #e5e2d5;
+  --t-ink: #101014;
+  --t-ink-2: #30303a;
+  --t-muted: #646473;
+  --t-faint: rgba(16,16,20,.38);
+  --t-line: #1b1b24;
+  --t-panel: #faf8ef;
+  --t-panel-2: #ece9dc;
+  --t-accent: #2f3fd4;
+  --t-accent-2: #e8ff2a;
+  --t-accent-3: #101014;
+  --t-on-accent: #f7f5ea;
+  --t-danger: #d92b2b;
+  --t-ease: cubic-bezier(.2, .8, .3, 1);
+
+  --ink: var(--t-ink);
+  --muted: var(--t-muted);
+  --faint: var(--t-faint);
+  --hair: var(--t-line);
+  --accent: var(--t-accent);
+  --accent-2: var(--t-accent-2);
+  --glow: rgba(47,63,212,.2);
+  --ease: var(--t-ease);
+
+  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  --font-display: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-condensed: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+
+  --r-panel: 0px;
+  --r-btn: 0px;
+  --r-card: 0px;
+}
+
+body {
+  background-color: var(--t-paper);
+  color: var(--t-ink);
+  font-family: var(--font-ui);
+}
+
+.app { background: transparent; }
+.scene { background: var(--t-paper); }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, .045) 1px, transparent 1.5px);
+  background-size: 7px 7px;
+  opacity: .5;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 300;
+  height: 3px;
+  pointer-events: none;
+  background: var(--t-accent);
+}
+
+.grain { opacity: .025; mix-blend-mode: multiply; }
+
+.atmosphere {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .22) 18%, transparent 46%, rgba(255, 255, 255, .28) 78%, rgba(255, 255, 255, .96) 100%);
+}
+
+.atmosphere::before {
+  background: linear-gradient(90deg, rgba(255, 255, 255, .96) 0%, rgba(255, 255, 255, .74) 30%, rgba(255, 255, 255, .2) 60%, transparent 80%);
+}
+
+.atmosphere::after { background: none; }
+html.calm .scene-stack { transform: none !important; }
+.scene > img { filter: saturate(.94) contrast(1.02); }
+.scene > img { filter: grayscale(1) sepia(1) hue-rotate(188deg) saturate(2.2) contrast(1.04) brightness(.96); }
+
+/* ------------------------------------------------------------
+   top bar
+   ------------------------------------------------------------ */
+
+.topbar {
+  border-bottom: 1px solid var(--t-line);
+  background: rgba(255, 255, 255, .94);
+}
+
+.brand { gap: 10px; }
+.brand-mark { display: none; }
+
+.brand::before {
+  content: "N";
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  flex: none;
+  border: 0;
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.brand-word {
+  color: var(--t-ink);
+  font-family: var(--font-display);
+  font-size: 21px;
+  letter-spacing: .16em;
+}
+
+.nav { gap: 3px; }
+
+.nav-btn {
+  padding: 3px 13px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  color: var(--t-ink-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.05;
+}
+
+.nav-btn::before {
+  content: "";
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-condensed);
+  font-size: 7.5px;
+  letter-spacing: .16em;
+  line-height: 1;
+  color: var(--t-accent);
+}
+
+.nav-btn[data-nav="home"]::before { content: "// HOME"; }
+.nav-btn[data-nav="library"]::before { content: "// LIBRARY"; }
+.nav-btn[data-nav="appearance"]::before { content: "// LOOK"; }
+
+.nav-btn:hover { color: var(--t-ink); border-color: var(--t-line); }
+.nav-btn.is-active { color: var(--t-on-accent); font-weight: 800; }
+
+.nav-glide {
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  box-shadow: none;
+  clip-path: none;
+}
+
+.clock {
+  gap: 1px;
+  padding: 3px 10px;
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+}
+
+.clock-time {
+  color: var(--t-ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-date {
+  color: var(--t-muted);
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+}
+
+.icon-btn {
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  color: var(--t-ink-2);
+}
+
+.icon-btn:hover { color: var(--t-on-accent); background: var(--t-accent); border-color: var(--t-accent); }
+.bell-dot { border-radius: 50%; background: var(--t-danger); box-shadow: 0 0 0 2px var(--t-panel); }
+
+.avatar {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-accent);
+  font-family: var(--font-display);
+  font-size: 20px;
+  box-shadow: none;
+}
+
+.avatar-btn { border-radius: var(--r-btn); }
+.online-dot { border-radius: 50%; background: var(--t-accent); box-shadow: 0 0 0 2px var(--t-panel); }
+
+.win-btn { border-radius: var(--r-btn); color: var(--t-ink-2); }
+.win-btn:hover { background: var(--t-panel-2); color: var(--t-ink); }
+.win-btn.close:hover { background: var(--t-danger); color: #fff; }
+.window-controls { border-left-color: var(--t-line); }
+
+.fullscreen-pill {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-ink);
+}
+
+.fullscreen-pill:hover { background: var(--t-accent); color: var(--t-on-accent); border-color: var(--t-accent); }
+
+/* ------------------------------------------------------------
+   hero
+   ------------------------------------------------------------ */
+
+.hero-inner { position: relative; isolation: isolate; }
+
+.hero-inner::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -24px;
+  right: -28px;
+  bottom: -22px;
+  left: -28px;
+  pointer-events: none;
+  background: var(--t-panel);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-panel);
+  box-shadow: none;
+  clip-path: none;
+}
+
+.hero-inner::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 3px 9px 4px;
+  border: 1px solid var(--t-accent);
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.kicker-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: none; }
+.kicker-sep { width: 1px; height: 10px; background: currentColor; opacity: .3; }
+.kicker-dim { opacity: .66; font-weight: 600; }
+#kickerLabel::before { content: "// "; }
+
+html[data-theme="riso"] :is(.hero-logo, .detail-logo, .appearance-logo, .choice-logo, .editor-logo) {
+  --logo-font: var(--font-display);
+  --logo-weight: 400;
+  --logo-style: normal;
+  --logo-track: .02em;
+  --logo-line: .88;
+  --logo-color: var(--t-ink);
+  --logo-bg: none;
+  --logo-bg-clip: border-box;
+  --logo-fill: currentColor;
+  --logo-shadow: none;
+  --logo-filter: none;
+  -webkit-text-stroke: 0;
+  font-stretch: 100%;
+  color: var(--t-ink);
+}
+
+html[data-theme="riso"] .type-system::after { height: 3px; background: var(--t-accent); opacity: 1; }
+
+.tagline { max-width: 56ch; color: var(--t-ink-2); font-size: 13px; line-height: 1.7; }
+.meta-row { gap: 10px; color: var(--t-ink-2); font-size: 10.5px; font-weight: 600; letter-spacing: .03em; }
+.meta-dot { width: 2px; height: 11px; border-radius: 0; background: var(--t-accent); }
+
+.age-badge {
+  height: 19px;
+  padding: 0 6px;
+  border: 1px solid var(--t-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--t-ink-2);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.update-badge {
+  height: auto;
+  padding: 2px 6px;
+  gap: 0;
+  border: 1px solid var(--t-accent);
+  border-radius: 0;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  vertical-align: baseline;
+}
+
+.update-badge::before { display: none; }
+
+/* ------------------------------------------------------------
+   buttons
+   ------------------------------------------------------------ */
+
+.btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 50px;
+  padding: 0 24px;
+  border-radius: var(--r-btn);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  transition: color .14s linear, background .14s linear, border-color .14s linear, transform .1s linear, box-shadow .14s linear;
+}
+
+.btn::before { display: none; }
+.btn > * { position: relative; z-index: 1; }
+
+.btn.primary,
+.btn.primary.cta-adaptive,
+.btn.primary.cta-system {
+  --cta-bg: var(--t-accent);
+  --cta-bg-hover: var(--t-accent-2);
+  --cta-fg: var(--t-on-accent);
+  --cta-border: var(--t-accent);
+  --cta-shadow: none;
+  --cta-shadow-hover: none;
+  --cta-a: var(--t-accent);
+  --cta-b: var(--t-accent);
+  --cta-radius: var(--r-btn);
+  --cta-font: var(--font-ui);
+  --cta-weight: 800;
+  --cta-ls: .05em;
+  border: 1px solid var(--t-accent);
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.btn.primary:hover,
+.btn.primary.cta-adaptive:hover,
+.btn.primary.cta-system:hover {
+  background: var(--t-accent-2);
+  border-color: var(--t-accent-2);
+  color: var(--t-on-accent);
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.btn.primary:active,
+.btn.primary.cta-adaptive:active,
+.btn.primary.cta-system:active { transform: translateY(1px); }
+
+.btn.ghost {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-ink);
+  box-shadow: none;
+}
+
+.btn.ghost:hover { background: var(--t-panel-2); border-color: var(--t-accent); color: var(--t-accent); transform: none; box-shadow: none; }
+.btn.ghost.danger { border-color: var(--t-danger); color: var(--t-danger); }
+.btn.ghost.danger:hover { background: var(--t-danger); color: #fff; }
+.btn.compact { height: 42px; padding: 0 15px; font-size: 11.5px; }
+.btn:disabled { opacity: .45; }
+
+.preview-mini.cta-adaptive,
+.preview-mini.cta-system {
+  border-radius: var(--r-btn) !important;
+  background: var(--t-accent) !important;
+  color: var(--t-on-accent) !important;
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------
+   progress / activity
+   ------------------------------------------------------------ */
+
+.progress-block {
+  width: min(440px, 100%);
+  margin-top: clamp(16px, 2.5vh, 24px);
+  padding-top: 10px;
+  border-top: 1px solid var(--t-line);
+}
+
+.progress-head { color: var(--t-muted); font-size: 9.5px; font-weight: 600; letter-spacing: .04em; }
+.progress-pct { color: var(--t-accent); font-family: var(--font-display); font-size: 20px; font-weight: 400; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+
+.progress-track,
+.activity-track,
+.dp-track,
+.manage-progress-track,
+.launch-track {
+  height: 5px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: var(--t-paper-2);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.progress-track i,
+.activity-track i,
+.dp-track i,
+.manage-progress-track i,
+.launch-track i {
+  border-radius: 999px;
+  background: var(--t-accent);
+  box-shadow: none;
+}
+
+.progress-track i::after,
+.activity-track i::after,
+.dp-track i::after,
+.manage-progress-track i::after,
+.launch-track i::after { display: none; }
+
+.progress-sub { color: var(--t-muted); font-size: 9.5px; }
+.progress-sub .ic { opacity: .7; color: var(--t-accent); }
+
+.activity-strip {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  background: var(--t-panel);
+  box-shadow: none;
+  clip-path: none;
+  transition: transform .18s var(--t-ease), border-color .14s linear, background .14s linear;
+}
+
+.activity-strip::before { display: none; }
+.activity-strip::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: var(--t-accent);
+  pointer-events: none;
+}
+
+.activity-strip:hover { border-color: var(--t-accent); background: var(--t-panel-2); transform: translateY(-2px); }
+.activity-icon { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.activity-kicker { color: var(--t-accent); font-family: var(--font-condensed); font-size: 8.5px; font-weight: 700; letter-spacing: .12em; }
+.activity-title { color: var(--t-ink); font-family: var(--font-display); font-size: 21px; font-weight: 400; letter-spacing: .04em; }
+.activity-desc { color: var(--t-ink-2); }
+.activity-pct { color: var(--t-accent); font-family: var(--font-display); font-size: 21px; font-weight: 400; }
+.activity-meta { color: var(--t-muted); font-size: 8.5px; }
+.activity-arrow { color: var(--t-accent); }
+
+/* ------------------------------------------------------------
+   dock
+   ------------------------------------------------------------ */
+
+.dock {
+  border-top: 1px solid var(--t-line);
+  background: var(--t-paper);
+  padding-top: clamp(10px, 1.6vh, 15px);
+}
+
+.dock-title { color: var(--t-ink); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.dock-title::before { width: 7px; height: 7px; border-radius: 50%; background: var(--t-accent); box-shadow: none; }
+.dock-title > span:first-child::before { content: "// "; color: var(--t-accent); }
+
+.dock-count {
+  padding: 1px 6px;
+  border: 1px solid var(--t-accent);
+  border-radius: 999px;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.all-btn { color: var(--t-ink-2); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.all-btn:hover { color: var(--t-accent); }
+
+#rail { counter-reset: nt-tile; }
+.tile { counter-increment: nt-tile; }
+
+.tile-art {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  background: var(--t-panel-2);
+  clip-path: none;
+  transition: transform .18s var(--t-ease), border-color .14s linear, filter .18s linear, box-shadow .18s var(--t-ease);
+}
+
+.tile-art::after { background: linear-gradient(180deg, transparent 56%, rgba(0, 0, 0, .3) 100%); }
+
+.tile-art::before {
+  content: "No." counter(nt-tile, decimal-leading-zero);
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 4;
+  padding: 2px 5px 1px;
+  border: 1px solid var(--t-line);
+  border-radius: calc(var(--r-card) / 2);
+  background: rgba(255, 255, 255, .9);
+  color: var(--t-ink);
+  font-family: var(--font-condensed);
+  font-size: 8.5px;
+  letter-spacing: .06em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.tile.is-active .tile-art::before { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.tile-badge {
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  color: var(--t-ink-2);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.tile-badge.live, .lib-badge.live { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.tile-badge.offline { border-color: var(--t-line); background: var(--t-panel-2); color: var(--t-muted); }
+
+.tile:not(.is-active) .tile-art { filter: grayscale(.12) brightness(.98); }
+.tile:hover:not(.is-active) .tile-art { filter: none; border-color: var(--t-accent); transform: translateY(-3px); }
+.tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); transform: translateY(-4px); }
+
+.tile-progress { height: 3px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
+.tile-progress i { border-radius: 999px; background: var(--t-accent); }
+.tile.is-active .tile-progress i { background: var(--t-accent); }
+
+.tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--t-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
+.tile-name { overflow: visible; white-space: normal; text-overflow: clip; color: var(--t-ink); }
+.tile-sub { color: var(--t-muted); font-family: var(--font-condensed); font-size: 9.5px; font-variant-numeric: tabular-nums; }
+.tile.is-active .tile-label { color: var(--t-ink); }
+.tile.is-active .tile-name { color: var(--t-accent); }
+.tile.is-active .tile-sub { color: var(--t-accent); }
+
+.dock-foot { color: var(--t-muted); }
+.hint .key, kbd.key { border: 1px solid var(--t-line); border-radius: 4px; background: var(--t-panel); color: var(--t-ink); font-size: 9px; }
+.hints .hint span:last-child { color: var(--t-muted); }
+.runtime-item { color: var(--t-muted); }
+.runtime-sep { background: var(--t-line); }
+
+/* ------------------------------------------------------------
+   library / appearance
+   ------------------------------------------------------------ */
+
+.view-library,
+.view-appearance {
+  background-color: var(--t-paper);
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.view-library .lib-shell,
+.view-appearance .appearance-shell { background: transparent; }
+
+.lib-head { border-bottom: 1px solid var(--t-line); padding-bottom: clamp(12px, 1.8vh, 18px); }
+.lib-back { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.lib-back:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.lib-eyebrow { color: var(--t-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .14em; }
+.lib-eyebrow::before { content: "// "; }
+
+.lib-title h2 { margin-top: 4px; color: var(--t-ink); font-family: var(--font-display); font-size: clamp(38px, 3.8vw, 52px); font-weight: 400; letter-spacing: .03em; line-height: .95; }
+
+.lib-search { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); }
+.lib-search:focus-within { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.lib-search input { color: var(--t-ink); }
+.lib-search input::placeholder { color: var(--t-muted); }
+.lib-search .keycap { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-accent); }
+
+.lib-stats { color: var(--t-muted); font-size: 9.5px; }
+.lib-stats b { color: var(--t-accent); font-family: var(--font-display); font-size: 17px; font-weight: 400; }
+.lib-sep { background: var(--t-line); }
+
+.filter {
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: var(--t-panel);
+  color: var(--t-ink-2);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.filter:hover { border-color: var(--t-accent); color: var(--t-accent); }
+.filter.is-active { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); box-shadow: none; }
+
+.lib-card { position: relative; transition: transform .18s var(--t-ease); }
+.lib-card::before { content: ""; position: absolute; top: 0; bottom: 34px; left: -8px; width: 3px; background: var(--t-accent); transform: scaleY(0); transform-origin: top; transition: transform .18s var(--t-ease); pointer-events: none; }
+.lib-card:hover { transform: translateX(4px); }
+.lib-card:hover::before { transform: scaleY(1); }
+
+.lib-art { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); clip-path: none; }
+.lib-art::after { background: linear-gradient(180deg, transparent 56%, rgba(0, 0, 0, .26) 100%); }
+.lib-card:hover .lib-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.lib-open { border: 1px solid var(--t-accent); border-radius: var(--r-btn); background: var(--t-accent); color: var(--t-on-accent); }
+.lib-progress { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
+.lib-progress i { border-radius: 999px; background: var(--t-accent); }
+.lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
+.lib-en { color: var(--t-muted); }
+.lib-sub { color: var(--t-muted); }
+.lib-fav { color: var(--t-accent); }
+
+.lib-current { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .06em; }
+.lib-current::before { display: none; }
+.lib-empty h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
+.lib-empty p { color: var(--t-ink-2); }
+.empty-icon { color: var(--t-accent); }
+
+.appearance-kicker { color: var(--t-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .14em; }
+.appearance-kicker::before { content: "// "; }
+.appearance-head h2 { color: var(--t-ink); font-family: var(--font-display); font-size: clamp(38px, 3.8vw, 52px); font-weight: 400; letter-spacing: .03em; line-height: .95; }
+.appearance-head p, .section-head p { color: var(--t-ink-2); }
+.section-head h3 { color: var(--t-ink); font-size: 17px; font-weight: 700; }
+
+.section-tag { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; }
+.view-appearance .appearance-preview { border: 1px solid var(--t-line); border-radius: var(--r-panel); overflow: hidden; }
+.view-appearance .appearance-options { border: 1px solid var(--t-line); border-radius: var(--r-panel); background: var(--t-panel); }
+
+.appearance-preview-shade { display: none; }
+.appearance-bg { display: none; }
+.appearance-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.appearance-preview-copy {
+  right: auto;
+  bottom: 92px;
+  left: 18px;
+  width: min(78%, 480px);
+  max-width: 480px;
+  padding: 11px 14px 13px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  color: var(--t-ink);
+  box-shadow: none;
+  clip-path: none;
+}
+
+html[data-theme="riso"] .appearance-preview-copy .appearance-logo {
+  --logo-size: clamp(22px, 2.5vw, 34px);
+  --logo-color: var(--t-ink);
+  --logo-fill: currentColor;
+  color: var(--t-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  margin-top: 6px;
+}
+
+.preview-cta-row,
+.appearance-progress { display: none; }
+
+.appearance-switcher {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 8px 12px 9px;
+  gap: 6px;
+  background: var(--t-panel);
+  border-top: 1px solid var(--t-line);
+  mask-image: none;
+  -webkit-mask-image: none;
+  counter-reset: nt-chip;
+}
+
+.appearance-eyebrow { color: var(--t-accent); font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.appearance-eyebrow::before { content: "// "; }
+.appearance-tagline { margin-top: 4px; max-width: 100%; overflow: visible; white-space: normal; color: var(--t-ink-2); font-size: 10px; line-height: 1.55; }
+
+.appearance-index { padding: 2px 6px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink); font-family: var(--font-condensed); font-size: 9px; letter-spacing: .06em; }
+.live-pill { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink); font-size: 8.5px; font-weight: 700; }
+.live-pill i { border-radius: 50%; background: var(--t-accent); box-shadow: none; }
+.preview-cta-note { color: var(--t-muted); }
+
+.game-chip { width: 62px; border: 1px solid var(--t-line); border-radius: var(--r-card); opacity: 1; counter-increment: nt-chip; }
+.game-chip::after { content: "No." counter(nt-chip, decimal-leading-zero); position: absolute; top: 3px; left: 3px; z-index: 2; padding: 1px 3px 0; border: 1px solid var(--t-line); border-radius: 3px; background: rgba(255, 255, 255, .9); color: var(--t-ink); font-family: var(--font-condensed); font-size: 6.5px; line-height: 1; pointer-events: none; }
+.game-chip.is-active { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.game-chip.is-active::after { background: var(--t-accent); color: var(--t-on-accent); border-color: var(--t-accent); }
+
+.style-choice { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); }
+.style-choice:hover { border-color: var(--t-accent); }
+.style-choice.is-active { border-color: var(--t-accent); background: var(--t-panel); box-shadow: 0 0 0 1px var(--t-accent); }
+.style-choice-head { color: var(--t-ink); font-weight: 700; }
+.style-choice-head span:not(.choice-radio) { color: var(--t-ink); }
+.style-choice-head em { color: var(--t-accent); font-family: var(--font-condensed); font-size: 8.5px; }
+.choice-radio { border: 1px solid var(--t-line); border-radius: 50%; }
+.style-choice.is-active .choice-radio { border-color: var(--t-accent); background: var(--t-accent); }
+.style-choice.is-active .choice-radio::after { inset: 2px; border-radius: 50%; background: var(--t-panel); }
+.style-choice-desc { color: var(--t-ink-2); }
+
+.type-readout { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.type-readout-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.type-recipe-name { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; letter-spacing: .03em; }
+.type-recipe-spec { color: var(--t-ink-2); }
+.type-seed { color: var(--t-accent); font-size: 8.5px; font-variant-numeric: tabular-nums; }
+.type-shuffle { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink); }
+.type-shuffle:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.type-dna span { border: 1px solid var(--t-line); border-radius: 3px; color: var(--t-ink-2); }
+
+.palette-strip-label { color: var(--t-muted); font-size: 8.5px; letter-spacing: .08em; }
+.swatch { border-radius: 0; }
+.swatch i { border: 1px solid var(--t-line); }
+.swatch em { color: var(--t-muted); font-size: 8px; }
+
+.pref-row { border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); color: var(--t-ink); }
+.pref-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+.pref-note, .pref-hint { color: var(--t-muted); }
+.appearance-footer { border-top: 1px solid var(--t-line); }
+.autosave { color: var(--t-muted); }
+.appearance-data { color: var(--t-muted); }
+
+.switch { border-radius: 999px; background: var(--t-paper-2); box-shadow: inset 0 0 0 1px var(--t-line); }
+.switch::after { border-radius: 50%; background: var(--t-muted); }
+.switch.on { background: var(--t-accent); box-shadow: inset 0 0 0 1px var(--t-accent); }
+.switch.on::after { background: var(--t-on-accent); }
+
+.theme-card { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.theme-card:hover { border-color: var(--t-accent); }
+.theme-card.is-active { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.theme-preview { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.theme-name { color: var(--t-ink); font-weight: 700; }
+.theme-sub { color: var(--t-muted); font-size: 8px; }
+.theme-placeholder { color: var(--t-accent); }
+.theme-active-tag { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8px; font-weight: 800; letter-spacing: .04em; }
+
+/* ------------------------------------------------------------
+   popovers / context menu / notifications
+   ------------------------------------------------------------ */
+
+.popover { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); box-shadow: 0 8px 0 rgba(0, 0, 0, .08); }
+.popover-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.popover-head h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; }
+.popover-head { border-bottom: 1px solid var(--t-line); }
+.text-btn { color: var(--t-accent); font-size: 9.5px; }
+.text-btn:hover { color: var(--t-ink); }
+
+.menu-row { border-radius: calc(var(--r-card) / 2); color: var(--t-ink); font-size: 11px; }
+.menu-row:hover { background: var(--t-accent); color: var(--t-on-accent); }
+.row-key { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-accent); }
+.menu-separator { background: var(--t-line); }
+
+.context-menu { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); box-shadow: 0 8px 0 rgba(0, 0, 0, .08); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.context-item { border-radius: calc(var(--r-card) / 2); color: var(--t-ink); font-size: 12px; }
+.context-item:hover, .context-item:focus-visible { background: var(--t-accent); color: var(--t-on-accent); outline: none; }
+.context-item.is-disabled, .context-item:disabled { opacity: .4; }
+.menu-label { overflow: visible; white-space: normal; text-overflow: clip; }
+.menu-key { color: var(--t-accent); font-size: 9.5px; }
+.context-item:hover .menu-key { color: var(--t-on-accent); }
+
+.profile-head { border-bottom: 1px solid var(--t-line); }
+.profile-id strong { color: var(--t-ink); }
+.profile-id span { color: var(--t-ink-2); }
+.profile-foot { border-top: 1px solid var(--t-line); color: var(--t-muted); }
+.notif-item { border-radius: calc(var(--r-card) / 2); border: 1px solid transparent; }
+.notif-item:hover { border-color: var(--t-line); background: var(--t-panel-2); }
+.notif-title { color: var(--t-ink); }
+.notif-sub { color: var(--t-ink-2); }
+.notif-icon { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.notif-unread { background: var(--t-accent); box-shadow: none; }
+.status-pip { background: var(--t-accent); box-shadow: none; border-radius: 50%; }
+
+/* ------------------------------------------------------------
+   overlays / details / editor / scanner / picker / dialog
+   ------------------------------------------------------------ */
+
+.overlay { background: rgba(20, 20, 20, .4); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+.detail-modal, .lib-shell, .appearance-shell, .editor-shell,
+.scanner-shell, .picker-shell, .dialog {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-panel);
+  background: var(--t-panel);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, .08);
+}
+
+.detail-art { border-right: 1px solid var(--t-line); background: var(--t-paper-2); }
+.detail-art::before, .detail-art::after { display: none; }
+.detail-art > img.detail-art-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.detail-art-copy {
+  right: auto;
+  bottom: 18px;
+  left: 18px;
+  width: min(86%, 520px);
+  max-width: 520px;
+  padding: 11px 14px 12px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  color: var(--t-ink);
+  box-shadow: none;
+  clip-path: none;
+}
+
+html[data-theme="riso"] .detail-art-copy .detail-logo {
+  --logo-size: clamp(19px, 2vw, 28px);
+  --logo-color: var(--t-ink);
+  --logo-fill: currentColor;
+  color: var(--t-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  margin-top: 7px;
+}
+
+.detail-status { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; }
+.detail-status .status-dot { border-radius: 50%; background: currentColor; box-shadow: none; }
+.detail-zh { color: var(--t-ink-2); font-size: 9.5px; letter-spacing: .04em; white-space: normal; }
+.detail-body { scrollbar-color: var(--t-accent) transparent; }
+.detail-kicker { color: var(--t-accent); font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.detail-kicker::before { width: 6px; height: 6px; border-radius: 50%; background: var(--t-accent); }
+.detail-body h2 { color: var(--t-ink); font-family: var(--font-display); font-size: 36px; font-weight: 400; letter-spacing: .02em; }
+.detail-tagline, .detail-desc { color: var(--t-ink-2); }
+
+.detail-progress, .stat, .manage-stat { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); }
+.dp-head { color: var(--t-muted); }
+.dp-head b { color: var(--t-accent); font-family: var(--font-display); font-size: 18px; font-weight: 400; }
+.dp-sub, .detail-sync { color: var(--t-muted); }
+.stat-label { color: var(--t-muted); font-size: 8.5px; }
+.stat-value { color: var(--t-ink); font-size: 15px; font-weight: 700; }
+.detail-path { color: var(--t-muted); font-size: 9.5px; }
+.detail-actions { border-top: 1px solid var(--t-line); }
+
+.modal-close { border: 1px solid var(--t-line); border-radius: 50%; background: var(--t-panel); color: var(--t-ink); }
+.modal-close:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.manage-panel { border-top: 1px solid var(--t-line); }
+.manage-kicker { color: var(--t-accent); font-size: 8.5px; }
+.manage-head h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; }
+.manage-row { color: var(--t-ink); border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.manage-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+.manage-note { color: var(--t-muted); }
+
+.editor-head, .scanner-head, .picker-head { border-bottom: 1px solid var(--t-line); }
+.editor-kicker, .scanner-kicker, .picker-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.editor-kicker span { color: var(--t-ink); }
+.editor-head h2, .scanner-head h2, .picker-head h2 { color: var(--t-ink); font-family: var(--font-display); font-size: 32px; font-weight: 400; letter-spacing: .03em; }
+
+.field input, .field textarea, .field select { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.field select {
+  background-color: var(--t-panel);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--t-accent) 50%),
+    linear-gradient(135deg, var(--t-accent) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 17px, calc(100% - 12px) 17px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.field select option { background: var(--t-panel); color: var(--t-ink); }
+.field input::placeholder, .field textarea::placeholder { color: var(--t-muted); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.field-label { color: var(--t-ink-2); font-size: 9px; }
+.field-label em { color: var(--t-accent); }
+.field-btn { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.field-btn:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.editor-preview { border: 1px solid var(--t-line); border-radius: var(--r-card); }
+.editor-preview-shade { display: none; }
+.editor-preview-copy { right: 0; bottom: 0; left: 0; padding: 11px 15px 12px; background: rgba(255, 255, 255, .94); border-top: 1px solid var(--t-line); color: var(--t-ink); }
+html[data-theme="riso"] .editor-preview .editor-logo { --logo-color: var(--t-ink); --logo-fill: currentColor; color: var(--t-ink); -webkit-text-fill-color: currentColor; text-shadow: none; filter: none; }
+.editor-preview-hint { color: var(--t-ink-2); font-size: 10px; }
+.editor-preview-swatches i { border: 1px solid var(--t-line); box-shadow: none; }
+.editor-framing { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink-2); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.editor-framing button { border: 0; border-radius: 50%; background: transparent; color: var(--t-ink); }
+.editor-framing button:hover { background: var(--t-accent); color: var(--t-on-accent); }
+.editor-framing-sep { background: var(--t-line); }
+.editor-foot { border-top: 1px solid var(--t-line); }
+.editor-error { border: 1px solid var(--t-danger); border-radius: var(--r-btn); background: rgba(0, 0, 0, .04); color: var(--t-danger); }
+#editorDelete { color: var(--t-danger); }
+#editorDelete:hover { color: var(--t-ink); }
+
+.scanner-status { border-top: 1px solid var(--t-line); color: var(--t-muted); font-size: 9px; }
+.scan-group-title { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.scan-group-title::after { background: var(--t-line); }
+.scan-row { border: 1px solid transparent; border-radius: calc(var(--r-card) / 2); }
+.scan-row:hover { background: var(--t-panel-2); }
+.scan-row.is-checked { border-color: var(--t-accent); background: var(--t-panel-2); }
+.scan-name { color: var(--t-ink); }
+.scan-sub { color: var(--t-muted); font-size: 9px; }
+.scan-thumb { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.scan-check { border: 1px solid var(--t-line); border-radius: 4px; }
+.scan-row.is-checked .scan-check { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.scan-row.is-imported .scan-check { border-color: var(--t-line); color: var(--t-muted); }
+.scan-source { border: 1px solid var(--t-line); border-radius: 3px; color: var(--t-accent); font-size: 7.5px; letter-spacing: .06em; }
+.scanner-foot { border-top: 1px solid var(--t-line); }
+.scanner-empty { color: var(--t-muted); }
+.scanner-empty strong { color: var(--t-ink); }
+
+.crumb-btn { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink); }
+.crumb-path { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-muted); font-size: 9px; }
+.picker-toggle { color: var(--t-muted); }
+.drive-chip { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink-2); }
+.drive-chip:hover { border-color: var(--t-accent); color: var(--t-accent); }
+.drive-chip.is-active { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.picker-row { border-radius: calc(var(--r-card) / 2); }
+.picker-row:hover { background: var(--t-panel-2); color: var(--t-ink); }
+.picker-row.is-selected { border-color: var(--t-accent); background: var(--t-panel-2); color: var(--t-ink); }
+.picker-row.is-dir .ic { color: var(--t-accent); }
+.picker-name { color: inherit; }
+.picker-meta { color: var(--t-muted); font-size: 8.5px; }
+.picker-foot { border-top: 1px solid var(--t-line); }
+.picker-note { color: var(--t-muted); }
+.picker-empty { color: var(--t-muted); }
+
+.dialog-mark { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-title { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
+.dialog-text { color: var(--t-ink-2); }
+.dialog-action { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); font-size: 11.5px; font-weight: 700; }
+.dialog-action:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-action.is-primary { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-action.is-primary:hover { background: var(--t-accent-2); border-color: var(--t-accent-2); }
+.dialog-action.is-danger { border-color: var(--t-danger); color: var(--t-danger); }
+.dialog-action.is-danger:hover { background: var(--t-danger); color: #fff; }
+
+.rail-empty-card { border: 1px dashed var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.rail-empty-card:hover { border-color: var(--t-accent); }
+.rail-empty-icon { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.rail-empty-title { color: var(--t-ink); }
+.rail-empty-sub { color: var(--t-ink-2); }
+
+/* ------------------------------------------------------------
+   launch / sleep / toast / pad
+   ------------------------------------------------------------ */
+
+.launch { background: var(--t-ink); --launch-ease: var(--t-ease); }
+.launch::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
+.launch::after { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: var(--t-accent); z-index: 6; pointer-events: none; }
+.launch-art { filter: grayscale(.55) contrast(1.1) brightness(.45); transform: scale(1.06); animation: none; transition: transform .5s var(--t-ease), filter .5s var(--t-ease); }
+.launch.is-open .launch-art { transform: scale(1); filter: grayscale(.5) contrast(1.1) brightness(.5); }
+.launch.is-leaving .launch-art { transform: scale(1.02); filter: grayscale(.6) brightness(.2) blur(2px); transition-duration: .32s; }
+.launch-veil { background: rgba(0, 0, 0, .62); }
+.launch-bars i { background: var(--t-ink); height: 8vh; }
+.launch-bars i::after { content: ""; position: absolute; right: 5vw; left: 5vw; height: 1px; background: var(--t-accent); }
+.launch-brand { color: var(--t-paper); font-family: var(--font-display); font-size: 16px; letter-spacing: .18em; }
+.launch-system { color: var(--t-accent); font-size: 9px; font-weight: 700; letter-spacing: .16em; }
+.launch-stage { gap: clamp(16px, 2.6vh, 28px); }
+.launch-ring { width: clamp(92px, 11vh, 128px); opacity: 0; transition: opacity .3s linear; }
+.launch.is-open .launch-ring { opacity: 1; }
+.ring-track { stroke: rgba(255, 255, 255, .22); stroke-width: 3; stroke-dasharray: 2 14; }
+.ring-progress { stroke: var(--t-accent); stroke-width: 5; stroke-linecap: butt; filter: none; transition: stroke-dashoffset .24s var(--t-ease); }
+.launch-ring-label { color: var(--t-paper); font-family: var(--font-display); font-size: 22px; font-weight: 400; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.launch-kicker { color: var(--t-on-accent); background: var(--t-accent); padding: 3px 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .08em; }
+.launch-kicker::before { content: "// "; }
+.launch-copy .launch-logo, .launch-logo { --logo-font: var(--font-display); --logo-weight: 400; --logo-style: normal; --logo-track: .02em; --logo-color: var(--t-paper); --logo-bg: none; --logo-bg-clip: border-box; --logo-fill: currentColor; --logo-shadow: none; --logo-filter: none; -webkit-text-stroke: 0; font-stretch: 100%; color: var(--t-paper); }
+.launch-copy .launch-zh { color: var(--t-accent); font-size: 9.5px; font-weight: 700; letter-spacing: .12em; }
+.launch-steps { counter-reset: nt-step; gap: 15px; }
+.launch-step { counter-increment: nt-step; color: var(--t-muted); font-size: 9px; font-weight: 600; }
+.launch-step i { display: none; }
+.launch-step::before { content: "0" counter(nt-step); display: inline-block; margin-right: 6px; padding: 1px 4px; border: 1px solid rgba(255, 255, 255, .24); color: rgba(255, 255, 255, .5); font-family: var(--font-display); font-size: 8px; letter-spacing: .06em; }
+.launch-step.is-active { color: var(--t-paper); }
+.launch-step.is-active::before { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.launch-step.is-done { color: var(--t-paper); }
+.launch-step.is-done::before { border-color: var(--t-accent); color: var(--t-accent); }
+.launch-status { color: var(--t-accent); }
+.launch-hint { border: 1px solid var(--t-accent); border-radius: 999px; color: var(--t-accent); font-size: 9px; font-weight: 700; }
+.launch.is-ready .launch-hint { background: var(--t-accent); color: var(--t-on-accent); }
+.launch-foot { color: rgba(255, 255, 255, .42); letter-spacing: .08em; }
+
+.sleep { background: var(--t-ink); }
+.sleep::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
+.sleep-brand { color: var(--t-accent); letter-spacing: .24em; font-family: var(--font-display); }
+.sleep-time { color: var(--t-paper); font-family: var(--font-display); font-weight: 400; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.sleep-date { color: rgba(255, 255, 255, .5); letter-spacing: .12em; }
+.sleep-moon { color: var(--t-accent); }
+.sleep-hint { color: rgba(255, 255, 255, .42); }
+.sleep-dot { background: var(--t-accent); box-shadow: none; }
+
+.toast { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); color: var(--t-ink); box-shadow: 0 6px 0 rgba(0, 0, 0, .08); }
+.toast .ic { color: var(--t-accent); }
+.toast::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--t-accent); }
+
+.pad-hints { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); }
+.pad-hint { color: var(--t-ink); font-weight: 600; }
+.pad-hint + .pad-hint { border-left-color: var(--t-line); }
+.pad-glyph { border: 1px solid var(--t-line); border-radius: 50%; background: var(--t-panel); color: var(--t-ink); }
+.pad-glyph.face { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+::selection { background: var(--t-accent); color: var(--t-on-accent); }
+* { scrollbar-color: var(--t-accent) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--t-accent); border: 2px solid var(--t-paper); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--t-ink); }
+
+html.reduce-motion .btn,
+html.reduce-motion .activity-strip,
+html.reduce-motion .lib-card,
+html.reduce-motion .lib-card::before,
+html.reduce-motion .nav-glide,
+html.reduce-motion .tile-art,
+html.reduce-motion .tile-art > img,
+html.reduce-motion .lib-art > img { transition-duration: .001ms !important; }
+
+html.reduce-motion .tile:hover:not(.is-active) .tile-art,
+html.reduce-motion .tile.is-active .tile-art,
+html.reduce-motion .lib-card:hover,
+html.reduce-motion .activity-strip:hover { transform: none; }
+
+html.perf-low body::before { display: none; }
+html.perf-low .grain { display: none; }
+
+
+/* RISO · blue and acid yellow, printed hard */
+body::before {
+  background-image:
+    radial-gradient(circle, rgba(47, 63, 212, .16) 1px, transparent 1.7px),
+    radial-gradient(circle, rgba(232, 255, 42, .22) 1px, transparent 1.7px);
+  background-size: 6px 6px, 11px 11px;
+  background-position: 0 0, 3px 3px;
+  opacity: .55;
+}
+body::after { height: 8px; background: linear-gradient(90deg, var(--t-accent) 0 58%, var(--t-accent-2) 58% 100%); }
+.topbar { border-bottom: 2px solid var(--t-ink); background: var(--t-panel); }
+.brand::before { border: 2px solid var(--t-ink); background: var(--t-accent-2); color: var(--t-ink); }
+.nav-btn.is-active { color: var(--t-ink); }
+.nav-glide { background: var(--t-accent-2); }
+.clock { border-color: var(--t-ink); }
+.avatar { border: 2px solid var(--t-ink); background: var(--t-accent-2); color: var(--t-ink); }
+.hero-inner::before {
+  background: var(--t-panel);
+  border: 2px solid var(--t-accent);
+  box-shadow: 10px 10px 0 var(--t-accent-2);
+  border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 26px), calc(100% - 26px) 100%, 0 100%);
+}
+.hero-inner::after {
+  top: -18px;
+  right: -18px;
+  width: 88px;
+  height: 88px;
+  background: var(--t-accent-2);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform: none;
+}
+.kicker { border: 2px solid var(--t-ink); background: var(--t-accent-2); color: var(--t-ink); transform: rotate(-1deg); }
+.hero-logo { color: var(--t-accent); font-family: var(--font-display); }
+.meta-dot { background: var(--t-accent-2); }
+.btn { border-radius: 0; }
+.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system {
+  border: 2px solid var(--t-ink);
+  background: var(--t-accent-2);
+  color: var(--t-ink);
+  box-shadow: 5px 5px 0 var(--t-accent);
+}
+.btn.primary:hover, .btn.primary.cta-adaptive:hover, .btn.primary.cta-system:hover {
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  border-color: var(--t-ink);
+  box-shadow: 7px 7px 0 var(--t-accent-2);
+  transform: translate(-1px, -1px);
+}
+.btn.ghost { border: 2px solid var(--t-accent); color: var(--t-accent); }
+.btn.ghost:hover { background: var(--t-accent); color: var(--t-on-accent); }
+.progress-track i { background: var(--t-accent); }
+.activity-strip { border: 2px solid var(--t-ink); box-shadow: 6px 6px 0 var(--t-accent-2); }
+.activity-strip:hover { box-shadow: 8px 8px 0 var(--t-accent-2); transform: translate(-1px, -1px); }
+.activity-icon { border-color: var(--t-ink); background: var(--t-accent-2); color: var(--t-ink); }
+.tile-art, .lib-art { border: 2px solid var(--t-ink); }
+.tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 5px 5px 0 var(--t-accent-2); }
+.lib-card:hover .lib-art { box-shadow: 4px 4px 0 var(--t-accent-2); }
+.theme-card.is-active, .style-choice.is-active { box-shadow: 4px 4px 0 var(--t-accent-2); }
+.view-library::before, .view-appearance::before {
+  content: "RISO";
+  position: absolute;
+  top: 4%;
+  left: -2%;
+  z-index: 0;
+  font-family: var(--font-display);
+  font-size: clamp(180px, 24vw, 340px);
+  font-weight: 700;
+  line-height: .8;
+  color: rgba(47, 63, 212, .07);
+  transform: rotate(-4deg);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.view-library .lib-shell, .view-appearance .appearance-shell { position: relative; z-index: 1; }
+.detail-modal, .lib-shell, .appearance-shell, .editor-shell, .scanner-shell, .picker-shell, .dialog { border: 2px solid var(--t-ink); box-shadow: 8px 8px 0 var(--t-accent-2); }
+.detail-art-copy, .appearance-preview-copy, .editor-preview-copy { border: 2px solid var(--t-ink); }
+
+
+/* ============================================================
+   RISO · signature pass
+   Two-ink misregistration: blue serif type with acid yellow
+   offset, registration marks, shards and a blue activity block.
+   ============================================================ */
+
+.hero-inner::before {
+  background-color: var(--t-panel);
+  background-image:
+    radial-gradient(circle, rgba(47, 63, 212, .14) 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(232, 255, 42, .28) 1px, transparent 1.6px);
+  background-size: 6px 6px, 13px 13px;
+  background-position: 0 0, 4px 4px;
+  border: 2px solid var(--t-accent);
+  border-radius: 0;
+  box-shadow: 10px 10px 0 var(--t-accent-2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 26px), calc(100% - 26px) 100%, 0 100%);
+}
+
+.hero-inner::after {
+  top: -18px;
+  right: -18px;
+  bottom: auto;
+  left: auto;
+  width: 92px;
+  height: 92px;
+  background: var(--t-accent-2);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform: none;
+}
+
+/* misregistered blue/yellow title */
+html[data-theme="riso"] .hero-logo {
+  position: relative;
+  color: var(--t-accent);
+  text-shadow: 5px 5px 0 var(--t-accent-2);
+}
+html[data-theme="riso"] .hero-logo::before {
+  content: "02";
+  position: absolute;
+  top: -36px;
+  right: -78px;
+  z-index: -1;
+  font-family: var(--font-serif);
+  font-size: 170px;
+  font-weight: 700;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(47, 63, 212, .22);
+  pointer-events: none;
+}
+
+.kicker::after {
+  content: "REG / 02";
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(16, 16, 20, .3);
+  font-family: 'Consolas', monospace;
+  font-size: 7px;
+  letter-spacing: .12em;
+}
+
+/* blue activity block, yellow type */
+.activity-strip {
+  border: 2px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-accent);
+  box-shadow: 6px 6px 0 var(--t-accent-2);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+}
+.activity-strip::after { background: var(--t-accent-2); width: 5px; }
+.activity-strip:hover { background: var(--t-accent); border-color: var(--t-ink); box-shadow: 8px 8px 0 var(--t-accent-2); transform: translate(-1px, -1px); }
+.activity-icon { border: 2px solid var(--t-ink); border-radius: 50%; background: var(--t-accent-2); color: var(--t-ink); }
+.activity-kicker, .activity-desc, .activity-meta, .activity-arrow { color: var(--t-accent-2); }
+.activity-title { color: var(--t-accent-2); }
+.activity-pct { color: var(--t-accent-2); text-shadow: 2px 2px 0 rgba(16, 16, 20, .35); }
+.activity-track { border-color: var(--t-ink); background: rgba(16, 16, 20, .3); }
+.activity-track i { background: var(--t-accent-2); }
+
+/* cards: yellow shard at the corner */
+.tile-art::after {
+  background:
+    linear-gradient(135deg, transparent 0 86%, var(--t-accent-2) 86% 100%),
+    linear-gradient(180deg, transparent 56%, rgba(16, 16, 20, .28) 100%);
+}
+.tile.is-active .tile-art { box-shadow: 5px 5px 0 var(--t-accent-2); }
+.lib-art::after {
+  background:
+    linear-gradient(135deg, transparent 0 88%, rgba(232, 255, 42, .85) 88% 100%),
+    linear-gradient(180deg, transparent 58%, rgba(16, 16, 20, .24) 100%);
+}
+.theme-card.is-active, .style-choice.is-active { box-shadow: 4px 4px 0 var(--t-accent-2); }
+
+/* registration cross marks */
+.hero-inner .progress-block { position: relative; }
+.hero-inner .progress-block::before {
+  content: "+";
+  position: absolute;
+  top: -7px;
+  right: 0;
+  color: var(--t-accent);
+  font-family: 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1;
+  opacity: .5;
+}
+
+
+/* The title already carries the misregistration; drop the 02 watermark. */
+html[data-theme="riso"] .hero-logo::before { content: none; display: none; }
+
+
+/* Feature framework variables */
+:root {
+  --fx-paper: #f4f2e9;
+  --fx-ink: #101014;
+  --fx-accent: #2f3fd4;
+  --fx-accent-2: #e8ff2a;
+  --fx-line: #1b1b24;
+  --fx-panel: #faf8ef;
+  --fx-type-x: 5px;
+  --fx-type-y: 5px;
+}
+
+/* ============================================================
+   RISO · poster pass
+   Two-ink risograph: blue photo plate, acid speed streaks,
+   starburst emblem, oversized serif type that breaks the frame.
+   Reference: 新主题参考/新主题3.png
+   ============================================================ */
+
+:root {
+  --rs-blue: #2f3fd4;
+  --rs-blue-deep: #1c2492;
+  --rs-acid: #e8ff2a;
+  --rs-paper: #f4f2e9;
+}
+
+html[data-theme="riso"] body {
+  background-color: var(--rs-paper);
+  background-image:
+    radial-gradient(46% 40% at 86% 12%, rgba(232, 255, 42, .5) 0%, transparent 66%),
+    radial-gradient(38% 34% at 12% 88%, rgba(47, 63, 212, .07) 0%, transparent 68%);
+}
+
+html[data-theme="riso"] body::before {
+  background-image:
+    url("assets/halftone.svg"),
+    radial-gradient(circle, rgba(47, 63, 212, .1) 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(232, 255, 42, .22) 1px, transparent 1.6px);
+  background-size: 260px 260px, 6px 6px, 13px 13px;
+  background-position: 0 0, 0 0, 4px 4px;
+  background-repeat: repeat, repeat, repeat;
+  opacity: .8;
+}
+
+/* ---- hero: a poster plate ---- */
+
+html[data-theme="riso"] .hero-inner::before {
+  background-color: #faf8ef;
+  background-image:
+    url("assets/streaks.svg"),
+    radial-gradient(circle, rgba(47, 63, 212, .12) 1px, transparent 1.6px);
+  background-size: 128% auto, 6px 6px;
+  background-position: 92% -14%, 0 0;
+  background-repeat: no-repeat, repeat;
+  border: 3px solid var(--rs-blue);
+  border-radius: 0;
+  box-shadow:
+    12px 12px 0 var(--rs-acid),
+    0 0 0 1px var(--rs-blue) inset;
+  clip-path: none;
+}
+
+/* yellow shard corner + starburst */
+html[data-theme="riso"] .hero-inner::after {
+  top: -18px;
+  right: -18px;
+  bottom: auto;
+  left: auto;
+  width: 132px;
+  height: 132px;
+  background:
+    url("assets/star.svg") 78% 22% / 72px 72px no-repeat,
+    var(--rs-acid);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform: none;
+  border: 0;
+}
+
+/* ---- title: blue serif, acid misregistration, breaking the frame ---- */
+
+html[data-theme="riso"] .hero-logo {
+  color: var(--rs-blue);
+  -webkit-text-fill-color: currentColor;
+  text-shadow:
+    7px 7px 0 var(--rs-acid),
+    -2px -2px 0 rgba(255, 255, 255, .3);
+  letter-spacing: -.02em;
+}
+
+html[data-theme="riso"] .hero-logo::after {
+  content: "AA";
+  position: absolute;
+  right: -18px;
+  bottom: -46px;
+  z-index: -1;
+  font-family: var(--font-serif);
+  font-size: 168px;
+  font-weight: 700;
+  line-height: .8;
+  letter-spacing: -.04em;
+  color: var(--rs-blue);
+  transform: scaleY(.62);
+  opacity: .92;
+  pointer-events: none;
+}
+
+html[data-theme="riso"] .hero-logo { position: relative; z-index: 2; }
+
+/* ---- kicker: acid tab with a registration cross ---- */
+
+html[data-theme="riso"] .kicker {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: var(--rs-acid);
+  color: var(--rs-blue-deep);
+  font-family: var(--font-condensed);
+  font-size: 10px;
+  letter-spacing: .16em;
+  padding: 4px 10px 5px;
+}
+html[data-theme="riso"] .kicker::before {
+  content: "✳";
+  margin-right: 6px;
+  color: var(--rs-blue);
+}
+html[data-theme="riso"] .kicker-dot { background: var(--rs-blue); }
+html[data-theme="riso"] .kicker-sep { background: rgba(28, 36, 146, .4); }
+html[data-theme="riso"] .kicker-dim { color: rgba(28, 36, 146, .7); }
+
+/* ---- meta row: blue rules, acid separators ---- */
+
+html[data-theme="riso"] .meta-row {
+  color: var(--rs-blue-deep);
+  font-family: var(--font-condensed);
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+html[data-theme="riso"] .meta-dot { width: 6px; height: 6px; background: var(--rs-acid); border: 1px solid var(--rs-blue); }
+html[data-theme="riso"] .age-badge { border: 1px solid var(--rs-blue); color: var(--rs-blue); background: transparent; }
+html[data-theme="riso"] .update-badge { border: 0; background: var(--rs-blue); color: var(--rs-acid); }
+
+/* ---- buttons: acid block + blue shadow ---- */
+
+html[data-theme="riso"] .btn.primary,
+html[data-theme="riso"] .btn.primary.cta-adaptive,
+html[data-theme="riso"] .btn.primary.cta-system {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: var(--rs-acid);
+  color: var(--rs-blue-deep);
+  box-shadow: 5px 5px 0 var(--rs-blue);
+}
+html[data-theme="riso"] .btn.primary:hover,
+html[data-theme="riso"] .btn.primary.cta-adaptive:hover,
+html[data-theme="riso"] .btn.primary.cta-system:hover {
+  background: var(--rs-blue);
+  color: var(--rs-acid);
+  border-color: var(--rs-blue);
+  box-shadow: 7px 7px 0 var(--rs-acid);
+  transform: translate(-1px, -1px);
+}
+html[data-theme="riso"] .btn.ghost {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: transparent;
+  color: var(--rs-blue);
+}
+html[data-theme="riso"] .btn.ghost:hover { background: var(--rs-blue); color: var(--rs-acid); box-shadow: 5px 5px 0 var(--rs-acid); transform: translate(-1px, -1px); }
+
+/* ---- progress: blue rule with acid knobs ---- */
+
+html[data-theme="riso"] .progress-block { border-top: 2px solid var(--rs-blue); }
+html[data-theme="riso"] .progress-head { color: var(--rs-blue-deep); font-family: var(--font-condensed); letter-spacing: .1em; }
+html[data-theme="riso"] .progress-pct { color: var(--rs-blue); font-family: var(--font-serif); font-weight: 700; }
+html[data-theme="riso"] .progress-track { height: 6px; border: 1px solid var(--rs-blue); border-radius: 0; background: rgba(47, 63, 212, .1); }
+html[data-theme="riso"] .progress-track i { border-radius: 0; background: var(--rs-blue); box-shadow: 3px 3px 0 var(--rs-acid); }
+html[data-theme="riso"] .progress-sub { color: var(--rs-blue-deep); font-family: var(--font-condensed); letter-spacing: .06em; }
+
+/* ---- activity: acid block with blue frame ---- */
+
+html[data-theme="riso"] .activity-strip {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: var(--rs-acid);
+  box-shadow: 8px 8px 0 var(--rs-blue);
+  clip-path: none;
+}
+html[data-theme="riso"] .activity-strip::after { display: none; }
+html[data-theme="riso"] .activity-strip:hover { border-color: var(--rs-blue); box-shadow: 10px 10px 0 var(--rs-blue); transform: translate(-1px, -1px); }
+html[data-theme="riso"] .activity-icon { border: 2px solid var(--rs-blue); border-radius: 50%; background: var(--rs-blue); color: var(--rs-acid); }
+html[data-theme="riso"] .activity-kicker { color: var(--rs-blue-deep); font-family: var(--font-condensed); letter-spacing: .16em; }
+html[data-theme="riso"] .activity-title { color: var(--rs-blue-deep); font-family: var(--font-serif); font-weight: 700; }
+html[data-theme="riso"] .activity-desc { color: rgba(28, 36, 146, .7); }
+html[data-theme="riso"] .activity-pct { color: var(--rs-blue); font-family: var(--font-serif); font-weight: 700; }
+html[data-theme="riso"] .activity-meta { color: rgba(28, 36, 146, .55); }
+html[data-theme="riso"] .activity-arrow { color: var(--rs-blue); }
+html[data-theme="riso"] .activity-track { border: 1px solid var(--rs-blue); background: rgba(255, 255, 255, .4); }
+html[data-theme="riso"] .activity-track i { background: var(--rs-blue); }
+
+/* ---- dock: duotone photo cards ---- */
+
+html[data-theme="riso"] .tile-art {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  box-shadow: 5px 5px 0 var(--rs-acid);
+}
+html[data-theme="riso"] .tile-art::before {
+  border: 0;
+  border-radius: 0;
+  background: var(--rs-blue);
+  color: var(--rs-acid);
+  font-family: var(--font-condensed);
+}
+html[data-theme="riso"] .tile.is-active .tile-art {
+  border-color: var(--rs-blue);
+  box-shadow: 7px 7px 0 var(--rs-acid), 0 0 0 1px var(--rs-blue) inset;
+}
+html[data-theme="riso"] .tile.is-active .tile-art::before { background: var(--rs-acid); color: var(--rs-blue); }
+html[data-theme="riso"] .tile-label { color: var(--rs-blue-deep); font-family: var(--font-condensed); }
+html[data-theme="riso"] .tile-name { color: var(--rs-blue-deep); }
+html[data-theme="riso"] .tile-sub { color: var(--rs-blue); }
+html[data-theme="riso"] .tile.is-active .tile-name { color: var(--rs-blue); }
+
+/* ---- library / appearance ---- */
+
+html[data-theme="riso"] .view-library::before,
+html[data-theme="riso"] .view-appearance::before {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(47, 63, 212, .3);
+  font-style: italic;
+  font-weight: 700;
+}
+
+html[data-theme="riso"] .lib-search,
+html[data-theme="riso"] .lib-back,
+html[data-theme="riso"] .filter {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: transparent;
+  color: var(--rs-blue);
+  font-family: var(--font-condensed);
+  letter-spacing: .06em;
+}
+html[data-theme="riso"] .filter.is-active { background: var(--rs-acid); color: var(--rs-blue-deep); box-shadow: 3px 3px 0 var(--rs-blue); }
+html[data-theme="riso"] .lib-title h2 { color: var(--rs-blue); font-family: var(--font-serif); font-weight: 700; }
+html[data-theme="riso"] .lib-art { border: 2px solid var(--rs-blue); border-radius: 0; box-shadow: 4px 4px 0 var(--rs-acid); }
+html[data-theme="riso"] .lib-card:hover .lib-art { border-color: var(--rs-blue); box-shadow: 6px 6px 0 var(--rs-acid); }
+html[data-theme="riso"] .lib-current { border: 0; border-radius: 0; background: var(--rs-acid); color: var(--rs-blue-deep); }
+
+/* ---- panels ---- */
+
+html[data-theme="riso"] .detail-modal,
+html[data-theme="riso"] .lib-shell,
+html[data-theme="riso"] .appearance-shell,
+html[data-theme="riso"] .editor-shell,
+html[data-theme="riso"] .scanner-shell,
+html[data-theme="riso"] .picker-shell,
+html[data-theme="riso"] .dialog {
+  border: 3px solid var(--rs-blue);
+  border-radius: 0;
+  background: #faf8ef;
+  box-shadow: 12px 12px 0 var(--rs-acid);
+}
+
+html[data-theme="riso"] .detail-art-copy,
+html[data-theme="riso"] .appearance-preview-copy,
+html[data-theme="riso"] .editor-preview-copy {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: var(--rs-blue);
+  color: var(--rs-acid);
+  box-shadow: 6px 6px 0 var(--rs-acid);
+}
+html[data-theme="riso"] .detail-art-copy .detail-logo,
+html[data-theme="riso"] .appearance-preview-copy .appearance-logo,
+html[data-theme="riso"] .editor-preview-copy .editor-logo {
+  color: var(--rs-acid);
+  -webkit-text-fill-color: currentColor;
+}
+html[data-theme="riso"] .detail-zh,
+html[data-theme="riso"] .appearance-tagline,
+html[data-theme="riso"] .editor-preview-hint { color: rgba(232, 255, 42, .78); }
+
+/* ---- context menu ---- */
+
+html[data-theme="riso"] .context-menu,
+html[data-theme="riso"] .popover {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: #faf8ef;
+  box-shadow: 7px 7px 0 var(--rs-acid);
+}
+html[data-theme="riso"] .context-item,
+html[data-theme="riso"] .menu-row { border-radius: 0; }
+html[data-theme="riso"] .context-item:hover,
+html[data-theme="riso"] .menu-row:hover { background: var(--rs-acid); color: var(--rs-blue-deep); }
+
+/* ---- launch / sleep ---- */
+
+html[data-theme="riso"] .launch { background: var(--rs-blue-deep); }
+html[data-theme="riso"] .launch::after { background: linear-gradient(90deg, var(--rs-blue) 0 58%, var(--rs-acid) 58% 100%); }
+html[data-theme="riso"] .sleep { background: var(--rs-blue-deep); }
+
+/* ---- refinement: keep the plate clean, streaks only at the edges ---- */
+
+html[data-theme="riso"] .hero-inner::before {
+  background-size: 160% auto, 6px 6px;
+  background-position: 118% 40%, 0 0;
+}
+
+/* the AA overprint belongs behind the title, lower and quieter */
+html[data-theme="riso"] .hero-logo::after {
+  right: -8px;
+  bottom: -64px;
+  font-size: 128px;
+  opacity: .5;
+}
+
+/* meta separators read as small squares, not dots */
+html[data-theme="riso"] .meta-dot { width: 7px; height: 7px; background: transparent; border: 1px solid var(--rs-blue); }
+
+/* ---- the streaks belong to the photo side, not across the type ---- */
+html[data-theme="riso"] .hero-inner::before {
+  background-size: 175% auto, 6px 6px;
+  background-position: 132% 46%, 0 0;
+}
+
+html[data-theme="riso"] .hero-logo::after {
+  bottom: -58px;
+  right: -4px;
+  font-size: 104px;
+  opacity: .38;
+}
+
+/* ---- streaks: keep them off the type block, only along the lower edge ---- */
+html[data-theme="riso"] .hero-inner::before {
+  background-image: radial-gradient(circle, rgba(47, 63, 212, .12) 1px, transparent 1.6px);
+  background-size: 6px 6px;
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+
+/* ---- acid streaks should not cross the type: mask the plate top ---- */
+html[data-theme="riso"] .hero-inner::before {
+  background-size: 150% auto, 6px 6px;
+  background-position: 96% 92%, 0 0;
+}
+html[data-theme="riso"] .hero-inner {
+  --riot-unused: 0;
+}
+
+
+/* a separate streak layer keeps the type plate clean */
+html[data-theme="riso"] .hero-inner .hero-logo {
+  isolation: isolate;
+}
+html[data-theme="riso"] .hero-inner .cta-row {
+  position: relative;
+}
+html[data-theme="riso"] .hero-inner .cta-row::after {
+  content: "";
+  position: absolute;
+  right: -42%;
+  bottom: -120px;
+  width: 108%;
+  height: 210px;
+  background: url("assets/streaks.svg") center / cover no-repeat;
+  opacity: .62;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ---- top strip: reference has a thin blue frame, no 8px colour bar ---- */
+html[data-theme="riso"] body::after {
+  height: 2px;
+  background: var(--t-accent);
+}
+html[data-theme="riso"] .topbar {
+  border-bottom: 1px solid var(--t-accent);
+  background: var(--t-paper);
+}
+html[data-theme="riso"] .brand::before { border: 2px solid var(--t-accent); background: transparent; color: var(--t-accent); }
+html[data-theme="riso"] .nav-glide { background: var(--t-accent-2); }
+html[data-theme="riso"] .nav-btn.is-active { color: var(--t-ink); }
+
+/* ---- colour ratio: reference is blue-dominant (≈54%), acid yellow secondary (≈20%) ---- */
+html[data-theme="riso"] body {
+  background-image:
+    radial-gradient(46% 40% at 86% 12%, rgba(232, 255, 42, .3) 0%, transparent 66%),
+    radial-gradient(52% 46% at 12% 84%, rgba(47, 63, 212, .08) 0%, transparent 70%);
+}
+
+/* the CTA becomes a blue block with acid type: more blue area, same language */
+html[data-theme="riso"] .btn.primary,
+html[data-theme="riso"] .btn.primary.cta-adaptive,
+html[data-theme="riso"] .btn.primary.cta-system {
+  background: var(--rs-acid);
+  color: var(--rs-blue-deep);
+}
+html[data-theme="riso"] .btn.primary:hover,
+html[data-theme="riso"] .btn.primary.cta-adaptive:hover,
+html[data-theme="riso"] .btn.primary.cta-system:hover {
+  background: var(--rs-blue);
+  color: var(--rs-acid);
+  box-shadow: 7px 7px 0 var(--rs-acid);
+}
+
+/* activity strip: blue field with acid type lifts blue share */
+html[data-theme="riso"] .activity-strip {
+  background: var(--rs-blue);
+  border-color: var(--rs-blue);
+  box-shadow: 8px 8px 0 var(--rs-acid);
+}
+html[data-theme="riso"] .activity-icon { background: var(--rs-acid); color: var(--rs-blue); border-color: var(--rs-acid); }
+html[data-theme="riso"] .activity-kicker,
+html[data-theme="riso"] .activity-title,
+html[data-theme="riso"] .activity-desc,
+html[data-theme="riso"] .activity-meta,
+html[data-theme="riso"] .activity-arrow,
+html[data-theme="riso"] .activity-pct { color: var(--rs-acid); }
+html[data-theme="riso"] .activity-track { border-color: rgba(232, 255, 42, .5); background: rgba(232, 255, 42, .18); }
+html[data-theme="riso"] .activity-track i { background: var(--rs-acid); }
+
+/* the nav pill and current filter also carry blue */
+html[data-theme="riso"] .nav-glide { background: var(--rs-blue); }
+html[data-theme="riso"] .nav-btn.is-active { color: #fff; }
+html[data-theme="riso"] .nav-btn.is-active::before { color: rgba(255, 255, 255, .6); }
+html[data-theme="riso"] .filter.is-active { background: var(--rs-blue); color: var(--rs-acid); }
+html[data-theme="riso"] .lib-current { background: var(--rs-blue); color: var(--rs-acid); }
+
+/* ---- ratio: reference is ≈49% blue / 26% white / 15% acid ----
+   Our plate is too white. Give the hero a blue field with a white type well. */
+html[data-theme="riso"] .hero-inner::before {
+  background-color: var(--rs-blue);
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.6px),
+    linear-gradient(90deg, rgba(255, 255, 255, .14) 0 2px, transparent 2px),
+    linear-gradient(rgba(255, 255, 255, .14) 2px, transparent 2px);
+  background-size: 6px 6px, 26% 100%, 100% 26%;
+  background-position: 0 0, 3% 0, 0 94%;
+  background-repeat: repeat, no-repeat, no-repeat;
+  border: 3px solid var(--rs-blue-deep);
+  box-shadow: 12px 12px 0 var(--rs-acid);
+}
+
+/* the type well: a white paper panel inside the blue field */
+html[data-theme="riso"] .hero-inner .hero-logo,
+html[data-theme="riso"] .hero-inner .tagline,
+html[data-theme="riso"] .hero-inner .meta-row,
+html[data-theme="riso"] .hero-inner .cta-row.wide,
+html[data-theme="riso"] .hero-inner .progress-block {
+  position: relative;
+  z-index: 2;
+}
+
+html[data-theme="riso"] .hero-inner {
+  --riso-well: 1;
+}
+
+html[data-theme="riso"] .hero-inner .tagline,
+html[data-theme="riso"] .hero-inner .meta-row { color: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .meta-dot { border-color: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .age-badge { border-color: var(--rs-acid); color: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .kicker { background: var(--rs-acid); border-color: var(--rs-blue-deep); }
+html[data-theme="riso"] .hero-inner .progress-block { border-top-color: rgba(232, 255, 42, .55); }
+html[data-theme="riso"] .hero-inner .progress-head,
+html[data-theme="riso"] .hero-inner .progress-sub { color: rgba(232, 255, 42, .82); }
+html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .progress-track { border-color: rgba(232, 255, 42, .6); background: rgba(232, 255, 42, .16); }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-acid); box-shadow: none; }
+html[data-theme="riso"] .hero-inner .age-badge { background: transparent; }
+
+/* the title flips to acid-on-blue with a white overprint */
+html[data-theme="riso"] .hero-logo,
+html[data-theme="riso"] .hero-inner .hero-logo {
+  color: var(--rs-acid);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 7px 7px 0 var(--rs-blue-deep), -2px -2px 0 rgba(255, 255, 255, .28);
+}
+html[data-theme="riso"] .hero-logo::after { color: rgba(255, 255, 255, .5); }
+
+/* ---- reference is ≈49% blue + 26% white: the plate needs a white well back ---- */
+html[data-theme="riso"] .hero-inner::before {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.6px),
+    linear-gradient(90deg, rgba(255, 255, 255, .14) 0 2px, transparent 2px),
+    linear-gradient(rgba(255, 255, 255, .14) 2px, transparent 2px);
+  background-size: 6px 6px, 26% 100%, 100% 26%;
+  background-position: 0 0, 3% 0, 0 94%;
+}
+
+/* a white paper well over the lower two thirds keeps white at ~26% */
+html[data-theme="riso"] .hero-inner .hero-logo,
+html[data-theme="riso"] .hero-inner .tagline,
+html[data-theme="riso"] .hero-inner .meta-row,
+html[data-theme="riso"] .hero-inner .cta-row,
+html[data-theme="riso"] .hero-inner .progress-block {
+  background: #fbfaf3;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+html[data-theme="riso"] .hero-inner .hero-logo {
+  padding: 10px 14px 14px;
+  margin-top: 6px;
+  color: var(--rs-blue);
+  text-shadow: 6px 6px 0 var(--rs-acid);
+}
+html[data-theme="riso"] .hero-inner .tagline,
+html[data-theme="riso"] .hero-inner .meta-row,
+html[data-theme="riso"] .hero-inner .progress-head,
+html[data-theme="riso"] .hero-inner .progress-sub { color: var(--rs-blue-deep); }
+html[data-theme="riso"] .hero-inner .meta-dot { border-color: var(--rs-blue); }
+html[data-theme="riso"] .hero-inner .age-badge { border-color: var(--rs-blue); color: var(--rs-blue); }
+html[data-theme="riso"] .hero-inner .progress-block { border-top: 2px solid var(--rs-blue); padding-top: 8px; padding-bottom: 6px; }
+html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-blue); }
+html[data-theme="riso"] .hero-inner .progress-track { border-color: var(--rs-blue); background: rgba(47, 63, 212, .12); }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-blue); }
+
+/* ---- one continuous white paper well instead of per-element bars ---- */
+html[data-theme="riso"] .hero-inner::before {
+  background-image:
+    linear-gradient(#fbfaf3, #fbfaf3),
+    radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.6px),
+    linear-gradient(90deg, rgba(255, 255, 255, .14) 0 2px, transparent 2px),
+    linear-gradient(rgba(255, 255, 255, .14) 2px, transparent 2px);
+  background-size:
+    calc(100% - 54px) calc(100% - 96px),
+    6px 6px,
+    26% 100%,
+    100% 26%;
+  background-position:
+    0 76px,
+    0 0,
+    3% 0,
+    0 94%;
+  background-repeat: no-repeat, repeat, no-repeat, no-repeat;
+}
+
+/* the elements themselves must not paint their own paper */
+html[data-theme="riso"] .hero-inner .hero-logo,
+html[data-theme="riso"] .hero-inner .tagline,
+html[data-theme="riso"] .hero-inner .meta-row,
+html[data-theme="riso"] .hero-inner .cta-row,
+html[data-theme="riso"] .hero-inner .progress-block {
+  background: transparent;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+html[data-theme="riso"] .hero-inner .hero-logo {
+  padding-top: 2px;
+  padding-bottom: 4px;
+  margin-top: 2px;
+}
+html[data-theme="riso"] .hero-inner .progress-block { border-top: 2px solid var(--rs-blue); }
+
+/* the white well must start above the title */
+html[data-theme="riso"] .hero-inner::before {
+  background-size:
+    calc(100% - 54px) calc(100% - 64px),
+    6px 6px,
+    26% 100%,
+    100% 26%;
+  background-position:
+    0 60px,
+    0 0,
+    3% 0,
+    0 94%;
+}
+html[data-theme="riso"] .hero-inner .hero-logo { margin-top: 0; padding-top: 8px; }
+
+/* ---- reference: blue is the dominant field, white is a smaller type well ----
+   Measured: blue 49%, white 26%, acid 15%. Shrink the paper well. */
+html[data-theme="riso"] .hero-inner::before {
+  background-size:
+    calc(100% - 190px) calc(100% - 120px),
+    6px 6px,
+    26% 100%,
+    100% 26%;
+  background-position:
+    18px 84px,
+    0 0,
+    3% 0,
+    0 94%;
+  background-repeat: no-repeat, repeat, no-repeat, no-repeat;
+}
+html[data-theme="riso"] .hero-inner .tagline,
+html[data-theme="riso"] .hero-inner .meta-row,
+html[data-theme="riso"] .hero-inner .progress-block,
+html[data-theme="riso"] .hero-inner .cta-row { max-width: min(88%, 640px); }
+
+/* ---- measured: our white well is 57%, reference white is 26%.
+   Shrink the well to a narrow column and let blue own the plate. ---- */
+html[data-theme="riso"] .hero-inner::before {
+  background-size:
+    calc(100% - 54px) 232px,
+    6px 6px,
+    26% 100%,
+    100% 26%;
+  background-position:
+    0 68px,
+    0 0,
+    3% 0,
+    0 94%;
+  background-repeat: no-repeat, repeat, no-repeat, no-repeat;
+}
+/* keep the type block inside the 232px band and let the rest be blue */
+html[data-theme="riso"] .hero-inner .cta-row,
+html[data-theme="riso"] .hero-inner .progress-block {
+  max-width: min(86%, 560px);
+  background: transparent;
+}
+html[data-theme="riso"] .hero-inner .progress-block {
+  margin-top: 12px;
+  padding: 8px 14px;
+  background: rgba(251, 250, 243, .96);
+}
+
+/* measured: white still 37% vs ref 26%; shrink the well width a little more */
+html[data-theme="riso"] .hero-inner::before {
+  background-size:
+    calc(100% - 130px) 232px,
+    6px 6px,
+    26% 100%,
+    100% 26%;
+}
+/* progress card stays on blue instead of adding another white slab */
+html[data-theme="riso"] .hero-inner .progress-block {
+  background: transparent;
+  color: var(--rs-acid);
+  border-top: 2px solid rgba(232, 255, 42, .6);
+  max-width: min(78%, 520px);
+  padding-left: 14px;
+}
+html[data-theme="riso"] .hero-inner .progress-head,
+html[data-theme="riso"] .hero-inner .progress-sub { color: rgba(232, 255, 42, .85); }
+html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .progress-track { border-color: rgba(232, 255, 42, .55); background: rgba(232, 255, 42, .16); }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-acid); }
+
+/* ============================================================
+   v1.2.7 — 参考图是「蓝底海报」：蓝铺满版面，白只是字井
+   ------------------------------------------------------------
+   实测（measure-ratio）：paper 46.1% vs 参考 15.9%、blue 37.6% vs 49.1%、
+   yellow 7.0% vs 14.8%。根因不是"蓝色不够深"，而是**版面底色是纸**：
+   `.scene` 是 #f4f2e9，只有主视觉那一块是蓝版，所以测出来的
+   "纸"其实是主视觉外面的地面。
+   参考图里蓝才是版面的底（海报是整版蓝的），白只是让字能读的一小块，
+   酸黄则是一整条斜带（不是小色块）。所以：地面改蓝版 + 一条酸黄斜带；
+   字井（.hero-inner::before 的白色层）**保持不动**——标题是蓝字，
+   它必须待在白底上（铁律 1：不许让图形/底色盖掉可读性）。
+   ============================================================ */
+html[data-theme="riso"] body {
+  background-color: #2f3fd4;
+  background-image:
+    linear-gradient(112deg, #e8ff2a 0 13%, rgba(232, 255, 42, 0) 13.6%),
+    linear-gradient(112deg,
+      rgba(232, 255, 42, 0) 0 63%,
+      rgba(232, 255, 42, .92) 63.6% 76%,
+      rgba(232, 255, 42, 0) 76.6%),
+    radial-gradient(46% 40% at 86% 12%, rgba(232, 255, 42, .28) 0%, transparent 66%),
+    radial-gradient(52% 46% at 12% 84%, rgba(255, 255, 255, .06) 0%, transparent 70%);
+}
+html[data-theme="riso"] .scene { background: transparent; }
+html[data-theme="riso"] .view-library,
+html[data-theme="riso"] .view-appearance { background-color: #2f3fd4; }
+html[data-theme="riso"] .dock { background: #2434c0; }
+html[data-theme="riso"] .dock-title,
+html[data-theme="riso"] .dock-count { color: #e8ff2a; }
+
+/* 蓝底上活动条要变成一块"白纸"，否则蓝压蓝会糊成一片（原来是蓝底深字） */
+html[data-theme="riso"] .activity-strip {
+  background: #fbfaf3;
+  color: #1c2482;
+  border: 2px solid #1a1f7a;
+}
+html[data-theme="riso"] .activity-strip::after { background: #e8ff2a; }
+html[data-theme="riso"] .activity-title,
+html[data-theme="riso"] .activity-desc,
+html[data-theme="riso"] .activity-meta { color: #1c2482; }
+html[data-theme="riso"] .activity-kicker,
+html[data-theme="riso"] .activity-pct,
+html[data-theme="riso"] .activity-arrow { color: #d8143c; }
+
+/* 顶栏在蓝底上要留一条白纸，否则时钟/导航读不清 */
+html[data-theme="riso"] .topbar {
+  background: var(--t-paper);
+  border-bottom: 1px solid rgba(47, 63, 212, .5);
+}
+
+/* ============================================================
+   v1.2.8 — 底色是蓝还是纸，取决于这层「白纱」而不是主视觉
+   ------------------------------------------------------------
+   实测定位（逐层隐藏 + 取色）：把整页洗成纸色的不是主视觉，而是 riso
+   自己的 `.atmosphere`——`180deg` 白 90%→96%，`::before` 再从左侧 96%
+   白横铺一层，`inset:0` 盖住整个视口。所以：
+     · v1.2.7 把 body/.scene 改蓝底**没有用**：蓝被这层白纱盖住了，
+       实测 paper 反而从 46.1% 涨到 52.8%（因为那一版还把活动条改成
+       了白纸，等于自己又加了一块白面）。
+     · 真正要让「蓝成为版面底」，就得把白纱换成蓝色暗角。
+   铁律 1 不受影响：文字读的是主视觉里的白井，不依赖这层白纱；
+   而且换掉之后蓝底上的酸黄/白字对比更高。
+   ============================================================ */
+html[data-theme="riso"] .atmosphere {
+  background:
+    radial-gradient(140% 100% at 78% 38%, rgba(20, 28, 130, 0) 34%, rgba(14, 20, 104, .40) 100%),
+    linear-gradient(180deg,
+      rgba(20, 28, 130, .32) 0%,
+      rgba(20, 28, 130, .12) 16%,
+      rgba(20, 28, 130, 0) 40%,
+      rgba(20, 28, 130, .08) 66%,
+      rgba(20, 28, 130, .28) 88%,
+      rgba(12, 16, 92, .50) 100%);
+}
+html[data-theme="riso"] .atmosphere::before {
+  background: linear-gradient(90deg,
+    rgba(20, 28, 130, .30) 0%,
+    rgba(20, 28, 130, .14) 34%,
+    rgba(20, 28, 130, 0) 62%);
+}
+html[data-theme="riso"] .atmosphere::after {
+  background: radial-gradient(46% 52% at 16% 70%, rgba(232, 255, 42, .30) 0%, transparent 72%);
+  opacity: .5;
+  mix-blend-mode: screen;
+}
+
+/* 活动条回蓝墨：它是主视觉里最大的一块「面」，铺白纸等于自己把
+   paper 顶上去（v1.2.7 就是这么反弹的）。蓝底酸黄字，对比度更高。 */
+html[data-theme="riso"] .activity-strip {
+  background: var(--rs-blue-deep);
+  color: var(--rs-acid);
+  border: 2px solid var(--rs-acid);
+}
+html[data-theme="riso"] .activity-strip::after { background: var(--rs-acid); }
+html[data-theme="riso"] .activity-title,
+html[data-theme="riso"] .activity-desc,
+html[data-theme="riso"] .activity-meta { color: var(--rs-acid); }
+html[data-theme="riso"] .activity-kicker,
+html[data-theme="riso"] .activity-pct,
+html[data-theme="riso"] .activity-arrow { color: #fff; }
+html[data-theme="riso"] .activity-track { border-color: rgba(232, 255, 42, .5); background: rgba(232, 255, 42, .16); }
+html[data-theme="riso"] .activity-track i { background: var(--rs-acid); }
+
+/* 酸黄斜带：参考图的黄是两条大斜楔，不是小色块。带子压在字井**下面**
+   （图层序：先写的画在上层），所以它只吃蓝底的面积，不碰文字。 */
+html[data-theme="riso"] .hero-inner::before {
+  background-image:
+    linear-gradient(#fbfaf3, #fbfaf3),
+    linear-gradient(112deg,
+      rgba(232, 255, 42, 0) 0 44%,
+      #e8ff2a 44.6% 63%,
+      rgba(232, 255, 42, 0) 63.6%),
+    radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.6px),
+    linear-gradient(90deg, rgba(255, 255, 255, .14) 0 2px, transparent 2px),
+    linear-gradient(rgba(255, 255, 255, .14) 2px, transparent 2px);
+  background-size:
+    calc(100% - 130px) 232px,
+    100% 100%,
+    6px 6px,
+    26% 100%,
+    100% 26%;
+  background-position:
+    0 68px,
+    0 0,
+    0 0,
+    3% 0,
+    0 94%;
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat, no-repeat;
+}
+
+/* 进度卡也回蓝：主视觉里再少一块白面 */
+html[data-theme="riso"] .hero-inner .progress-block {
+  background: transparent;
+  border-top: 2px solid rgba(232, 255, 42, .6);
+  padding: 8px 14px;
+}
+html[data-theme="riso"] .hero-inner .progress-head,
+html[data-theme="riso"] .hero-inner .progress-sub { color: rgba(232, 255, 42, .85); }
+html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .progress-track { border-color: rgba(232, 255, 42, .55); background: rgba(232, 255, 42, .16); }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-acid); }
+
+/* ============================================================
+   v1.2.9 — 参考图的「白」是冷白，「紫」是双色油墨叠印
+   ------------------------------------------------------------
+   实测：blue 47.4% / paper 21.5% / yellow 11.8%，参考 49.1 / 15.9 /
+   14.8 —— 三个主色已经咬住了。剩下的是 white(1.9 vs 12.5) 和
+   violet(1.7 vs 4.9)。查 meter 的判色规则：中性色要 chroma<0.06 且
+   hue≥70 才算 white，所以**纯白会被判成 paper**，只有偏冷的白才是白
+   ——参考图的纸白确实是冷的（riso 纸 + 蓝墨的反光）。
+   紫色则是 riso 的本体特征：蓝墨与酸黄叠印处出现紫。之前我用的是
+   绿的叠印色，方向错了。
+   ============================================================ */
+
+/* 字井改冷白：纸白偏冷才是参考里那 12% 的「白」，纯白只会继续算成纸 */
+html[data-theme="riso"] .hero-inner::before {
+  background-image:
+    linear-gradient(#f2f5fd, #f2f5fd),
+    linear-gradient(112deg,
+      rgba(232, 255, 42, 0) 0 44%,
+      #e8ff2a 44.6% 63%,
+      rgba(232, 255, 42, 0) 63.6%),
+    radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.6px),
+    linear-gradient(90deg, rgba(255, 255, 255, .14) 0 2px, transparent 2px),
+    linear-gradient(rgba(255, 255, 255, .14) 2px, transparent 2px);
+}
+
+/* 叠印紫：酸黄带的边缘压一条紫（蓝黄叠印的错版），只吃蓝底面积 */
+html[data-theme="riso"] .hero-inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(112deg,
+      rgba(122, 79, 208, 0) 0 63%,
+      rgba(122, 79, 208, .92) 63.6% 71%,
+      rgba(122, 79, 208, 0) 71.6%),
+    linear-gradient(112deg,
+      rgba(122, 79, 208, 0) 0 30%,
+      rgba(122, 79, 208, .55) 30.4% 37%,
+      rgba(122, 79, 208, 0) 37.6%);
+}
+
+/* 叠印紫也出现在导航/筛选上（同一个双色逻辑，不是只有主视觉才印） */
+html[data-theme="riso"] .nav-glide {
+  background: var(--rs-blue);
+  box-shadow: 5px 5px 0 rgba(122, 79, 208, .9);
+}
+html[data-theme="riso"] .filter.is-active,
+html[data-theme="riso"] .lib-current { box-shadow: 5px 5px 0 rgba(122, 79, 208, .85); }
+
+/* ============================================================
+   v1.2.10 — 补上参考图那片「纸边」，并把酸黄带加宽
+   ------------------------------------------------------------
+   实测：blue 48.5（参考 49.1，已经咬住）、white 20.7（12.5 偏高）、
+   paper 2.0（15.9 偏低）、yellow 10.8（14.8 偏低）。
+   参考图是「纸上的蓝版海报」：蓝版没有铺满整张纸，顶上留了一条暖纸边
+   （也就是它那 16% 的 paper）。我们 v1.2.8 把白纱换成蓝暗角之后，
+   整个地面都是蓝，纸边没了 —— 现在把这条纸边按参考补回来：从顶栏往下
+   铺一层暖纸，到视口 20% 处化进蓝里，正好接住本来就铺纸的顶栏。
+   酸黄带同时按参考加宽（参考的黄占 14.8%，是两条宽斜楔）。
+   ============================================================ */
+html[data-theme="riso"] .atmosphere {
+  background:
+    linear-gradient(180deg,
+      rgba(242, 236, 224, .96) 0%,
+      rgba(242, 236, 224, .88) 7%,
+      rgba(242, 236, 224, .46) 13%,
+      rgba(242, 236, 224, 0) 20%,
+      rgba(20, 28, 130, .06) 44%,
+      rgba(20, 28, 130, .10) 66%,
+      rgba(20, 28, 130, .26) 88%,
+      rgba(12, 16, 92, .46) 100%),
+    radial-gradient(140% 100% at 78% 38%, rgba(20, 28, 130, 0) 34%, rgba(14, 20, 104, .38) 100%);
+}
+
+/* 酸黄斜带加宽：参考图是两条宽斜楔，不是细带 */
+html[data-theme="riso"] .hero-inner::before {
+  background-image:
+    linear-gradient(#f2f5fd, #f2f5fd),
+    linear-gradient(112deg,
+      rgba(232, 255, 42, 0) 0 39%,
+      #e8ff2a 39.6% 65%,
+      rgba(232, 255, 42, 0) 65.6%),
+    radial-gradient(circle, rgba(255, 255, 255, .16) 1px, transparent 1.6px),
+    linear-gradient(90deg, rgba(255, 255, 255, .14) 0 2px, transparent 2px),
+    linear-gradient(rgba(255, 255, 255, .14) 2px, transparent 2px);
+}
+
+/* ============================================================
+   v1.2.11 — 纸边要「实」，字井要「收」
+   ------------------------------------------------------------
+   v1.2.10 的纸边是半透明的（.46~.96），暖纸压在蓝上变成浑浊的中间调，
+   实测 paper 只涨了 4.9%，蓝却掉了 8.4%，多出来的量全被 light-grey /
+   cyan / red 吃掉了（浊色）。参考图的纸边是实的，所以这里改不透明，
+   并且把「实」的那一段延长到视口 17%（测区从 9% 起，正好吃到 8% 实边）。
+   同时收字井（white 20.7 → 目标 12.5）：高度 232→170、宽度再让出 70px，
+   让出来的面积回到蓝底上。
+   ============================================================ */
+html[data-theme="riso"] .atmosphere {
+  background:
+    linear-gradient(180deg,
+      #f2ece0 0%,
+      #f2ece0 17%,
+      rgba(242, 236, 224, .72) 19.5%,
+      rgba(242, 236, 224, .28) 22%,
+      rgba(242, 236, 224, 0) 25%,
+      rgba(20, 28, 130, .06) 46%,
+      rgba(20, 28, 130, .10) 66%,
+      rgba(20, 28, 130, .26) 88%,
+      rgba(12, 16, 92, .46) 100%),
+    radial-gradient(140% 100% at 78% 38%, rgba(20, 28, 130, 0) 34%, rgba(14, 20, 104, .38) 100%);
+}
+
+html[data-theme="riso"] .hero-inner::before {
+  background-size:
+    calc(100% - 200px) 170px,
+    100% 100%,
+    6px 6px,
+    26% 100%,
+    100% 26%;
+  background-position:
+    0 62px,
+    0 0,
+    0 0,
+    3% 0,
+    0 94%;
+}
+
+/* ============================================================
+   v1.2.12 — 纸边收起时别拖泥，叠印紫再加宽一点
+   ------------------------------------------------------------
+   实测：yellow 15.0（参考 14.8 ✓）、white 12.4（12.5 ✓）两点已合；
+   blue 43.6（-5.5）、paper 11.4（-4.5）、violet 2.7（-2.1）。
+   蓝和纸都还差一口气，而多出来的量几乎全在 light-grey(6.3)：那是纸边
+   半透明收边时「暖纸半压在蓝上」的浊色。参考图的纸边是硬边，所以把
+   收边从 17%→25% 的 8% 长坡压成 17%→20% 的短坡，浊色像素随之变少，
+   蓝和纸各自归位。叠印紫同步加宽，补上 violet 的差距。
+   ============================================================ */
+html[data-theme="riso"] .atmosphere {
+  background:
+    linear-gradient(180deg,
+      #f2ece0 0%,
+      #f2ece0 17.5%,
+      rgba(242, 236, 224, .80) 18.4%,
+      rgba(242, 236, 224, .30) 19.4%,
+      rgba(242, 236, 224, 0) 20.4%,
+      rgba(20, 28, 130, .06) 46%,
+      rgba(20, 28, 130, .10) 66%,
+      rgba(20, 28, 130, .24) 88%,
+      rgba(12, 16, 92, .44) 100%),
+    radial-gradient(140% 100% at 78% 38%, rgba(20, 28, 130, 0) 34%, rgba(14, 20, 104, .38) 100%);
+}
+
+html[data-theme="riso"] .hero-inner::after {
+  background:
+    linear-gradient(112deg,
+      rgba(122, 79, 208, 0) 0 63.4%,
+      rgba(122, 79, 208, .94) 64% 73%,
+      rgba(122, 79, 208, 0) 73.6%),
+    linear-gradient(112deg,
+      rgba(122, 79, 208, 0) 0 29%,
+      rgba(122, 79, 208, .58) 29.6% 39.5%,
+      rgba(122, 79, 208, 0) 40.1%);
+}
+
+/* ============================================================
+   RISO · v2「双色海报」
+   ------------------------------------------------------------
+   旧版的蓝底 + 蓝底上的深蓝进度字，实测对比度不足（铁律 1 的延伸：
+   文字必须可读）。v2 把主视觉改回「纸面文字井 + 蓝色插画窗」：
+     · 文字井是冷纸白，正文纯黑，标题蓝墨；
+     · 插画窗是实色蓝，网点、酸黄斜楔、紫色叠印圆各司其职；
+     · 进度条从「蓝底绿字」改成「纸面墨字 + 酸黄填充」；
+     · 图形全部在插画列，文字列零装饰。
+   ============================================================ */
+
+html[data-theme="riso"] {
+  --kit-paper: #f6f3e7;
+  --kit-header-bg: #f6f3e7;
+  --kit-panel: #fbf9f0;
+  --kit-ink: #101014;
+  --kit-ink-2: #30303a;
+  --kit-line: #101014;
+  --kit-accent: #2b2fa8;
+  --kit-accent-2: #e8ff2a;
+  --kit-on-accent: #f7f5ea;
+  --kit-r: 0px;
+  --kit-art: clamp(220px, 26vw, 344px);
+  --kit-art-url: url("assets/hero-riso.svg?v=130");
+  --kit-art-rule: 2px solid #101014;
+  --kit-shadow: #101014;
+}
+
+html[data-theme="riso"] body { background-color: #efece0; }
+html[data-theme="riso"] .atmosphere,
+html[data-theme="riso"] .atmosphere::before,
+html[data-theme="riso"] .atmosphere::after { background: none !important; }
+
+/* 旧的黄楔/紫叠印/网点画在面板 ::before + ::after 上，会和插画窗打架；
+   统一交给 hero-riso.svg，面板只留纸面 + 墨框。 */
+html[data-theme="riso"] .hero-inner::before {
+  background-color: var(--kit-paper) !important;
+  background-image: none !important;
+  border: 2px solid #101014 !important;
+  border-radius: 0 !important;
+  box-shadow: 8px 8px 0 0 #e8ff2a, 9px 9px 0 1px #101014 !important;
+}
+
+html[data-theme="riso"] .hero-inner::after { content: "" !important; }
+
+html[data-theme="riso"] .hero-inner .hero-logo,
+html[data-theme="riso"] .hero-inner .tagline,
+html[data-theme="riso"] .hero-inner .meta-row,
+html[data-theme="riso"] .hero-inner .kicker,
+html[data-theme="riso"] .hero-inner .progress-block,
+html[data-theme="riso"] .hero-inner .activity-strip {
+  background: none;
+  box-shadow: none;
+}
+
+html[data-theme="riso"] .hero-inner .hero-logo { padding: 0; color: #2b2fa8 !important; }
+html[data-theme="riso"] .hero-inner .kicker { padding: 0; border: 0; color: #2b2fa8; }
+html[data-theme="riso"] .hero-inner .meta-row { padding: 0; color: #30303a; }
+
+html[data-theme="riso"] :is(.hero-logo, .detail-logo, .appearance-logo, .choice-logo, .editor-logo) {
+  --logo-font: var(--font-serif);
+  --logo-weight: 600;
+  --logo-style: normal;
+  --logo-track: -.01em;
+  --logo-line: .9;
+  --logo-color: #2b2fa8;
+  --logo-bg: none;
+  --logo-fill: currentColor;
+  --logo-shadow: none;
+  --logo-filter: none;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: #2b2fa8;
+  text-shadow: none;
+}
+
+html[data-theme="riso"] .kicker-dot { width: 7px; height: 7px; border-radius: 0; background: #2b2fa8; box-shadow: none; }
+html[data-theme="riso"] .kicker-sep { width: 12px; height: 2px; background: #2b2fa8; opacity: .5; }
+html[data-theme="riso"] .kicker-dim { color: #30303a; opacity: .8; }
+
+html[data-theme="riso"] .tagline {
+  max-width: min(100%, 28em);
+  padding: 0 0 0 12px;
+  border-left: 5px solid #e8ff2a;
+  color: #23232b !important;
+  font-size: 12.5px;
+  line-height: 1.75;
+}
+
+/* 进度：纸面墨字，酸黄填充 */
+html[data-theme="riso"] .hero-inner .progress-block {
+  width: min(420px, 100%);
+  padding: 9px 0 0 !important;
+  border-top: 2px solid #101014 !important;
+  background: none !important;
+}
+html[data-theme="riso"] .hero-inner .progress-head { color: #4a4a55 !important; font-size: 9px; letter-spacing: .14em; }
+html[data-theme="riso"] .hero-inner .progress-sub { color: #4a4a55 !important; }
+html[data-theme="riso"] .hero-inner .progress-pct { color: #2b2fa8 !important; font-family: var(--font-serif); font-size: 26px; }
+html[data-theme="riso"] .hero-inner .progress-track {
+  height: 5px !important;
+  border: 1px solid #101014 !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+}
+html[data-theme="riso"] .hero-inner .progress-track i { background: #e8ff2a !important; border-radius: 0 !important; }
+
+html[data-theme="riso"] .btn { border-radius: 0; }
+html[data-theme="riso"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  background: #e8ff2a !important;
+  color: #101014 !important;
+  border: 2px solid #101014 !important;
+  box-shadow: 4px 4px 0 0 #2b2fa8 !important;
+}
+html[data-theme="riso"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system):hover {
+  background: #f2ff6a !important;
+  box-shadow: 2px 2px 0 0 #2b2fa8 !important;
+}
+html[data-theme="riso"] .btn.ghost { background: #fff !important; color: #101014 !important; border: 2px solid #101014 !important; }
+
+html[data-theme="riso"] .activity-strip {
+  background: #fbf9f0 !important;
+  border: 2px solid #101014 !important;
+  border-radius: 0 !important;
+  box-shadow: 5px 5px 0 0 #e8ff2a !important;
+}
+html[data-theme="riso"] .activity-icon { border: 2px solid #101014; border-radius: 0; background: #e8ff2a; color: #101014; }
+html[data-theme="riso"] .activity-kicker { color: #2b2fa8 !important; }
+html[data-theme="riso"] .activity-title { color: #101014 !important; font-family: var(--font-serif); font-size: 16px; }
+html[data-theme="riso"] .activity-desc,
+html[data-theme="riso"] .activity-meta { color: #4a4a55 !important; }
+html[data-theme="riso"] .activity-pct { color: #2b2fa8 !important; font-family: var(--font-serif); }
+html[data-theme="riso"] .activity-track { height: 3px; border: 0; border-radius: 0; background: #ddd9c9; }
+html[data-theme="riso"] .activity-track i { background: #2b2fa8; border-radius: 0; }
+html[data-theme="riso"] .activity-arrow { color: #2b2fa8 !important; }
+
+html[data-theme="riso"] .dock { border-top: 2px solid #101014; background: #efece0; }
+html[data-theme="riso"] .tile-art { border: 2px solid #101014; border-radius: 0; }
+html[data-theme="riso"] .tile-art::after { display: none; }
+html[data-theme="riso"] .tile-art::before { background: #2b2fa8; color: #fff; border: 0; border-radius: 0; }
+html[data-theme="riso"] .tile.is-active .tile-art { border: 2px solid #101014; box-shadow: 6px 6px 0 0 #e8ff2a; }
+html[data-theme="riso"] .tile.is-active .tile-art::before { background: #e8ff2a; color: #101014; }
+
+/* v2.1：插画窗「出血」——蓝色海报压在纸面板外面，露出一截，
+   像贴上去的印刷品，而不是嵌在版心里的第二栏。 */
+html[data-theme="riso"] .hero-inner { padding-right: calc(var(--kit-art) + 30px) !important; }
+
+html[data-theme="riso"] .hero-inner::after {
+  top: -40px !important;
+  right: -46px !important;
+  bottom: -40px !important;
+  width: calc(var(--kit-art) + 46px) !important;
+  border-left: 2px solid #101014 !important;
+  border-radius: 0 !important;
+  box-shadow: -10px 10px 0 0 #e8ff2a;
+}
+
+@media (max-width: 1024px) {
+  html[data-theme="riso"] .hero-inner { padding: 0 !important; }
+  html[data-theme="riso"] .hero-inner::after { display: none !important; }
+}
+
+/* 导航当前项：蓝墨块（不是统一的黑块） */
+html[data-theme="riso"] .nav-btn.is-active { background: #2b2fa8 !important; color: #f7f5ea !important; border-color: #2b2fa8 !important; }
+html[data-theme="riso"] .nav-glide { background: #2b2fa8 !important; }
+
+/* 启动动画：油墨从左侧滚过（硬边擦拭，不用淡入） */
+html[data-theme="riso"] .launch.is-open .launch-art {
+  animation: rsRoll 640ms cubic-bezier(.3, .9, .2, 1) both;
+}
+@keyframes rsRoll {
+  from { clip-path: inset(0 100% 0 0); transform: translateX(-1.5%); }
+  to { clip-path: inset(0); transform: none; }
+}
+
+/* ============================================================
+   RISO · v3「蓝版底片」
+   ------------------------------------------------------------
+   用户要求小修：原图的整页是**蓝白双色海报**，不是彩色游戏截图。
+   根因：`.scene > img` 的蓝版滤镜没有带主题前缀，
+   被框架的 `.scene.is-active > img`（同特异性、后写）压掉了。
+
+   v3 修正：
+     · 用 screen 混合把主视觉压成「白高光 / 蓝暗部」的双色印版；
+     · 蓝色网点、酸黄斜线、四芒星重新铺在背景上；
+     · 左上角压一行超大的空心 RISO 字（装饰，不遮正文）。
+   ============================================================ */
+
+html[data-theme="riso"] .scene { background: #2f3fd4 !important; }
+
+html[data-theme="riso"] .scene > img {
+  display: block !important;
+  opacity: 1 !important;
+  mix-blend-mode: screen;
+  filter: grayscale(1) contrast(1.12) brightness(1.14) !important;
+  object-position: 68% 34%;
+}
+
+/* 蓝色网点 + 酸黄斜线 + 星徽：全部在内容层之下 */
+html[data-theme="riso"] .scene-stack::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image:
+    url("assets/halftone.svg?v=3"),
+    url("assets/streaks.svg?v=3"),
+    url("assets/star.svg?v=3");
+  background-position: 0 0, 78% 22%, 88% 14%;
+  background-size: 7px 7px, min(760px, 58vw) auto, min(220px, 17vw) auto;
+  background-repeat: repeat, no-repeat, no-repeat;
+  opacity: .62;
+  mix-blend-mode: multiply;
+}
+
+/* 超大的空心字：参考图的「ENDFIELD」位置 */
+html[data-theme="riso"] .scene-stack::before {
+  content: "RISO";
+  position: absolute;
+  z-index: 3;
+  left: 1.5vw;
+  top: 2.2vh;
+  pointer-events: none;
+  font-family: var(--font-serif);
+  font-size: clamp(120px, 21vw, 310px);
+  font-weight: 600;
+  letter-spacing: -.02em;
+  line-height: .8;
+  color: rgba(255, 255, 255, .18);
+  -webkit-text-stroke: 2px rgba(47, 63, 212, .5);
+  white-space: nowrap;
+}
+
+/* 正文：黑字更实，蓝标题更饱和 */
+html[data-theme="riso"] .hero-inner .hero-logo { color: #2029b4 !important; -webkit-text-fill-color: #2029b4 !important; }
+html[data-theme="riso"] .hero-inner .tagline { color: #17171d !important; font-size: 12.5px !important; }
+html[data-theme="riso"] .hero-inner .meta-row { color: #2c2c35 !important; }
+html[data-theme="riso"] .hero-inner .progress-head,
+html[data-theme="riso"] .hero-inner .progress-sub { color: #35353f !important; }
+
+/* 纸面提亮，和蓝色印版拉开 */
+html[data-theme="riso"] body { background-color: #f4f0e2; }
+html[data-theme="riso"] .dock { background: #ece7d8; }
+html[data-theme="riso"] .topbar { background: #f6f2e6 !important; }
+
+@media (max-width: 1100px) {
+  html[data-theme="riso"] .scene-stack::before { font-size: 120px; }
+  html[data-theme="riso"] .scene-stack::after { background-size: 7px 7px, 90vw auto, 130px auto; }
+}
+
+/* 巨字缩到面板上方完全可见，不做被裁掉一半的蓝色色块 */
+html[data-theme="riso"] .scene-stack::before {
+  top: 3.2vh;
+  left: 2.2vw;
+  font-size: clamp(76px, 10.5vw, 150px);
+  color: rgba(255, 255, 255, .13);
+  -webkit-text-stroke: 2px rgba(47, 63, 212, .5);
+}

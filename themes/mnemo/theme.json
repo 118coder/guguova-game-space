@@ -1,18 +1,23 @@
 {
   "schema": 1,
   "id": "mnemo",
-  "name": "记忆管理局 · MNEMO",
+  "name": "神秘管理局 · MNEMO",
   "author": "NOVA",
-  "version": "1.0.0",
-  "description": "冰蓝记忆档案主题：冷白 HUD、青色数据线、红色节点、黄色路径、块状字标与记忆扫描开场。",
+  "version": "1.1.2",
+  "description": "月紫神秘档案主题：雾紫档案底、靛紫数据线、梅红节点、琥珀路径、块状字标与档案解密开场。",
   "css": "theme.css",
   "preview": "assets/preview.jpg",
   "base": "system",
   "dark": false,
   "intro": "mnemo",
   "tokens": {
-    "--accent": "#d6272f",
-    "--accent-2": "#f2d33c",
-    "--glow": "rgba(47, 143, 139, .22)"
+    "--accent": "#9b3550",
+    "--accent-2": "#c99b3f",
+    "--glow": "rgba(91, 74, 140, .22)"
+  },
+  "features": {
+    "texture": "map",
+    "type": "emboss",
+    "panel": "folder"
   }
 }

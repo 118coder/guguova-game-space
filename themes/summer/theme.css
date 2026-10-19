@@ -1,0 +1,2795 @@
+/* ============================================================
+   SUMMER · 夏日轻程
+   Summer photo collage: sky blue, acid lime, hairline wireframe, tape labels and magazine type.
+   ============================================================ */
+
+:root {
+  --t-paper: #f7f7f2;
+  --t-paper-2: #e7f0f3;
+  --t-ink: #17345a;
+  --t-ink-2: #3f5a78;
+  --t-muted: #6d8498;
+  --t-faint: rgba(23,52,90,.36);
+  --t-line: #9cc6d9;
+  --t-panel: #ffffff;
+  --t-panel-2: #eef7fa;
+  --t-accent: #1a9bd7;
+  --t-accent-2: #d8f24a;
+  --t-accent-3: #17345a;
+  --t-on-accent: #ffffff;
+  --t-danger: #e05a4f;
+  --t-ease: cubic-bezier(.2, .8, .3, 1);
+
+  --ink: var(--t-ink);
+  --muted: var(--t-muted);
+  --faint: var(--t-faint);
+  --hair: var(--t-line);
+  --accent: var(--t-accent);
+  --accent-2: var(--t-accent-2);
+  --glow: rgba(26,155,215,.18);
+  --ease: var(--t-ease);
+
+  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  --font-display: 'Bebas Neue', 'Space Grotesk', sans-serif;
+  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-condensed: 'Bebas Neue', 'Space Grotesk', sans-serif;
+
+  --r-panel: 8px;
+  --r-btn: 999px;
+  --r-card: 6px;
+}
+
+body {
+  background-color: var(--t-paper);
+  color: var(--t-ink);
+  font-family: var(--font-ui);
+}
+
+.app { background: transparent; }
+.scene { background: var(--t-paper); }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, .045) 1px, transparent 1.5px);
+  background-size: 7px 7px;
+  opacity: .5;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 300;
+  height: 3px;
+  pointer-events: none;
+  background: var(--t-accent);
+}
+
+.grain { opacity: .025; mix-blend-mode: multiply; }
+
+.atmosphere {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .22) 18%, transparent 46%, rgba(255, 255, 255, .28) 78%, rgba(255, 255, 255, .96) 100%);
+}
+
+.atmosphere::before {
+  background: linear-gradient(90deg, rgba(255, 255, 255, .96) 0%, rgba(255, 255, 255, .74) 30%, rgba(255, 255, 255, .2) 60%, transparent 80%);
+}
+
+.atmosphere::after { background: none; }
+html.calm .scene-stack { transform: none !important; }
+.scene > img { filter: saturate(.94) contrast(1.02); }
+.scene > img { filter: saturate(1.06) contrast(1.02) brightness(1.03); }
+
+/* ------------------------------------------------------------
+   top bar
+   ------------------------------------------------------------ */
+
+.topbar {
+  border-bottom: 1px solid var(--t-line);
+  background: rgba(255, 255, 255, .94);
+}
+
+.brand { gap: 10px; }
+.brand-mark { display: none; }
+
+.brand::before {
+  content: "N";
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  flex: none;
+  border: 0;
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.brand-word {
+  color: var(--t-ink);
+  font-family: var(--font-display);
+  font-size: 21px;
+  letter-spacing: .16em;
+}
+
+.nav { gap: 3px; }
+
+.nav-btn {
+  padding: 3px 13px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  color: var(--t-ink-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.05;
+}
+
+.nav-btn::before {
+  content: "";
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-condensed);
+  font-size: 7.5px;
+  letter-spacing: .16em;
+  line-height: 1;
+  color: var(--t-accent);
+}
+
+.nav-btn[data-nav="home"]::before { content: "// HOME"; }
+.nav-btn[data-nav="library"]::before { content: "// LIBRARY"; }
+.nav-btn[data-nav="appearance"]::before { content: "// LOOK"; }
+
+.nav-btn:hover { color: var(--t-ink); border-color: var(--t-line); }
+.nav-btn.is-active { color: var(--t-on-accent); font-weight: 800; }
+
+.nav-glide {
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  box-shadow: none;
+  clip-path: none;
+}
+
+.clock {
+  gap: 1px;
+  padding: 3px 10px;
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+}
+
+.clock-time {
+  color: var(--t-ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-date {
+  color: var(--t-muted);
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+}
+
+.icon-btn {
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  color: var(--t-ink-2);
+}
+
+.icon-btn:hover { color: var(--t-on-accent); background: var(--t-accent); border-color: var(--t-accent); }
+.bell-dot { border-radius: 50%; background: var(--t-danger); box-shadow: 0 0 0 2px var(--t-panel); }
+
+.avatar {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-accent);
+  font-family: var(--font-display);
+  font-size: 20px;
+  box-shadow: none;
+}
+
+.avatar-btn { border-radius: var(--r-btn); }
+.online-dot { border-radius: 50%; background: var(--t-accent); box-shadow: 0 0 0 2px var(--t-panel); }
+
+.win-btn { border-radius: var(--r-btn); color: var(--t-ink-2); }
+.win-btn:hover { background: var(--t-panel-2); color: var(--t-ink); }
+.win-btn.close:hover { background: var(--t-danger); color: #fff; }
+.window-controls { border-left-color: var(--t-line); }
+
+.fullscreen-pill {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-ink);
+}
+
+.fullscreen-pill:hover { background: var(--t-accent); color: var(--t-on-accent); border-color: var(--t-accent); }
+
+/* ------------------------------------------------------------
+   hero
+   ------------------------------------------------------------ */
+
+.hero-inner { position: relative; isolation: isolate; }
+
+.hero-inner::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -24px;
+  right: -28px;
+  bottom: -22px;
+  left: -28px;
+  pointer-events: none;
+  background: var(--t-panel);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-panel);
+  box-shadow: none;
+  clip-path: none;
+}
+
+.hero-inner::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 3px 9px 4px;
+  border: 1px solid var(--t-accent);
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.kicker-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: none; }
+.kicker-sep { width: 1px; height: 10px; background: currentColor; opacity: .3; }
+.kicker-dim { opacity: .66; font-weight: 600; }
+#kickerLabel::before { content: "// "; }
+
+html[data-theme="summer"] :is(.hero-logo, .detail-logo, .appearance-logo, .choice-logo, .editor-logo) {
+  --logo-font: var(--font-display);
+  --logo-weight: 400;
+  --logo-style: normal;
+  --logo-track: .02em;
+  --logo-line: .88;
+  --logo-color: var(--t-ink);
+  --logo-bg: none;
+  --logo-bg-clip: border-box;
+  --logo-fill: currentColor;
+  --logo-shadow: none;
+  --logo-filter: none;
+  -webkit-text-stroke: 0;
+  font-stretch: 100%;
+  color: var(--t-ink);
+}
+
+html[data-theme="summer"] .type-system::after { height: 3px; background: var(--t-accent); opacity: 1; }
+
+.tagline { max-width: 56ch; color: var(--t-ink-2); font-size: 13px; line-height: 1.7; }
+.meta-row { gap: 10px; color: var(--t-ink-2); font-size: 10.5px; font-weight: 600; letter-spacing: .03em; }
+.meta-dot { width: 2px; height: 11px; border-radius: 0; background: var(--t-accent); }
+
+.age-badge {
+  height: 19px;
+  padding: 0 6px;
+  border: 1px solid var(--t-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--t-ink-2);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.update-badge {
+  height: auto;
+  padding: 2px 6px;
+  gap: 0;
+  border: 1px solid var(--t-accent);
+  border-radius: 0;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  vertical-align: baseline;
+}
+
+.update-badge::before { display: none; }
+
+/* ------------------------------------------------------------
+   buttons
+   ------------------------------------------------------------ */
+
+.btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 50px;
+  padding: 0 24px;
+  border-radius: var(--r-btn);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  transition: color .14s linear, background .14s linear, border-color .14s linear, transform .1s linear, box-shadow .14s linear;
+}
+
+.btn::before { display: none; }
+.btn > * { position: relative; z-index: 1; }
+
+.btn.primary,
+.btn.primary.cta-adaptive,
+.btn.primary.cta-system {
+  --cta-bg: var(--t-accent);
+  --cta-bg-hover: var(--t-accent-2);
+  --cta-fg: var(--t-on-accent);
+  --cta-border: var(--t-accent);
+  --cta-shadow: none;
+  --cta-shadow-hover: none;
+  --cta-a: var(--t-accent);
+  --cta-b: var(--t-accent);
+  --cta-radius: var(--r-btn);
+  --cta-font: var(--font-ui);
+  --cta-weight: 800;
+  --cta-ls: .05em;
+  border: 1px solid var(--t-accent);
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.btn.primary:hover,
+.btn.primary.cta-adaptive:hover,
+.btn.primary.cta-system:hover {
+  background: var(--t-accent-2);
+  border-color: var(--t-accent-2);
+  color: var(--t-on-accent);
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.btn.primary:active,
+.btn.primary.cta-adaptive:active,
+.btn.primary.cta-system:active { transform: translateY(1px); }
+
+.btn.ghost {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-ink);
+  box-shadow: none;
+}
+
+.btn.ghost:hover { background: var(--t-panel-2); border-color: var(--t-accent); color: var(--t-accent); transform: none; box-shadow: none; }
+.btn.ghost.danger { border-color: var(--t-danger); color: var(--t-danger); }
+.btn.ghost.danger:hover { background: var(--t-danger); color: #fff; }
+.btn.compact { height: 42px; padding: 0 15px; font-size: 11.5px; }
+.btn:disabled { opacity: .45; }
+
+.preview-mini.cta-adaptive,
+.preview-mini.cta-system {
+  border-radius: var(--r-btn) !important;
+  background: var(--t-accent) !important;
+  color: var(--t-on-accent) !important;
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------
+   progress / activity
+   ------------------------------------------------------------ */
+
+.progress-block {
+  width: min(440px, 100%);
+  margin-top: clamp(16px, 2.5vh, 24px);
+  padding-top: 10px;
+  border-top: 1px solid var(--t-line);
+}
+
+.progress-head { color: var(--t-muted); font-size: 9.5px; font-weight: 600; letter-spacing: .04em; }
+.progress-pct { color: var(--t-accent); font-family: var(--font-display); font-size: 20px; font-weight: 400; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+
+.progress-track,
+.activity-track,
+.dp-track,
+.manage-progress-track,
+.launch-track {
+  height: 5px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: var(--t-paper-2);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.progress-track i,
+.activity-track i,
+.dp-track i,
+.manage-progress-track i,
+.launch-track i {
+  border-radius: 999px;
+  background: var(--t-accent);
+  box-shadow: none;
+}
+
+.progress-track i::after,
+.activity-track i::after,
+.dp-track i::after,
+.manage-progress-track i::after,
+.launch-track i::after { display: none; }
+
+.progress-sub { color: var(--t-muted); font-size: 9.5px; }
+.progress-sub .ic { opacity: .7; color: var(--t-accent); }
+
+.activity-strip {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  background: var(--t-panel);
+  box-shadow: none;
+  clip-path: none;
+  transition: transform .18s var(--t-ease), border-color .14s linear, background .14s linear;
+}
+
+.activity-strip::before { display: none; }
+.activity-strip::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: var(--t-accent);
+  pointer-events: none;
+}
+
+.activity-strip:hover { border-color: var(--t-accent); background: var(--t-panel-2); transform: translateY(-2px); }
+.activity-icon { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.activity-kicker { color: var(--t-accent); font-family: var(--font-condensed); font-size: 8.5px; font-weight: 700; letter-spacing: .12em; }
+.activity-title { color: var(--t-ink); font-family: var(--font-display); font-size: 21px; font-weight: 400; letter-spacing: .04em; }
+.activity-desc { color: var(--t-ink-2); }
+.activity-pct { color: var(--t-accent); font-family: var(--font-display); font-size: 21px; font-weight: 400; }
+.activity-meta { color: var(--t-muted); font-size: 8.5px; }
+.activity-arrow { color: var(--t-accent); }
+
+/* ------------------------------------------------------------
+   dock
+   ------------------------------------------------------------ */
+
+.dock {
+  border-top: 1px solid var(--t-line);
+  background: var(--t-paper);
+  padding-top: clamp(10px, 1.6vh, 15px);
+}
+
+.dock-title { color: var(--t-ink); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.dock-title::before { width: 7px; height: 7px; border-radius: 50%; background: var(--t-accent); box-shadow: none; }
+.dock-title > span:first-child::before { content: "// "; color: var(--t-accent); }
+
+.dock-count {
+  padding: 1px 6px;
+  border: 1px solid var(--t-accent);
+  border-radius: 999px;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.all-btn { color: var(--t-ink-2); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.all-btn:hover { color: var(--t-accent); }
+
+#rail { counter-reset: nt-tile; }
+.tile { counter-increment: nt-tile; }
+
+.tile-art {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  background: var(--t-panel-2);
+  clip-path: none;
+  transition: transform .18s var(--t-ease), border-color .14s linear, filter .18s linear, box-shadow .18s var(--t-ease);
+}
+
+.tile-art::after { background: linear-gradient(180deg, transparent 56%, rgba(0, 0, 0, .3) 100%); }
+
+.tile-art::before {
+  content: "No." counter(nt-tile, decimal-leading-zero);
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 4;
+  padding: 2px 5px 1px;
+  border: 1px solid var(--t-line);
+  border-radius: calc(var(--r-card) / 2);
+  background: rgba(255, 255, 255, .9);
+  color: var(--t-ink);
+  font-family: var(--font-condensed);
+  font-size: 8.5px;
+  letter-spacing: .06em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.tile.is-active .tile-art::before { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.tile-badge {
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  color: var(--t-ink-2);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.tile-badge.live, .lib-badge.live { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.tile-badge.offline { border-color: var(--t-line); background: var(--t-panel-2); color: var(--t-muted); }
+
+.tile:not(.is-active) .tile-art { filter: grayscale(.12) brightness(.98); }
+.tile:hover:not(.is-active) .tile-art { filter: none; border-color: var(--t-accent); transform: translateY(-3px); }
+.tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); transform: translateY(-4px); }
+
+.tile-progress { height: 3px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
+.tile-progress i { border-radius: 999px; background: var(--t-accent); }
+.tile.is-active .tile-progress i { background: var(--t-accent); }
+
+.tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--t-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
+.tile-name { overflow: visible; white-space: normal; text-overflow: clip; color: var(--t-ink); }
+.tile-sub { color: var(--t-muted); font-family: var(--font-condensed); font-size: 9.5px; font-variant-numeric: tabular-nums; }
+.tile.is-active .tile-label { color: var(--t-ink); }
+.tile.is-active .tile-name { color: var(--t-accent); }
+.tile.is-active .tile-sub { color: var(--t-accent); }
+
+.dock-foot { color: var(--t-muted); }
+.hint .key, kbd.key { border: 1px solid var(--t-line); border-radius: 4px; background: var(--t-panel); color: var(--t-ink); font-size: 9px; }
+.hints .hint span:last-child { color: var(--t-muted); }
+.runtime-item { color: var(--t-muted); }
+.runtime-sep { background: var(--t-line); }
+
+/* ------------------------------------------------------------
+   library / appearance
+   ------------------------------------------------------------ */
+
+.view-library,
+.view-appearance {
+  background-color: var(--t-paper);
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.view-library .lib-shell,
+.view-appearance .appearance-shell { background: transparent; }
+
+.lib-head { border-bottom: 1px solid var(--t-line); padding-bottom: clamp(12px, 1.8vh, 18px); }
+.lib-back { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.lib-back:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.lib-eyebrow { color: var(--t-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .14em; }
+.lib-eyebrow::before { content: "// "; }
+
+.lib-title h2 { margin-top: 4px; color: var(--t-ink); font-family: var(--font-display); font-size: clamp(38px, 3.8vw, 52px); font-weight: 400; letter-spacing: .03em; line-height: .95; }
+
+.lib-search { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); }
+.lib-search:focus-within { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.lib-search input { color: var(--t-ink); }
+.lib-search input::placeholder { color: var(--t-muted); }
+.lib-search .keycap { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-accent); }
+
+.lib-stats { color: var(--t-muted); font-size: 9.5px; }
+.lib-stats b { color: var(--t-accent); font-family: var(--font-display); font-size: 17px; font-weight: 400; }
+.lib-sep { background: var(--t-line); }
+
+.filter {
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: var(--t-panel);
+  color: var(--t-ink-2);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.filter:hover { border-color: var(--t-accent); color: var(--t-accent); }
+.filter.is-active { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); box-shadow: none; }
+
+.lib-card { position: relative; transition: transform .18s var(--t-ease); }
+.lib-card::before { content: ""; position: absolute; top: 0; bottom: 34px; left: -8px; width: 3px; background: var(--t-accent); transform: scaleY(0); transform-origin: top; transition: transform .18s var(--t-ease); pointer-events: none; }
+.lib-card:hover { transform: translateX(4px); }
+.lib-card:hover::before { transform: scaleY(1); }
+
+.lib-art { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); clip-path: none; }
+.lib-art::after { background: linear-gradient(180deg, transparent 56%, rgba(0, 0, 0, .26) 100%); }
+.lib-card:hover .lib-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.lib-open { border: 1px solid var(--t-accent); border-radius: var(--r-btn); background: var(--t-accent); color: var(--t-on-accent); }
+.lib-progress { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
+.lib-progress i { border-radius: 999px; background: var(--t-accent); }
+.lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
+.lib-en { color: var(--t-muted); }
+.lib-sub { color: var(--t-muted); }
+.lib-fav { color: var(--t-accent); }
+
+.lib-current { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .06em; }
+.lib-current::before { display: none; }
+.lib-empty h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
+.lib-empty p { color: var(--t-ink-2); }
+.empty-icon { color: var(--t-accent); }
+
+.appearance-kicker { color: var(--t-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .14em; }
+.appearance-kicker::before { content: "// "; }
+.appearance-head h2 { color: var(--t-ink); font-family: var(--font-display); font-size: clamp(38px, 3.8vw, 52px); font-weight: 400; letter-spacing: .03em; line-height: .95; }
+.appearance-head p, .section-head p { color: var(--t-ink-2); }
+.section-head h3 { color: var(--t-ink); font-size: 17px; font-weight: 700; }
+
+.section-tag { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; }
+.view-appearance .appearance-preview { border: 1px solid var(--t-line); border-radius: var(--r-panel); overflow: hidden; }
+.view-appearance .appearance-options { border: 1px solid var(--t-line); border-radius: var(--r-panel); background: var(--t-panel); }
+
+.appearance-preview-shade { display: none; }
+.appearance-bg { display: none; }
+.appearance-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.appearance-preview-copy {
+  right: auto;
+  bottom: 92px;
+  left: 18px;
+  width: min(78%, 480px);
+  max-width: 480px;
+  padding: 11px 14px 13px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  color: var(--t-ink);
+  box-shadow: none;
+  clip-path: none;
+}
+
+html[data-theme="summer"] .appearance-preview-copy .appearance-logo {
+  --logo-size: clamp(22px, 2.5vw, 34px);
+  --logo-color: var(--t-ink);
+  --logo-fill: currentColor;
+  color: var(--t-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  margin-top: 6px;
+}
+
+.preview-cta-row,
+.appearance-progress { display: none; }
+
+.appearance-switcher {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 8px 12px 9px;
+  gap: 6px;
+  background: var(--t-panel);
+  border-top: 1px solid var(--t-line);
+  mask-image: none;
+  -webkit-mask-image: none;
+  counter-reset: nt-chip;
+}
+
+.appearance-eyebrow { color: var(--t-accent); font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.appearance-eyebrow::before { content: "// "; }
+.appearance-tagline { margin-top: 4px; max-width: 100%; overflow: visible; white-space: normal; color: var(--t-ink-2); font-size: 10px; line-height: 1.55; }
+
+.appearance-index { padding: 2px 6px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink); font-family: var(--font-condensed); font-size: 9px; letter-spacing: .06em; }
+.live-pill { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink); font-size: 8.5px; font-weight: 700; }
+.live-pill i { border-radius: 50%; background: var(--t-accent); box-shadow: none; }
+.preview-cta-note { color: var(--t-muted); }
+
+.game-chip { width: 62px; border: 1px solid var(--t-line); border-radius: var(--r-card); opacity: 1; counter-increment: nt-chip; }
+.game-chip::after { content: "No." counter(nt-chip, decimal-leading-zero); position: absolute; top: 3px; left: 3px; z-index: 2; padding: 1px 3px 0; border: 1px solid var(--t-line); border-radius: 3px; background: rgba(255, 255, 255, .9); color: var(--t-ink); font-family: var(--font-condensed); font-size: 6.5px; line-height: 1; pointer-events: none; }
+.game-chip.is-active { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.game-chip.is-active::after { background: var(--t-accent); color: var(--t-on-accent); border-color: var(--t-accent); }
+
+.style-choice { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); }
+.style-choice:hover { border-color: var(--t-accent); }
+.style-choice.is-active { border-color: var(--t-accent); background: var(--t-panel); box-shadow: 0 0 0 1px var(--t-accent); }
+.style-choice-head { color: var(--t-ink); font-weight: 700; }
+.style-choice-head span:not(.choice-radio) { color: var(--t-ink); }
+.style-choice-head em { color: var(--t-accent); font-family: var(--font-condensed); font-size: 8.5px; }
+.choice-radio { border: 1px solid var(--t-line); border-radius: 50%; }
+.style-choice.is-active .choice-radio { border-color: var(--t-accent); background: var(--t-accent); }
+.style-choice.is-active .choice-radio::after { inset: 2px; border-radius: 50%; background: var(--t-panel); }
+.style-choice-desc { color: var(--t-ink-2); }
+
+.type-readout { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.type-readout-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.type-recipe-name { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; letter-spacing: .03em; }
+.type-recipe-spec { color: var(--t-ink-2); }
+.type-seed { color: var(--t-accent); font-size: 8.5px; font-variant-numeric: tabular-nums; }
+.type-shuffle { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink); }
+.type-shuffle:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.type-dna span { border: 1px solid var(--t-line); border-radius: 3px; color: var(--t-ink-2); }
+
+.palette-strip-label { color: var(--t-muted); font-size: 8.5px; letter-spacing: .08em; }
+.swatch { border-radius: 0; }
+.swatch i { border: 1px solid var(--t-line); }
+.swatch em { color: var(--t-muted); font-size: 8px; }
+
+.pref-row { border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); color: var(--t-ink); }
+.pref-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+.pref-note, .pref-hint { color: var(--t-muted); }
+.appearance-footer { border-top: 1px solid var(--t-line); }
+.autosave { color: var(--t-muted); }
+.appearance-data { color: var(--t-muted); }
+
+.switch { border-radius: 999px; background: var(--t-paper-2); box-shadow: inset 0 0 0 1px var(--t-line); }
+.switch::after { border-radius: 50%; background: var(--t-muted); }
+.switch.on { background: var(--t-accent); box-shadow: inset 0 0 0 1px var(--t-accent); }
+.switch.on::after { background: var(--t-on-accent); }
+
+.theme-card { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.theme-card:hover { border-color: var(--t-accent); }
+.theme-card.is-active { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.theme-preview { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.theme-name { color: var(--t-ink); font-weight: 700; }
+.theme-sub { color: var(--t-muted); font-size: 8px; }
+.theme-placeholder { color: var(--t-accent); }
+.theme-active-tag { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8px; font-weight: 800; letter-spacing: .04em; }
+
+/* ------------------------------------------------------------
+   popovers / context menu / notifications
+   ------------------------------------------------------------ */
+
+.popover { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); box-shadow: 0 8px 0 rgba(0, 0, 0, .08); }
+.popover-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.popover-head h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; }
+.popover-head { border-bottom: 1px solid var(--t-line); }
+.text-btn { color: var(--t-accent); font-size: 9.5px; }
+.text-btn:hover { color: var(--t-ink); }
+
+.menu-row { border-radius: calc(var(--r-card) / 2); color: var(--t-ink); font-size: 11px; }
+.menu-row:hover { background: var(--t-accent); color: var(--t-on-accent); }
+.row-key { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-accent); }
+.menu-separator { background: var(--t-line); }
+
+.context-menu { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); box-shadow: 0 8px 0 rgba(0, 0, 0, .08); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.context-item { border-radius: calc(var(--r-card) / 2); color: var(--t-ink); font-size: 12px; }
+.context-item:hover, .context-item:focus-visible { background: var(--t-accent); color: var(--t-on-accent); outline: none; }
+.context-item.is-disabled, .context-item:disabled { opacity: .4; }
+.menu-label { overflow: visible; white-space: normal; text-overflow: clip; }
+.menu-key { color: var(--t-accent); font-size: 9.5px; }
+.context-item:hover .menu-key { color: var(--t-on-accent); }
+
+.profile-head { border-bottom: 1px solid var(--t-line); }
+.profile-id strong { color: var(--t-ink); }
+.profile-id span { color: var(--t-ink-2); }
+.profile-foot { border-top: 1px solid var(--t-line); color: var(--t-muted); }
+.notif-item { border-radius: calc(var(--r-card) / 2); border: 1px solid transparent; }
+.notif-item:hover { border-color: var(--t-line); background: var(--t-panel-2); }
+.notif-title { color: var(--t-ink); }
+.notif-sub { color: var(--t-ink-2); }
+.notif-icon { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.notif-unread { background: var(--t-accent); box-shadow: none; }
+.status-pip { background: var(--t-accent); box-shadow: none; border-radius: 50%; }
+
+/* ------------------------------------------------------------
+   overlays / details / editor / scanner / picker / dialog
+   ------------------------------------------------------------ */
+
+.overlay { background: rgba(20, 20, 20, .4); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+.detail-modal, .lib-shell, .appearance-shell, .editor-shell,
+.scanner-shell, .picker-shell, .dialog {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-panel);
+  background: var(--t-panel);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, .08);
+}
+
+.detail-art { border-right: 1px solid var(--t-line); background: var(--t-paper-2); }
+.detail-art::before, .detail-art::after { display: none; }
+.detail-art > img.detail-art-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.detail-art-copy {
+  right: auto;
+  bottom: 18px;
+  left: 18px;
+  width: min(86%, 520px);
+  max-width: 520px;
+  padding: 11px 14px 12px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  color: var(--t-ink);
+  box-shadow: none;
+  clip-path: none;
+}
+
+html[data-theme="summer"] .detail-art-copy .detail-logo {
+  --logo-size: clamp(19px, 2vw, 28px);
+  --logo-color: var(--t-ink);
+  --logo-fill: currentColor;
+  color: var(--t-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  margin-top: 7px;
+}
+
+.detail-status { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; }
+.detail-status .status-dot { border-radius: 50%; background: currentColor; box-shadow: none; }
+.detail-zh { color: var(--t-ink-2); font-size: 9.5px; letter-spacing: .04em; white-space: normal; }
+.detail-body { scrollbar-color: var(--t-accent) transparent; }
+.detail-kicker { color: var(--t-accent); font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.detail-kicker::before { width: 6px; height: 6px; border-radius: 50%; background: var(--t-accent); }
+.detail-body h2 { color: var(--t-ink); font-family: var(--font-display); font-size: 36px; font-weight: 400; letter-spacing: .02em; }
+.detail-tagline, .detail-desc { color: var(--t-ink-2); }
+
+.detail-progress, .stat, .manage-stat { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); }
+.dp-head { color: var(--t-muted); }
+.dp-head b { color: var(--t-accent); font-family: var(--font-display); font-size: 18px; font-weight: 400; }
+.dp-sub, .detail-sync { color: var(--t-muted); }
+.stat-label { color: var(--t-muted); font-size: 8.5px; }
+.stat-value { color: var(--t-ink); font-size: 15px; font-weight: 700; }
+.detail-path { color: var(--t-muted); font-size: 9.5px; }
+.detail-actions { border-top: 1px solid var(--t-line); }
+
+.modal-close { border: 1px solid var(--t-line); border-radius: 50%; background: var(--t-panel); color: var(--t-ink); }
+.modal-close:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.manage-panel { border-top: 1px solid var(--t-line); }
+.manage-kicker { color: var(--t-accent); font-size: 8.5px; }
+.manage-head h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; }
+.manage-row { color: var(--t-ink); border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.manage-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+.manage-note { color: var(--t-muted); }
+
+.editor-head, .scanner-head, .picker-head { border-bottom: 1px solid var(--t-line); }
+.editor-kicker, .scanner-kicker, .picker-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.editor-kicker span { color: var(--t-ink); }
+.editor-head h2, .scanner-head h2, .picker-head h2 { color: var(--t-ink); font-family: var(--font-display); font-size: 32px; font-weight: 400; letter-spacing: .03em; }
+
+.field input, .field textarea, .field select { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.field select {
+  background-color: var(--t-panel);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--t-accent) 50%),
+    linear-gradient(135deg, var(--t-accent) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 17px, calc(100% - 12px) 17px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.field select option { background: var(--t-panel); color: var(--t-ink); }
+.field input::placeholder, .field textarea::placeholder { color: var(--t-muted); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.field-label { color: var(--t-ink-2); font-size: 9px; }
+.field-label em { color: var(--t-accent); }
+.field-btn { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.field-btn:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.editor-preview { border: 1px solid var(--t-line); border-radius: var(--r-card); }
+.editor-preview-shade { display: none; }
+.editor-preview-copy { right: 0; bottom: 0; left: 0; padding: 11px 15px 12px; background: rgba(255, 255, 255, .94); border-top: 1px solid var(--t-line); color: var(--t-ink); }
+html[data-theme="summer"] .editor-preview .editor-logo { --logo-color: var(--t-ink); --logo-fill: currentColor; color: var(--t-ink); -webkit-text-fill-color: currentColor; text-shadow: none; filter: none; }
+.editor-preview-hint { color: var(--t-ink-2); font-size: 10px; }
+.editor-preview-swatches i { border: 1px solid var(--t-line); box-shadow: none; }
+.editor-framing { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink-2); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.editor-framing button { border: 0; border-radius: 50%; background: transparent; color: var(--t-ink); }
+.editor-framing button:hover { background: var(--t-accent); color: var(--t-on-accent); }
+.editor-framing-sep { background: var(--t-line); }
+.editor-foot { border-top: 1px solid var(--t-line); }
+.editor-error { border: 1px solid var(--t-danger); border-radius: var(--r-btn); background: rgba(0, 0, 0, .04); color: var(--t-danger); }
+#editorDelete { color: var(--t-danger); }
+#editorDelete:hover { color: var(--t-ink); }
+
+.scanner-status { border-top: 1px solid var(--t-line); color: var(--t-muted); font-size: 9px; }
+.scan-group-title { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.scan-group-title::after { background: var(--t-line); }
+.scan-row { border: 1px solid transparent; border-radius: calc(var(--r-card) / 2); }
+.scan-row:hover { background: var(--t-panel-2); }
+.scan-row.is-checked { border-color: var(--t-accent); background: var(--t-panel-2); }
+.scan-name { color: var(--t-ink); }
+.scan-sub { color: var(--t-muted); font-size: 9px; }
+.scan-thumb { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.scan-check { border: 1px solid var(--t-line); border-radius: 4px; }
+.scan-row.is-checked .scan-check { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.scan-row.is-imported .scan-check { border-color: var(--t-line); color: var(--t-muted); }
+.scan-source { border: 1px solid var(--t-line); border-radius: 3px; color: var(--t-accent); font-size: 7.5px; letter-spacing: .06em; }
+.scanner-foot { border-top: 1px solid var(--t-line); }
+.scanner-empty { color: var(--t-muted); }
+.scanner-empty strong { color: var(--t-ink); }
+
+.crumb-btn { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink); }
+.crumb-path { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-muted); font-size: 9px; }
+.picker-toggle { color: var(--t-muted); }
+.drive-chip { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink-2); }
+.drive-chip:hover { border-color: var(--t-accent); color: var(--t-accent); }
+.drive-chip.is-active { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.picker-row { border-radius: calc(var(--r-card) / 2); }
+.picker-row:hover { background: var(--t-panel-2); color: var(--t-ink); }
+.picker-row.is-selected { border-color: var(--t-accent); background: var(--t-panel-2); color: var(--t-ink); }
+.picker-row.is-dir .ic { color: var(--t-accent); }
+.picker-name { color: inherit; }
+.picker-meta { color: var(--t-muted); font-size: 8.5px; }
+.picker-foot { border-top: 1px solid var(--t-line); }
+.picker-note { color: var(--t-muted); }
+.picker-empty { color: var(--t-muted); }
+
+.dialog-mark { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-title { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
+.dialog-text { color: var(--t-ink-2); }
+.dialog-action { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); font-size: 11.5px; font-weight: 700; }
+.dialog-action:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-action.is-primary { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-action.is-primary:hover { background: var(--t-accent-2); border-color: var(--t-accent-2); }
+.dialog-action.is-danger { border-color: var(--t-danger); color: var(--t-danger); }
+.dialog-action.is-danger:hover { background: var(--t-danger); color: #fff; }
+
+.rail-empty-card { border: 1px dashed var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.rail-empty-card:hover { border-color: var(--t-accent); }
+.rail-empty-icon { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.rail-empty-title { color: var(--t-ink); }
+.rail-empty-sub { color: var(--t-ink-2); }
+
+/* ------------------------------------------------------------
+   launch / sleep / toast / pad
+   ------------------------------------------------------------ */
+
+.launch { background: var(--t-ink); --launch-ease: var(--t-ease); }
+.launch::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
+.launch::after { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: var(--t-accent); z-index: 6; pointer-events: none; }
+.launch-art { filter: grayscale(.55) contrast(1.1) brightness(.45); transform: scale(1.06); animation: none; transition: transform .5s var(--t-ease), filter .5s var(--t-ease); }
+.launch.is-open .launch-art { transform: scale(1); filter: grayscale(.5) contrast(1.1) brightness(.5); }
+.launch.is-leaving .launch-art { transform: scale(1.02); filter: grayscale(.6) brightness(.2) blur(2px); transition-duration: .32s; }
+.launch-veil { background: rgba(0, 0, 0, .62); }
+.launch-bars i { background: var(--t-ink); height: 8vh; }
+.launch-bars i::after { content: ""; position: absolute; right: 5vw; left: 5vw; height: 1px; background: var(--t-accent); }
+.launch-brand { color: var(--t-paper); font-family: var(--font-display); font-size: 16px; letter-spacing: .18em; }
+.launch-system { color: var(--t-accent); font-size: 9px; font-weight: 700; letter-spacing: .16em; }
+.launch-stage { gap: clamp(16px, 2.6vh, 28px); }
+.launch-ring { width: clamp(92px, 11vh, 128px); opacity: 0; transition: opacity .3s linear; }
+.launch.is-open .launch-ring { opacity: 1; }
+.ring-track { stroke: rgba(255, 255, 255, .22); stroke-width: 3; stroke-dasharray: 2 14; }
+.ring-progress { stroke: var(--t-accent); stroke-width: 5; stroke-linecap: butt; filter: none; transition: stroke-dashoffset .24s var(--t-ease); }
+.launch-ring-label { color: var(--t-paper); font-family: var(--font-display); font-size: 22px; font-weight: 400; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.launch-kicker { color: var(--t-on-accent); background: var(--t-accent); padding: 3px 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .08em; }
+.launch-kicker::before { content: "// "; }
+.launch-copy .launch-logo, .launch-logo { --logo-font: var(--font-display); --logo-weight: 400; --logo-style: normal; --logo-track: .02em; --logo-color: var(--t-paper); --logo-bg: none; --logo-bg-clip: border-box; --logo-fill: currentColor; --logo-shadow: none; --logo-filter: none; -webkit-text-stroke: 0; font-stretch: 100%; color: var(--t-paper); }
+.launch-copy .launch-zh { color: var(--t-accent); font-size: 9.5px; font-weight: 700; letter-spacing: .12em; }
+.launch-steps { counter-reset: nt-step; gap: 15px; }
+.launch-step { counter-increment: nt-step; color: var(--t-muted); font-size: 9px; font-weight: 600; }
+.launch-step i { display: none; }
+.launch-step::before { content: "0" counter(nt-step); display: inline-block; margin-right: 6px; padding: 1px 4px; border: 1px solid rgba(255, 255, 255, .24); color: rgba(255, 255, 255, .5); font-family: var(--font-display); font-size: 8px; letter-spacing: .06em; }
+.launch-step.is-active { color: var(--t-paper); }
+.launch-step.is-active::before { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.launch-step.is-done { color: var(--t-paper); }
+.launch-step.is-done::before { border-color: var(--t-accent); color: var(--t-accent); }
+.launch-status { color: var(--t-accent); }
+.launch-hint { border: 1px solid var(--t-accent); border-radius: 999px; color: var(--t-accent); font-size: 9px; font-weight: 700; }
+.launch.is-ready .launch-hint { background: var(--t-accent); color: var(--t-on-accent); }
+.launch-foot { color: rgba(255, 255, 255, .42); letter-spacing: .08em; }
+
+.sleep { background: var(--t-ink); }
+.sleep::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
+.sleep-brand { color: var(--t-accent); letter-spacing: .24em; font-family: var(--font-display); }
+.sleep-time { color: var(--t-paper); font-family: var(--font-display); font-weight: 400; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.sleep-date { color: rgba(255, 255, 255, .5); letter-spacing: .12em; }
+.sleep-moon { color: var(--t-accent); }
+.sleep-hint { color: rgba(255, 255, 255, .42); }
+.sleep-dot { background: var(--t-accent); box-shadow: none; }
+
+.toast { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); color: var(--t-ink); box-shadow: 0 6px 0 rgba(0, 0, 0, .08); }
+.toast .ic { color: var(--t-accent); }
+.toast::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--t-accent); }
+
+.pad-hints { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); }
+.pad-hint { color: var(--t-ink); font-weight: 600; }
+.pad-hint + .pad-hint { border-left-color: var(--t-line); }
+.pad-glyph { border: 1px solid var(--t-line); border-radius: 50%; background: var(--t-panel); color: var(--t-ink); }
+.pad-glyph.face { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+::selection { background: var(--t-accent); color: var(--t-on-accent); }
+* { scrollbar-color: var(--t-accent) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--t-accent); border: 2px solid var(--t-paper); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--t-ink); }
+
+html.reduce-motion .btn,
+html.reduce-motion .activity-strip,
+html.reduce-motion .lib-card,
+html.reduce-motion .lib-card::before,
+html.reduce-motion .nav-glide,
+html.reduce-motion .tile-art,
+html.reduce-motion .tile-art > img,
+html.reduce-motion .lib-art > img { transition-duration: .001ms !important; }
+
+html.reduce-motion .tile:hover:not(.is-active) .tile-art,
+html.reduce-motion .tile.is-active .tile-art,
+html.reduce-motion .lib-card:hover,
+html.reduce-motion .activity-strip:hover { transform: none; }
+
+html.perf-low body::before { display: none; }
+html.perf-low .grain { display: none; }
+
+
+/* SUMMER · sky, lime and hairlines */
+body::before {
+  background-image:
+    linear-gradient(rgba(26, 155, 215, .08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 155, 215, .08) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: .7;
+}
+body::after { height: 3px; background: linear-gradient(90deg, var(--t-accent-2) 0 32%, var(--t-accent) 32% 100%); }
+.topbar { border-bottom: 1px solid var(--t-line); background: rgba(255, 255, 255, .92); }
+.brand::before { border-radius: 50%; background: var(--t-accent); color: #fff; }
+.brand-word { color: var(--t-ink); }
+.nav-btn::before { color: var(--t-accent); }
+.nav-btn.is-active { color: #fff; }
+.nav-glide { background: var(--t-accent); border-radius: 999px; }
+.clock { border-color: var(--t-line); background: rgba(255, 255, 255, .8); }
+.avatar { border-color: var(--t-line); color: var(--t-accent); border-radius: 50%; }
+.hero-inner::before {
+  background: rgba(255, 255, 255, .96);
+  border: 1px solid var(--t-line);
+  border-radius: 8px;
+  box-shadow: 9px 9px 0 var(--t-accent-2);
+  clip-path: none;
+}
+.hero-inner::after {
+  top: -12px;
+  left: 26px;
+  width: 96px;
+  height: 20px;
+  background: var(--t-accent-2);
+  border: 1px solid rgba(23, 52, 90, .18);
+  opacity: .9;
+  transform: rotate(-3deg);
+}
+.kicker { border: 0; background: var(--t-accent); color: #fff; border-radius: 999px; }
+.hero-logo { color: var(--t-ink); }
+.tagline { color: var(--t-ink-2); }
+.meta-dot { background: var(--t-accent-2); }
+.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system { border: 0; background: var(--t-accent); color: #fff; }
+.btn.primary:hover, .btn.primary.cta-adaptive:hover, .btn.primary.cta-system:hover { background: var(--t-accent-3); color: #fff; }
+.btn.ghost { border-color: var(--t-line); background: rgba(255, 255, 255, .8); color: var(--t-ink); }
+.btn.ghost:hover { border-color: var(--t-accent); color: var(--t-accent); background: #fff; }
+.progress-track i { background: linear-gradient(90deg, var(--t-accent), var(--t-accent-2)); }
+.activity-strip { border-color: var(--t-line); background: rgba(255, 255, 255, .94); box-shadow: 6px 6px 0 var(--t-accent-2); }
+.activity-strip:hover { box-shadow: 8px 8px 0 var(--t-accent-2); }
+.activity-icon { border: 0; background: var(--t-accent); color: #fff; }
+.activity-kicker { color: var(--t-accent); }
+.tile-art, .lib-art { border-color: var(--t-line); background: #fff; }
+.tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 4px 4px 0 var(--t-accent-2); }
+.lib-card:hover .lib-art { box-shadow: 4px 4px 0 var(--t-accent-2); }
+.theme-card.is-active, .style-choice.is-active { box-shadow: 4px 4px 0 var(--t-accent-2); }
+.view-library::before, .view-appearance::before {
+  content: "SUMMER";
+  position: absolute;
+  top: 5%;
+  left: -2%;
+  z-index: 0;
+  font-family: var(--font-display);
+  font-size: clamp(150px, 22vw, 310px);
+  line-height: .8;
+  letter-spacing: .02em;
+  color: rgba(26, 155, 215, .08);
+  transform: rotate(-3deg);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.view-library .lib-shell, .view-appearance .appearance-shell { position: relative; z-index: 1; }
+.detail-modal, .lib-shell, .appearance-shell, .editor-shell, .scanner-shell, .picker-shell, .dialog { border-color: var(--t-line); box-shadow: 8px 8px 0 rgba(216, 242, 74, .55); }
+.detail-art-copy, .appearance-preview-copy, .editor-preview-copy { border-color: var(--t-line); }
+
+
+/* ============================================================
+   SUMMER · signature pass
+   A scrapbook photo print: photo corners, lime tape, wireframe,
+   italic caption and a note-card activity row.
+   ============================================================ */
+
+.hero-inner::before {
+  background-color: rgba(255, 255, 255, .97);
+  background-image:
+    linear-gradient(135deg, var(--t-accent) 0 9px, transparent 9px),
+    linear-gradient(225deg, var(--t-accent) 0 9px, transparent 9px),
+    linear-gradient(45deg, var(--t-accent) 0 9px, transparent 9px),
+    linear-gradient(315deg, var(--t-accent) 0 9px, transparent 9px);
+  background-size: 26px 26px, 26px 26px, 26px 26px, 26px 26px;
+  background-position: top left, top right, bottom left, bottom right;
+  background-repeat: no-repeat;
+  border: 1px solid var(--t-line);
+  border-radius: 4px;
+  box-shadow: 9px 9px 0 var(--t-accent-2);
+}
+
+.hero-inner::after {
+  top: -12px;
+  right: auto;
+  bottom: auto;
+  left: 28px;
+  width: 104px;
+  height: 20px;
+  background: var(--t-accent-2);
+  border: 1px solid rgba(23, 52, 90, .18);
+  opacity: .95;
+  transform: rotate(-3deg);
+}
+
+.kicker::after {
+  content: "2026 · SUMMER";
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, .4);
+  font-family: var(--font-condensed);
+  font-size: 7.5px;
+  letter-spacing: .14em;
+}
+
+.tagline {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: .02em;
+}
+
+.activity-strip {
+  border: 1px solid var(--t-line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 7px 7px 0 var(--t-accent-2);
+}
+.activity-strip::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 18px;
+  display: block;
+  width: 70px;
+  height: 17px;
+  background: var(--t-accent-2);
+  transform: rotate(-3deg);
+  pointer-events: none;
+}
+.activity-strip::after { background: var(--t-accent); width: 3px; }
+.activity-strip:hover { box-shadow: 9px 9px 0 var(--t-accent-2); transform: translate(-1px, -1px); }
+.activity-icon { border: 0; background: var(--t-accent); color: #fff; }
+.activity-kicker { color: var(--t-accent); }
+
+/* photo-print cards, gently rotated like a scrapbook */
+.tile-art, .lib-art {
+  border: 4px solid #fff;
+  outline: 1px solid var(--t-line);
+  border-radius: 3px;
+  box-shadow: 3px 3px 0 rgba(23, 52, 90, .08);
+}
+#rail .tile:nth-child(even) .tile-art { transform: rotate(.55deg); }
+#rail .tile:nth-child(odd) .tile-art { transform: rotate(-.4deg); }
+.tile.is-active .tile-art {
+  outline: 2px solid var(--t-accent);
+  box-shadow: 5px 5px 0 var(--t-accent-2);
+  transform: translateY(-4px) rotate(0deg);
+}
+.tile-art::after { background: linear-gradient(180deg, transparent 58%, rgba(23, 52, 90, .3) 100%); }
+.lib-card:hover .lib-art { outline: 2px solid var(--t-accent); box-shadow: 4px 4px 0 var(--t-accent-2); }
+
+.theme-card, .style-choice, .type-readout { border-color: var(--t-line); }
+.theme-card.is-active, .style-choice.is-active { box-shadow: 4px 4px 0 var(--t-accent-2); }
+
+/* caption line under the photo */
+.view-library::before, .view-appearance::before {
+  content: "SUMMER";
+  position: absolute;
+  top: 4%;
+  left: -2%;
+  z-index: 0;
+  font-family: var(--font-display);
+  font-size: clamp(160px, 23vw, 330px);
+  line-height: .8;
+  letter-spacing: .02em;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(26, 155, 215, .18);
+  transform: rotate(-3deg);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+
+/* Feature framework variables */
+:root {
+  --fx-paper: #f7f7f2;
+  --fx-ink: #17345a;
+  --fx-accent: #1a9bd7;
+  --fx-accent-2: #d8f24a;
+  --fx-line: #9cc6d9;
+  --fx-panel: #ffffff;
+}
+
+/* ============================================================
+   SUMMER · magazine pass
+   Sky photo plate, cyan hairline seams, acid tape bands, black
+   lyric bars and an oversized blue title. Reference: 新主题4.png
+   ============================================================ */
+
+:root {
+  --su-sky: #1a9bd7;
+  --su-sky-deep: #17345a;
+  --su-cyan: #22a7d8;
+  --su-lime: #d8f24a;
+  --su-paper: #f7f7f2;
+}
+
+html[data-theme="summer"] body {
+  background-color: var(--su-paper);
+  background-image:
+    url("assets/seams.svg"),
+    radial-gradient(40% 36% at 8% 6%, rgba(216, 242, 74, .34) 0%, transparent 68%),
+    radial-gradient(44% 40% at 92% 92%, rgba(26, 155, 215, .08) 0%, transparent 70%);
+  background-size: 74% auto, auto, auto;
+  background-position: 0 0, 0 0, 0 0;
+  background-repeat: repeat, no-repeat, no-repeat;
+}
+
+html[data-theme="summer"] body::before {
+  background-image:
+    linear-gradient(rgba(26, 155, 215, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 155, 215, .07) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: .9;
+}
+
+/* ---- hero: a printed photo spread ---- */
+
+html[data-theme="summer"] .hero-inner::before {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(38% 34% at 88% 8%, rgba(216, 242, 74, .38) 0%, transparent 72%),
+    url("assets/dots.svg"),
+    linear-gradient(rgba(26, 155, 215, .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 155, 215, .055) 1px, transparent 1px);
+  background-size: auto, 300px 300px, 56px 56px, 56px 56px;
+  background-position: 0 0, 100% 100%, 0 0, 0 0;
+  background-repeat: no-repeat, repeat, repeat, repeat;
+  border: 1px solid rgba(26, 155, 215, .3);
+  border-radius: 0;
+  box-shadow:
+    10px 10px 0 var(--su-lime),
+    0 0 0 1px rgba(26, 155, 215, .12) inset;
+  clip-path: none;
+}
+
+/* acid tape band across the top + cyan arrow at the corner */
+html[data-theme="summer"] .hero-inner::after {
+  top: -14px;
+  right: auto;
+  bottom: auto;
+  left: 22px;
+  width: 168px;
+  height: 22px;
+  background: var(--su-lime);
+  border: 0;
+  opacity: .96;
+  transform: rotate(-1.6deg);
+}
+
+/* ---- title: dark serif with a blue offset and a white cutout ---- */
+
+html[data-theme="summer"] .hero-logo {
+  color: var(--su-sky-deep);
+  -webkit-text-fill-color: currentColor;
+  text-shadow:
+    4px 4px 0 rgba(34, 167, 216, .55),
+    0 1px 0 rgba(255, 255, 255, .8);
+  letter-spacing: -.005em;
+}
+
+html[data-theme="summer"] .hero-logo::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 26%;
+  z-index: -1;
+  width: 62%;
+  height: calc(100% + 22px);
+  background: #ffffff;
+  opacity: .92;
+  pointer-events: none;
+}
+
+html[data-theme="summer"] .hero-logo::after {
+  content: "夏日轻程";
+  position: absolute;
+  right: -12px;
+  bottom: -58px;
+  z-index: 2;
+  color: var(--su-cyan);
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  writing-mode: vertical-rl;
+  opacity: .92;
+  pointer-events: none;
+}
+
+html[data-theme="summer"] .hero-logo { position: relative; z-index: 2; }
+
+/* ---- kicker: acid label with a cyan rule ---- */
+
+html[data-theme="summer"] .kicker {
+  border: 0;
+  border-radius: 0;
+  background: var(--su-lime);
+  color: var(--su-sky-deep);
+  font-family: var(--font-condensed);
+  font-size: 10px;
+  letter-spacing: .14em;
+  padding: 4px 9px 5px;
+  box-shadow: 3px 3px 0 rgba(26, 155, 215, .35);
+}
+html[data-theme="summer"] .kicker::before { content: "◆"; margin-right: 6px; color: var(--su-sky); }
+html[data-theme="summer"] .kicker-dot { display: none; }
+html[data-theme="summer"] .kicker-sep { background: rgba(23, 52, 90, .3); }
+html[data-theme="summer"] .kicker-dim { color: rgba(23, 52, 90, .66); }
+
+/* ---- tagline: italic serif caption ---- */
+
+html[data-theme="summer"] .tagline {
+  color: var(--su-sky-deep);
+  font-family: var(--font-serif);
+  font-size: 14.5px;
+  font-style: italic;
+  letter-spacing: .01em;
+}
+
+/* ---- meta row: hairline rules ---- */
+
+html[data-theme="summer"] .meta-row {
+  color: var(--su-sky-deep);
+  font-family: var(--font-condensed);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+}
+html[data-theme="summer"] .meta-dot { width: 1px; height: 10px; background: var(--su-cyan); }
+html[data-theme="summer"] .age-badge { border: 1px solid var(--su-cyan); color: var(--su-sky); background: #fff; }
+html[data-theme="summer"] .update-badge { border: 0; background: var(--su-sky); color: #fff; }
+
+/* ---- buttons: sky pill + hairline ghost ---- */
+
+html[data-theme="summer"] .btn.primary,
+html[data-theme="summer"] .btn.primary.cta-adaptive,
+html[data-theme="summer"] .btn.primary.cta-system {
+  border: 0;
+  border-radius: 999px;
+  background: var(--su-sky);
+  color: #fff;
+  box-shadow: 0 4px 0 rgba(26, 155, 215, .22);
+}
+html[data-theme="summer"] .btn.primary:hover,
+html[data-theme="summer"] .btn.primary.cta-adaptive:hover,
+html[data-theme="summer"] .btn.primary.cta-system:hover {
+  background: var(--su-sky-deep);
+  box-shadow: 0 4px 0 rgba(26, 155, 215, .3);
+  transform: translateY(-1px);
+}
+html[data-theme="summer"] .btn.ghost {
+  border: 1px solid var(--su-cyan);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--su-sky-deep);
+}
+html[data-theme="summer"] .btn.ghost:hover { background: var(--su-cyan); border-color: var(--su-cyan); color: #fff; box-shadow: 0 4px 0 rgba(23, 52, 90, .14); }
+
+/* ---- progress: cyan rule with lime segment ---- */
+
+html[data-theme="summer"] .progress-block { border-top: 1px solid rgba(26, 155, 215, .45); }
+html[data-theme="summer"] .progress-head { color: var(--su-sky-deep); font-family: var(--font-condensed); letter-spacing: .1em; }
+html[data-theme="summer"] .progress-pct { color: var(--su-sky); font-family: var(--font-serif); font-weight: 700; }
+html[data-theme="summer"] .progress-track { height: 5px; border: 0; border-radius: 999px; background: rgba(26, 155, 215, .16); }
+html[data-theme="summer"] .progress-track i { border-radius: 999px; background: linear-gradient(90deg, var(--su-sky), var(--su-lime)); }
+html[data-theme="summer"] .progress-sub { color: var(--su-sky-deep); font-family: var(--font-condensed); }
+
+/* ---- activity: white card with an acid tab ---- */
+
+html[data-theme="summer"] .activity-strip {
+  border: 1px solid rgba(26, 155, 215, .4);
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 7px 7px 0 var(--su-lime);
+  clip-path: none;
+}
+html[data-theme="summer"] .activity-strip::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 20px;
+  display: block;
+  width: 74px;
+  height: 16px;
+  background: var(--su-lime);
+  transform: rotate(-3deg);
+  pointer-events: none;
+}
+html[data-theme="summer"] .activity-strip::after { display: none; }
+html[data-theme="summer"] .activity-strip:hover { box-shadow: 9px 9px 0 var(--su-lime); transform: translate(-1px, -1px); }
+html[data-theme="summer"] .activity-icon { border: 0; border-radius: 50%; background: var(--su-sky); color: #fff; }
+html[data-theme="summer"] .activity-kicker { color: var(--su-sky); font-family: var(--font-condensed); letter-spacing: .14em; }
+html[data-theme="summer"] .activity-title { color: var(--su-sky-deep); font-family: var(--font-serif); font-weight: 700; }
+html[data-theme="summer"] .activity-desc { color: rgba(23, 52, 90, .66); }
+html[data-theme="summer"] .activity-pct { color: var(--su-sky); }
+html[data-theme="summer"] .activity-meta { color: rgba(23, 52, 90, .5); }
+html[data-theme="summer"] .activity-arrow { color: var(--su-sky); }
+html[data-theme="summer"] .activity-track { border: 0; border-radius: 999px; background: rgba(26, 155, 215, .16); }
+html[data-theme="summer"] .activity-track i { border-radius: 999px; background: var(--su-sky); }
+
+/* ---- dock: photo prints ---- */
+
+html[data-theme="summer"] .tile-art {
+  border: 4px solid #fff;
+  outline: 1px solid rgba(26, 155, 215, .5);
+  border-radius: 3px;
+  box-shadow: 4px 4px 0 rgba(26, 155, 215, .18);
+}
+html[data-theme="summer"] .tile-art::before {
+  border: 0;
+  border-radius: 999px;
+  background: var(--su-lime);
+  color: var(--su-sky-deep);
+  font-family: var(--font-condensed);
+}
+html[data-theme="summer"] .tile.is-active .tile-art { outline: 2px solid var(--su-sky); box-shadow: 6px 6px 0 var(--su-lime); }
+html[data-theme="summer"] .tile-label { color: var(--su-sky-deep); font-family: var(--font-serif); }
+html[data-theme="summer"] .tile-name { color: var(--su-sky-deep); }
+html[data-theme="summer"] .tile-sub { color: var(--su-sky); }
+html[data-theme="summer"] .tile.is-active .tile-name { color: var(--su-sky); }
+
+/* ---- library / appearance ---- */
+
+html[data-theme="summer"] .view-library::before,
+html[data-theme="summer"] .view-appearance::before {
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(26, 155, 215, .26);
+}
+
+html[data-theme="summer"] .lib-search,
+html[data-theme="summer"] .lib-back,
+html[data-theme="summer"] .filter {
+  border: 1px solid var(--su-cyan);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--su-sky-deep);
+  font-family: var(--font-condensed);
+}
+html[data-theme="summer"] .filter.is-active { background: var(--su-sky); border-color: var(--su-sky); color: #fff; box-shadow: 0 3px 0 rgba(26, 155, 215, .22); }
+html[data-theme="summer"] .lib-title h2 { color: var(--su-sky-deep); font-family: var(--font-serif); font-weight: 700; }
+html[data-theme="summer"] .lib-art { border: 4px solid #fff; outline: 1px solid rgba(26, 155, 215, .5); border-radius: 3px; }
+html[data-theme="summer"] .lib-card:hover .lib-art { outline: 2px solid var(--su-sky); box-shadow: 4px 4px 0 var(--su-lime); }
+html[data-theme="summer"] .lib-current { border: 0; border-radius: 999px; background: var(--su-sky); color: #fff; }
+
+/* ---- panels ---- */
+
+html[data-theme="summer"] .detail-modal,
+html[data-theme="summer"] .lib-shell,
+html[data-theme="summer"] .appearance-shell,
+html[data-theme="summer"] .editor-shell,
+html[data-theme="summer"] .scanner-shell,
+html[data-theme="summer"] .picker-shell,
+html[data-theme="summer"] .dialog {
+  border: 1px solid rgba(26, 155, 215, .4);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 9px 9px 0 var(--su-lime);
+}
+
+html[data-theme="summer"] .detail-art-copy,
+html[data-theme="summer"] .appearance-preview-copy,
+html[data-theme="summer"] .editor-preview-copy {
+  border: 0;
+  border-radius: 4px;
+  background: #ffffff;
+  color: var(--su-sky-deep);
+  box-shadow: 6px 6px 0 var(--su-lime);
+}
+html[data-theme="summer"] .detail-art-copy .detail-logo,
+html[data-theme="summer"] .appearance-preview-copy .appearance-logo,
+html[data-theme="summer"] .editor-preview-copy .editor-logo {
+  color: var(--su-sky-deep);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 3px 3px 0 rgba(34, 167, 216, .4);
+}
+
+/* ---- context menu ---- */
+
+html[data-theme="summer"] .context-menu,
+html[data-theme="summer"] .popover {
+  border: 1px solid var(--su-cyan);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 7px 7px 0 var(--su-lime);
+}
+html[data-theme="summer"] .context-item,
+html[data-theme="summer"] .menu-row { border-radius: 4px; }
+html[data-theme="summer"] .context-item:hover,
+html[data-theme="summer"] .menu-row:hover { background: var(--su-sky); color: #fff; }
+
+/* ---- launch / sleep ---- */
+
+html[data-theme="summer"] .launch { background: #081a2a; }
+html[data-theme="summer"] .launch::after { background: linear-gradient(90deg, var(--su-lime) 0 34%, var(--su-sky) 34% 100%); }
+html[data-theme="summer"] .sleep { background: #081a2a; }
+
+/* ---- refinement: photo-plate look; the white block becomes a caption band ---- */
+
+html[data-theme="summer"] .hero-logo::before {
+  top: auto;
+  bottom: -18px;
+  left: 0;
+  width: 76%;
+  height: 26px;
+  background: #ffffff;
+  opacity: 1;
+  z-index: -1;
+}
+
+/* cyan seam lines should not cut through the title */
+html[data-theme="summer"] body::before { opacity: .55; }
+
+/* the vertical Chinese side-title gets a white backing strip */
+html[data-theme="summer"] .hero-logo::after {
+  bottom: -60px;
+  right: -20px;
+  padding: 8px 4px;
+  background: rgba(255, 255, 255, .86);
+  font-size: 26px;
+}
+
+
+/* ---- the white backing block was redundant on a white plate ---- */
+html[data-theme="summer"] .hero-logo::before { content: none; display: none; }
+html[data-theme="summer"] body::before { opacity: .4; }
+
+/* ---- top strip: reference is a solid teal band across the whole header ---- */
+html[data-theme="summer"] body::after {
+  height: 7px;
+  background: #22b5a6;
+}
+html[data-theme="summer"] .topbar {
+  border-bottom: 0;
+  background: #22b5a6;
+}
+html[data-theme="summer"] .brand::before { border: 0; background: #fff; color: #22b5a6; }
+html[data-theme="summer"] .brand-word { color: #fff; }
+html[data-theme="summer"] .nav-btn { color: rgba(255, 255, 255, .82); }
+html[data-theme="summer"] .nav-btn::before { color: rgba(255, 255, 255, .6); }
+html[data-theme="summer"] .nav-btn:hover { color: #fff; border-color: rgba(255, 255, 255, .6); }
+html[data-theme="summer"] .nav-btn.is-active { color: var(--su-sky-deep); }
+html[data-theme="summer"] .nav-glide { background: var(--su-lime); }
+html[data-theme="summer"] .clock { border-color: rgba(255, 255, 255, .45); background: transparent; }
+html[data-theme="summer"] .clock-time { color: #fff; }
+html[data-theme="summer"] .clock-date { color: rgba(255, 255, 255, .7); }
+html[data-theme="summer"] .icon-btn,
+html[data-theme="summer"] .win-btn { color: rgba(255, 255, 255, .82); }
+html[data-theme="summer"] .icon-btn:hover,
+html[data-theme="summer"] .win-btn:hover { background: #fff; color: #22b5a6; }
+html[data-theme="summer"] .win-btn.close:hover { background: #e05a4f; color: #fff; }
+html[data-theme="summer"] .window-controls { border-left-color: rgba(255, 255, 255, .35); }
+html[data-theme="summer"] .avatar { border-color: rgba(255, 255, 255, .7); background: #fff; color: #22b5a6; }
+html[data-theme="summer"] .online-dot { background: var(--su-lime); border-color: #22b5a6; }
+html[data-theme="summer"] .fullscreen-pill { border-color: rgba(255, 255, 255, .7); background: transparent; color: #fff; }
+
+/* ---- colour ratio: reference is cyan/teal dominant with a big white field ---- */
+html[data-theme="summer"] body::before {
+  background-image:
+    radial-gradient(34% 30% at 88% 10%, rgba(34, 181, 166, .16) 0%, transparent 70%),
+    repeating-radial-gradient(circle at 88% 10%, transparent 0 60px, rgba(34, 181, 166, .12) 61px 62px, transparent 63px 96px),
+    linear-gradient(rgba(26, 155, 215, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 155, 215, .07) 1px, transparent 1px);
+  background-size: auto, auto, 72px 72px, 72px 72px;
+  opacity: .9;
+}
+
+/* the plate keeps a white core; cyan lives on the frame and the tape */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    url("assets/dots.svg"),
+    linear-gradient(rgba(26, 155, 215, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 155, 215, .05) 1px, transparent 1px);
+  background-size: 340px 340px, 56px 56px, 56px 56px;
+  background-position: 100% 100%, 0 0, 0 0;
+  border: 2px solid var(--su-cyan);
+  box-shadow:
+    10px 10px 0 var(--su-lime),
+    inset 0 0 0 1px rgba(34, 181, 166, .18);
+}
+
+/* progress / activity pick up more cyan */
+html[data-theme="summer"] .activity-icon { background: var(--su-cyan); }
+html[data-theme="summer"] .activity-kicker { color: var(--su-cyan); }
+
+/* ---- ratio: reference is ≈28% blue + 13% cyan + 27% white ----
+   Our plate is nearly all white. Fill the hero with the sky photo plate. */
+html[data-theme="summer"] .hero-inner::before {
+  background-color: #cfeefa;
+  background-image:
+    linear-gradient(180deg, #9fdcf2 0%, #d9f2fb 34%, #ffffff 58%, #ffffff 100%),
+    url("assets/dots.svg");
+  background-size: auto, 340px 340px;
+  background-position: 0 0, 100% 100%;
+  background-repeat: no-repeat, repeat;
+  border: 2px solid var(--su-cyan);
+  box-shadow:
+    10px 10px 0 var(--su-lime),
+    inset 0 0 0 1px rgba(34, 181, 166, .2);
+}
+
+/* type sits on a white well so it stays readable over the sky field */
+html[data-theme="summer"] .hero-inner .hero-logo,
+html[data-theme="summer"] .hero-inner .tagline,
+html[data-theme="summer"] .hero-inner .meta-row,
+html[data-theme="summer"] .hero-inner .cta-row,
+html[data-theme="summer"] .hero-inner .progress-block,
+html[data-theme="summer"] .hero-inner .activity-strip { position: relative; z-index: 2; }
+
+html[data-theme="summer"] .hero-inner .hero-logo {
+  display: inline-block;
+  padding: 6px 18px 10px 12px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 5px 5px 0 rgba(34, 181, 166, .22);
+}
+
+html[data-theme="summer"] .hero-inner .tagline {
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, .82);
+}
+
+html[data-theme="summer"] .hero-inner .meta-row {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, .82);
+}
+
+/* progress and activity float on white cards */
+html[data-theme="summer"] .hero-inner .progress-block {
+  padding: 8px 10px 6px;
+  background: rgba(255, 255, 255, .9);
+  border-top: 0;
+  border-left: 3px solid var(--su-cyan);
+}
+
+/* the cyan vertical side title now sits on the sky */
+html[data-theme="summer"] .hero-logo::after {
+  right: -40px;
+  bottom: -8px;
+  background: transparent;
+  color: #ffffff;
+  text-shadow: 0 1px 0 rgba(23, 52, 90, .3);
+  opacity: .95;
+}
+
+/* the white title well must stay on its own line, not flow after the kicker */
+html[data-theme="summer"] .hero-inner .hero-logo {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 10px;
+}
+
+/* the white wells read as loose boxes; make them one continuous column */
+html[data-theme="summer"] .hero-inner .hero-logo,
+html[data-theme="summer"] .hero-inner .tagline,
+html[data-theme="summer"] .hero-inner .meta-row {
+  background: transparent;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+html[data-theme="summer"] .hero-inner .hero-logo {
+  padding: 0;
+  margin-top: 6px;
+  color: var(--su-sky-deep);
+  text-shadow: 3px 3px 0 rgba(255, 255, 255, .85), 0 1px 0 rgba(26, 155, 215, .3);
+}
+html[data-theme="summer"] .hero-inner .tagline { color: var(--su-sky-deep); }
+html[data-theme="summer"] .hero-inner .meta-row { color: var(--su-sky-deep); }
+
+/* keep the sky plate light at the top so the dark title stays readable */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    linear-gradient(180deg, #e8f7fd 0%, #f7fcfd 26%, #ffffff 46%, #ffffff 100%),
+    url("assets/dots.svg");
+}
+
+/* ---- reference is ≈28% blue + 13% cyan + 27% white:
+   the sky plate needs an actual blue photo area, not near-white ---- */
+html[data-theme="summer"] .hero-inner::before {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(180deg, #74cbee 0%, #a5def4 22%, #dff4fc 40%, #ffffff 56%, #ffffff 100%),
+    url("assets/dots.svg");
+  background-size: 100% 56%, 320px 320px;
+  background-position: 0 0, 100% 100%;
+  background-repeat: no-repeat, repeat;
+}
+
+/* keep the type block on the white half */
+html[data-theme="summer"] .hero-inner .kicker { margin-top: 4px; }
+html[data-theme="summer"] .hero-inner .hero-logo {
+  margin-top: clamp(18px, 3vh, 30px);
+  color: var(--su-sky-deep);
+  text-shadow: 2px 2px 0 rgba(255, 255, 255, .95), 0 0 18px rgba(255, 255, 255, .8);
+}
+
+/* ---- reference: sky photo fills the frame; the white is only the caption well ----
+   Measured: blue 28%, white 27%, cyan 13%. */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    linear-gradient(180deg, #5fc1e8 0%, #8fd4f2 14%, #c6e9f8 30%, #eaf7fd 44%, #ffffff 60%, #ffffff 100%),
+    url("assets/dots.svg");
+  background-size: 100% 60%, 300px 300px;
+  background-position: 0 0, 100% 100%;
+}
+html[data-theme="summer"] .hero-inner::after { background: #22b5a6; }
+
+/* ---- reference: the sky photo occupies the upper 2/3; white is a caption well.
+   Our plate is 69% white — pull the sky down and keep only the type area white. ---- */
+html[data-theme="summer"] .hero-inner::before {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(180deg,
+      #4db8e4 0%, #6cc8ea 10%, #9ad8f2 22%, #c4e8f7 34%,
+      #e2f2fa 44%, #f6fbfe 52%, #ffffff 58%, #ffffff 100%),
+    url("assets/dots.svg");
+  background-size: 100% 100%, 300px 300px;
+  background-position: 0 0, 100% 100%;
+  background-repeat: no-repeat, repeat;
+}
+
+/* the type block sits in the white lower third, so it stays legible */
+html[data-theme="summer"] .hero-inner .kicker {
+  margin-top: clamp(22px, 17vh, 132px);
+}
+html[data-theme="summer"] .hero-inner .hero-logo { margin-top: 4px; }
+
+/* cyan frame + tape carry the cyan share */
+html[data-theme="summer"] .hero-inner::before { border: 3px solid #22b5a6; }
+html[data-theme="summer"] .hero-inner::after { background: #22b5a6; height: 26px; width: 190px; }
+html[data-theme="summer"] .hero-inner .activity-strip { border-left: 4px solid #22b5a6; }
+html[data-theme="summer"] .hero-inner .progress-block { border-left-color: #22b5a6; }
+
+/* ---- revert the pushed-down layout: it clipped the activity row ---- */
+html[data-theme="summer"] .hero-inner .kicker { margin-top: 0; }
+html[data-theme="summer"] .hero-inner .hero-logo { margin-top: 6px; }
+
+/* instead, the sky band lives at the top of the plate and fades by 52% */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    linear-gradient(180deg,
+      #4db8e4 0%, #6cc8ea 9%, #9ad8f2 18%, #c4e8f7 27%,
+      #e6f5fb 36%, #f8fcfe 46%, #ffffff 54%, #ffffff 100%),
+    url("assets/dots.svg");
+  background-size: 100% 100%, 300px 300px;
+}
+
+/* ---- measured: white is 55%, reference 27%. Extend the sky and shrink the white. ---- */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    linear-gradient(180deg,
+      #45b2e2 0%, #5cc0e9 12%, #7fcfef 24%, #a8ddf5 36%,
+      #c9ebf8 48%, #e4f6fc 58%, #f4fbfe 66%, #ffffff 74%, #ffffff 100%),
+    url("assets/dots.svg");
+  background-size: 100% 100%, 300px 300px;
+}
+/* type block moves into the white bottom quarter */
+html[data-theme="summer"] .hero-inner .kicker { margin-top: clamp(120px, 22vh, 190px); }
+
+/* measured: cyan 14% (ref 13%) is fine, but the sky needs more saturation depth.
+   Deepen the upper band and keep the gradient photographic. */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    linear-gradient(180deg,
+      #35a7dc 0%, #4bb7e4 10%, #6ec8ec 20%, #8fd5f2 30%,
+      #b7e4f7 40%, #d5f0fa 50%, #ecf9fd 60%, #ffffff 72%, #ffffff 100%),
+    url("assets/dots.svg");
+}
+/* a horizon line: the reference photo has a beach edge */
+html[data-theme="summer"] .hero-inner .hero-inner-horizon { display: none; }
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    linear-gradient(180deg,
+      #35a7dc 0%, #4bb7e4 10%, #6ec8ec 20%, #8fd5f2 30%,
+      #b7e4f7 40%, #d5f0fa 50%, #ecf9fd 60%, #ffffff 72%, #ffffff 100%),
+    url("assets/dots.svg");
+}
+
+/* ---- keep content inside the frame: never push the kicker down ---- */
+html[data-theme="summer"] .hero-inner .kicker { margin-top: 0 !important; }
+html[data-theme="summer"] .hero-inner .hero-logo { margin-top: 4px; }
+
+/* instead compress the vertical rhythm slightly so the sky gets more room */
+html[data-theme="summer"] .hero-inner .tagline { margin-top: 12px; }
+html[data-theme="summer"] .hero-inner .meta-row { margin-top: 10px; }
+html[data-theme="summer"] .hero-inner .cta-row { margin-top: 16px; }
+html[data-theme="summer"] .hero-inner .progress-block { margin-top: 14px; }
+html[data-theme="summer"] .hero-inner .activity-strip { margin-top: 12px; }
+
+/* ---- the white should only be a caption well, not the whole lower half ----
+   Type blocks get their own tight white plates; the plate behind stays sky. */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    linear-gradient(180deg,
+      #34a6dc 0%, #4ab6e4 12%, #66c3ea 24%, #86d1f0 36%,
+      #a7dff4 48%, #c6ebf8 60%, #dfF4fb 72%, #f2fbFe 84%, #ffffff 100%),
+    url("assets/dots.svg");
+  background-size: 100% 100%, 300px 300px;
+}
+
+html[data-theme="summer"] .hero-inner .tagline,
+html[data-theme="summer"] .hero-inner .meta-row,
+html[data-theme="summer"] .hero-inner .hero-logo {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 4px 4px 0 rgba(34, 181, 166, .2);
+}
+html[data-theme="summer"] .hero-inner .hero-logo { padding: 6px 16px 10px 10px; }
+html[data-theme="summer"] .hero-inner .tagline { padding: 4px 10px; }
+html[data-theme="summer"] .hero-inner .meta-row { padding: 4px 10px; }
+
+/* ---- layout: the caption plates must not reflow side by side ----
+   The tagline/meta plates became inline-blocks, so they lined up in a row.
+   Force each onto its own line and restore the title's own row. */
+html[data-theme="summer"] .hero-inner .hero-logo,
+html[data-theme="summer"] .hero-inner .tagline,
+html[data-theme="summer"] .hero-inner .meta-row {
+  display: block;
+  width: fit-content;
+}
+
+/* the kicker's own plate overlaps the title plate; drop the kicker plate */
+html[data-theme="summer"] .hero-inner .kicker {
+  background: var(--su-lime);
+  border: 0;
+}
+html[data-theme="summer"] .hero-inner .hero-logo {
+  margin-top: 8px;
+  padding: 8px 18px 12px 12px;
+}
+html[data-theme="summer"] .hero-inner .tagline { margin-top: 12px; }
+html[data-theme="summer"] .hero-inner .meta-row { margin-top: 8px; }
+
+/* the lime tape at the top-left was left over from the old layout */
+html[data-theme="summer"] .hero-inner > .kicker::before { content: none; }
+
+/* ============================================================
+   夏日海滩实景 · v1.3.0
+   ------------------------------------------------------------
+   参考图（新主题4.png）是一张黄昏海滩实景，从上到下的色带是：
+     柠檬色标带 → 蓝天空 → 青海面 → 白浪 → 橙黄落日 → 深色礁石/湿沙。
+   按面积量出来的问题是：我们的 white 占 21.8%（参考 5.8%），
+   paper 32.3%（26.8%），blue 34.2%（28.4%），cyan / yellow / orange /
+   黑与灰全部缺失。差距的来源只有一个：那 65.6% 的面板原来铺的是
+   「冷白渐变」——冷白（l>0.94、chroma<0.06、hue≥70）会被判成 white，
+   所以整块面板的下半段都在往 white 桶里灌水。
+
+   下面按参考的色带顺序重铺：
+     1) .atmosphere 负责「面板之外」的整屏底色 —— 顶部柠檬标带 + 天空条带
+        + 英雄区下方 12% 的退潮深色地面。.scene z0 < .atmosphere z1 <
+        .stage z4，所以这里是唯一既盖得住 .scene、又不会盖住 .stage 的层。
+        地面暗带放在这里而不是面板里，是因为面板下半段整个被
+        .activity-strip（8.3%）这块白卡压住，塞在里面根本露不出来。
+     2) .hero-inner::before 负责面板本身：天空（蓝）→ 青海 → 落日（黄/橙，
+        落在右侧空档，左半边是文字区）→ 右下角礁石剪影。
+   文字一律仍压在自己的白卡片上（hero-logo/tagline/meta/progress/activity），
+   所以图形不接触正文 —— 铁律 1。
+   ============================================================ */
+
+html[data-theme="summer"] body { background-color: #e6f3ef; }
+html[data-theme="summer"] .scene { background: #e6f3ef; }
+
+html[data-theme="summer"] .atmosphere {
+  background-color: transparent;
+  background-image:
+    /* ① 顶部柠檬标带：左侧起笔、向右淡出，避开右半屏的封面图 */
+    linear-gradient(90deg, rgba(242, 213, 60, .96) 0%, rgba(242, 213, 60, .84) 28%,
+      rgba(242, 213, 60, .34) 56%, rgba(242, 213, 60, 0) 78%),
+    /* ② 标带下沿压一道青，和天空分界 */
+    linear-gradient(90deg, rgba(74, 178, 214, .95) 0%, rgba(74, 178, 214, .62) 38%,
+      rgba(74, 178, 214, 0) 72%),
+    /* ③ 天空条带：上蓝下青（铺在面板上方那 18%） */
+    linear-gradient(180deg, rgba(62, 172, 212, .78) 0%, rgba(112, 202, 230, .54) 36%,
+      rgba(170, 224, 238, .3) 74%, rgba(196, 234, 240, .16) 100%),
+    /* ④ 英雄区下方：退潮湿沙 → 礁石，越往下越深 */
+    linear-gradient(180deg, rgba(200, 216, 210, 0) 0%, rgba(140, 150, 146, .38) 16%,
+      rgba(74, 80, 82, .6) 44%, rgba(34, 38, 40, .76) 74%, rgba(20, 24, 26, .84) 100%);
+  background-size: 66% 6.4%, 70% 2.8%, 100% 11.4%, 100% 12%;
+  background-position: 0 8.6%, 0 15.4%, 0 8.6%, 0 65.6%;
+  background-repeat: no-repeat;
+}
+
+/* 面板：天空 → 青海 → 落日 → 礁石。
+   面板高 519px（占面板 65.6%），文字卡片集中在左半边与上半段，
+   右侧 x515-925 整条是空档，落日与礁石放这里。 */
+html[data-theme="summer"] .hero-inner::before {
+  background-color: #eaf6f2;
+  background-image:
+    /* 落日：右上一枚柠檬芯 + 琥珀边 */
+    radial-gradient(circle at 86% 27%, #f7e07a 0 4.4%, #f2d53c 4.4% 7.2%,
+      #eda93f 7.2% 10.2%, rgba(232, 137, 74, 0) 11%),
+    /* 海：面板下半段由青转深 */
+    linear-gradient(180deg, rgba(168, 226, 238, 0) 0 45%,
+      rgba(168, 226, 238, .82) 51%, rgba(126, 207, 216, .9) 61%,
+      rgba(74, 168, 196, .92) 71%, rgba(42, 111, 140, .9) 80%,
+      rgba(30, 78, 104, .82) 88%, rgba(24, 30, 34, .8) 100%),
+    /* 右下角礁石剪影 */
+    radial-gradient(ellipse 44% 32% at 85% 104%, #16181a 0 50%,
+      rgba(22, 24, 26, 0) 100%),
+    /* 天空 */
+    linear-gradient(180deg, #2e9fd4 0%, #46b2df 12%, #64c3e6 24%, #86d1ea 34%,
+      #a9dfef 46%, #c4eaf0 58%, #d9f1f1 70%, #e9f6ee 84%, #f7f7f2 100%),
+    url("assets/dots.svg");
+  background-size: auto, 100% 100%, auto, 100% 100%, 300px 300px;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+}
+
+/* ============================================================
+   夏日海滩实景 · v1.3.1
+   ------------------------------------------------------------
+   v1.3.0 的两个错：
+   1) background-position 的百分比是「图层 Y% 对齐容器 Y%」，不是「距顶 Y%」。
+      height 12% + position 65.6% 实际落在 57.7%-69.7%，整段被 hero 面板盖住，
+      所以地面暗带一点没露出来。改为 t/(100-h) 换算。
+   2) 面板里的文字卡片原来用 rgba(255,255,255,.9)，压在海蓝上会混成
+      「冷白」（l>.94、chroma<.06、hue≥70）——这正是 white 超标的来源。
+      参考图的说明卡是暖纸色，所以换成暖纸 rgba(252,248,236,.94)：
+      混色后 hue<70，按分类器的纸色规则落进 paper 桶，white 降、paper 升。
+   ============================================================ */
+
+html[data-theme="summer"] .atmosphere {
+  background-image:
+    /* ① 顶部柠檬标带（左侧起笔，向右淡出） */
+    linear-gradient(90deg, rgba(242, 213, 60, .97) 0%, rgba(242, 213, 60, .92) 40%,
+      rgba(242, 213, 60, .5) 70%, rgba(242, 213, 60, 0) 93%),
+    /* ② 标带下沿压一道青 */
+    linear-gradient(90deg, rgba(74, 178, 214, .95) 0%, rgba(74, 178, 214, .62) 38%,
+      rgba(74, 178, 214, 0) 72%),
+    /* ③ 天空条带：上蓝下青（面板上方 11.4%） */
+    linear-gradient(180deg, rgba(58, 168, 210, .82) 0%, rgba(108, 200, 228, .56) 36%,
+      rgba(168, 222, 238, .3) 74%, rgba(196, 234, 240, .16) 100%),
+    /* ④ 英雄区下方的退潮地面：暗礁石，左起向右淡出，避开封面图 */
+    linear-gradient(90deg, rgba(18, 22, 24, .95) 0%, rgba(22, 26, 28, .9) 52%,
+      rgba(22, 26, 28, .45) 74%, rgba(22, 26, 28, 0) 92%);
+  /* Y% = 目标顶边 / (100% - 图层高) */
+  background-size: 66% 7%, 70% 2.8%, 100% 11.4%, 100% 10%;
+  background-position: 0 9.3%, 0 15.9%, 0 9.7%, 0 71.7%;
+}
+
+/* 面板：把冷白卡片改成暖纸，white→paper */
+html[data-theme="summer"] .hero-inner .hero-logo,
+html[data-theme="summer"] .hero-inner .tagline,
+html[data-theme="summer"] .hero-inner .meta-row,
+html[data-theme="summer"] .hero-inner .progress-block {
+  background: rgba(252, 248, 236, .94);
+}
+
+/* 天空改蓝为主、青只留海面那一条；尾段收在暖纸上而不是冷白 */
+html[data-theme="summer"] .hero-inner::before {
+  background-image:
+    radial-gradient(circle at 86% 27%, #f7e07a 0 4.4%, #f2d53c 4.4% 7.2%,
+      #eda93f 7.2% 10.2%, rgba(232, 137, 74, 0) 11%),
+    linear-gradient(180deg, rgba(160, 222, 236, 0) 0 50%,
+      rgba(160, 222, 236, .78) 56%, rgba(118, 204, 216, .88) 66%,
+      rgba(66, 160, 192, .9) 76%, rgba(38, 104, 134, .9) 84%,
+      rgba(24, 60, 84, .85) 92%, rgba(20, 26, 30, .85) 100%),
+    radial-gradient(ellipse 44% 32% at 85% 104%, #16181a 0 50%,
+      rgba(22, 24, 26, 0) 100%),
+    linear-gradient(180deg, #2e9fd4 0%, #46b2df 12%, #64c3e6 24%, #86d1ea 34%,
+      #9dd6ea 44%, #c6e8f4 56%, #d8ebf6 68%, #e8f0ea 80%, #f0f0e4 92%, #f0f0e4 100%),
+    url("assets/dots.svg");
+}
+
+/* ============================================================
+   旧渐变地貌（v1.3.0 / v1.3.1 / v1.4.0）已整段删除 —— 由下方
+   v2「夏日特辑 杂志跨页」（手绘 beach.svg + 纸面版式）取代。
+   删除原因：v1.4.0 的 .hero-logo 白纱底板会与本段「文字不铺底」的
+   意图冲突（其余三块的 background:none 盖不住它）。
+   当时的量化结论（参考图结构 / 实机几何 / 框架白纱的坑）保留在
+   docs/HANDOFF-THEMES.md §0，需要时再取。
+   ============================================================ */
+
+/* ============================================================
+   SUMMER · v2「夏日特辑」杂志跨页
+   ------------------------------------------------------------
+   设计依据：新主题4.png 的真实结构不是「海滩照片底 + 文字压在照片上」，
+   而是一张杂志跨页：
+     · 纸白页面上有青色细线网格与裁切标记；
+     · 右侧一整块照片被酸柠色粗框圈住；
+     · 左侧是黑色衬线大字 + 蓝色手写注记 + 黄色高亮条；
+     · 正文是黑框白底的横排小字块。
+   所以这里把「地貌」从被洗淡的 CSS 径向渐变，改成一张手绘的扁平
+   矢量插画（assets/beach.svg，硬边、无模糊），独占主视觉右侧一列；
+   文字列用 padding-right 让开插画，**图形与文字永不重叠**（铁律 1）。
+   旧的两段渐变地貌（v1.3.x / v1.4.0）整段作废，不再参与渲染。
+   ============================================================ */
+
+html[data-theme="summer"] {
+  --su-ink: #101820;
+  --su-paper: #fdfbf6;
+  --su-lime: #e2f53c;
+  --su-sky: #1f93c8;
+  --su-art: clamp(220px, 27vw, 360px);
+
+  /* theme-kit 契约：主题只提供调色板与插画，版式由框架统一 */
+  --kit-paper: var(--su-paper);
+  --kit-header-bg: var(--su-paper);
+  --kit-panel: #ffffff;
+  --kit-ink: var(--su-ink);
+  --kit-ink-2: #3d4d58;
+  --kit-line: rgba(16, 24, 32, .3);
+  --kit-accent: var(--su-lime);
+  --kit-accent-2: #eefb72;
+  --kit-on-accent: var(--su-ink);
+  --kit-r: 2px;
+  --kit-art: var(--su-art);
+  --kit-art-url: url("assets/beach.svg?v=180");
+  --kit-art-rule: 2px solid var(--su-ink);
+  --kit-shadow: var(--su-ink);
+}
+
+/* ---- 页面：纸白 + 青网格；清掉旧地貌与框架白纱 ---- */
+html[data-theme="summer"] body { background-color: #efece3; }
+
+html[data-theme="summer"] .grain { opacity: 0; }
+
+html[data-theme="summer"] .atmosphere,
+html[data-theme="summer"] .atmosphere::before,
+html[data-theme="summer"] .atmosphere::after { background: none !important; }
+
+html[data-theme="summer"] body::before {
+  background-image:
+    linear-gradient(90deg, rgba(16, 24, 32, .045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(16, 24, 32, .045) 1px, transparent 1px);
+  background-size: 88px 88px;
+  background-position: 0 0;
+  opacity: 1;
+}
+
+html[data-theme="summer"] body::after { height: 4px; background: var(--su-lime); }
+
+/* ---- 主视觉：纸面版 + 右侧插画窗 ---- */
+html[data-theme="summer"] .hero-inner { padding-right: calc(var(--su-art) + 26px); }
+
+html[data-theme="summer"] .hero-inner::before {
+  background-color: var(--su-paper);
+  background-image:
+    linear-gradient(90deg, rgba(16, 24, 32, .05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(16, 24, 32, .05) 1px, transparent 1px);
+  background-size: 76px 76px;
+  border: 1px solid var(--su-ink);
+  border-radius: 6px;
+  box-shadow: 8px 8px 0 0 var(--su-lime), 9px 9px 0 1px var(--su-ink);
+}
+
+html[data-theme="summer"] .hero-inner::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -24px;
+  right: -28px;
+  bottom: -22px;
+  left: auto;
+  width: var(--su-art);
+  height: auto;
+  opacity: 1;
+  transform: none;
+  background: url("assets/beach.svg?v=180") center / cover no-repeat;
+  border-left: 2px solid var(--su-ink);
+  border-radius: 0 6px 6px 0;
+  pointer-events: none;
+}
+
+html[data-theme="summer"] .hero-inner > * { position: relative; z-index: 2; }
+
+/* 旧签名层给标题/说明/眉标都加过「半透明白底板 + 青色硬影」，
+   在纸面版上全是多余的重影；新版统一撤掉，只留版式本身。 */
+html[data-theme="summer"] .hero-inner .hero-logo,
+html[data-theme="summer"] .hero-inner .tagline,
+html[data-theme="summer"] .hero-inner .meta-row,
+html[data-theme="summer"] .hero-inner .kicker {
+  background: none;
+  box-shadow: none;
+}
+
+html[data-theme="summer"] .hero-inner .hero-logo { padding: 0; }
+html[data-theme="summer"] .hero-inner .meta-row { padding: 0; }
+html[data-theme="summer"] .hero-inner .kicker { padding: 0; }
+
+/* ---- 眉标：蓝色小字，像杂志页眉 ---- */
+html[data-theme="summer"] .hero-inner .kicker {
+  padding: 0;
+  border: 0;
+  border-bottom: 0;
+  background: none;
+  color: var(--su-sky);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .2em;
+}
+
+/* 旧签名层的「酸柠胶带 / 竖排书名 / 标题白块」在新版里全部退场 */
+html[data-theme="summer"] .hero-logo::before,
+html[data-theme="summer"] .hero-logo::after { content: none; display: none; }
+
+html[data-theme="summer"] .kicker-dim { color: rgba(16, 24, 32, .5); letter-spacing: .08em; }
+html[data-theme="summer"] .kicker::after { content: none; }
+html[data-theme="summer"] .kicker::before { content: none; }
+html[data-theme="summer"] .kicker-sep { width: 12px; height: 1px; background: var(--su-ink); opacity: .35; }
+html[data-theme="summer"] .kicker-dot { background: var(--su-lime); box-shadow: 0 0 0 2px var(--su-ink); }
+
+/* ---- 标题：黑色衬线，杂志封面字 ---- */
+html[data-theme="summer"] :is(.hero-logo, .detail-logo, .appearance-logo, .choice-logo, .editor-logo) {
+  --logo-font: var(--font-serif);
+  --logo-weight: 600;
+  --logo-style: normal;
+  --logo-track: .005em;
+  --logo-line: .92;
+  --logo-color: var(--su-ink);
+  --logo-bg: none;
+  --logo-fill: currentColor;
+  --logo-shadow: none;
+  --logo-filter: none;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: .005em;
+  color: var(--su-ink);
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+}
+
+/* ---- 说明：黑色正文 + 酸柠左标尺 ---- */
+html[data-theme="summer"] .hero-inner .tagline {
+  max-width: min(100%, 27em);
+  margin-left: 0;
+  font-family: var(--font-ui);
+  font-style: normal;
+  padding: 0 0 0 11px;
+  border-left: 4px solid var(--su-lime);
+  background: none;
+  color: #24313a !important;
+  font-size: 12.5px;
+  line-height: 1.75;
+}
+
+html[data-theme="summer"] .hero-inner .meta-row {
+  background: none;
+  color: #4a5a66;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+html[data-theme="summer"] .meta-dot { width: 1px; height: 10px; background: rgba(16, 24, 32, .35); }
+
+html[data-theme="summer"] .age-badge,
+html[data-theme="summer"] .update-badge {
+  height: 18px;
+  border: 1px solid var(--su-ink);
+  border-radius: 0;
+  background: none;
+  color: var(--su-ink);
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+/* ---- 按钮：酸柠高亮条 + 墨线硬偏移 ---- */
+html[data-theme="summer"] .btn {
+  border-radius: 2px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+html[data-theme="summer"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  --cta-bg: var(--su-lime);
+  --cta-bg-hover: #eefb72;
+  --cta-fg: var(--su-ink);
+  --cta-border: var(--su-ink);
+  --cta-a: var(--su-lime);
+  --cta-b: var(--su-lime);
+  --cta-radius: 2px;
+  --cta-shadow: none;
+  --cta-shadow-hover: none;
+  background: var(--su-lime);
+  background-image: none;
+  color: var(--su-ink);
+  border: 1px solid var(--su-ink);
+  box-shadow: 4px 4px 0 0 var(--su-ink);
+  border-radius: 2px;
+}
+
+html[data-theme="summer"] .btn.primary:hover {
+  background: #eefb72;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--su-ink);
+}
+
+html[data-theme="summer"] .btn.ghost {
+  background: #fff;
+  color: var(--su-ink);
+  border: 1px solid var(--su-ink);
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+html[data-theme="summer"] .btn.ghost:hover { background: var(--su-lime); }
+
+/* ---- 进度：墨线分隔 + 衬线数字 ---- */
+html[data-theme="summer"] .hero-inner .progress-block {
+  width: min(420px, 100%);
+  padding: 9px 0 0;
+  border-top: 2px solid var(--su-ink);
+  background: none;
+}
+
+html[data-theme="summer"] .progress-head {
+  color: #5c6b76;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+html[data-theme="summer"] .progress-pct {
+  color: var(--su-ink);
+  font-family: var(--font-serif);
+  font-size: 25px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+html[data-theme="summer"] .progress-track {
+  height: 4px;
+  border: 0;
+  border-radius: 0;
+  background: #cfdad7;
+}
+
+html[data-theme="summer"] .progress-track i { border-radius: 0; background: var(--su-ink); }
+html[data-theme="summer"] .progress-sub { color: #5c6b76; font-size: 9.5px; }
+
+/* ---- 活动条：黑框白卡 ---- */
+html[data-theme="summer"] .activity-strip {
+  border: 1px solid var(--su-ink);
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: none;
+}
+
+html[data-theme="summer"] .activity-strip:hover {
+  background: #fff;
+  border-color: var(--su-ink);
+  box-shadow: 5px 5px 0 0 var(--su-lime);
+  transform: translate(-1px, -1px);
+}
+
+html[data-theme="summer"] .activity-icon {
+  border: 1px solid var(--su-ink);
+  border-radius: 0;
+  background: var(--su-lime);
+  color: var(--su-ink);
+}
+
+html[data-theme="summer"] .activity-kicker { color: var(--su-sky); letter-spacing: .16em; }
+html[data-theme="summer"] .activity-title { color: var(--su-ink); }
+html[data-theme="summer"] .activity-desc { color: #5c6b76; }
+html[data-theme="summer"] .activity-pct { color: var(--su-ink); font-family: var(--font-serif); font-size: 17px; }
+html[data-theme="summer"] .activity-meta { color: #5c6b76; }
+html[data-theme="summer"] .activity-track { height: 2px; border: 0; border-radius: 0; background: #cfdad7; }
+html[data-theme="summer"] .activity-track i { border-radius: 0; background: var(--su-ink); }
+html[data-theme="summer"] .activity-arrow { color: var(--su-sky); }
+
+/* ---- 顶栏：单行导航，墨块当前项 ---- */
+html[data-theme="summer"] .topbar {
+  border-bottom: 1px solid var(--su-ink);
+  background: rgba(253, 251, 246, .97);
+}
+
+html[data-theme="summer"] .brand::before {
+  width: 26px;
+  height: 26px;
+  border-radius: 0;
+  background: var(--su-ink);
+  color: var(--su-lime);
+  font-size: 17px;
+}
+
+html[data-theme="summer"] .brand-word { color: var(--su-ink); font-size: 19px; letter-spacing: .22em; }
+
+html[data-theme="summer"] .nav-btn {
+  padding: 7px 14px;
+  border-radius: 0;
+  color: #3d4d58;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+html[data-theme="summer"] .nav-btn::before { content: none; }
+html[data-theme="summer"] .nav-btn:hover { color: var(--su-ink); background: var(--su-lime); border-color: transparent; }
+html[data-theme="summer"] .nav-btn.is-active { color: #fff; font-weight: 800; }
+html[data-theme="summer"] .nav-glide { border-radius: 0; background: var(--su-ink); }
+
+html[data-theme="summer"] .clock {
+  border: 1px solid var(--su-ink);
+  border-radius: 0;
+  background: #fff;
+}
+
+html[data-theme="summer"] .clock-time { color: var(--su-ink); font-family: var(--font-serif); font-size: 20px; }
+html[data-theme="summer"] .clock-date { color: #5c6b76; }
+html[data-theme="summer"] .icon-btn { border-radius: 0; color: #24313a; }
+html[data-theme="summer"] .icon-btn:hover { background: var(--su-ink); color: var(--su-lime); border-color: var(--su-ink); }
+html[data-theme="summer"] .avatar { border-radius: 0; border-color: var(--su-ink); background: #fff; color: var(--su-ink); }
+
+/* ---- dock：白卡 + 墨线，当前卡酸柠硬影 ---- */
+html[data-theme="summer"] .dock { border-top: 1px solid var(--su-ink); background: #f5f2e9; }
+html[data-theme="summer"] .dock-title { color: var(--su-ink); }
+html[data-theme="summer"] .dock-title::before { background: var(--su-lime); box-shadow: 0 0 0 1px var(--su-ink); }
+
+html[data-theme="summer"] .tile-art { border: 1px solid rgba(16, 24, 32, .5); border-radius: 2px; }
+html[data-theme="summer"] .tile-art::after { display: none; }
+html[data-theme="summer"] .tile-art::before {
+  border: 0;
+  border-radius: 0;
+  background: var(--su-ink);
+  color: #fff;
+  font-size: 8.5px;
+}
+
+html[data-theme="summer"] .tile.is-active .tile-art {
+  border: 2px solid var(--su-ink);
+  box-shadow: 6px 6px 0 0 var(--su-lime);
+  transform: translateY(-4px);
+}
+
+html[data-theme="summer"] .tile.is-active .tile-art::before { background: var(--su-lime); color: var(--su-ink); }
+html[data-theme="summer"] .tile.is-active .tile-name { color: var(--su-ink); font-weight: 800; }
+
+/* ---- 窄窗：收起插画列，文字恢复整幅（自适应，铁律 3） ---- */
+@media (max-width: 1180px) {
+  html[data-theme="summer"] { --su-art: 240px; }
+}
+
+@media (max-width: 1024px) {
+  html[data-theme="summer"] { --su-art: 0px; }
+  html[data-theme="summer"] .hero-inner { padding-right: 0; }
+  html[data-theme="summer"] .hero-inner::after { display: none; }
+}
+
+/* v2.1：插画改成「贴上去的冲印照片」——四周留白边 + 细墨线，
+   不再是齐边的第二栏。这是杂志拼贴的关键手感。 */
+html[data-theme="summer"] .hero-inner { padding-right: calc(var(--su-art) + 46px) !important; }
+
+html[data-theme="summer"] .hero-inner::after {
+  top: 12px !important;
+  right: -6px !important;
+  bottom: 12px !important;
+  width: var(--su-art) !important;
+  border: 9px solid #fffdf6 !important;
+  outline: 1px solid #101820;
+  border-radius: 0 !important;
+  box-shadow: 5px 5px 0 0 rgba(16, 24, 32, .16);
+}
+
+@media (max-width: 1024px) {
+  html[data-theme="summer"] .hero-inner { padding: 0 !important; }
+  html[data-theme="summer"] .hero-inner::after { display: none !important; }
+}
+
+/* 启动动画：快门下落（像相机帘幕从上压下来） */
+html[data-theme="summer"] .launch.is-open .launch-art {
+  animation: suShutter 620ms cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes suShutter {
+  from { clip-path: inset(0 0 100% 0); transform: scale(1.04); }
+  to { clip-path: inset(0); transform: scale(1); }
+}
+
+/* ============================================================
+   SUMMER · v3「白纸线稿 + 黑黄字块」
+   ------------------------------------------------------------
+   按用户给的参考重做：
+     · 页面是纯白纸 + 青色制图线（线稿只在页边与照片上，不进文字）；
+     · 正文 = 黑块 + 白字；副文 = 黄块 + 黑字；
+     · 标题是「排序式」大字：强制两行、紧行距、右侧一根蓝色竖栏；
+     · 主按钮黑块白字，次按钮黄块黑字——按钮必须看得见。
+   ============================================================ */
+
+html[data-theme="summer"] {
+  --su-ink: #101820;
+  --su-lime: #e8f21f;
+  --su-sky: #1f93c8;
+  --su-art: clamp(220px, 25vw, 330px);
+  --kit-paper: #ffffff;
+  --kit-header-bg: #ffffff;
+  --kit-panel: #ffffff;
+  --kit-ink: #101820;
+  --kit-ink-2: #4a5a66;
+  --kit-line: #101820;
+  --kit-accent: #101820;
+  --kit-accent-2: #e8f21f;
+  --kit-on-accent: #ffffff;
+  --kit-art: var(--su-art);
+  --kit-art-url: url("assets/beach.svg?v=200");
+  --kit-art-rule: 1px solid #101820;
+}
+
+html[data-theme="summer"] body { background-color: #ffffff; }
+
+/* 底图：纯白纸，不要游戏封面（参考图就是白底 + 线稿） */
+html[data-theme="summer"] .scene { background: #ffffff !important; }
+html[data-theme="summer"] .scene > img { display: none !important; }
+
+/* 线稿画在 scene-stack 的顶层：白色底图之上、内容之下 */
+html[data-theme="summer"] .scene-stack::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: url("assets/lines.svg?v=2") center / cover no-repeat;
+  opacity: .9;
+  pointer-events: none;
+}
+html[data-theme="summer"] .atmosphere,
+html[data-theme="summer"] .atmosphere::before,
+html[data-theme="summer"] .atmosphere::after { background: none !important; }
+
+/* 页面线稿：白纸上只有青色细线 */
+html[data-theme="summer"] body::before {
+  background-image: url("assets/lines.svg?v=1") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="summer"] body::after { height: 3px; background: #1f93c8; }
+
+/* 面板：白纸 + 墨线，取消酸柠硬影 */
+html[data-theme="summer"] .hero-inner::before {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #101820 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* 照片窗：内缩、墨线、左侧一条黄规 */
+html[data-theme="summer"] .hero-inner { padding-right: calc(var(--su-art) + 26px) !important; }
+
+html[data-theme="summer"] .hero-inner::after {
+  top: 10px !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  width: var(--su-art) !important;
+  border: 1px solid #101820 !important;
+  border-left: 9px solid #e8f21f !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* 标题：两行排序，右侧蓝色竖栏 */
+html[data-theme="summer"] .hero-inner .hero-logo {
+  font-family: var(--font-serif) !important;
+  font-weight: 600 !important;
+  font-size: clamp(38px, 4.6vw, 64px) !important;
+  line-height: .84 !important;
+  letter-spacing: -.01em !important;
+  color: #101820 !important;
+  white-space: normal !important;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  padding: 0 16px 0 0 !important;
+  border-right: 10px solid #1f93c8;
+  text-shadow: none !important;
+}
+
+/* 眉标：蓝字；"继续" 用黑块白字 */
+html[data-theme="summer"] .hero-inner .kicker { color: #1f93c8 !important; font-size: 10px !important; letter-spacing: .16em !important; }
+html[data-theme="summer"] #kickerLabel { background: #101820; color: #fff; padding: 2px 7px 3px; }
+html[data-theme="summer"] .kicker-dim { color: #1f93c8 !important; }
+html[data-theme="summer"] .kicker-sep { width: 10px; height: 1px; background: #1f93c8 !important; opacity: .8; }
+html[data-theme="summer"] .kicker-dot { background: #e8f21f; box-shadow: 0 0 0 1px #101820; }
+
+/* 正文：黑块白字，按行断开 */
+html[data-theme="summer"] .hero-inner .tagline {
+  display: inline !important;
+  background: #101820 !important;
+  color: #ffffff !important;
+  padding: 3px 9px 4px;
+  font-family: var(--font-ui) !important;
+  font-style: normal !important;
+  font-size: 12px !important;
+  line-height: 2.05 !important;
+  max-width: 100% !important;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* 副文：黄块黑字 */
+html[data-theme="summer"] .hero-inner .meta-row {
+  margin-top: 10px;
+  gap: 6px;
+  color: #101820 !important;
+}
+html[data-theme="summer"] .hero-inner .meta-row > span {
+  background: #e8f21f;
+  color: #101820 !important;
+  padding: 2px 7px 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+html[data-theme="summer"] .hero-inner .meta-dot { width: 3px; height: 11px; background: #101820 !important; }
+html[data-theme="summer"] .hero-inner .age-badge { background: #e8f21f !important; border: 0 !important; color: #101820 !important; }
+html[data-theme="summer"] .hero-inner .update-badge { background: #101820 !important; border: 0 !important; color: #fff !important; }
+
+/* 按钮：黑块 / 黄块，取消所有阴影与圆角 */
+html[data-theme="summer"] .btn { border-radius: 0 !important; box-shadow: none !important; font-weight: 800; }
+html[data-theme="summer"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  background: #101820 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  border: 1px solid #101820 !important;
+}
+html[data-theme="summer"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system):hover {
+  background: #1f93c8 !important;
+  border-color: #101820 !important;
+  transform: none !important;
+}
+html[data-theme="summer"] .btn.ghost {
+  background: #e8f21f !important;
+  color: #101820 !important;
+  border: 1px solid #101820 !important;
+}
+html[data-theme="summer"] .btn.ghost:hover { background: #f2f96a !important; }
+
+/* 进度：白纸墨线 + 黑数字 */
+html[data-theme="summer"] .hero-inner .progress-block {
+  background: none !important;
+  border: 0 !important;
+  border-top: 1px solid #101820 !important;
+  padding: 8px 0 0 !important;
+}
+html[data-theme="summer"] .hero-inner .progress-head,
+html[data-theme="summer"] .hero-inner .progress-sub { color: #1f93c8 !important; font-size: 9px !important; }
+html[data-theme="summer"] .hero-inner .progress-pct { color: #101820 !important; font-family: var(--font-serif); font-size: 24px; }
+html[data-theme="summer"] .hero-inner .progress-track { height: 3px !important; border: 0 !important; background: #d8e2e4 !important; border-radius: 0 !important; }
+html[data-theme="summer"] .hero-inner .progress-track i { background: #101820 !important; border-radius: 0 !important; }
+
+/* 活动卡：白纸墨框 + 黄块图标 */
+html[data-theme="summer"] .activity-strip {
+  background: #ffffff !important;
+  border: 1px solid #101820 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+html[data-theme="summer"] .activity-strip:hover { box-shadow: 4px 4px 0 0 #e8f21f !important; }
+html[data-theme="summer"] .activity-icon { background: #e8f21f !important; border: 1px solid #101820 !important; color: #101820 !important; border-radius: 0 !important; }
+html[data-theme="summer"] .activity-kicker { color: #1f93c8 !important; }
+html[data-theme="summer"] .activity-title { color: #101820 !important; font-family: var(--font-serif) !important; }
+html[data-theme="summer"] .activity-desc,
+html[data-theme="summer"] .activity-meta { color: #4a5a66 !important; }
+html[data-theme="summer"] .activity-pct { color: #101820 !important; font-family: var(--font-serif) !important; }
+html[data-theme="summer"] .activity-track { height: 2px !important; border: 0 !important; background: #d8e2e4 !important; }
+html[data-theme="summer"] .activity-track i { background: #101820 !important; }
+
+/* 顶栏/窗口按钮：白底上必须是墨色，不能白字白底 */
+html[data-theme="summer"] .topbar { background: #ffffff !important; border-bottom: 1px solid #101820 !important; }
+html[data-theme="summer"] .win-btn,
+html[data-theme="summer"] .icon-btn { color: #101820 !important; }
+html[data-theme="summer"] .win-btn:hover { background: #e8f21f !important; color: #101820 !important; }
+html[data-theme="summer"] .win-btn.close:hover { background: #101820 !important; color: #fff !important; }
+html[data-theme="summer"] .window-controls { border-left-color: #101820 !important; }
+html[data-theme="summer"] .clock { background: #fff !important; border: 1px solid #101820 !important; }
+html[data-theme="summer"] .clock-time { color: #101820 !important; }
+html[data-theme="summer"] .clock-date { color: #4a5a66 !important; }
+html[data-theme="summer"] .avatar { background: #fff !important; border-color: #101820 !important; color: #101820 !important; }
+
+/* dock 文字：白纸上用墨色 */
+html[data-theme="summer"] .tile-label { color: #4a5a66 !important; }
+html[data-theme="summer"] .tile.is-active .tile-label { color: #101820 !important; }
+html[data-theme="summer"] .tile-art { border: 1px solid #101820 !important; box-shadow: none !important; }
+html[data-theme="summer"] .tile.is-active .tile-art { box-shadow: 4px 4px 0 0 #e8f21f !important; }
+
+@media (max-width: 1024px) {
+  html[data-theme="summer"] .hero-inner { padding-right: 0 !important; }
+  html[data-theme="summer"] .hero-inner::after { display: none !important; }
+
+  /* 小窗 + 30 字长名：标题压到 3 行以内，活动卡让位，整块必须装进面板 */
+  html[data-theme="summer"] .hero-inner .hero-logo {
+    border-right: 0;
+    max-width: none;
+    padding-right: 10px !important;
+    font-size: clamp(28px, 4.6vw, 42px) !important;
+    line-height: .9 !important;
+  }
+  html[data-theme="summer"] .hero-inner .tagline { font-size: 10.5px !important; line-height: 1.8 !important; }
+  html[data-theme="summer"] .hero-inner .progress-block { margin-top: 8px !important; padding-top: 6px !important; }
+  html[data-theme="summer"] .hero-inner .activity-strip { display: none !important; }
+}
+
+/* v3.1：活动卡去掉，换成一条「施工图」线稿（太阳射线 + 地平线 + 帆船 + 伞骨）。
+   线稿放在面板底部新增的 108px 留白里，结构上不可能压到文字。 */
+html[data-theme="summer"] .hero-inner { padding: 0 calc(var(--su-art) + 26px) 108px 0 !important; }
+html[data-theme="summer"] .hero-inner .activity-strip { display: none !important; }
+
+html[data-theme="summer"] .hero-inner::before {
+  background-image: url("assets/scope.svg?v=1") !important;
+  background-repeat: no-repeat !important;
+  background-position: 10px calc(100% - 8px) !important;
+  background-size: min(500px, 76%) auto !important;
+}
+
+@media (max-width: 1024px) {
+  html[data-theme="summer"] .hero-inner { padding-bottom: 0 !important; }
+  html[data-theme="summer"] .hero-inner::before { background-image: none !important; }
+}
+
+/* ============================================================
+   SUMMER · v4「把线稿放回背景」
+   ------------------------------------------------------------
+   用户指正：要删的是右边那张海滩插画卡，不是活动卡；
+   线稿也不该做成面板底部的一条“卡片”，而应作为页面背景的一部分。
+   v4 的处理：
+     · 照片窗整块移除（::after 不再出图）；
+     · 文字恢复整幅宽度，面板只留白纸 + 墨线；
+     · 线稿（太阳射线 / 地平线 / 帆船 / 伞骨）画成 600×700 的
+       `draft.svg`，作为**页面背景**落在面板右侧的空白处；
+     · 底部那条线稿条删除，面板不再留 108px 空档。
+   ============================================================ */
+
+html[data-theme="summer"] .hero-inner {
+  padding: 0 !important;
+}
+
+html[data-theme="summer"] .hero-inner::after { display: none !important; }
+
+html[data-theme="summer"] .hero-inner::before {
+  background-image: none !important;
+}
+
+/* 线稿进背景：右侧空白处一整幅制图，不装框、不成卡 */
+html[data-theme="summer"] .scene-stack::after {
+  background-image: url("assets/draft.svg?v=3"), url("assets/lines.svg?v=3");
+  background-position: 92% 22%, center;
+  background-size: min(450px, 33vw) auto, cover;
+  background-repeat: no-repeat, no-repeat;
+  opacity: 1;
+}
+
+@media (max-width: 1180px) {
+  html[data-theme="summer"] .scene-stack::after {
+    background-image: url("assets/lines.svg?v=3");
+    background-size: cover;
+  }
+}
+
+/* ============================================================
+   SUMMER · v5「蓝印照片 / 盖印化」
+   ------------------------------------------------------------
+   用户反馈：总体方向对了，但**背景图没有显示**；夏日风格应当把
+   角色/图片做成「盖印」——单色蓝印、网点、白纸留边。
+
+   v5 的做法（不改任何 DOM）：
+     · 恢复游戏主视觉（v4 曾 display:none），用滤镜压成单色青蓝；
+     · 画面左侧 44% 铺白色渐隐，主视觉面板仍然落在纯白纸面上；
+     · 右侧照片区加青色套准框、黄色胶带、白色编号条；
+     · 网点叠在照片上，线稿继续在最上层，像制图员盖在照片上的标记。
+   ============================================================ */
+
+html[data-theme="summer"] .scene > img {
+  display: block !important;
+  opacity: .94 !important;
+  filter: grayscale(1) sepia(.52) hue-rotate(158deg) saturate(2.5) contrast(1.06) brightness(1.2) !important;
+}
+
+/* 白纸从左侧铺开，保证左侧面板下没有彩色像素漏出来 */
+html[data-theme="summer"] .scene::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(90deg,
+    #ffffff 0%,
+    #ffffff 40%,
+    rgba(255, 255, 255, .985) 54%,
+    rgba(255, 255, 255, .62) 67%,
+    rgba(255, 255, 255, 0) 82%);
+  pointer-events: none;
+}
+
+/* 照片区：套准框 + 黄色胶带 + 白色编号条（文字落在白条上） */
+html[data-theme="summer"] .scene-stack::before {
+  content: "SUMMER · PRINT 01";
+  position: absolute;
+  z-index: 3;
+  inset: 9.5% 4.4% 21.5% 68%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 0 0 9px 10px;
+  border: 2px solid #1f93c8;
+  background:
+    linear-gradient(#ffffff, #ffffff) left bottom / 204px 26px no-repeat,
+    linear-gradient(#e8f21f, #e8f21f) left top / 40% 16px no-repeat;
+  color: #1f93c8;
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* 网点只压在照片上：scene-stack::after 的第三层背景 */
+html[data-theme="summer"] .scene-stack::after {
+  background-image:
+    url("assets/draft.svg?v=4"),
+    url("assets/dots.svg?v=2"),
+    url("assets/lines.svg?v=4");
+  background-position: 92% 22%, 92% 30%, center;
+  background-size: min(450px, 33vw) auto, min(340px, 25vw) auto, cover;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  opacity: 1;
+}
+
+@media (max-width: 1180px) {
+  html[data-theme="summer"] .scene-stack::before { display: none; }
+  html[data-theme="summer"] .scene::before {
+    background: linear-gradient(90deg, #fff 0 38%, rgba(255, 255, 255, .9) 56%, rgba(255, 255, 255, .3) 100%);
+  }
+  html[data-theme="summer"] .scene-stack::after {
+    background-image: url("assets/lines.svg?v=4");
+    background-size: cover;
+  }
+}
+
+/* 标题在长名时保持两行，右侧蓝栏不截字 */
+html[data-theme="summer"] .hero-inner .hero-logo.is-long-title {
+  font-size: clamp(26px, 3.2vw, 44px) !important;
+  line-height: .94 !important;
+  overflow-wrap: anywhere;
+}
+
+/* v5.1：印版再亮一档，接近参考图的浅青天空 */
+html[data-theme="summer"] .scene > img {
+  filter: grayscale(1) sepia(.4) hue-rotate(152deg) saturate(2.1) contrast(1.02) brightness(1.34) !important;
+}
+html[data-theme="summer"] .scene::before {
+  background: linear-gradient(90deg,
+    #ffffff 0%,
+    #ffffff 38%,
+    rgba(255, 255, 255, .985) 52%,
+    rgba(255, 255, 255, .5) 66%,
+    rgba(255, 255, 255, 0) 80%);
+}

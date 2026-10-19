@@ -1438,3 +1438,1022 @@ html.reduce-motion .lib-card:hover,
 html.reduce-motion .activity-strip:hover { transform: none; }
 
 html.perf-low .grain { display: none; }
+
+/* ============================================================
+   CODEX · signature pass
+   An illuminated star atlas: astrolabe rings, constellations,
+   ruby markers and a wax seal on the activity scroll.
+   ============================================================ */
+
+/* astrolabe + constellation field */
+.hero-inner::before {
+  background-image:
+    radial-gradient(circle at 18% 24%, rgba(226, 199, 142, .7) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 34% 66%, rgba(226, 199, 142, .55) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 62% 18%, rgba(226, 199, 142, .5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 74% 52%, rgba(226, 199, 142, .62) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 52% 78%, rgba(226, 199, 142, .45) 0 1px, transparent 1.6px),
+    radial-gradient(120% 90% at 18% 10%, rgba(226, 199, 142, .08) 0%, transparent 58%),
+    linear-gradient(180deg, #1d140d 0%, #160f0a 100%);
+  background-size: 210px 190px, 210px 190px, 210px 190px, 210px 190px, 210px 190px, auto, auto;
+}
+
+.hero-inner::after {
+  top: auto;
+  right: -54px;
+  bottom: -46px;
+  left: auto;
+  width: 236px;
+  height: 236px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 42px, rgba(226, 199, 142, .28) 43px 44px, transparent 45px),
+    repeating-conic-gradient(from 0deg, rgba(226, 199, 142, .55) 0 1deg, transparent 1deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 0 34%, #000 44%);
+  mask-image: radial-gradient(circle, transparent 0 34%, #000 44%);
+  border: 1px solid rgba(226, 199, 142, .2);
+  opacity: .6;
+  transform: rotate(12deg);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-logo { position: relative; z-index: 1; }
+.hero-logo::after {
+  content: "◆";
+  position: absolute;
+  right: -38px;
+  bottom: 4px;
+  color: var(--cx-maroon-hi);
+  font-size: 18px;
+  transform: rotate(45deg);
+  text-shadow: 0 0 10px rgba(143, 46, 36, .5);
+}
+
+/* wax seal on the activity scroll */
+.activity-strip { position: relative; }
+.activity-strip::before {
+  content: "秘";
+  position: absolute;
+  top: -13px;
+  right: 18px;
+  z-index: 2;
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--cx-maroon);
+  border: 1px solid var(--cx-gold);
+  color: var(--cx-gold-hi);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 28px;
+  text-align: center;
+  transform: rotate(-8deg);
+  box-shadow: 0 0 0 3px rgba(22, 15, 10, .8), 0 0 0 4px rgba(226, 199, 142, .28);
+  pointer-events: none;
+}
+
+/* ornate card rules */
+.tile-art, .lib-art {
+  outline: 1px solid rgba(226, 199, 142, .22);
+  outline-offset: -5px;
+}
+.tile.is-active .tile-art { box-shadow: inset 0 0 0 1px var(--cx-gold-line), inset 0 -4px 0 var(--cx-maroon); }
+
+/* illuminated label rules */
+.progress-block { position: relative; }
+.progress-block::before {
+  content: "✦";
+  position: absolute;
+  top: -9px;
+  left: 0;
+  color: var(--cx-gold-deep);
+  font-size: 12px;
+  line-height: 1;
+}
+
+
+/* Feature framework variables */
+:root {
+  --fx-paper: #160f0a;
+  --fx-ink: #e2c78e;
+  --fx-accent: #8f2e24;
+  --fx-accent-2: #e2c78e;
+  --fx-line: rgba(226, 199, 142, .34);
+  --fx-panel: #1d140d;
+  --fx-foil-1: #5b3a12;
+  --fx-foil-2: #c49a4a;
+  --fx-foil-3: #fff2c0;
+  --fx-foil-4: #8a5a1f;
+  --fx-foil-5: #f0d18a;
+}
+
+/* ---- fixes: seal must sit inside the clipped scroll; astrolabe readable ---- */
+
+html[data-theme="codex"] .activity-strip { position: relative; }
+html[data-theme="codex"] .activity-strip::before {
+  content: "秘";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--cx-maroon);
+  border: 1px solid var(--cx-gold);
+  color: var(--cx-gold-hi);
+  font-family: var(--font-serif);
+  font-size: 13px;
+  line-height: 1;
+  transform: rotate(-8deg);
+  box-shadow: 0 0 0 3px rgba(22, 15, 10, .8), 0 0 0 4px rgba(226, 199, 142, .3);
+  pointer-events: none;
+}
+
+/* the activity side column clears the seal */
+html[data-theme="codex"] .activity-side { padding-right: 34px; }
+
+html[data-theme="codex"] .hero-inner::after {
+  border-color: rgba(226, 199, 142, .16);
+  opacity: .82;
+  -webkit-mask-image: radial-gradient(circle, transparent 0 30%, #000 42%);
+  mask-image: radial-gradient(circle, transparent 0 30%, #000 42%);
+}
+
+html[data-theme="codex"] .hero-logo::after { content: none; }
+
+
+/* ---- detail / appearance plates: match the home dossier ---- */
+html[data-theme="codex"] .detail-art-copy,
+html[data-theme="codex"] .appearance-preview-copy,
+html[data-theme="codex"] .editor-preview-copy {
+  background: linear-gradient(180deg, #1d140d 0%, #160f0a 100%);
+  border: 1px solid var(--cx-gold-line);
+  outline: 1px dashed rgba(226, 199, 142, .3);
+  outline-offset: -6px;
+  color: var(--cx-cream);
+}
+html[data-theme="codex"] .detail-art-copy .detail-logo,
+html[data-theme="codex"] .appearance-preview-copy .appearance-logo,
+html[data-theme="codex"] .editor-preview-copy .editor-logo {
+  color: var(--cx-gold-hi);
+  -webkit-text-fill-color: currentColor;
+}
+html[data-theme="codex"] .detail-zh,
+html[data-theme="codex"] .appearance-tagline { color: var(--cx-cream-3); }
+
+/* ===== v1.1 · theme-kit ===== */
+
+html[data-theme="codex"] {
+  --codex-ground: #17130f;
+  --codex-plate: #221b14;
+  --codex-paper: #e8dcc2;
+  --codex-gold: #c9a961;
+  --codex-ruby: #8f2f3a;
+  --kit-paper: var(--codex-plate);
+  --kit-header-bg: var(--codex-ground);
+  --kit-panel: var(--codex-plate);
+  --kit-ink: var(--codex-paper);
+  --kit-ink-2: rgba(232, 220, 194, .62);
+  --kit-line: rgba(201, 169, 97, .42);
+  --kit-accent: var(--codex-gold);
+  --kit-accent-2: var(--codex-ruby);
+  --kit-on-accent: var(--codex-ground);
+  --kit-r: 0;
+  --kit-art: clamp(220px, 24vw, 300px);
+  --kit-art-url: url("assets/hero-compass.svg?v=120");
+  --kit-art-rule: 1px solid rgba(201, 169, 97, .45);
+  --kit-shadow: #4c1a20;
+}
+
+/* ground: flat brown field, keep the low-density star texture, drop glow */
+html[data-theme="codex"] body { background-color: var(--codex-ground); }
+html[data-theme="codex"] body::before {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(201, 169, 97, .03) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(90deg, rgba(201, 169, 97, .03) 0 1px, transparent 1px 64px);
+  background-size: auto;
+}
+html[data-theme="codex"] .grain { opacity: 0; }
+html[data-theme="codex"] .atmosphere::after { background: none; }
+html[data-theme="codex"] .overlay { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+html[data-theme="codex"] :is(.detail-modal, .lib-shell, .appearance-shell, .editor-shell, .scanner-shell, .picker-shell, .dialog) {
+  background: var(--codex-plate) !important;
+  border-radius: 0 !important;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .4) !important;
+}
+
+/* header: one gold rule; the current tab is the only pale plate */
+html[data-theme="codex"][data-fx-header="rule"] .topbar {
+  background: var(--codex-ground) !important;
+  border-bottom: 1px solid rgba(201, 169, 97, .42) !important;
+}
+html[data-theme="codex"] .topbar::after { display: none; }
+html[data-theme="codex"] .nav-btn { color: rgba(232, 220, 194, .5); border: 1px solid transparent; letter-spacing: .1em; }
+html[data-theme="codex"] .nav-btn.is-active {
+  background: var(--codex-paper) !important;
+  color: var(--codex-ground) !important;
+  border-color: var(--codex-gold) !important;
+}
+html[data-theme="codex"] .nav-glide {
+  background: var(--codex-paper) !important;
+  border: 1px solid var(--codex-gold);
+  box-shadow: none !important;
+  clip-path: none !important;
+}
+html[data-theme="codex"] .clock {
+  background: transparent !important;
+  border-color: rgba(201, 169, 97, .32) !important;
+  border-radius: 0 !important;
+  color: var(--codex-paper);
+}
+
+/* hero: brown parchment plate, double gold frame, four small corner diamonds */
+html[data-theme="codex"][data-fx-hero="plate"] .hero-inner::before {
+  background-color: var(--codex-plate) !important;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9'%3E%3Cpath d='M4.5 0 9 4.5 4.5 9 0 4.5Z' fill='%23c9a961'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9'%3E%3Cpath d='M4.5 0 9 4.5 4.5 9 0 4.5Z' fill='%23c9a961'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9'%3E%3Cpath d='M4.5 0 9 4.5 4.5 9 0 4.5Z' fill='%23c9a961'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9'%3E%3Cpath d='M4.5 0 9 4.5 4.5 9 0 4.5Z' fill='%23c9a961'/%3E%3C/svg%3E") !important;
+  background-size: 9px 9px;
+  background-position: 8px 8px, calc(100% - 8px) 8px, 8px calc(100% - 8px), calc(100% - 8px) calc(100% - 8px);
+  background-repeat: no-repeat;
+  border: 1px solid var(--codex-gold) !important;
+  border-radius: 0 !important;
+  outline: 1px solid rgba(201, 169, 97, .55);
+  outline-offset: -8px;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .4) !important;
+  z-index: -1;
+}
+
+/* the illustration is a full column, not the old circular dial */
+html[data-theme="codex"] .hero-inner::after {
+  border: 0 !important;
+  border-left: var(--kit-art-rule) !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+
+/* type: gold serif title, parchment subtitle, hard shadow only */
+html[data-theme="codex"] :is(.hero-logo, .detail-logo, .launch-logo, .appearance-logo, .editor-logo, .choice-logo) {
+  --logo-color: var(--codex-gold);
+  --logo-font: var(--font-serif);
+  --logo-weight: 600;
+  --logo-style: normal;
+  --logo-track: .015em;
+  --logo-line: .92;
+  --logo-fill: currentColor;
+  --logo-bg: none;
+  --logo-shadow: none;
+  --logo-filter: none;
+  color: var(--codex-gold) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  -webkit-text-stroke: 0 !important;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: .015em;
+  text-shadow: 2px 2px 0 rgba(9, 6, 4, .8) !important;
+  filter: none !important;
+}
+html[data-theme="codex"] .kicker { color: var(--codex-gold); letter-spacing: .16em; }
+html[data-theme="codex"] .kicker-dot { box-shadow: none; animation: none; }
+html[data-theme="codex"] .kicker-sep { background: rgba(201, 169, 97, .5); }
+html[data-theme="codex"] .kicker-dim { color: rgba(232, 220, 194, .45); }
+html[data-theme="codex"] .tagline { color: rgba(232, 220, 194, .7); padding-left: 12px; border-left: 1px solid rgba(201, 169, 97, .55); }
+html[data-theme="codex"] .meta-row { color: rgba(232, 220, 194, .5); }
+html[data-theme="codex"] .age-badge { border-color: rgba(201, 169, 97, .5); background: transparent; color: var(--codex-paper); }
+
+/* controls: gold bar, dark ink, ruby hard shadow */
+html[data-theme="codex"][data-fx-controls="hard"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  background: var(--codex-gold) !important;
+  color: var(--codex-ground) !important;
+  border: 1px solid #8a6f3e !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 0 #5a1e25 !important;
+  clip-path: none !important;
+  letter-spacing: .08em;
+  text-shadow: none !important;
+}
+html[data-theme="codex"][data-fx-controls="hard"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system):hover {
+  background: #d8bb80 !important;
+  color: var(--codex-ground) !important;
+}
+html[data-theme="codex"][data-fx-controls="hard"] .btn.ghost {
+  background: transparent !important;
+  border: 1px solid rgba(201, 169, 97, .55) !important;
+  border-radius: 0 !important;
+  color: var(--codex-paper) !important;
+  letter-spacing: .08em;
+}
+html[data-theme="codex"][data-fx-controls="hard"] .btn.ghost:hover {
+  background: rgba(201, 169, 97, .08) !important;
+  border-color: var(--codex-gold) !important;
+  color: var(--codex-paper) !important;
+}
+
+/* progress: gold gauge with hard 1px separators, no glow */
+html[data-theme="codex"] .progress-block::before { content: none !important; }
+html[data-theme="codex"] .progress-track {
+  height: 5px;
+  border: 1px solid rgba(201, 169, 97, .35);
+  border-radius: 0;
+  background: #100b07;
+  box-shadow: none;
+}
+html[data-theme="codex"] .progress-track i { border-radius: 0; background: var(--codex-gold); box-shadow: none; }
+html[data-theme="codex"] .progress-track i::after { content: ""; display: block; position: absolute; inset: 0; background-image: repeating-linear-gradient(90deg, transparent 0 11px, rgba(23, 19, 15, .55) 11px 12px); }
+html[data-theme="codex"] .progress-pct { color: var(--codex-paper); font-family: var(--font-serif); }
+html[data-theme="codex"] .progress-head { color: rgba(232, 220, 194, .6); }
+html[data-theme="codex"] .progress-sub { color: rgba(232, 220, 194, .42); }
+
+/* activity: ruby diamond sits inside the card, 15px clear of the text */
+html[data-theme="codex"][data-fx-cards="rule"] .activity-strip {
+  background: var(--codex-plate) !important;
+  border: 1px solid rgba(201, 169, 97, .45) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  padding-right: 40px !important;
+}
+html[data-theme="codex"] .activity-strip::before { content: ""; display: block; top: calc(50% - 5px); right: 16px; width: 9px; height: 9px; border: 1px solid var(--codex-gold); border-radius: 0; background: var(--codex-ruby); box-shadow: none; transform: rotate(45deg); font-size: 0; line-height: 0; }
+html[data-theme="codex"] .activity-side { padding-right: 0 !important; }
+html[data-theme="codex"][data-fx-cards="rule"] .activity-strip:hover {
+  border-color: var(--codex-gold) !important;
+  box-shadow: 4px 4px 0 rgba(143, 47, 58, .5) !important;
+  transform: none;
+}
+html[data-theme="codex"] .activity-icon { border-radius: 0; border-color: rgba(201, 169, 97, .55); background: transparent; color: var(--codex-gold); }
+html[data-theme="codex"] .activity-kicker { color: var(--codex-gold-deep); }
+html[data-theme="codex"] .activity-title { color: var(--codex-paper); }
+html[data-theme="codex"] .activity-desc { color: rgba(232, 220, 194, .45); }
+html[data-theme="codex"] .activity-pct { color: var(--codex-gold); font-family: var(--font-serif); }
+html[data-theme="codex"] .activity-meta { white-space: normal; overflow: visible; text-overflow: clip; color: rgba(232, 220, 194, .4); }
+html[data-theme="codex"] .activity-arrow { color: rgba(201, 169, 97, .55); }
+html[data-theme="codex"] .activity-track { border-radius: 0; background: rgba(201, 169, 97, .18); }
+html[data-theme="codex"] .activity-track i { border-radius: 0; background: var(--codex-gold); box-shadow: none; }
+
+/* cards: gold hairline, ruby only as the current marker */
+html[data-theme="codex"][data-fx-cards="rule"] :is(.tile-art, .lib-art) {
+  border: 1px solid rgba(201, 169, 97, .4) !important;
+  border-radius: 0 !important;
+  outline: 1px solid rgba(201, 169, 97, .14);
+  outline-offset: -4px;
+}
+html[data-theme="codex"] .tile.is-active .tile-art {
+  border-color: var(--codex-gold) !important;
+  box-shadow: inset 0 -3px 0 var(--codex-ruby) !important;
+}
+html[data-theme="codex"] .tile.is-active .tile-sub { color: var(--codex-gold) !important; }
+html[data-theme="codex"] .tile-progress i { background: var(--codex-gold); box-shadow: none; }
+html[data-theme="codex"] .tile.is-active .tile-progress i { background: var(--codex-ruby); }
+html[data-theme="codex"][data-fx-cards="rule"] :is(.theme-card, .style-choice) { background: var(--codex-plate) !important; border-color: rgba(201, 169, 97, .32) !important; border-radius: 0 !important; }
+html[data-theme="codex"] :is(.theme-card, .style-choice).is-active { border-color: var(--codex-gold) !important; box-shadow: inset 0 -2px 0 var(--codex-ruby) !important; }
+html[data-theme="codex"] :is(.filter.is-active, .lib-current, .theme-active-tag) { background: transparent !important; color: var(--codex-gold) !important; border-color: rgba(201, 169, 97, .72) !important; box-shadow: inset 0 -2px 0 var(--codex-ruby) !important; text-shadow: none !important; }
+
+/* detail / appearance: flat brown nameplate with a gold rule */
+html[data-theme="codex"] :is(.detail-art-copy, .appearance-preview-copy, .editor-preview-copy) {
+  background: var(--codex-plate) !important;
+  border: 1px solid var(--codex-gold) !important;
+  outline: 1px solid rgba(201, 169, 97, .35);
+  outline-offset: -7px;
+  padding: 14px 16px;
+  color: var(--codex-paper);
+}
+html[data-theme="codex"] .detail-status { border-radius: 0; border-color: rgba(201, 169, 97, .45); background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; color: rgba(232, 220, 194, .7); }
+html[data-theme="codex"] :is(.detail-zh, .appearance-eyebrow, .appearance-tagline) { color: rgba(232, 220, 194, .5); }
+
+/* 导航当前项：金块 + 深褐字 */
+html[data-theme="codex"] .nav-btn.is-active { background: #c9a961 !important; color: #17130f !important; border-color: #c9a961 !important; }
+html[data-theme="codex"] .nav-glide { background: #c9a961 !important; }
+
+/* 启动动画：星盘虹膜（菱形开口展开） */
+html[data-theme="codex"] .launch.is-open .launch-art {
+  animation: cxIris 720ms cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes cxIris {
+  from { clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); }
+  to { clip-path: polygon(50% -20%, 120% 50%, 50% 120%, -20% 50%); }
+}
+
+/* ============================================================
+   CODEX · v3「铜金徽章」
+   ------------------------------------------------------------
+   用户指正：
+     · 菱形只代表等级，不能当通用装饰（原来眉标/导航/活动卡上全是）；
+     · 框的质感不够，需要做双线 + 内凹 + 角括号；
+     · 标题金色 + 内阴影，正文白色 + 内阴影（像刻在铜版上）；
+     · 插画改成「黑色剪影打底 + 金色亮面 + 暗红硬投影」；
+     · 主 logo 金色 + 内阴影 + 红色投影。
+   ============================================================ */
+
+/* ---- 1. 去掉所有非等级语义的菱形 ---- */
+html[data-theme="codex"] #kickerLabel::before,
+html[data-theme="codex"] .dock-title > span:first-child::before,
+html[data-theme="codex"] .lib-eyebrow::before,
+html[data-theme="codex"] .appearance-kicker::before,
+html[data-theme="codex"] .appearance-eyebrow::before,
+html[data-theme="codex"] .launch-kicker::before,
+html[data-theme="codex"] .launch-step::before,
+html[data-theme="codex"] .hero-logo::after,
+html[data-theme="codex"] .activity-strip::before { content: none !important; display: none !important; }
+
+html[data-theme="codex"] .meta-dot {
+  width: 1px; height: 10px;
+  background: rgba(201, 169, 97, .45) !important;
+  transform: none !important;
+  border: 0 !important;
+}
+html[data-theme="codex"] .detail-kicker::before {
+  width: 10px; height: 2px;
+  background: #c9a961 !important;
+  transform: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+html[data-theme="codex"] .choice-radio { transform: none !important; }
+
+/* ---- 2. 面板：双线 + 内凹 + 角括号 + 细斜纹 ---- */
+html[data-theme="codex"] .hero-inner::before {
+  background-color: #1b1510 !important;
+  background-image:
+    /* 四角括号（每个角两笔） */
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961),
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961),
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961),
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961),
+    /* 极细斜纹 */
+    repeating-linear-gradient(45deg, rgba(201, 169, 97, .045) 0 1px, transparent 1px 8px) !important;
+  background-size:
+    26px 2px, 2px 26px, 26px 2px, 2px 26px,
+    26px 2px, 2px 26px, 26px 2px, 2px 26px,
+    auto !important;
+  background-position:
+    12px 12px, 12px 12px, calc(100% - 12px) 12px, calc(100% - 12px) 12px,
+    12px calc(100% - 12px), 12px calc(100% - 12px), calc(100% - 12px) calc(100% - 12px), calc(100% - 12px) calc(100% - 12px),
+    0 0 !important;
+  background-repeat: no-repeat !important;
+  border: 1px solid #c9a961 !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 0 4px #1b1510,
+    inset 0 0 0 5px rgba(201, 169, 97, .55),
+    inset 0 0 0 6px #1b1510,
+    10px 10px 0 0 rgba(0, 0, 0, .35) !important;
+}
+
+/* ---- 3. 字：金色/白色 + 内阴影 ---- */
+html[data-theme="codex"] .hero-inner .hero-logo {
+  color: #d9b874 !important;
+  -webkit-text-fill-color: #d9b874 !important;
+  background: none !important;
+  text-shadow:
+    0 1px 0 #4a3415,
+    0 2px 0 rgba(0, 0, 0, .35),
+    0 -1px 0 rgba(255, 245, 210, .18) !important;
+}
+
+html[data-theme="codex"] .hero-inner .tagline,
+html[data-theme="codex"] .hero-inner .meta-row,
+html[data-theme="codex"] .hero-inner .progress-head,
+html[data-theme="codex"] .hero-inner .progress-sub,
+html[data-theme="codex"] .activity-strip .activity-title,
+html[data-theme="codex"] .activity-strip .activity-desc,
+html[data-theme="codex"] .activity-strip .activity-meta {
+  color: #f2ead9 !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .65), 0 -1px 0 rgba(255, 245, 210, .12) !important;
+}
+
+html[data-theme="codex"] .hero-inner .progress-pct { color: #e6c78e !important; text-shadow: 0 1px 0 #3a2810 !important; }
+
+/* ---- 4. 主 logo：金色 + 内阴影 + 红色投影 ---- */
+html[data-theme="codex"] .brand-mark {
+  color: #c9a961 !important;
+  filter: drop-shadow(2px 2px 0 #7a2620) !important;
+}
+html[data-theme="codex"] .brand-word {
+  color: #e6c78e !important;
+  text-shadow: 0 1px 0 #4a3415, 2px 2px 0 #7a2620 !important;
+}
+
+/* 眉标的点与分隔也不再是菱形（菱形只留给等级） */
+html[data-theme="codex"] .kicker-dot {
+  width: 6px; height: 6px;
+  background: #c9a961 !important;
+  border: 0 !important;
+  transform: none !important;
+  border-radius: 1px !important;
+}
+html[data-theme="codex"] .kicker-sep {
+  width: 1px; height: 10px;
+  background: rgba(201, 169, 97, .5) !important;
+  transform: none !important;
+}
+html[data-theme="codex"] .kicker { color: #c9a961 !important; }
+
+/* dock 在深色底上：游戏名回到米白 */
+html[data-theme="codex"] .tile-label { color: rgba(242, 234, 217, .72) !important; }
+html[data-theme="codex"] .tile.is-active .tile-label { color: #f2ead9 !important; }
+html[data-theme="codex"] .tile-sub { color: rgba(201, 169, 97, .7) !important; }
+html[data-theme="codex"] .dock-title { color: #c9a961 !important; }
+
+/* ============================================================
+   CODEX · v3.1
+   ------------------------------------------------------------
+   用户指正：右侧星盘图形不好看，直接去掉；顶栏导航与主/次按钮
+   要统一成同一套「铜牌」语言。
+   ============================================================ */
+
+/* 1. 去掉右侧插画，文字恢复整幅 */
+html[data-theme="codex"] .hero-inner { padding: 0 !important; }
+html[data-theme="codex"] .hero-inner::after { display: none !important; }
+
+/* 2. 顶部导航：同一套铜牌（细金边、方角、金底深字） */
+html[data-theme="codex"] .nav {
+  border: 1px solid rgba(201, 169, 97, .38);
+  padding: 3px;
+  gap: 3px;
+  background: rgba(20, 15, 10, .35);
+}
+html[data-theme="codex"] .nav-btn {
+  border: 1px solid transparent !important;
+  border-radius: 0 !important;
+  color: rgba(230, 199, 142, .72) !important;
+  font-size: 12px !important;
+  letter-spacing: .12em !important;
+  padding: 7px 16px !important;
+}
+html[data-theme="codex"] .nav-btn:hover {
+  color: #e6c78e !important;
+  border-color: rgba(201, 169, 97, .6) !important;
+  background: transparent !important;
+}
+html[data-theme="codex"] .nav-btn.is-active {
+  background: #c9a961 !important;
+  color: #17130f !important;
+  border-color: #c9a961 !important;
+}
+html[data-theme="codex"] .nav-glide { background: #c9a961 !important; border-radius: 0 !important; }
+
+/* 3. 主/次按钮：同一套铜牌，只分「金底」与「暗底金边」 */
+html[data-theme="codex"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  background: #c9a961 !important;
+  background-image: none !important;
+  color: #17130f !important;
+  border: 1px solid #c9a961 !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 0 #7a2620 !important;
+  text-shadow: none !important;
+}
+html[data-theme="codex"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system):hover {
+  background: #e6c78e !important;
+  border-color: #e6c78e !important;
+  transform: translate(1px, 1px) !important;
+  box-shadow: 2px 2px 0 0 #7a2620 !important;
+}
+html[data-theme="codex"] .btn.ghost {
+  background: #1b1510 !important;
+  color: #e6c78e !important;
+  border: 1px solid rgba(201, 169, 97, .7) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+html[data-theme="codex"] .btn.ghost:hover {
+  background: #c9a961 !important;
+  color: #17130f !important;
+  border-color: #c9a961 !important;
+}
+
+/* 4. 图标按钮与窗口键也收进同一套 */
+html[data-theme="codex"] .icon-btn { border-radius: 0 !important; color: #e6c78e !important; }
+html[data-theme="codex"] .icon-btn:hover { background: #c9a961 !important; color: #17130f !important; }
+html[data-theme="codex"] .win-btn { border-radius: 0 !important; color: #e6c78e !important; }
+html[data-theme="codex"] .win-btn:hover { background: rgba(201, 169, 97, .18) !important; color: #f2ead9 !important; }
+
+/* ============================================================
+   CODEX · v3.2
+   ------------------------------------------------------------
+   框太大 + 质感不足：收窄主视觉，把「一条金线」换成
+   双线 + 内凹 + 角括号 + 皮革颗粒（点阵 + 双向斜纹，全硬边）。
+   ============================================================ */
+
+html[data-theme="codex"] .hero { width: min(680px, 58vw) !important; }
+
+html[data-theme="codex"] .hero-inner::before {
+  background-color: #1b1510 !important;
+  background-image:
+    /* 皮革颗粒：细点阵 */
+    radial-gradient(circle, rgba(201, 169, 97, .085) 1px, transparent 1.5px),
+    /* 纤维：双向细斜纹 */
+    repeating-linear-gradient(45deg, rgba(201, 169, 97, .05) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .22) 0 2px, transparent 2px 9px),
+    /* 四角括号 */
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961),
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961),
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961),
+    linear-gradient(#c9a961, #c9a961), linear-gradient(#c9a961, #c9a961) !important;
+  background-size:
+    5px 5px, auto, auto,
+    40px 3px, 3px 40px, 40px 3px, 3px 40px,
+    40px 3px, 3px 40px, 40px 3px, 3px 40px !important;
+  background-position:
+    0 0, 0 0, 0 0,
+    14px 14px, 14px 14px, calc(100% - 14px) 14px, calc(100% - 14px) 14px,
+    14px calc(100% - 14px), 14px calc(100% - 14px), calc(100% - 14px) calc(100% - 14px), calc(100% - 14px) calc(100% - 14px) !important;
+  background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat !important;
+  border: 2px solid #c9a961 !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 0 3px #120e0a,
+    inset 0 0 0 4px rgba(201, 169, 97, .75),
+    inset 0 0 0 10px #1b1510,
+    inset 0 0 0 11px rgba(201, 169, 97, .3),
+    12px 12px 0 0 rgba(0, 0, 0, .4) !important;
+}
+
+/* 面板下半段的收尾金线，让大片留白有落点 */
+html[data-theme="codex"] .hero-inner::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 18px !important;
+  width: auto !important;
+  height: 1px !important;
+  background: rgba(201, 169, 97, .28) !important;
+  border: 0 !important;
+}
+
+/* v3.3：把面板底纹收敛成两层（点阵 + 斜纹），避免多层列表被旧规则压回去 */
+html[data-theme="codex"] .hero-inner::before {
+  background: #1b1510 !important;
+  background-image:
+    radial-gradient(circle, rgba(201, 169, 97, .1) 1px, transparent 1.6px),
+    repeating-linear-gradient(45deg, rgba(201, 169, 97, .055) 0 1px, transparent 1px 7px) !important;
+  background-size: 5px 5px, auto !important;
+  background-repeat: repeat, repeat !important;
+  background-position: 0 0, 0 0 !important;
+  border: 2px solid #c9a961 !important;
+  box-shadow:
+    inset 0 0 0 3px #120e0a,
+    inset 0 0 0 4px rgba(201, 169, 97, .75),
+    inset 0 0 0 10px #1b1510,
+    inset 0 0 0 11px rgba(201, 169, 97, .28),
+    12px 12px 0 0 rgba(0, 0, 0, .4) !important;
+}
+
+/* v3.4：旧规则用了双属性选择器（[data-theme][data-fx-hero]），
+   这里必须用同等特异性才能压过那条四角菱形底纹。 */
+html[data-theme="codex"][data-fx-hero="plate"] .hero-inner::before {
+  background-color: #1b1510 !important;
+  background-image:
+    radial-gradient(circle, rgba(201, 169, 97, .1) 1px, transparent 1.6px),
+    repeating-linear-gradient(45deg, rgba(201, 169, 97, .055) 0 1px, transparent 1px 7px) !important;
+  background-size: 5px 5px, auto !important;
+  background-position: 0 0, 0 0 !important;
+  background-repeat: repeat, repeat !important;
+  outline: 0 !important;
+  border: 2px solid #c9a961 !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 0 3px #120e0a,
+    inset 0 0 0 4px rgba(201, 169, 97, .75),
+    inset 0 0 0 10px #1b1510,
+    inset 0 0 0 11px rgba(201, 169, 97, .28),
+    12px 12px 0 0 rgba(0, 0, 0, .4) !important;
+}
+
+/* ============================================================
+   CODEX · v4「安静的铜版」
+   ------------------------------------------------------------
+   上一版的点阵皮革太吵，且正文/标题都用衬线，和拉丁副标混排显得违和。
+   v4 的判断：
+     · 底纹退到几乎看不见——只在深褐底上留一层 3px 竖向纸纹；
+     · 框回到「一外一内两条金线 + 四个小角标」，不再做厚bevel；
+     · 标题用衬线（Cormorant + 宋体），正文/标签/按钮全部换无衬线，
+       形成「衬线标题 + 无衬线正文」的经典对位；
+     · 活动卡去掉整块边框，改成一条金色横线 + 行式排版。
+   ============================================================ */
+
+/* 1. 面板：安静深褐 + 极淡竖纹 + 细双线 */
+html[data-theme="codex"][data-fx-hero="plate"] .hero-inner::before {
+  background-color: #17130f !important;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 245, 220, .018) 0 1px, transparent 1px 3px) !important;
+  background-size: auto !important;
+  background-repeat: repeat !important;
+  border: 1px solid rgba(201, 169, 97, .85) !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  box-shadow:
+    inset 0 0 0 6px #17130f,
+    inset 0 0 0 7px rgba(201, 169, 97, .45),
+    8px 8px 0 0 rgba(0, 0, 0, .35) !important;
+}
+
+/* 角标：四个 18px 的小 L，不再是大括号 */
+html[data-theme="codex"][data-fx-hero="plate"] .hero-inner::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  background:
+    linear-gradient(#c9a961, #c9a961) 14px 14px / 18px 1px no-repeat,
+    linear-gradient(#c9a961, #c9a961) 14px 14px / 1px 18px no-repeat,
+    linear-gradient(#c9a961, #c9a961) calc(100% - 14px) 14px / 18px 1px no-repeat,
+    linear-gradient(#c9a961, #c9a961) calc(100% - 14px) 14px / 1px 18px no-repeat,
+    linear-gradient(#c9a961, #c9a961) 14px calc(100% - 14px) / 18px 1px no-repeat,
+    linear-gradient(#c9a961, #c9a961) 14px calc(100% - 14px) / 1px 18px no-repeat,
+    linear-gradient(#c9a961, #c9a961) calc(100% - 14px) calc(100% - 14px) / 18px 1px no-repeat,
+    linear-gradient(#c9a961, #c9a961) calc(100% - 14px) calc(100% - 14px) / 1px 18px no-repeat !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 2. 字体：标题衬线，正文无衬线 */
+html[data-theme="codex"] .hero-inner .hero-logo {
+  font-family: 'Cormorant Garamond', 'Songti SC', 'SimSun', serif !important;
+  font-weight: 600 !important;
+  letter-spacing: .01em !important;
+  color: #dcc08a !important;
+  -webkit-text-fill-color: #dcc08a !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .55) !important;
+}
+
+html[data-theme="codex"] .hero-inner :is(.kicker, .tagline, .meta-row, .progress-head, .progress-sub, .cta-row),
+html[data-theme="codex"] .activity-strip {
+  font-family: 'Manrope', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif !important;
+}
+
+html[data-theme="codex"] .hero-inner .tagline {
+  font-size: 12.5px !important;
+  line-height: 1.8 !important;
+  letter-spacing: .02em !important;
+  color: #e8dfcd !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="codex"] .hero-inner .kicker,
+html[data-theme="codex"] .hero-inner .meta-row,
+html[data-theme="codex"] .hero-inner .progress-head,
+html[data-theme="codex"] .hero-inner .progress-sub {
+  font-size: 9.5px !important;
+  letter-spacing: .14em !important;
+  color: rgba(232, 223, 205, .62) !important;
+  text-shadow: none !important;
+}
+
+/* 3. 活动条：去边框，改成一条金线 + 行式排版 */
+html[data-theme="codex"] .activity-strip {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(201, 169, 97, .28) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 10px 0 0 !important;
+}
+html[data-theme="codex"] .activity-strip:hover { box-shadow: none !important; background: rgba(201, 169, 97, .04) !important; }
+html[data-theme="codex"] .activity-icon {
+  width: 26px; height: 26px;
+  border: 1px solid rgba(201, 169, 97, .45) !important;
+  background: transparent !important;
+  color: #c9a961 !important;
+}
+html[data-theme="codex"] .activity-strip .activity-title { font-size: 14px !important; font-weight: 600 !important; color: #e8dfcd !important; }
+html[data-theme="codex"] .activity-strip .activity-kicker,
+html[data-theme="codex"] .activity-strip .activity-desc,
+html[data-theme="codex"] .activity-strip .activity-meta { color: rgba(232, 223, 205, .55) !important; }
+html[data-theme="codex"] .activity-strip .activity-pct { font-family: 'Cormorant Garamond', serif !important; font-size: 18px !important; color: #dcc08a !important; }
+
+/* 4. 按钮：无衬线、字距统一 */
+html[data-theme="codex"] .btn {
+  font-family: 'Manrope', 'Microsoft YaHei UI', sans-serif !important;
+  font-size: 12px !important;
+  letter-spacing: .1em !important;
+}
+
+/* v4.2：短名保持大字，长名才换行缩号（由 app.js 的 .is-long-title 判定） */
+html[data-theme="codex"] .hero-inner .hero-logo:not(.is-long-title) { white-space: nowrap !important; overflow-wrap: normal !important; }
+html[data-theme="codex"] .hero-inner .hero-logo.is-long-title {
+  white-space: normal !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important;
+  font-size: clamp(20px, 2.1vw, 30px) !important;
+  line-height: 1.38 !important;
+}
+
+/* 短名也不能无限放大：100px 会把进度/活动行顶出面板（内容高 > 舞台） */
+html[data-theme="codex"] .hero-inner .hero-logo:not(.is-long-title) {
+  font-size: clamp(36px, 4.4vw, 62px) !important;
+}
+
+/* 活动条被旧的双属性规则压回深底，这里用同等特异性收回透明 */
+html[data-theme="codex"][data-fx-cards="rule"] .activity-strip {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(201, 169, 97, .28) !important;
+  box-shadow: none !important;
+}
+
+/* ============================================================
+   CODEX · v5「档案正文」
+   ------------------------------------------------------------
+   用户指正：
+     · 顶部时钟排版不对；
+     · 正文字体要像原图：宋体/衬线、米白、带一点刻痕；
+     · 游戏信息下面那块「游戏 / 时长 / 箭头」和主区重复，没有意义，删掉。
+   ============================================================ */
+
+/* 1. 时钟：时间与日期分两行，右对齐，盒子给足宽度 */
+html[data-theme="codex"] .clock {
+  min-width: 96px !important;
+  padding: 5px 10px 6px !important;
+  display: grid !important;
+  justify-items: end !important;
+  gap: 3px !important;
+  background: rgba(23, 19, 15, .5) !important;
+  border: 1px solid rgba(201, 169, 97, .32) !important;
+}
+html[data-theme="codex"] .clock-time {
+  font-family: 'Cormorant Garamond', 'Songti SC', serif !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  letter-spacing: .05em !important;
+  color: #eadfc6 !important;
+}
+html[data-theme="codex"] .clock-date {
+  font-family: 'Cormorant Garamond', 'Songti SC', serif !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  letter-spacing: .08em !important;
+  color: rgba(232, 223, 205, .52) !important;
+  white-space: nowrap !important;
+}
+
+/* 2. 正文回到衬线，颜色按原图：米白正文、金色小标 */
+html[data-theme="codex"] .hero-inner :is(.kicker, .tagline, .meta-row, .progress-head, .progress-sub),
+html[data-theme="codex"] .btn {
+  font-family: 'Cormorant Garamond', 'Songti SC', 'SimSun', serif !important;
+}
+
+html[data-theme="codex"] .hero-inner .tagline {
+  font-size: 13.5px !important;
+  line-height: 1.9 !important;
+  letter-spacing: .03em !important;
+  color: #ded2ba !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .45) !important;
+}
+
+html[data-theme="codex"] .hero-inner .meta-row {
+  font-size: 11px !important;
+  letter-spacing: .08em !important;
+  color: #d8cbb4 !important;
+}
+html[data-theme="codex"] .hero-inner .progress-head,
+html[data-theme="codex"] .hero-inner .progress-sub {
+  font-size: 10.5px !important;
+  letter-spacing: .08em !important;
+  color: rgba(222, 210, 186, .72) !important;
+}
+
+/* 3. 删掉重复的活动条，并把腾出的高度还给标题 */
+html[data-theme="codex"] .hero-inner .activity-strip { display: none !important; }
+
+html[data-theme="codex"] .hero-inner .hero-logo:not(.is-long-title) {
+  font-size: clamp(40px, 4.8vw, 72px) !important;
+}
+
+/* 进度行收尾加一条金线，替代原来的卡片 */
+html[data-theme="codex"] .hero-inner .progress-block {
+  border-bottom: 1px solid rgba(201, 169, 97, .22) !important;
+  padding-bottom: 12px !important;
+}
+
+/* v5.1：时钟再校一次——时间 19px、日期 9px，右对齐、盒宽 104 */
+html[data-theme="codex"] .clock { min-width: 104px !important; padding: 6px 10px 7px !important; gap: 2px !important; justify-items: center !important; }
+html[data-theme="codex"] .clock-time { font-size: 19px !important; letter-spacing: .02em !important; }
+html[data-theme="codex"] .clock-date { font-size: 9px !important; letter-spacing: .02em !important; }
+
+/* ============================================================
+   CODEX · v6「去掉角标，加重字重」
+   ------------------------------------------------------------
+   · 四角的小 L 角标碍事，整组去掉；
+   · 眉标的金块也去掉，只留一行小字；
+   · 字体换成系统里的 Noto Serif SC（可变字重），正文 600、
+     标题 600，接近原图的粗细；
+   · 面板底部补 22px，最后一行不再贴边。
+   ============================================================ */
+
+html[data-theme="codex"][data-fx-hero="plate"] .hero-inner::after { content: none !important; display: none !important; }
+
+html[data-theme="codex"] .hero-inner { padding: 0 0 22px 0 !important; }
+
+html[data-theme="codex"] .hero-inner .kicker {
+  background: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  gap: 8px !important;
+}
+html[data-theme="codex"] .hero-inner .kicker-dot { display: none !important; }
+html[data-theme="codex"] .hero-inner #kickerLabel {
+  background: none !important;
+  color: #c9a961 !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
+}
+html[data-theme="codex"] .hero-inner .kicker-dim { color: rgba(232, 223, 205, .55) !important; }
+
+/* 字重：Noto Serif SC 可变字重，正文 600、标题 600 */
+html[data-theme="codex"] .hero-inner .hero-logo {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', 'Songti SC', serif !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="codex"] .hero-inner :is(.kicker, .tagline, .meta-row, .progress-head, .progress-sub),
+html[data-theme="codex"] .btn {
+  font-family: 'Noto Serif SC', 'Songti SC', serif !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="codex"] .hero-inner .tagline { color: #e6dcc6 !important; }
+html[data-theme="codex"] .hero-inner .meta-row { color: #dccfb6 !important; }
+
+/* ============================================================
+   CODEX · v7「把封面压成铜版衬底」
+   ------------------------------------------------------------
+   用户只要求小修，但原图的语言是**深褐星图**，当前实机背后却是
+   一张高饱和紫色封面，像把秘典贴在霓虹灯上。v7 只动背景层：
+     · 封面压成低饱和深褐，像铜版画的底纹；
+     · 右侧加一枚巨大的暗淡罗盘（hero-compass.svg），与面板金线同源；
+     · 四周收暗角，保证标题与正文的对比度不下降。
+   ============================================================ */
+
+html[data-theme="codex"] .scene { background: #140e09; }
+
+html[data-theme="codex"] .scene > img {
+  opacity: .82 !important;
+  filter: sepia(.62) saturate(.5) contrast(1.14) brightness(.3) !important;
+}
+
+html[data-theme="codex"] .scene::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(76% 74% at 64% 44%, rgba(20, 14, 9, 0) 0 30%, rgba(20, 14, 9, .52) 68%, rgba(20, 14, 9, .92) 100%),
+    linear-gradient(90deg, rgba(20, 14, 9, .94) 0 34%, rgba(20, 14, 9, .5) 62%, rgba(20, 14, 9, .72) 100%);
+}
+
+html[data-theme="codex"] .scene-stack::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: url("assets/hero-compass.svg?v=3");
+  background-position: 86% 46%;
+  background-size: min(470px, 36vw) auto;
+  background-repeat: no-repeat;
+  opacity: .2;
+}
+
+html[data-theme="codex"] .scene-stack::before {
+  content: "" !important;
+  position: absolute;
+  inset: 5.5% 4.2%;
+  z-index: 3;
+  pointer-events: none;
+  border-top: 1px solid rgba(201, 169, 97, .16);
+  border-bottom: 1px solid rgba(201, 169, 97, .12);
+}
+
+@media (max-width: 1100px) {
+  html[data-theme="codex"] .scene-stack::after { background-size: 46vw auto; opacity: .14; }
+}
+
+/* 正文再抬一档对比，长名保持两行 */
+html[data-theme="codex"] .hero-inner .tagline { color: #eee4cf !important; }
+html[data-theme="codex"] .hero-inner .meta-row { color: #e3d6bf !important; }
+html[data-theme="codex"] .hero-inner .progress-head,
+html[data-theme="codex"] .hero-inner .progress-sub { color: rgba(232, 223, 205, .82) !important; }
+
+/* v7.1：红菱形分隔（原图的属性行语言），不做无语义的等级章 */
+html[data-theme="codex"] .hero-inner .meta-dot {
+  width: 5px !important;
+  height: 5px !important;
+  background: #8a2f28 !important;
+  transform: rotate(45deg);
+  border-radius: 0 !important;
+  opacity: .9;
+}

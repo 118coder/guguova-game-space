@@ -7,7 +7,7 @@ const WebSocket = require('ws');
 
 const PORT = Number(process.env.NOVA_CDP_PORT || 9223);
 const outDir = process.argv[2] || '_shots';
-const boards = ['nova', 'aurum', 'endfield', 'codex', 'zerohour', 'mnemo'];
+const boards = ['nova', 'aurum', 'endfield', 'codex', 'zerohour', 'mnemo', 'riot', 'grimoire', 'riso', 'summer', 'broadcast'];
 
 const get = (p) => new Promise((resolve, reject) => {
   http.get({ host: '127.0.0.1', port: PORT, path: p }, (res) => {

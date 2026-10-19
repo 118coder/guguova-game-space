@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.6" fill="#ffffff"/>
+    </pattern>
+    <pattern id="dots2" width="10" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1.4" fill="#e8ff2a"/>
+    </pattern>
+  </defs>
+
+  <rect width="300" height="440" fill="#2b2fa8"/>
+
+  <!-- halftone field: dense at the left, fading to the right -->
+  <rect width="300" height="440" fill="url(#dots)" opacity=".22"/>
+  <rect x="140" width="160" height="440" fill="#2b2fa8" opacity=".55"/>
+  <rect x="210" width="90" height="440" fill="#2b2fa8" opacity=".55"/>
+
+  <!-- acid shard, hard edge -->
+  <path d="M-20 330 300 96 300 176 -20 410z" fill="#e8ff2a"/>
+  <path d="M-20 410 300 176 300 190 -20 424z" fill="#101014"/>
+
+  <!-- violet overprint circle -->
+  <circle cx="96" cy="150" r="74" fill="#7a4fd0"/>
+  <circle cx="96" cy="150" r="74" fill="url(#dots2)" opacity=".5"/>
+
+  <!-- four point star -->
+  <path d="M232 52l7 24 24 7-24 7-7 24-7-24-24-7 24-7z" fill="#f6f2e4"/>
+
+  <!-- registration marks, no type -->
+  <g stroke="#ffffff" stroke-width="1.5" opacity=".9">
+    <path d="M18 18h16M26 10v16"/>
+    <path d="M266 414h16M274 406v16"/>
+  </g>
+
+  <!-- bottom ink rule -->
+  <rect y="428" width="300" height="12" fill="#101014"/>
+</svg>

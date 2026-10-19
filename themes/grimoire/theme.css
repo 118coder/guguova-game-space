@@ -1,0 +1,2624 @@
+/* ============================================================
+   GRIMOIRE · 冒险者档案
+   Aged parchment character sheet: oxblood banners, double gold rules, diamonds and serif display.
+   ============================================================ */
+
+:root {
+  --t-paper: #e8d8b6;
+  --t-paper-2: #dcc79b;
+  --t-ink: #2a1b12;
+  --t-ink-2: #5a3a25;
+  --t-muted: #7c5d3d;
+  --t-faint: rgba(42,27,18,.38);
+  --t-line: #8a6a3a;
+  --t-panel: #f1e4c6;
+  --t-panel-2: #e2cf9f;
+  --t-accent: #7a1f2b;
+  --t-accent-2: #b08a3e;
+  --t-accent-3: #3d2a18;
+  --t-on-accent: #f4e6c8;
+  --t-danger: #8f1b22;
+  --t-ease: cubic-bezier(.2, .8, .3, 1);
+
+  --ink: var(--t-ink);
+  --muted: var(--t-muted);
+  --faint: var(--t-faint);
+  --hair: var(--t-line);
+  --accent: var(--t-accent);
+  --accent-2: var(--t-accent-2);
+  --glow: rgba(122,31,43,.2);
+  --ease: var(--t-ease);
+
+  --font-ui: 'Cormorant Garamond', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Serif SC', serif;
+  --font-display: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-condensed: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+
+  --r-panel: 0px;
+  --r-btn: 0px;
+  --r-card: 0px;
+}
+
+body {
+  background-color: var(--t-paper);
+  color: var(--t-ink);
+  font-family: var(--font-ui);
+}
+
+.app { background: transparent; }
+.scene { background: var(--t-paper); }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, .045) 1px, transparent 1.5px);
+  background-size: 7px 7px;
+  opacity: .5;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 300;
+  height: 3px;
+  pointer-events: none;
+  background: var(--t-accent);
+}
+
+.grain { opacity: .025; mix-blend-mode: multiply; }
+
+.atmosphere {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .22) 18%, transparent 46%, rgba(255, 255, 255, .28) 78%, rgba(255, 255, 255, .96) 100%);
+}
+
+.atmosphere::before {
+  background: linear-gradient(90deg, rgba(255, 255, 255, .96) 0%, rgba(255, 255, 255, .74) 30%, rgba(255, 255, 255, .2) 60%, transparent 80%);
+}
+
+.atmosphere::after { background: none; }
+html.calm .scene-stack { transform: none !important; }
+.scene > img { filter: saturate(.94) contrast(1.02); }
+.scene > img { filter: sepia(.28) saturate(.92) contrast(1.03) brightness(.97); }
+
+/* ------------------------------------------------------------
+   top bar
+   ------------------------------------------------------------ */
+
+.topbar {
+  border-bottom: 1px solid var(--t-line);
+  background: rgba(255, 255, 255, .94);
+}
+
+.brand { gap: 10px; }
+.brand-mark { display: none; }
+
+.brand::before {
+  content: "N";
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  flex: none;
+  border: 0;
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.brand-word {
+  color: var(--t-ink);
+  font-family: var(--font-display);
+  font-size: 21px;
+  letter-spacing: .16em;
+}
+
+.nav { gap: 3px; }
+
+.nav-btn {
+  padding: 3px 13px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  color: var(--t-ink-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.05;
+}
+
+.nav-btn::before {
+  content: "";
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-condensed);
+  font-size: 7.5px;
+  letter-spacing: .16em;
+  line-height: 1;
+  color: var(--t-accent);
+}
+
+.nav-btn[data-nav="home"]::before { content: "// HOME"; }
+.nav-btn[data-nav="library"]::before { content: "// LIBRARY"; }
+.nav-btn[data-nav="appearance"]::before { content: "// LOOK"; }
+
+.nav-btn:hover { color: var(--t-ink); border-color: var(--t-line); }
+.nav-btn.is-active { color: var(--t-on-accent); font-weight: 800; }
+
+.nav-glide {
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  box-shadow: none;
+  clip-path: none;
+}
+
+.clock {
+  gap: 1px;
+  padding: 3px 10px;
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+}
+
+.clock-time {
+  color: var(--t-ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-date {
+  color: var(--t-muted);
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+}
+
+.icon-btn {
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  color: var(--t-ink-2);
+}
+
+.icon-btn:hover { color: var(--t-on-accent); background: var(--t-accent); border-color: var(--t-accent); }
+.bell-dot { border-radius: 50%; background: var(--t-danger); box-shadow: 0 0 0 2px var(--t-panel); }
+
+.avatar {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-accent);
+  font-family: var(--font-display);
+  font-size: 20px;
+  box-shadow: none;
+}
+
+.avatar-btn { border-radius: var(--r-btn); }
+.online-dot { border-radius: 50%; background: var(--t-accent); box-shadow: 0 0 0 2px var(--t-panel); }
+
+.win-btn { border-radius: var(--r-btn); color: var(--t-ink-2); }
+.win-btn:hover { background: var(--t-panel-2); color: var(--t-ink); }
+.win-btn.close:hover { background: var(--t-danger); color: #fff; }
+.window-controls { border-left-color: var(--t-line); }
+
+.fullscreen-pill {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-ink);
+}
+
+.fullscreen-pill:hover { background: var(--t-accent); color: var(--t-on-accent); border-color: var(--t-accent); }
+
+/* ------------------------------------------------------------
+   hero
+   ------------------------------------------------------------ */
+
+.hero-inner { position: relative; isolation: isolate; }
+
+.hero-inner::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -24px;
+  right: -28px;
+  bottom: -22px;
+  left: -28px;
+  pointer-events: none;
+  background: var(--t-panel);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-panel);
+  box-shadow: none;
+  clip-path: none;
+}
+
+.hero-inner::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 3px 9px 4px;
+  border: 1px solid var(--t-accent);
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+.kicker-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: none; }
+.kicker-sep { width: 1px; height: 10px; background: currentColor; opacity: .3; }
+.kicker-dim { opacity: .66; font-weight: 600; }
+#kickerLabel::before { content: "// "; }
+
+html[data-theme="grimoire"] :is(.hero-logo, .detail-logo, .appearance-logo, .choice-logo, .editor-logo) {
+  --logo-font: var(--font-display);
+  --logo-weight: 400;
+  --logo-style: normal;
+  --logo-track: .02em;
+  --logo-line: .88;
+  --logo-color: var(--t-ink);
+  --logo-bg: none;
+  --logo-bg-clip: border-box;
+  --logo-fill: currentColor;
+  --logo-shadow: none;
+  --logo-filter: none;
+  -webkit-text-stroke: 0;
+  font-stretch: 100%;
+  color: var(--t-ink);
+}
+
+html[data-theme="grimoire"] .type-system::after { height: 3px; background: var(--t-accent); opacity: 1; }
+
+.tagline { max-width: 56ch; color: var(--t-ink-2); font-size: 13px; line-height: 1.7; }
+.meta-row { gap: 10px; color: var(--t-ink-2); font-size: 10.5px; font-weight: 600; letter-spacing: .03em; }
+.meta-dot { width: 2px; height: 11px; border-radius: 0; background: var(--t-accent); }
+
+.age-badge {
+  height: 19px;
+  padding: 0 6px;
+  border: 1px solid var(--t-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--t-ink-2);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.update-badge {
+  height: auto;
+  padding: 2px 6px;
+  gap: 0;
+  border: 1px solid var(--t-accent);
+  border-radius: 0;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  vertical-align: baseline;
+}
+
+.update-badge::before { display: none; }
+
+/* ------------------------------------------------------------
+   buttons
+   ------------------------------------------------------------ */
+
+.btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 50px;
+  padding: 0 24px;
+  border-radius: var(--r-btn);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  transition: color .14s linear, background .14s linear, border-color .14s linear, transform .1s linear, box-shadow .14s linear;
+}
+
+.btn::before { display: none; }
+.btn > * { position: relative; z-index: 1; }
+
+.btn.primary,
+.btn.primary.cta-adaptive,
+.btn.primary.cta-system {
+  --cta-bg: var(--t-accent);
+  --cta-bg-hover: var(--t-accent-2);
+  --cta-fg: var(--t-on-accent);
+  --cta-border: var(--t-accent);
+  --cta-shadow: none;
+  --cta-shadow-hover: none;
+  --cta-a: var(--t-accent);
+  --cta-b: var(--t-accent);
+  --cta-radius: var(--r-btn);
+  --cta-font: var(--font-ui);
+  --cta-weight: 800;
+  --cta-ls: .05em;
+  border: 1px solid var(--t-accent);
+  border-radius: var(--r-btn);
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.btn.primary:hover,
+.btn.primary.cta-adaptive:hover,
+.btn.primary.cta-system:hover {
+  background: var(--t-accent-2);
+  border-color: var(--t-accent-2);
+  color: var(--t-on-accent);
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.btn.primary:active,
+.btn.primary.cta-adaptive:active,
+.btn.primary.cta-system:active { transform: translateY(1px); }
+
+.btn.ghost {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-btn);
+  background: var(--t-panel);
+  color: var(--t-ink);
+  box-shadow: none;
+}
+
+.btn.ghost:hover { background: var(--t-panel-2); border-color: var(--t-accent); color: var(--t-accent); transform: none; box-shadow: none; }
+.btn.ghost.danger { border-color: var(--t-danger); color: var(--t-danger); }
+.btn.ghost.danger:hover { background: var(--t-danger); color: #fff; }
+.btn.compact { height: 42px; padding: 0 15px; font-size: 11.5px; }
+.btn:disabled { opacity: .45; }
+
+.preview-mini.cta-adaptive,
+.preview-mini.cta-system {
+  border-radius: var(--r-btn) !important;
+  background: var(--t-accent) !important;
+  color: var(--t-on-accent) !important;
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------
+   progress / activity
+   ------------------------------------------------------------ */
+
+.progress-block {
+  width: min(440px, 100%);
+  margin-top: clamp(16px, 2.5vh, 24px);
+  padding-top: 10px;
+  border-top: 1px solid var(--t-line);
+}
+
+.progress-head { color: var(--t-muted); font-size: 9.5px; font-weight: 600; letter-spacing: .04em; }
+.progress-pct { color: var(--t-accent); font-family: var(--font-display); font-size: 20px; font-weight: 400; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+
+.progress-track,
+.activity-track,
+.dp-track,
+.manage-progress-track,
+.launch-track {
+  height: 5px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: var(--t-paper-2);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.progress-track i,
+.activity-track i,
+.dp-track i,
+.manage-progress-track i,
+.launch-track i {
+  border-radius: 999px;
+  background: var(--t-accent);
+  box-shadow: none;
+}
+
+.progress-track i::after,
+.activity-track i::after,
+.dp-track i::after,
+.manage-progress-track i::after,
+.launch-track i::after { display: none; }
+
+.progress-sub { color: var(--t-muted); font-size: 9.5px; }
+.progress-sub .ic { opacity: .7; color: var(--t-accent); }
+
+.activity-strip {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  background: var(--t-panel);
+  box-shadow: none;
+  clip-path: none;
+  transition: transform .18s var(--t-ease), border-color .14s linear, background .14s linear;
+}
+
+.activity-strip::before { display: none; }
+.activity-strip::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: var(--t-accent);
+  pointer-events: none;
+}
+
+.activity-strip:hover { border-color: var(--t-accent); background: var(--t-panel-2); transform: translateY(-2px); }
+.activity-icon { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.activity-kicker { color: var(--t-accent); font-family: var(--font-condensed); font-size: 8.5px; font-weight: 700; letter-spacing: .12em; }
+.activity-title { color: var(--t-ink); font-family: var(--font-display); font-size: 21px; font-weight: 400; letter-spacing: .04em; }
+.activity-desc { color: var(--t-ink-2); }
+.activity-pct { color: var(--t-accent); font-family: var(--font-display); font-size: 21px; font-weight: 400; }
+.activity-meta { color: var(--t-muted); font-size: 8.5px; }
+.activity-arrow { color: var(--t-accent); }
+
+/* ------------------------------------------------------------
+   dock
+   ------------------------------------------------------------ */
+
+.dock {
+  border-top: 1px solid var(--t-line);
+  background: var(--t-paper);
+  padding-top: clamp(10px, 1.6vh, 15px);
+}
+
+.dock-title { color: var(--t-ink); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.dock-title::before { width: 7px; height: 7px; border-radius: 50%; background: var(--t-accent); box-shadow: none; }
+.dock-title > span:first-child::before { content: "// "; color: var(--t-accent); }
+
+.dock-count {
+  padding: 1px 6px;
+  border: 1px solid var(--t-accent);
+  border-radius: 999px;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.all-btn { color: var(--t-ink-2); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.all-btn:hover { color: var(--t-accent); }
+
+#rail { counter-reset: nt-tile; }
+.tile { counter-increment: nt-tile; }
+
+.tile-art {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  background: var(--t-panel-2);
+  clip-path: none;
+  transition: transform .18s var(--t-ease), border-color .14s linear, filter .18s linear, box-shadow .18s var(--t-ease);
+}
+
+.tile-art::after { background: linear-gradient(180deg, transparent 56%, rgba(0, 0, 0, .3) 100%); }
+
+.tile-art::before {
+  content: "No." counter(nt-tile, decimal-leading-zero);
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 4;
+  padding: 2px 5px 1px;
+  border: 1px solid var(--t-line);
+  border-radius: calc(var(--r-card) / 2);
+  background: rgba(255, 255, 255, .9);
+  color: var(--t-ink);
+  font-family: var(--font-condensed);
+  font-size: 8.5px;
+  letter-spacing: .06em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.tile.is-active .tile-art::before { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.tile-badge {
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  color: var(--t-ink-2);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.tile-badge.live, .lib-badge.live { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.tile-badge.offline { border-color: var(--t-line); background: var(--t-panel-2); color: var(--t-muted); }
+
+.tile:not(.is-active) .tile-art { filter: grayscale(.12) brightness(.98); }
+.tile:hover:not(.is-active) .tile-art { filter: none; border-color: var(--t-accent); transform: translateY(-3px); }
+.tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); transform: translateY(-4px); }
+
+.tile-progress { height: 3px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
+.tile-progress i { border-radius: 999px; background: var(--t-accent); }
+.tile.is-active .tile-progress i { background: var(--t-accent); }
+
+.tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--t-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
+.tile-name { overflow: visible; white-space: normal; text-overflow: clip; color: var(--t-ink); }
+.tile-sub { color: var(--t-muted); font-family: var(--font-condensed); font-size: 9.5px; font-variant-numeric: tabular-nums; }
+.tile.is-active .tile-label { color: var(--t-ink); }
+.tile.is-active .tile-name { color: var(--t-accent); }
+.tile.is-active .tile-sub { color: var(--t-accent); }
+
+.dock-foot { color: var(--t-muted); }
+.hint .key, kbd.key { border: 1px solid var(--t-line); border-radius: 4px; background: var(--t-panel); color: var(--t-ink); font-size: 9px; }
+.hints .hint span:last-child { color: var(--t-muted); }
+.runtime-item { color: var(--t-muted); }
+.runtime-sep { background: var(--t-line); }
+
+/* ------------------------------------------------------------
+   library / appearance
+   ------------------------------------------------------------ */
+
+.view-library,
+.view-appearance {
+  background-color: var(--t-paper);
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.view-library .lib-shell,
+.view-appearance .appearance-shell { background: transparent; }
+
+.lib-head { border-bottom: 1px solid var(--t-line); padding-bottom: clamp(12px, 1.8vh, 18px); }
+.lib-back { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.lib-back:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.lib-eyebrow { color: var(--t-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .14em; }
+.lib-eyebrow::before { content: "// "; }
+
+.lib-title h2 { margin-top: 4px; color: var(--t-ink); font-family: var(--font-display); font-size: clamp(38px, 3.8vw, 52px); font-weight: 400; letter-spacing: .03em; line-height: .95; }
+
+.lib-search { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); }
+.lib-search:focus-within { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.lib-search input { color: var(--t-ink); }
+.lib-search input::placeholder { color: var(--t-muted); }
+.lib-search .keycap { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-accent); }
+
+.lib-stats { color: var(--t-muted); font-size: 9.5px; }
+.lib-stats b { color: var(--t-accent); font-family: var(--font-display); font-size: 17px; font-weight: 400; }
+.lib-sep { background: var(--t-line); }
+
+.filter {
+  border: 1px solid var(--t-line);
+  border-radius: 999px;
+  background: var(--t-panel);
+  color: var(--t-ink-2);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.filter:hover { border-color: var(--t-accent); color: var(--t-accent); }
+.filter.is-active { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); box-shadow: none; }
+
+.lib-card { position: relative; transition: transform .18s var(--t-ease); }
+.lib-card::before { content: ""; position: absolute; top: 0; bottom: 34px; left: -8px; width: 3px; background: var(--t-accent); transform: scaleY(0); transform-origin: top; transition: transform .18s var(--t-ease); pointer-events: none; }
+.lib-card:hover { transform: translateX(4px); }
+.lib-card:hover::before { transform: scaleY(1); }
+
+.lib-art { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); clip-path: none; }
+.lib-art::after { background: linear-gradient(180deg, transparent 56%, rgba(0, 0, 0, .26) 100%); }
+.lib-card:hover .lib-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.lib-open { border: 1px solid var(--t-accent); border-radius: var(--r-btn); background: var(--t-accent); color: var(--t-on-accent); }
+.lib-progress { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
+.lib-progress i { border-radius: 999px; background: var(--t-accent); }
+.lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
+.lib-en { color: var(--t-muted); }
+.lib-sub { color: var(--t-muted); }
+.lib-fav { color: var(--t-accent); }
+
+.lib-current { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .06em; }
+.lib-current::before { display: none; }
+.lib-empty h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
+.lib-empty p { color: var(--t-ink-2); }
+.empty-icon { color: var(--t-accent); }
+
+.appearance-kicker { color: var(--t-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .14em; }
+.appearance-kicker::before { content: "// "; }
+.appearance-head h2 { color: var(--t-ink); font-family: var(--font-display); font-size: clamp(38px, 3.8vw, 52px); font-weight: 400; letter-spacing: .03em; line-height: .95; }
+.appearance-head p, .section-head p { color: var(--t-ink-2); }
+.section-head h3 { color: var(--t-ink); font-size: 17px; font-weight: 700; }
+
+.section-tag { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; }
+.view-appearance .appearance-preview { border: 1px solid var(--t-line); border-radius: var(--r-panel); overflow: hidden; }
+.view-appearance .appearance-options { border: 1px solid var(--t-line); border-radius: var(--r-panel); background: var(--t-panel); }
+
+.appearance-preview-shade { display: none; }
+.appearance-bg { display: none; }
+.appearance-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.appearance-preview-copy {
+  right: auto;
+  bottom: 92px;
+  left: 18px;
+  width: min(78%, 480px);
+  max-width: 480px;
+  padding: 11px 14px 13px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  color: var(--t-ink);
+  box-shadow: none;
+  clip-path: none;
+}
+
+html[data-theme="grimoire"] .appearance-preview-copy .appearance-logo {
+  --logo-size: clamp(22px, 2.5vw, 34px);
+  --logo-color: var(--t-ink);
+  --logo-fill: currentColor;
+  color: var(--t-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  margin-top: 6px;
+}
+
+.preview-cta-row,
+.appearance-progress { display: none; }
+
+.appearance-switcher {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 8px 12px 9px;
+  gap: 6px;
+  background: var(--t-panel);
+  border-top: 1px solid var(--t-line);
+  mask-image: none;
+  -webkit-mask-image: none;
+  counter-reset: nt-chip;
+}
+
+.appearance-eyebrow { color: var(--t-accent); font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.appearance-eyebrow::before { content: "// "; }
+.appearance-tagline { margin-top: 4px; max-width: 100%; overflow: visible; white-space: normal; color: var(--t-ink-2); font-size: 10px; line-height: 1.55; }
+
+.appearance-index { padding: 2px 6px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink); font-family: var(--font-condensed); font-size: 9px; letter-spacing: .06em; }
+.live-pill { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink); font-size: 8.5px; font-weight: 700; }
+.live-pill i { border-radius: 50%; background: var(--t-accent); box-shadow: none; }
+.preview-cta-note { color: var(--t-muted); }
+
+.game-chip { width: 62px; border: 1px solid var(--t-line); border-radius: var(--r-card); opacity: 1; counter-increment: nt-chip; }
+.game-chip::after { content: "No." counter(nt-chip, decimal-leading-zero); position: absolute; top: 3px; left: 3px; z-index: 2; padding: 1px 3px 0; border: 1px solid var(--t-line); border-radius: 3px; background: rgba(255, 255, 255, .9); color: var(--t-ink); font-family: var(--font-condensed); font-size: 6.5px; line-height: 1; pointer-events: none; }
+.game-chip.is-active { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.game-chip.is-active::after { background: var(--t-accent); color: var(--t-on-accent); border-color: var(--t-accent); }
+
+.style-choice { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); }
+.style-choice:hover { border-color: var(--t-accent); }
+.style-choice.is-active { border-color: var(--t-accent); background: var(--t-panel); box-shadow: 0 0 0 1px var(--t-accent); }
+.style-choice-head { color: var(--t-ink); font-weight: 700; }
+.style-choice-head span:not(.choice-radio) { color: var(--t-ink); }
+.style-choice-head em { color: var(--t-accent); font-family: var(--font-condensed); font-size: 8.5px; }
+.choice-radio { border: 1px solid var(--t-line); border-radius: 50%; }
+.style-choice.is-active .choice-radio { border-color: var(--t-accent); background: var(--t-accent); }
+.style-choice.is-active .choice-radio::after { inset: 2px; border-radius: 50%; background: var(--t-panel); }
+.style-choice-desc { color: var(--t-ink-2); }
+
+.type-readout { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.type-readout-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.type-recipe-name { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; letter-spacing: .03em; }
+.type-recipe-spec { color: var(--t-ink-2); }
+.type-seed { color: var(--t-accent); font-size: 8.5px; font-variant-numeric: tabular-nums; }
+.type-shuffle { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink); }
+.type-shuffle:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.type-dna span { border: 1px solid var(--t-line); border-radius: 3px; color: var(--t-ink-2); }
+
+.palette-strip-label { color: var(--t-muted); font-size: 8.5px; letter-spacing: .08em; }
+.swatch { border-radius: 0; }
+.swatch i { border: 1px solid var(--t-line); }
+.swatch em { color: var(--t-muted); font-size: 8px; }
+
+.pref-row { border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); color: var(--t-ink); }
+.pref-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+.pref-note, .pref-hint { color: var(--t-muted); }
+.appearance-footer { border-top: 1px solid var(--t-line); }
+.autosave { color: var(--t-muted); }
+.appearance-data { color: var(--t-muted); }
+
+.switch { border-radius: 999px; background: var(--t-paper-2); box-shadow: inset 0 0 0 1px var(--t-line); }
+.switch::after { border-radius: 50%; background: var(--t-muted); }
+.switch.on { background: var(--t-accent); box-shadow: inset 0 0 0 1px var(--t-accent); }
+.switch.on::after { background: var(--t-on-accent); }
+
+.theme-card { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.theme-card:hover { border-color: var(--t-accent); }
+.theme-card.is-active { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.theme-preview { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.theme-name { color: var(--t-ink); font-weight: 700; }
+.theme-sub { color: var(--t-muted); font-size: 8px; }
+.theme-placeholder { color: var(--t-accent); }
+.theme-active-tag { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8px; font-weight: 800; letter-spacing: .04em; }
+
+/* ------------------------------------------------------------
+   popovers / context menu / notifications
+   ------------------------------------------------------------ */
+
+.popover { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); box-shadow: 0 8px 0 rgba(0, 0, 0, .08); }
+.popover-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.popover-head h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; }
+.popover-head { border-bottom: 1px solid var(--t-line); }
+.text-btn { color: var(--t-accent); font-size: 9.5px; }
+.text-btn:hover { color: var(--t-ink); }
+
+.menu-row { border-radius: calc(var(--r-card) / 2); color: var(--t-ink); font-size: 11px; }
+.menu-row:hover { background: var(--t-accent); color: var(--t-on-accent); }
+.row-key { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-accent); }
+.menu-separator { background: var(--t-line); }
+
+.context-menu { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); box-shadow: 0 8px 0 rgba(0, 0, 0, .08); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.context-item { border-radius: calc(var(--r-card) / 2); color: var(--t-ink); font-size: 12px; }
+.context-item:hover, .context-item:focus-visible { background: var(--t-accent); color: var(--t-on-accent); outline: none; }
+.context-item.is-disabled, .context-item:disabled { opacity: .4; }
+.menu-label { overflow: visible; white-space: normal; text-overflow: clip; }
+.menu-key { color: var(--t-accent); font-size: 9.5px; }
+.context-item:hover .menu-key { color: var(--t-on-accent); }
+
+.profile-head { border-bottom: 1px solid var(--t-line); }
+.profile-id strong { color: var(--t-ink); }
+.profile-id span { color: var(--t-ink-2); }
+.profile-foot { border-top: 1px solid var(--t-line); color: var(--t-muted); }
+.notif-item { border-radius: calc(var(--r-card) / 2); border: 1px solid transparent; }
+.notif-item:hover { border-color: var(--t-line); background: var(--t-panel-2); }
+.notif-title { color: var(--t-ink); }
+.notif-sub { color: var(--t-ink-2); }
+.notif-icon { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.notif-unread { background: var(--t-accent); box-shadow: none; }
+.status-pip { background: var(--t-accent); box-shadow: none; border-radius: 50%; }
+
+/* ------------------------------------------------------------
+   overlays / details / editor / scanner / picker / dialog
+   ------------------------------------------------------------ */
+
+.overlay { background: rgba(20, 20, 20, .4); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+.detail-modal, .lib-shell, .appearance-shell, .editor-shell,
+.scanner-shell, .picker-shell, .dialog {
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-panel);
+  background: var(--t-panel);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, .08);
+}
+
+.detail-art { border-right: 1px solid var(--t-line); background: var(--t-paper-2); }
+.detail-art::before, .detail-art::after { display: none; }
+.detail-art > img.detail-art-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.detail-art-copy {
+  right: auto;
+  bottom: 18px;
+  left: 18px;
+  width: min(86%, 520px);
+  max-width: 520px;
+  padding: 11px 14px 12px;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--t-line);
+  border-radius: var(--r-card);
+  color: var(--t-ink);
+  box-shadow: none;
+  clip-path: none;
+}
+
+html[data-theme="grimoire"] .detail-art-copy .detail-logo {
+  --logo-size: clamp(19px, 2vw, 28px);
+  --logo-color: var(--t-ink);
+  --logo-fill: currentColor;
+  color: var(--t-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  margin-top: 7px;
+}
+
+.detail-status { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; }
+.detail-status .status-dot { border-radius: 50%; background: currentColor; box-shadow: none; }
+.detail-zh { color: var(--t-ink-2); font-size: 9.5px; letter-spacing: .04em; white-space: normal; }
+.detail-body { scrollbar-color: var(--t-accent) transparent; }
+.detail-kicker { color: var(--t-accent); font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.detail-kicker::before { width: 6px; height: 6px; border-radius: 50%; background: var(--t-accent); }
+.detail-body h2 { color: var(--t-ink); font-family: var(--font-display); font-size: 36px; font-weight: 400; letter-spacing: .02em; }
+.detail-tagline, .detail-desc { color: var(--t-ink-2); }
+
+.detail-progress, .stat, .manage-stat { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel-2); }
+.dp-head { color: var(--t-muted); }
+.dp-head b { color: var(--t-accent); font-family: var(--font-display); font-size: 18px; font-weight: 400; }
+.dp-sub, .detail-sync { color: var(--t-muted); }
+.stat-label { color: var(--t-muted); font-size: 8.5px; }
+.stat-value { color: var(--t-ink); font-size: 15px; font-weight: 700; }
+.detail-path { color: var(--t-muted); font-size: 9.5px; }
+.detail-actions { border-top: 1px solid var(--t-line); }
+
+.modal-close { border: 1px solid var(--t-line); border-radius: 50%; background: var(--t-panel); color: var(--t-ink); }
+.modal-close:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.manage-panel { border-top: 1px solid var(--t-line); }
+.manage-kicker { color: var(--t-accent); font-size: 8.5px; }
+.manage-head h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; }
+.manage-row { color: var(--t-ink); border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.manage-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+.manage-note { color: var(--t-muted); }
+
+.editor-head, .scanner-head, .picker-head { border-bottom: 1px solid var(--t-line); }
+.editor-kicker, .scanner-kicker, .picker-kicker { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.editor-kicker span { color: var(--t-ink); }
+.editor-head h2, .scanner-head h2, .picker-head h2 { color: var(--t-ink); font-family: var(--font-display); font-size: 32px; font-weight: 400; letter-spacing: .03em; }
+
+.field input, .field textarea, .field select { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.field select {
+  background-color: var(--t-panel);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--t-accent) 50%),
+    linear-gradient(135deg, var(--t-accent) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 17px, calc(100% - 12px) 17px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.field select option { background: var(--t-panel); color: var(--t-ink); }
+.field input::placeholder, .field textarea::placeholder { color: var(--t-muted); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
+.field-label { color: var(--t-ink-2); font-size: 9px; }
+.field-label em { color: var(--t-accent); }
+.field-btn { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); }
+.field-btn:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+.editor-preview { border: 1px solid var(--t-line); border-radius: var(--r-card); }
+.editor-preview-shade { display: none; }
+.editor-preview-copy { right: 0; bottom: 0; left: 0; padding: 11px 15px 12px; background: rgba(255, 255, 255, .94); border-top: 1px solid var(--t-line); color: var(--t-ink); }
+html[data-theme="grimoire"] .editor-preview .editor-logo { --logo-color: var(--t-ink); --logo-fill: currentColor; color: var(--t-ink); -webkit-text-fill-color: currentColor; text-shadow: none; filter: none; }
+.editor-preview-hint { color: var(--t-ink-2); font-size: 10px; }
+.editor-preview-swatches i { border: 1px solid var(--t-line); box-shadow: none; }
+.editor-framing { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); color: var(--t-ink-2); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.editor-framing button { border: 0; border-radius: 50%; background: transparent; color: var(--t-ink); }
+.editor-framing button:hover { background: var(--t-accent); color: var(--t-on-accent); }
+.editor-framing-sep { background: var(--t-line); }
+.editor-foot { border-top: 1px solid var(--t-line); }
+.editor-error { border: 1px solid var(--t-danger); border-radius: var(--r-btn); background: rgba(0, 0, 0, .04); color: var(--t-danger); }
+#editorDelete { color: var(--t-danger); }
+#editorDelete:hover { color: var(--t-ink); }
+
+.scanner-status { border-top: 1px solid var(--t-line); color: var(--t-muted); font-size: 9px; }
+.scan-group-title { color: var(--t-accent); font-size: 8.5px; letter-spacing: .1em; }
+.scan-group-title::after { background: var(--t-line); }
+.scan-row { border: 1px solid transparent; border-radius: calc(var(--r-card) / 2); }
+.scan-row:hover { background: var(--t-panel-2); }
+.scan-row.is-checked { border-color: var(--t-accent); background: var(--t-panel-2); }
+.scan-name { color: var(--t-ink); }
+.scan-sub { color: var(--t-muted); font-size: 9px; }
+.scan-thumb { border: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
+.scan-check { border: 1px solid var(--t-line); border-radius: 4px; }
+.scan-row.is-checked .scan-check { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.scan-row.is-imported .scan-check { border-color: var(--t-line); color: var(--t-muted); }
+.scan-source { border: 1px solid var(--t-line); border-radius: 3px; color: var(--t-accent); font-size: 7.5px; letter-spacing: .06em; }
+.scanner-foot { border-top: 1px solid var(--t-line); }
+.scanner-empty { color: var(--t-muted); }
+.scanner-empty strong { color: var(--t-ink); }
+
+.crumb-btn { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink); }
+.crumb-path { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-muted); font-size: 9px; }
+.picker-toggle { color: var(--t-muted); }
+.drive-chip { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink-2); }
+.drive-chip:hover { border-color: var(--t-accent); color: var(--t-accent); }
+.drive-chip.is-active { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.picker-row { border-radius: calc(var(--r-card) / 2); }
+.picker-row:hover { background: var(--t-panel-2); color: var(--t-ink); }
+.picker-row.is-selected { border-color: var(--t-accent); background: var(--t-panel-2); color: var(--t-ink); }
+.picker-row.is-dir .ic { color: var(--t-accent); }
+.picker-name { color: inherit; }
+.picker-meta { color: var(--t-muted); font-size: 8.5px; }
+.picker-foot { border-top: 1px solid var(--t-line); }
+.picker-note { color: var(--t-muted); }
+.picker-empty { color: var(--t-muted); }
+
+.dialog-mark { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-title { color: var(--t-ink); font-family: var(--font-display); font-size: 30px; font-weight: 400; }
+.dialog-text { color: var(--t-ink-2); }
+.dialog-action { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-ink); font-size: 11.5px; font-weight: 700; }
+.dialog-action:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-action.is-primary { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.dialog-action.is-primary:hover { background: var(--t-accent-2); border-color: var(--t-accent-2); }
+.dialog-action.is-danger { border-color: var(--t-danger); color: var(--t-danger); }
+.dialog-action.is-danger:hover { background: var(--t-danger); color: #fff; }
+
+.rail-empty-card { border: 1px dashed var(--t-line); border-radius: var(--r-card); background: var(--t-panel); }
+.rail-empty-card:hover { border-color: var(--t-accent); }
+.rail-empty-icon { border: 1px solid var(--t-accent); border-radius: 50%; background: var(--t-accent); color: var(--t-on-accent); }
+.rail-empty-title { color: var(--t-ink); }
+.rail-empty-sub { color: var(--t-ink-2); }
+
+/* ------------------------------------------------------------
+   launch / sleep / toast / pad
+   ------------------------------------------------------------ */
+
+.launch { background: var(--t-ink); --launch-ease: var(--t-ease); }
+.launch::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
+.launch::after { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: var(--t-accent); z-index: 6; pointer-events: none; }
+.launch-art { filter: grayscale(.55) contrast(1.1) brightness(.45); transform: scale(1.06); animation: none; transition: transform .5s var(--t-ease), filter .5s var(--t-ease); }
+.launch.is-open .launch-art { transform: scale(1); filter: grayscale(.5) contrast(1.1) brightness(.5); }
+.launch.is-leaving .launch-art { transform: scale(1.02); filter: grayscale(.6) brightness(.2) blur(2px); transition-duration: .32s; }
+.launch-veil { background: rgba(0, 0, 0, .62); }
+.launch-bars i { background: var(--t-ink); height: 8vh; }
+.launch-bars i::after { content: ""; position: absolute; right: 5vw; left: 5vw; height: 1px; background: var(--t-accent); }
+.launch-brand { color: var(--t-paper); font-family: var(--font-display); font-size: 16px; letter-spacing: .18em; }
+.launch-system { color: var(--t-accent); font-size: 9px; font-weight: 700; letter-spacing: .16em; }
+.launch-stage { gap: clamp(16px, 2.6vh, 28px); }
+.launch-ring { width: clamp(92px, 11vh, 128px); opacity: 0; transition: opacity .3s linear; }
+.launch.is-open .launch-ring { opacity: 1; }
+.ring-track { stroke: rgba(255, 255, 255, .22); stroke-width: 3; stroke-dasharray: 2 14; }
+.ring-progress { stroke: var(--t-accent); stroke-width: 5; stroke-linecap: butt; filter: none; transition: stroke-dashoffset .24s var(--t-ease); }
+.launch-ring-label { color: var(--t-paper); font-family: var(--font-display); font-size: 22px; font-weight: 400; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.launch-kicker { color: var(--t-on-accent); background: var(--t-accent); padding: 3px 8px; font-size: 9.5px; font-weight: 800; letter-spacing: .08em; }
+.launch-kicker::before { content: "// "; }
+.launch-copy .launch-logo, .launch-logo { --logo-font: var(--font-display); --logo-weight: 400; --logo-style: normal; --logo-track: .02em; --logo-color: var(--t-paper); --logo-bg: none; --logo-bg-clip: border-box; --logo-fill: currentColor; --logo-shadow: none; --logo-filter: none; -webkit-text-stroke: 0; font-stretch: 100%; color: var(--t-paper); }
+.launch-copy .launch-zh { color: var(--t-accent); font-size: 9.5px; font-weight: 700; letter-spacing: .12em; }
+.launch-steps { counter-reset: nt-step; gap: 15px; }
+.launch-step { counter-increment: nt-step; color: var(--t-muted); font-size: 9px; font-weight: 600; }
+.launch-step i { display: none; }
+.launch-step::before { content: "0" counter(nt-step); display: inline-block; margin-right: 6px; padding: 1px 4px; border: 1px solid rgba(255, 255, 255, .24); color: rgba(255, 255, 255, .5); font-family: var(--font-display); font-size: 8px; letter-spacing: .06em; }
+.launch-step.is-active { color: var(--t-paper); }
+.launch-step.is-active::before { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.launch-step.is-done { color: var(--t-paper); }
+.launch-step.is-done::before { border-color: var(--t-accent); color: var(--t-accent); }
+.launch-status { color: var(--t-accent); }
+.launch-hint { border: 1px solid var(--t-accent); border-radius: 999px; color: var(--t-accent); font-size: 9px; font-weight: 700; }
+.launch.is-ready .launch-hint { background: var(--t-accent); color: var(--t-on-accent); }
+.launch-foot { color: rgba(255, 255, 255, .42); letter-spacing: .08em; }
+
+.sleep { background: var(--t-ink); }
+.sleep::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
+.sleep-brand { color: var(--t-accent); letter-spacing: .24em; font-family: var(--font-display); }
+.sleep-time { color: var(--t-paper); font-family: var(--font-display); font-weight: 400; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.sleep-date { color: rgba(255, 255, 255, .5); letter-spacing: .12em; }
+.sleep-moon { color: var(--t-accent); }
+.sleep-hint { color: rgba(255, 255, 255, .42); }
+.sleep-dot { background: var(--t-accent); box-shadow: none; }
+
+.toast { border: 1px solid var(--t-line); border-radius: var(--r-card); background: var(--t-panel); color: var(--t-ink); box-shadow: 0 6px 0 rgba(0, 0, 0, .08); }
+.toast .ic { color: var(--t-accent); }
+.toast::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--t-accent); }
+
+.pad-hints { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-panel); }
+.pad-hint { color: var(--t-ink); font-weight: 600; }
+.pad-hint + .pad-hint { border-left-color: var(--t-line); }
+.pad-glyph { border: 1px solid var(--t-line); border-radius: 50%; background: var(--t-panel); color: var(--t-ink); }
+.pad-glyph.face { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+
+:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+::selection { background: var(--t-accent); color: var(--t-on-accent); }
+* { scrollbar-color: var(--t-accent) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--t-accent); border: 2px solid var(--t-paper); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--t-ink); }
+
+html.reduce-motion .btn,
+html.reduce-motion .activity-strip,
+html.reduce-motion .lib-card,
+html.reduce-motion .lib-card::before,
+html.reduce-motion .nav-glide,
+html.reduce-motion .tile-art,
+html.reduce-motion .tile-art > img,
+html.reduce-motion .lib-art > img { transition-duration: .001ms !important; }
+
+html.reduce-motion .tile:hover:not(.is-active) .tile-art,
+html.reduce-motion .tile.is-active .tile-art,
+html.reduce-motion .lib-card:hover,
+html.reduce-motion .activity-strip:hover { transform: none; }
+
+html.perf-low body::before { display: none; }
+html.perf-low .grain { display: none; }
+
+
+/* GRIMOIRE · parchment, oxblood and gold rules */
+body::before {
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(122, 31, 43, .09) 0 1px, transparent 2px),
+    radial-gradient(circle at 72% 58%, rgba(176, 138, 62, .11) 0 1px, transparent 2px),
+    repeating-linear-gradient(0deg, rgba(42, 27, 18, .035) 0 1px, transparent 1px 5px);
+  background-size: 43px 43px, 61px 61px, auto;
+  opacity: .8;
+}
+body::after { height: 4px; background: linear-gradient(90deg, var(--t-accent) 0 38%, var(--t-accent-2) 38% 62%, var(--t-accent) 62% 100%); }
+.topbar { border-bottom: 2px solid var(--t-accent-2); background: var(--t-panel); }
+.brand::before { border: 1px solid var(--t-accent-2); background: var(--t-accent); color: var(--t-accent-2); }
+.brand-word { font-family: var(--font-serif); letter-spacing: .12em; }
+.nav-btn::before { color: var(--t-accent); }
+.nav-btn.is-active { color: var(--t-accent-2); }
+.clock { border-color: var(--t-accent-2); }
+.avatar { border-color: var(--t-accent-2); color: var(--t-accent); border-radius: 50%; }
+.hero-inner::before {
+  background: var(--t-panel);
+  border: 1px solid var(--t-accent-2);
+  outline: 1px solid var(--t-accent);
+  outline-offset: -7px;
+  box-shadow: inset 0 0 0 4px rgba(176, 138, 62, .14);
+  border-radius: 0;
+}
+.hero-inner::after {
+  top: -7px;
+  left: -7px;
+  width: 14px;
+  height: 14px;
+  background: var(--t-accent-2);
+  border: 1px solid var(--t-accent);
+  transform: rotate(45deg);
+}
+.kicker { border: 1px solid var(--t-accent-2); background: var(--t-accent); color: var(--t-accent-2); font-family: var(--font-serif); letter-spacing: .1em; }
+.hero-logo { font-family: var(--font-serif); font-weight: 600; }
+.meta-dot { background: var(--t-accent-2); transform: rotate(45deg); }
+.age-badge { border-color: var(--t-accent-2); color: var(--t-accent); }
+.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system {
+  border: 1px solid var(--t-accent-2);
+  box-shadow: inset 0 0 0 2px rgba(176, 138, 62, .42);
+}
+.btn.ghost { border-color: var(--t-accent); color: var(--t-accent); }
+.progress-track i { background: var(--t-accent-2); }
+.activity-strip { border-color: var(--t-accent-2); box-shadow: inset 3px 0 0 var(--t-accent); }
+.activity-icon { border-color: var(--t-accent-2); }
+.tile-art, .lib-art { border-color: var(--t-accent-2); }
+.tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: inset 0 0 0 1px var(--t-accent); }
+.tile-badge, .lib-current { border-color: var(--t-accent-2); }
+.theme-card, .style-choice, .type-readout, .detail-progress, .stat { border-color: var(--t-accent-2); }
+.view-library::before, .view-appearance::before {
+  content: "GRIMOIRE";
+  position: absolute;
+  top: 6%;
+  left: -4%;
+  z-index: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(110px, 15vw, 220px);
+  font-weight: 600;
+  line-height: .8;
+  color: rgba(122, 31, 43, .06);
+  transform: rotate(-3deg);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.view-library .lib-shell, .view-appearance .appearance-shell { position: relative; z-index: 1; }
+.detail-modal, .lib-shell, .appearance-shell, .editor-shell, .scanner-shell, .picker-shell, .dialog {
+  border: 1px solid var(--t-accent-2);
+  outline: 1px solid var(--t-accent);
+  outline-offset: -6px;
+}
+.detail-art-copy, .appearance-preview-copy, .editor-preview-copy { border-color: var(--t-accent-2); }
+.activity-title, .lib-title h2, .appearance-head h2, .detail-body h2 { font-family: var(--font-serif); }
+
+
+/* Parchment inset plates instead of white cards */
+.detail-art-copy,
+.appearance-preview-copy,
+.editor-preview-copy {
+  background: var(--t-panel);
+  border-color: var(--t-accent-2);
+  box-shadow: inset 0 0 0 2px rgba(176, 138, 62, .18);
+}
+
+/* ============================================================
+   GRIMOIRE · signature pass
+   An illuminated character sheet: double gold rules, red side
+   ribbon, wax seal and a red banner activity row.
+   ============================================================ */
+
+.hero-inner::before {
+  background-color: var(--t-panel);
+  background-image:
+    radial-gradient(circle at 6px 6px, var(--t-accent-2) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 6px) 6px, var(--t-accent-2) 0 3px, transparent 4px),
+    radial-gradient(circle at 6px calc(100% - 6px), var(--t-accent-2) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 6px) calc(100% - 6px), var(--t-accent-2) 0 3px, transparent 4px),
+    radial-gradient(circle at 14% 22%, rgba(122, 31, 43, .1) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 78% 66%, rgba(176, 138, 62, .14) 0 1.5px, transparent 2px),
+    repeating-linear-gradient(0deg, rgba(42, 27, 18, .035) 0 1px, transparent 1px 5px);
+  background-size: auto, auto, auto, auto, 47px 47px, 61px 61px, auto;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  border: 3px double var(--t-accent-2);
+  border-radius: 0;
+  outline: 1px solid var(--t-accent);
+  outline-offset: -10px;
+  box-shadow:
+    inset 0 0 0 6px rgba(176, 138, 62, .12),
+    inset 0 0 0 7px rgba(176, 138, 62, .36);
+}
+
+/* red vertical ribbon on the panel edge */
+.hero-inner::after {
+  top: 26px;
+  right: -29px;
+  bottom: 26px;
+  left: auto;
+  width: 28px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--t-accent);
+  border-top: 1px solid var(--t-accent-2);
+  border-bottom: 1px solid var(--t-accent-2);
+  content: "No.07 · ADVENTURER";
+  writing-mode: vertical-rl;
+  color: var(--t-accent-2);
+  font-family: var(--font-serif);
+  font-size: 9px;
+  letter-spacing: .28em;
+  transform: none;
+}
+
+.hero-logo { position: relative; }
+.hero-logo::after {
+  content: "◆";
+  position: absolute;
+  top: 2px;
+  right: -48px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--t-accent);
+  border: 2px solid var(--t-accent-2);
+  color: var(--t-accent-2);
+  font-size: 13px;
+  line-height: 1;
+  transform: rotate(-10deg);
+  box-shadow: 0 0 0 3px rgba(122, 31, 43, .14);
+}
+
+/* red banner activity row */
+.activity-strip {
+  border: 1px solid var(--t-accent-2);
+  border-radius: 0;
+  background: var(--t-accent);
+  box-shadow: inset 0 0 0 4px rgba(176, 138, 62, .18);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+.activity-strip::after { background: var(--t-accent-2); width: 4px; }
+.activity-strip:hover { border-color: var(--t-accent-2); box-shadow: inset 0 0 0 4px rgba(176, 138, 62, .3); transform: translateX(3px); }
+.activity-icon { border: 1px solid var(--t-accent-2); border-radius: 50%; background: transparent; color: var(--t-accent-2); }
+.activity-kicker { color: var(--t-accent-2); }
+.activity-title { color: var(--t-accent-2); font-family: var(--font-serif); font-weight: 600; }
+.activity-desc { color: rgba(244, 230, 200, .78); }
+.activity-pct { color: #f4e6c8; }
+.activity-meta { color: rgba(244, 230, 200, .62); }
+.activity-arrow { color: var(--t-accent-2); }
+.activity-track { border-color: rgba(176, 138, 62, .5); background: rgba(42, 27, 18, .24); }
+.activity-track i { background: var(--t-accent-2); }
+
+/* card frames */
+.tile-art, .lib-art {
+  border: 1px solid var(--t-accent-2);
+  outline: 1px solid var(--t-accent);
+  outline-offset: -5px;
+}
+.tile.is-active .tile-art {
+  border-color: var(--t-accent);
+  outline-color: var(--t-accent-2);
+  box-shadow: inset 0 -4px 0 var(--t-accent);
+}
+.tile.is-active .tile-art::before { background: var(--t-accent); color: var(--t-accent-2); border-color: var(--t-accent-2); }
+.lib-card:hover .lib-art { border-color: var(--t-accent); outline-color: var(--t-accent-2); }
+
+.theme-card, .style-choice, .type-readout { border-width: 1px; border-color: var(--t-accent-2); }
+.theme-card.is-active, .style-choice.is-active { box-shadow: inset 0 0 0 1px var(--t-accent); }
+
+/* Double-gold frame on every reading surface */
+.detail-modal, .lib-shell, .appearance-shell, .editor-shell,
+.scanner-shell, .picker-shell, .dialog {
+  border: 1px solid var(--t-accent-2);
+  outline: 1px solid var(--t-accent);
+  outline-offset: -6px;
+  box-shadow: inset 0 0 0 3px rgba(176, 138, 62, .12);
+}
+
+
+/* Feature framework variables */
+:root {
+  --fx-paper: #e8d8b6;
+  --fx-ink: #2a1b12;
+  --fx-accent: #7a1f2b;
+  --fx-accent-2: #b08a3e;
+  --fx-line: #8a6a3a;
+  --fx-panel: #f1e4c6;
+}
+
+/* ============================================================
+   GRIMOIRE · character sheet pass
+   Mottled parchment, maroon header bars with gold serif type,
+   a gold-on-crimson level diamond, damask shadow and thin
+   crimson row rules. Reference: 新主题参考/新主题2.png
+   ============================================================ */
+
+:root {
+  --gs-maroon: #7a1f2b;
+  --gs-maroon-hi: #a4272f;
+  --gs-gold: #b08a3e;
+  --gs-gold-hi: #e3c076;
+  --gs-ink: #3a271a;
+  --gs-parch-1: #efe1c0;
+  --gs-parch-2: #ddc79a;
+}
+
+@font-face {
+  font-family: 'Grimoire Serif';
+  src: local('STSong'), local('SimSun'), local('Songti SC');
+}
+
+/* ---- mottled parchment everywhere ---- */
+
+html[data-theme="grimoire"] body {
+  background-color: #e2cfa6;
+  background-image:
+    radial-gradient(48% 36% at 14% 18%, rgba(122, 31, 43, .07) 0%, transparent 62%),
+    radial-gradient(42% 38% at 82% 62%, rgba(176, 138, 62, .16) 0%, transparent 64%),
+    radial-gradient(36% 30% at 38% 88%, rgba(90, 58, 37, .1) 0%, transparent 66%),
+    linear-gradient(168deg, #efe2c4 0%, #e4cfa4 46%, #d8bf8f 100%);
+}
+
+html[data-theme="grimoire"] body::before {
+  background-image:
+    radial-gradient(circle at 8% 12%, rgba(90, 58, 37, .2) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 44% 34%, rgba(122, 31, 43, .16) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 76% 66%, rgba(90, 58, 37, .18) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 26% 84%, rgba(176, 138, 62, .24) 0 1px, transparent 1.8px),
+    repeating-linear-gradient(0deg, rgba(58, 39, 26, .04) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgba(58, 39, 26, .026) 0 1px, transparent 1px 11px);
+  background-size: 37px 37px, 53px 53px, 61px 61px, 47px 47px, auto, auto;
+  opacity: .95;
+}
+
+/* ---- hero: a framed character sheet ---- */
+
+html[data-theme="grimoire"] .hero-inner::before {
+  background-color: #eee0bf;
+  background-image:
+    radial-gradient(30% 26% at 12% 16%, rgba(122, 31, 43, .06) 0%, transparent 70%),
+    radial-gradient(26% 30% at 88% 78%, rgba(90, 58, 37, .07) 0%, transparent 70%),
+    radial-gradient(circle at 4px 4px, var(--gs-gold) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 4px) 4px, var(--gs-gold) 0 3px, transparent 4px),
+    radial-gradient(circle at 4px calc(100% - 4px), var(--gs-gold) 0 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 4px) calc(100% - 4px), var(--gs-gold) 0 3px, transparent 4px),
+    radial-gradient(circle at 22% 62%, rgba(90, 58, 37, .1) 0 1.5px, transparent 2.2px),
+    radial-gradient(circle at 66% 28%, rgba(176, 138, 62, .2) 0 1.5px, transparent 2.2px),
+    repeating-linear-gradient(0deg, rgba(58, 39, 26, .035) 0 1px, transparent 1px 5px);
+  background-size: auto, auto, auto, auto, auto, auto, 43px 43px, 59px 59px, auto;
+  border: 3px double var(--gs-gold);
+  border-radius: 0;
+  outline: 1px solid var(--gs-maroon);
+  outline-offset: -11px;
+  box-shadow:
+    inset 0 0 0 5px rgba(176, 138, 62, .14),
+    inset 0 0 0 6px rgba(176, 138, 62, .42),
+    10px 10px 0 rgba(58, 39, 26, .12);
+}
+
+/* damask shadow in the upper right corner */
+html[data-theme="grimoire"] .hero-inner::after {
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: auto;
+  width: 190px;
+  height: 150px;
+  background:
+    repeating-radial-gradient(circle at 62% 40%, rgba(58, 39, 26, .15) 0 2px, transparent 2px 9px);
+  border: 0;
+  opacity: .5;
+  transform: none;
+  clip-path: polygon(100% 0, 100% 100%, 38% 0);
+  pointer-events: none;
+}
+
+/* ---- kicker: maroon header bar with gold serif ---- */
+
+html[data-theme="grimoire"] .kicker {
+  border: 1px solid var(--gs-gold);
+  border-radius: 0;
+  background: var(--gs-maroon);
+  color: var(--gs-gold-hi);
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  padding: 4px 12px 5px;
+  box-shadow: 2px 2px 0 rgba(58, 39, 26, .2);
+}
+html[data-theme="grimoire"] .kicker-dot { border-radius: 0; background: var(--gs-gold-hi); transform: rotate(45deg); }
+html[data-theme="grimoire"] .kicker-sep { background: rgba(227, 192, 118, .5); }
+html[data-theme="grimoire"] .kicker-dim { color: rgba(227, 192, 118, .72); }
+html[data-theme="grimoire"] #kickerLabel::before { content: "◆ "; }
+
+/* ---- title: gold serif with a crimson diamond marker ---- */
+
+html[data-theme="grimoire"] .hero-logo {
+  color: var(--gs-ink);
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 0 2px 0 rgba(255, 250, 235, .5), 0 -1px 0 rgba(58, 39, 26, .18);
+}
+
+html[data-theme="grimoire"] .hero-logo::after {
+  content: "15";
+  position: absolute;
+  right: -86px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  background: var(--gs-maroon);
+  border: 2px solid var(--gs-gold);
+  color: var(--gs-gold-hi);
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+  transform: rotate(45deg);
+  box-shadow: inset 0 0 0 3px rgba(58, 39, 26, .35), 0 0 0 3px rgba(176, 138, 62, .24);
+  text-shadow: 0 1px 0 rgba(58, 39, 26, .6);
+}
+html[data-theme="grimoire"] .hero-logo { position: relative; }
+html[data-theme="grimoire"] .hero-logo::after { writing-mode: horizontal-tb; }
+html[data-theme="grimoire"] .hero-logo { padding-right: 96px; }
+
+/* ---- meta row: thin crimson rules between fields ---- */
+
+html[data-theme="grimoire"] .meta-row {
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid rgba(122, 31, 43, .42);
+  border-bottom: 1px solid rgba(122, 31, 43, .42);
+  color: var(--gs-ink);
+  font-family: var(--font-serif);
+  font-size: 11.5px;
+  letter-spacing: .06em;
+}
+html[data-theme="grimoire"] .meta-dot { width: 7px; height: 7px; background: var(--gs-maroon); transform: rotate(45deg); }
+html[data-theme="grimoire"] .age-badge {
+  border: 1px solid var(--gs-maroon);
+  background: rgba(122, 31, 43, .07);
+  color: var(--gs-maroon);
+  font-family: var(--font-serif);
+}
+html[data-theme="grimoire"] .update-badge { border-color: var(--gs-maroon); background: var(--gs-maroon); color: var(--gs-gold-hi); }
+
+/* ---- buttons: crimson plaque with gold rule ---- */
+
+html[data-theme="grimoire"] .btn.primary,
+html[data-theme="grimoire"] .btn.primary.cta-adaptive,
+html[data-theme="grimoire"] .btn.primary.cta-system {
+  border: 1px solid var(--gs-gold);
+  border-radius: 0;
+  background: var(--gs-maroon);
+  color: var(--gs-gold-hi);
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: .1em;
+  box-shadow: inset 0 0 0 3px rgba(58, 39, 26, .3), inset 0 0 0 4px rgba(176, 138, 62, .5);
+}
+html[data-theme="grimoire"] .btn.primary:hover,
+html[data-theme="grimoire"] .btn.primary.cta-adaptive:hover,
+html[data-theme="grimoire"] .btn.primary.cta-system:hover {
+  background: var(--gs-maroon-hi);
+  border-color: var(--gs-gold-hi);
+  color: #fdf3d8;
+}
+
+html[data-theme="grimoire"] .btn.ghost {
+  border: 1px solid var(--gs-maroon);
+  border-radius: 0;
+  background: rgba(255, 250, 235, .6);
+  color: var(--gs-maroon);
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: .06em;
+}
+html[data-theme="grimoire"] .btn.ghost:hover { background: var(--gs-maroon); color: var(--gs-gold-hi); border-color: var(--gs-gold); }
+
+/* ---- progress: gold rule + crimson fill ---- */
+
+html[data-theme="grimoire"] .progress-block { border-top: 1px solid rgba(122, 31, 43, .4); }
+html[data-theme="grimoire"] .progress-head { color: var(--gs-ink); font-family: var(--font-serif); }
+html[data-theme="grimoire"] .progress-pct { color: var(--gs-maroon); font-family: var(--font-serif); font-weight: 600; }
+html[data-theme="grimoire"] .progress-track { border-color: rgba(176, 138, 62, .6); background: rgba(58, 39, 26, .12); }
+html[data-theme="grimoire"] .progress-track i { background: linear-gradient(90deg, var(--gs-maroon), var(--gs-gold)); }
+html[data-theme="grimoire"] .progress-sub { color: var(--gs-ink); font-family: var(--font-serif); }
+
+/* ---- activity: a maroon section strip with a gold label ---- */
+
+html[data-theme="grimoire"] .activity-strip {
+  border: 1px solid var(--gs-gold);
+  border-radius: 0;
+  background: rgba(255, 250, 235, .62);
+  box-shadow: inset 0 0 0 3px rgba(176, 138, 62, .2);
+  clip-path: none;
+}
+html[data-theme="grimoire"] .activity-strip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 5px;
+  background: var(--gs-maroon);
+  pointer-events: none;
+}
+html[data-theme="grimoire"] .activity-strip::after { display: none; }
+html[data-theme="grimoire"] .activity-strip:hover { border-color: var(--gs-maroon); background: rgba(255, 250, 235, .8); transform: translateX(3px); }
+html[data-theme="grimoire"] .activity-icon {
+  border: 1px solid var(--gs-gold);
+  border-radius: 0;
+  background: var(--gs-maroon);
+  color: var(--gs-gold-hi);
+  transform: rotate(45deg);
+}
+html[data-theme="grimoire"] .activity-icon .ic { transform: rotate(-45deg); }
+html[data-theme="grimoire"] .activity-kicker { color: var(--gs-maroon); font-family: var(--font-serif); letter-spacing: .1em; }
+html[data-theme="grimoire"] .activity-title { color: var(--gs-ink); font-family: var(--font-serif); }
+html[data-theme="grimoire"] .activity-desc { color: rgba(58, 39, 26, .66); }
+html[data-theme="grimoire"] .activity-pct { color: var(--gs-maroon); }
+html[data-theme="grimoire"] .activity-meta { color: rgba(58, 39, 26, .5); }
+html[data-theme="grimoire"] .activity-arrow { color: var(--gs-maroon); }
+html[data-theme="grimoire"] .activity-track { border-color: rgba(176, 138, 62, .5); background: rgba(58, 39, 26, .12); }
+html[data-theme="grimoire"] .activity-track i { background: var(--gs-maroon); }
+
+/* ---- dock: framed mini portraits with a crimson caption ---- */
+
+html[data-theme="grimoire"] .tile-art {
+  border: 1px solid var(--gs-gold);
+  outline: 1px solid var(--gs-maroon);
+  outline-offset: -4px;
+  border-radius: 0;
+}
+html[data-theme="grimoire"] .tile-art::before {
+  border: 1px solid var(--gs-gold);
+  border-radius: 0;
+  background: var(--gs-maroon);
+  color: var(--gs-gold-hi);
+}
+html[data-theme="grimoire"] .tile.is-active .tile-art { border-color: var(--gs-maroon); box-shadow: 4px 4px 0 rgba(58, 39, 26, .18); }
+html[data-theme="grimoire"] .tile-label {
+  border-top: 1px solid rgba(122, 31, 43, .36);
+  padding-top: 8px;
+  color: var(--gs-ink);
+  font-family: var(--font-serif);
+}
+html[data-theme="grimoire"] .tile-name { color: var(--gs-ink); font-weight: 600; }
+html[data-theme="grimoire"] .tile-sub { color: var(--gs-maroon); }
+html[data-theme="grimoire"] .tile.is-active .tile-name { color: var(--gs-maroon); }
+html[data-theme="grimoire"] .tile.is-active .tile-sub { color: var(--gs-ink); }
+
+/* ---- library / appearance ---- */
+
+html[data-theme="grimoire"] .view-library::before,
+html[data-theme="grimoire"] .view-appearance::before {
+  -webkit-text-stroke: 1px rgba(122, 31, 43, .3);
+  color: transparent;
+  font-style: italic;
+}
+
+html[data-theme="grimoire"] .lib-search,
+html[data-theme="grimoire"] .lib-back,
+html[data-theme="grimoire"] .filter {
+  border-color: var(--gs-gold);
+  background: rgba(255, 250, 235, .6);
+  color: var(--gs-ink);
+  font-family: var(--font-serif);
+}
+html[data-theme="grimoire"] .filter.is-active { border-color: var(--gs-maroon); background: var(--gs-maroon); color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .lib-title h2 { font-family: var(--font-serif); font-weight: 600; }
+html[data-theme="grimoire"] .lib-art { border: 1px solid var(--gs-gold); outline: 1px solid rgba(122, 31, 43, .5); outline-offset: -4px; }
+html[data-theme="grimoire"] .lib-current { border-radius: 0; background: var(--gs-maroon); color: var(--gs-gold-hi); font-family: var(--font-serif); }
+
+/* ---- panels: framed parchment ---- */
+
+html[data-theme="grimoire"] .detail-modal,
+html[data-theme="grimoire"] .lib-shell,
+html[data-theme="grimoire"] .appearance-shell,
+html[data-theme="grimoire"] .editor-shell,
+html[data-theme="grimoire"] .scanner-shell,
+html[data-theme="grimoire"] .picker-shell,
+html[data-theme="grimoire"] .dialog {
+  border: 3px double var(--gs-gold);
+  border-radius: 0;
+  background-color: #eee0bf;
+  background-image:
+    radial-gradient(32% 28% at 16% 20%, rgba(122, 31, 43, .05) 0%, transparent 70%),
+    radial-gradient(circle at 24% 66%, rgba(90, 58, 37, .09) 0 1.5px, transparent 2.2px),
+    repeating-linear-gradient(0deg, rgba(58, 39, 26, .03) 0 1px, transparent 1px 5px);
+  outline: 1px solid var(--gs-maroon);
+  outline-offset: -9px;
+  box-shadow: 9px 9px 0 rgba(58, 39, 26, .14);
+}
+
+html[data-theme="grimoire"] .detail-art-copy,
+html[data-theme="grimoire"] .appearance-preview-copy,
+html[data-theme="grimoire"] .editor-preview-copy {
+  border: 1px solid var(--gs-gold);
+  border-radius: 0;
+  background: rgba(122, 31, 43, .94);
+  color: var(--gs-gold-hi);
+  box-shadow: inset 0 0 0 3px rgba(58, 39, 26, .3), 4px 4px 0 rgba(58, 39, 26, .2);
+}
+html[data-theme="grimoire"] .detail-art-copy .detail-logo,
+html[data-theme="grimoire"] .appearance-preview-copy .appearance-logo,
+html[data-theme="grimoire"] .editor-preview-copy .editor-logo {
+  color: var(--gs-gold-hi);
+  -webkit-text-fill-color: currentColor;
+}
+html[data-theme="grimoire"] .detail-zh,
+html[data-theme="grimoire"] .appearance-tagline,
+html[data-theme="grimoire"] .editor-preview-hint { color: rgba(227, 192, 118, .76); }
+
+/* ---- context menu ---- */
+
+html[data-theme="grimoire"] .context-menu,
+html[data-theme="grimoire"] .popover {
+  border: 1px solid var(--gs-gold);
+  border-radius: 0;
+  background: #f2e6c6;
+  box-shadow: inset 0 0 0 3px rgba(176, 138, 62, .2), 6px 6px 0 rgba(58, 39, 26, .16);
+}
+html[data-theme="grimoire"] .context-item,
+html[data-theme="grimoire"] .menu-row { border-radius: 0; font-family: var(--font-serif); }
+html[data-theme="grimoire"] .context-item:hover,
+html[data-theme="grimoire"] .menu-row:hover { background: var(--gs-maroon); color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .menu-separator { background: rgba(122, 31, 43, .3); }
+
+/* ---- launch / sleep keep the sheet frame ---- */
+
+html[data-theme="grimoire"] .launch { background: #1a1410; }
+html[data-theme="grimoire"] .launch::after { background: linear-gradient(90deg, var(--gs-maroon) 0 42%, var(--gs-gold) 42% 58%, var(--gs-maroon) 58% 100%); }
+html[data-theme="grimoire"] .sleep { background: #1a1410; }
+
+/* ---- badge geometry moved to SIGNATURE LAYER v3 (end of file) ---- */
+
+/* the activity icon diamond also keeps its glyph upright */
+html[data-theme="grimoire"] .activity-icon {
+  transform: none;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  background: transparent;
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--gs-gold);
+  color: var(--gs-maroon);
+}
+html[data-theme="grimoire"] .activity-icon .ic { transform: none; }
+
+/* section head rules, like the reference's maroon bars */
+html[data-theme="grimoire"] .section-head h3 {
+  display: inline-block;
+  padding: 3px 10px 4px;
+  background: var(--gs-maroon);
+  color: var(--gs-gold-hi);
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: .08em;
+}
+html[data-theme="grimoire"] .section-tag {
+  border-radius: 0;
+  border: 1px solid var(--gs-gold);
+  background: transparent;
+  color: var(--gs-maroon);
+  font-family: var(--font-serif);
+}
+
+/* ---- top strip: reference is a dark oxblood band with a thin gold rule ---- */
+html[data-theme="grimoire"] body::after {
+  height: 3px;
+  background: var(--gs-gold);
+  opacity: .55;
+}
+html[data-theme="grimoire"] .topbar {
+  border-bottom: 1px solid var(--gs-gold);
+  background: #2a1b12;
+}
+html[data-theme="grimoire"] .brand-word { color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .brand::before { border-color: var(--gs-gold); background: var(--gs-maroon); color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .nav-btn { color: rgba(227, 192, 118, .72); }
+html[data-theme="grimoire"] .nav-btn::before { color: rgba(227, 192, 118, .5); }
+html[data-theme="grimoire"] .nav-btn:hover { color: var(--gs-gold-hi); border-color: var(--gs-gold); }
+html[data-theme="grimoire"] .nav-btn.is-active { color: var(--gs-maroon); }
+html[data-theme="grimoire"] .nav-glide { background: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .clock { border-color: rgba(176, 138, 62, .5); }
+html[data-theme="grimoire"] .clock-time { color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .clock-date { color: rgba(227, 192, 118, .6); }
+html[data-theme="grimoire"] .icon-btn,
+html[data-theme="grimoire"] .win-btn { color: rgba(227, 192, 118, .7); }
+html[data-theme="grimoire"] .icon-btn:hover,
+html[data-theme="grimoire"] .win-btn:hover { background: var(--gs-maroon); color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .window-controls { border-left-color: rgba(176, 138, 62, .35); }
+html[data-theme="grimoire"] .avatar { border-color: var(--gs-gold); background: var(--gs-maroon); color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .fullscreen-pill { border-color: var(--gs-gold); background: transparent; color: var(--gs-gold-hi); }
+
+
+/* the clock plate must sit on the dark header, not the parchment panel */
+html[data-theme="grimoire"] .clock {
+  background: rgba(58, 39, 26, .55);
+  border-color: rgba(176, 138, 62, .55);
+}
+html[data-theme="grimoire"] .topbar .win-btn:hover { background: var(--gs-gold); color: var(--gs-maroon); }
+
+/* ---- colour ratio: reference is parchment-dominant with oxblood as a strong second ---- */
+html[data-theme="grimoire"] body {
+  background-image:
+    radial-gradient(52% 42% at 14% 16%, rgba(122, 31, 43, .05) 0%, transparent 62%),
+    radial-gradient(46% 40% at 84% 66%, rgba(176, 138, 62, .16) 0%, transparent 64%),
+    linear-gradient(168deg, #eee0bf 0%, #e3cfa6 46%, #d9c091 100%);
+}
+
+/* the level diamond and section bars keep oxblood present but small */
+html[data-theme="grimoire"] .section-head h3 { background: var(--gs-maroon); }
+
+/* the dock captions get a maroon rule like the reference rows */
+html[data-theme="grimoire"] .tile-label { border-top-color: rgba(122, 31, 43, .5); }
+
+/* ---- ratio: reference carries ≈22% oxblood and ≈12% black frame ----
+   Add the ornate black/gold outer frame and a maroon side ribbon. */
+html[data-theme="grimoire"] .hero-inner::before {
+  border: 1px solid var(--gs-gold);
+  box-shadow:
+    0 0 0 3px #1b1109,
+    0 0 0 4px var(--gs-gold),
+    0 0 0 9px #1b1109,
+    inset 0 0 0 5px rgba(176, 138, 62, .16),
+    inset 0 0 0 6px rgba(176, 138, 62, .44),
+    10px 10px 0 rgba(27, 17, 9, .16);
+  outline-color: var(--gs-maroon);
+}
+
+/* maroon ribbon on the right edge of the sheet */
+html[data-theme="grimoire"] .hero-inner::after {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: 30px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gs-maroon);
+  border-left: 1px solid var(--gs-gold);
+  clip-path: none;
+  opacity: 1;
+  content: "CHARACTER RECORD · No.07";
+  writing-mode: vertical-rl;
+  color: var(--gs-gold-hi);
+  font-family: var(--font-serif);
+  font-size: 9px;
+  letter-spacing: .3em;
+  transform: none;
+  pointer-events: none;
+}
+
+/* the reading body matches the reference's maroon section bars */
+html[data-theme="grimoire"] .detail-body h2,
+html[data-theme="grimoire"] .lib-title h2 { color: var(--gs-maroon); }
+
+/* dock captions on maroon to lift the oxblood share */
+html[data-theme="grimoire"] .tile-label {
+  padding: 6px 8px 7px;
+  background: var(--gs-maroon);
+  border-top: 1px solid var(--gs-gold);
+  color: var(--gs-gold-hi);
+}
+html[data-theme="grimoire"] .tile-name { color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .tile-sub { color: rgba(227, 192, 118, .66); }
+html[data-theme="grimoire"] .tile.is-active .tile-label { background: var(--gs-maroon-hi); }
+html[data-theme="grimoire"] .tile.is-active .tile-name { color: #fff4d6; }
+
+/* darker parchment so the mid-tone matches the reference */
+html[data-theme="grimoire"] .hero-inner::before { background-color: #e6d3ae; }
+html[data-theme="grimoire"] body { background-color: #dcc79b; }
+
+/* ---- reference: heavy black ornate frame + oxblood occupying 1/4 ----
+   The sheet needs a black surround and larger maroon fields. */
+html[data-theme="grimoire"] .hero-inner::before {
+  border: 1px solid var(--gs-gold);
+  box-shadow:
+    0 0 0 6px #140d07,
+    0 0 0 7px var(--gs-gold),
+    0 0 0 14px #140d07,
+    0 0 0 15px rgba(176, 138, 62, .7),
+    inset 0 0 0 5px rgba(176, 138, 62, .16),
+    inset 0 0 0 6px rgba(176, 138, 62, .46),
+    12px 12px 0 rgba(20, 13, 7, .22);
+}
+
+/* the dock captions turn into full maroon plates */
+html[data-theme="grimoire"] .tile-label {
+  margin-top: 8px;
+  padding: 8px 10px 9px;
+  background: var(--gs-maroon);
+  border: 1px solid var(--gs-gold);
+  border-top-width: 1px;
+}
+html[data-theme="grimoire"] .tile.is-active .tile-label {
+  background: var(--gs-maroon-hi);
+  border-color: var(--gs-gold-hi);
+}
+
+/* the meta row becomes a maroon band, like the reference's stat rows */
+html[data-theme="grimoire"] .hero-inner .meta-row {
+  padding: 6px 10px;
+  background: var(--gs-maroon);
+  border-top: 1px solid var(--gs-gold);
+  border-bottom: 1px solid var(--gs-gold);
+  color: var(--gs-gold-hi);
+}
+html[data-theme="grimoire"] .hero-inner .meta-dot { background: var(--gs-gold); }
+html[data-theme="grimoire"] .hero-inner .age-badge {
+  border-color: var(--gs-gold);
+  background: transparent;
+  color: var(--gs-gold-hi);
+}
+html[data-theme="grimoire"] .hero-inner .update-badge {
+  border-color: var(--gs-gold);
+  background: var(--gs-gold);
+  color: var(--gs-maroon);
+}
+
+/* ---- the maroon ribbon overlapped the type: move it outside the frame ---- */
+html[data-theme="grimoire"] .hero-inner::after {
+  right: -44px;
+  width: 26px;
+  font-size: 8px;
+  letter-spacing: .26em;
+}
+
+/* the meta band needs breathing room, not a full-width slab under the title */
+html[data-theme="grimoire"] .hero-inner .meta-row {
+  margin-top: 14px;
+  padding: 6px 12px;
+}
+
+/* ---- title gutter + badge geometry moved to SIGNATURE LAYER v3 ---- */
+
+/* ---- reference parchment is desaturated and heavily framed in black ----
+   Measured: #e0e0d0 9%, black 5.6%, oxblood 22%. */
+html[data-theme="grimoire"] {
+  --gs-parch-1: #e6e0d0;
+  --gs-parch-2: #d8d0bb;
+  --t-paper: #ddd6c4;
+  --t-paper-2: #cbc3ae;
+  --t-panel: #e8e2d2;
+}
+html[data-theme="grimoire"] body { background-color: #ddd6c4; }
+html[data-theme="grimoire"] .hero-inner::before {
+  background-color: #e8e2d2;
+  border: 8px solid #140d07;
+  box-shadow:
+    inset 0 0 0 1px var(--gs-gold),
+    inset 0 0 0 8px rgba(176, 138, 62, .16),
+    inset 0 0 0 9px rgba(176, 138, 62, .48),
+    12px 12px 0 rgba(20, 13, 7, .2);
+}
+html[data-theme="grimoire"] .dock { background: #d3cbb6; }
+html[data-theme="grimoire"] .view-library,
+html[data-theme="grimoire"] .view-appearance { background-color: #ddd6c4; }
+
+/* ---- reference: 12% near-black frame + 22% oxblood; ours is mostly parchment ----
+   Widen the black frame and turn the dock captions into solid maroon plates. */
+html[data-theme="grimoire"] .hero-inner::before {
+  border: 12px solid #120c06;
+  box-shadow:
+    inset 0 0 0 1px var(--gs-gold),
+    inset 0 0 0 10px rgba(176, 138, 62, .18),
+    inset 0 0 0 11px rgba(176, 138, 62, .5),
+    12px 12px 0 rgba(18, 12, 6, .24);
+}
+
+/* the reading panel gets the same black surround */
+html[data-theme="grimoire"] .detail-modal,
+html[data-theme="grimoire"] .editor-shell,
+html[data-theme="grimoire"] .dialog {
+  border: 8px solid #120c06;
+  outline: 1px solid var(--gs-gold);
+  outline-offset: -9px;
+  box-shadow: 10px 10px 0 rgba(18, 12, 6, .2);
+}
+
+/* dock plates: solid oxblood with gold rules, like the sheet's section bars */
+html[data-theme="grimoire"] .tile-label {
+  background: var(--gs-maroon);
+  border: 1px solid var(--gs-gold);
+}
+html[data-theme="grimoire"] .tile.is-active .tile-label { background: var(--gs-maroon-hi); }
+
+/* top/bottom bands gain gold rules on black, matching the reference frame */
+html[data-theme="grimoire"] .topbar { border-bottom: 2px solid var(--gs-gold); }
+html[data-theme="grimoire"] .dock { border-top: 3px solid #120c06; }
+
+/* ---- measured: our oxblood is 8%, reference is 22%.
+   Give the progress and activity rows solid maroon plates. ---- */
+html[data-theme="grimoire"] .hero-inner .progress-block {
+  padding: 9px 12px 7px;
+  background: var(--gs-maroon);
+  border-top: 1px solid var(--gs-gold);
+  border-bottom: 1px solid var(--gs-gold);
+}
+html[data-theme="grimoire"] .hero-inner .progress-head,
+html[data-theme="grimoire"] .hero-inner .progress-sub { color: rgba(227, 192, 118, .8); }
+html[data-theme="grimoire"] .hero-inner .progress-pct { color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .hero-inner .progress-track {
+  border-color: rgba(176, 138, 62, .7);
+  background: rgba(20, 13, 7, .3);
+}
+html[data-theme="grimoire"] .hero-inner .progress-track i { background: var(--gs-gold); }
+
+html[data-theme="grimoire"] .hero-inner .activity-strip {
+  background: var(--gs-maroon);
+  border-color: var(--gs-gold);
+}
+html[data-theme="grimoire"] .hero-inner .activity-strip::before { background: var(--gs-gold); height: 4px; }
+html[data-theme="grimoire"] .hero-inner .activity-title { color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .hero-inner .activity-desc,
+html[data-theme="grimoire"] .hero-inner .activity-meta { color: rgba(227, 192, 118, .68); }
+html[data-theme="grimoire"] .hero-inner .activity-kicker,
+html[data-theme="grimoire"] .hero-inner .activity-pct,
+html[data-theme="grimoire"] .hero-inner .activity-arrow { color: var(--gs-gold); }
+html[data-theme="grimoire"] .hero-inner .activity-icon { border-color: var(--gs-gold); background: transparent; color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .hero-inner .activity-track { border-color: rgba(176, 138, 62, .6); background: rgba(20, 13, 7, .3); }
+html[data-theme="grimoire"] .hero-inner .activity-track i { background: var(--gs-gold); }
+
+/* ---- measured: black is 0.8% vs reference 12%. The frame is clipped by the
+   panel's own bounds, so paint the black surround on the outer wrapper. ---- */
+html[data-theme="grimoire"] .hero {
+  background: #120c06;
+  padding: 14px;
+}
+html[data-theme="grimoire"] .hero-inner::before {
+  border: 1px solid var(--gs-gold);
+  box-shadow:
+    inset 0 0 0 8px rgba(176, 138, 62, .2),
+    inset 0 0 0 9px rgba(176, 138, 62, .6);
+}
+
+/* the dock band and reading panels also carry black rules */
+html[data-theme="grimoire"] .dock { background: #1d140c; }
+html[data-theme="grimoire"] .dock-title,
+html[data-theme="grimoire"] .dock-title > span,
+html[data-theme="grimoire"] .all-btn { color: var(--gs-gold-hi); }
+html[data-theme="grimoire"] .dock-count { background: var(--gs-gold); color: #1d140c; border-color: var(--gs-gold); }
+
+/* ---- the parchment plate must stop at the black frame, not cover it ----
+   .hero paints the black surround (14px padding); ::before used to bleed
+   -28px in every direction, hiding it completely. */
+html[data-theme="grimoire"] .hero-inner::before {
+  top: -14px;
+  right: -14px;
+  bottom: -14px;
+  left: -14px;
+  border: 1px solid var(--gs-gold);
+  box-shadow:
+    inset 0 0 0 8px rgba(176, 138, 62, .2),
+    inset 0 0 0 9px rgba(176, 138, 62, .6);
+}
+
+/* leave a visible black ring: the plate stops 7px short of the hero edge */
+html[data-theme="grimoire"] .hero-inner::before {
+  top: -7px;
+  right: -7px;
+  bottom: -7px;
+  left: -7px;
+}
+html[data-theme="grimoire"] .hero { padding: 15px; }
+
+/* ============================================================
+   SIGNATURE LAYER v3 — 冒险者档案 · 编号火漆印
+   ------------------------------------------------------------
+   设计理念（原稿的【15】是「等级」，本启动器没有等级概念，所以旧做法
+   是一个没有依据、且压在标题上的数字）。档案的语言不是等级，是「编号」：
+   卡面本身已经在书脊印 ADVENTURER RECORD、在书脊钉 No.xx、在每个抽屉
+   贴 No.01…No.10。因此标题右侧的菱形不该是等级，而是**同一份档案的
+   火漆印**——把当前选中条目的真实档号（--nova-no）盖在标题的收尾处。
+
+   两条硬约束：
+   1. 图形不能盖过文字 → .hero-logo 用 padding-right 留出真正的空地，
+      fitLogo 现在按内容盒测量，这块空地不会再被文字占用。
+   2. 不留空号 → 没有选中游戏时（data-nova-record="off"）整枚印章与
+      书脊的档号一起隐去，只留静态标签，Reading 面板不留空洞。
+   ============================================================ */
+
+/* -- the gutter: a real, *reserved* strip of empty paper. Sized in vw rather
+      than em on purpose: em on a pseudo-element resolves against the pseudo's
+      own font-size, and anchoring to the title's fit ratio would collapse the
+      gutter exactly when a 30-character title needs it most. -- */
+html[data-theme="grimoire"] .hero-logo {
+  position: relative;
+  --seal: clamp(50px, 4.4vw, 78px);
+  padding-right: clamp(70px, 5.8vw, 112px);
+}
+html[data-theme="grimoire"]:not([data-nova-record="on"]) .hero-logo { padding-right: 0; }
+
+/* -- the seal: two stacked diamonds. The gold rim is painted by the larger
+      one underneath, the maroon wax field by the inset one on top, so the
+      outline follows the diamond instead of being cut by clip-path. -- */
+html[data-theme="grimoire"] .hero-logo::before,
+html[data-theme="grimoire"] .hero-logo::after {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  bottom: auto;
+  width: var(--seal);
+  height: var(--seal);
+  transform: translateY(-50%);
+  border: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+html[data-theme="grimoire"] .hero-logo::before {
+  content: "";
+  background: linear-gradient(150deg, var(--gs-gold-hi) 0%, var(--gs-gold) 52%, #6d5324 100%);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+html[data-theme="grimoire"] .hero-logo::after {
+  content: var(--nova-no, "");
+  background: var(--gs-maroon);
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+  clip-path: polygon(50% 3.5%, 96.5% 50%, 50% 96.5%, 3.5% 50%);
+  color: var(--gs-gold-hi);
+  font-family: var(--font-serif);
+  font-size: calc(var(--seal) * .34);
+  font-weight: 600;
+  letter-spacing: .02em;
+  line-height: 1;
+  text-shadow: none;
+  -webkit-text-fill-color: currentColor;
+}
+html[data-theme="grimoire"]:not([data-nova-record="on"]) .hero-logo::before,
+html[data-theme="grimoire"]:not([data-nova-record="on"]) .hero-logo::after { display: none; }
+
+/* -- the meta band opens with the same number in words, so the seal reads
+      as a stamp of this record rather than an ornament -- */
+html[data-theme="grimoire"] .hero-inner .meta-row::before {
+  content: var(--nova-record, "");
+  order: -1;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 1px solid var(--gs-gold);
+  background: rgba(20, 13, 7, .16);
+  color: var(--gs-gold-hi);
+  font-family: var(--font-serif);
+  font-size: 10px;
+  letter-spacing: .16em;
+  white-space: nowrap;
+}
+html[data-theme="grimoire"]:not([data-nova-record="on"]) .hero-inner .meta-row::before { display: none; }
+
+/* -- book spine: static label only. The record number lives in the seal and
+      the meta band; a long dynamic string here risks clipping in short panels. -- */
+html[data-theme="grimoire"] .hero-inner::after {
+  content: "ADVENTURER RECORD";
+}
+
+/* -- black surround: the reference's heaviest area. 26px ring, plate stops
+      4px inside the hero edge, so ~22px of black stays visible on every side. -- */
+html[data-theme="grimoire"] .hero {
+  background: #100a05;
+  padding: 26px;
+}
+html[data-theme="grimoire"] .hero-inner::before {
+  top: -4px;
+  right: -4px;
+  bottom: -4px;
+  left: -4px;
+}
+
+/* ============================================================
+   SIGNATURE LAYER v4 — 黑色装帧（dark mount）
+   ------------------------------------------------------------
+   量出来的差距不是「黑框不够粗」，是**构图反了**：
+   参考图 12.2% 近黑、46.7% 纸；我们是 1.5%→6.5% 黑、61.8% 纸。
+   参考的语言是「深色装帧 + 一张烫金边的羊皮纸卡浮在上面」——
+   羊皮纸是**物件**，不是整页底色。我们却把羊皮纸铺成了整页地面，
+   只在卡片外沿留了一圈黑。
+
+   所以 v4 把**卡片以外的地面**压成同一块深色装帧：
+   深色地面 → 黑占比上升、纸占比下降，同时烫金线与金字反而更亮
+   （铁律 1 不受影响：正文仍然全部落在羊皮纸卡内）。
+
+   地面上的文字（导航、时钟、dock 标题）本来就是金色系，压深后对比度更好；
+   只有「当前页」原来用酒红，在近黑底上会糊，改成亮金。
+   ============================================================ */
+
+html[data-theme="grimoire"] body,
+html[data-theme="grimoire"] .view-library,
+html[data-theme="grimoire"] .view-appearance {
+  background-color: #140d07;
+}
+
+html[data-theme="grimoire"] .dock {
+  background: #1b120a;
+}
+
+/* the ground is now ink, so the "current page" marker has to read as gilt */
+html[data-theme="grimoire"] .nav-btn.is-active {
+  color: var(--gs-gold-hi);
+}
+
+/* 装帧的第二层（v4.1 修正）：卡片四周的暖暗过渡必须由**背景图之外**的层来做。
+   绝不能写成 `.hero { box-shadow: inset … }`：hero 的 padding 就是那圈 26px
+   近黑装帧，inset 阴影会直接把它涂成褐色 —— 黑占比反而从 6.5% 掉到 3.0%，
+   v4 第一版就是这么错的，已回退。过渡交给下面的 .scene 暗角。 */
+
+/* ------------------------------------------------------------
+   v4.1 — 主视觉（.scene）也要服从装帧
+   ------------------------------------------------------------
+   复测发现：paper 61.6% / black 3.0%，而参考图是 46.7% / 12.2%。
+   差的那 15 个百分点**不在羊皮纸卡上** —— 卡本身是对的（红 20.5% vs 21.0%
+   几乎重合）。差在卡**周围**：参考图那里是深色装帧，我们这里是整屏亮色
+   英雄插画（.scene 全屏铺满，只叠了一层 .28 的 sepia）。
+
+   所以让场景层服从装帧：把插画压成「卡纸背后的一层深色衬底」，
+   而不是整页的亮底。参考图里黑与金之间的暖暗过渡，用径向暗角补上。
+
+   ⚠ 铁律 1 不受影响：文字仍然全部落在羊皮纸卡与深色 dock 上，
+   被压暗的只是卡纸背后的插画。
+   ------------------------------------------------------------ */
+
+html[data-theme="grimoire"] .scene { background: #140d07; }
+
+html[data-theme="grimoire"] .scene > img,
+html[data-theme="grimoire"] .scene.is-active > img {
+  filter: sepia(.42) saturate(.78) contrast(1.08) brightness(.45);
+}
+
+/* 暗角：中心留出插画的可见度，四周收进装帧色 */
+html[data-theme="grimoire"] .scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(118% 88% at 62% 42%, rgba(20, 13, 7, 0) 34%, rgba(20, 13, 7, .58) 70%, rgba(20, 13, 7, .9) 100%),
+    linear-gradient(180deg, rgba(20, 13, 7, .42) 0%, rgba(20, 13, 7, .14) 26%, rgba(20, 13, 7, .3) 100%);
+}
+
+/* ------------------------------------------------------------
+   v5 — 装帧的份量：加宽黑框 + 在黑框里再钉一道烫金压边
+   ------------------------------------------------------------
+   v4.1 把插画压成了深色衬底后：black 3.0%→6.6%、paper 61.6%→59.0%，
+   方向对了，但离参考图（black 12.2% / paper 46.7%）还差一截。
+   剩下的差距在「卡的份量」：参考图的羊皮纸卡只占画面的不到一半，
+   四周是很厚的深色装帧；我们的卡几乎铺满左侧面板。
+
+   所以：① hero 的 padding（= 黑装帧厚度）从 26px 提到 clamp(34px,3vw,54px)；
+        ② 在黑装帧里、距卡 10px 处再钉一道 5px 烫金压边 —— 这正是参考图
+           「黑 → 金 → 纸」的三段结构，同时补上 orange/yellow 的占比。
+
+   铁律 3：加宽 padding 只是把卡缩小，fitLogo 按内容盒测量，标题照样自适应。
+   铁律 1：新增的只是卡外的金线，不在任何文字之下。
+   ------------------------------------------------------------ */
+
+/* 烫金外框把黑装帧吃掉了一截（black 12.5%→9.6%），所以装帧再加厚一档：
+   卡缩小 → 纸转黑，同时把参考图缺的 yellow 用卡内第二道浅金细线补上
+   （参考图有两道金线，我们原来只有一道，这也是 yellow 只到 1.3% 的原因）。 */
+html[data-theme="grimoire"] .hero {
+  padding: clamp(46px, 4.2vw, 74px);
+}
+
+html[data-theme="grimoire"] .hero-inner::before {
+  box-shadow:
+    inset 0 0 0 1px var(--gs-gold),
+    inset 0 0 0 4px rgba(216, 188, 116, .9),
+    inset 0 0 0 11px rgba(176, 138, 62, .5),
+    inset 0 0 0 14px rgba(176, 138, 62, .22),
+    0 0 0 15px rgba(163, 126, 54, .5),
+    0 0 0 16px rgba(226, 202, 130, .9),
+    12px 12px 0 rgba(18, 12, 6, .24);
+}
+
+/* 烫金压边 → 改成一条有份量的烫金外框。
+   .55 的近金压在近黑上会读成暗灰（orange 只到 9.1%，参考 11.8%），
+   而参考图的橙金本来就占近 12%，来源正是那道很宽的烫金框。
+   所以：15px 古金宽带 + 最外 1px 亮金硬边（定形），钉在卡的**外侧**黑装帧里 ——
+   落在卡外，羊皮纸正文字面完全不动（铁律 1）。
+   注意 shadow 列表顺序 = 由上到下绘制：1px 亮金与 11px 金线必须排在 15px 带之前，
+   否则会被宽带盖住。 */
+html[data-theme="grimoire"] .hero-inner::before {
+  box-shadow:
+    inset 0 0 0 1px var(--gs-gold),
+    inset 0 0 0 10px rgba(176, 138, 62, .18),
+    inset 0 0 0 11px rgba(176, 138, 62, .5),
+    0 0 0 15px rgba(163, 126, 54, .5),
+    0 0 0 16px rgba(214, 186, 108, .85),
+    12px 12px 0 rgba(18, 12, 6, .24);
+}
+
+/* ============================================================
+   GRIMOIRE · v2「冒险者档案」
+   ------------------------------------------------------------
+   参考图（新主题2）的语言是：深色厚框 + 羊皮纸 + 金色双线 +
+   酒红缎带 + 菱形等级章。旧版把等级菱形直接放在标题右侧，
+   和标题最后一个字贴在一起（铁律 1）。v2：
+     · 菱形只保留在插画窗的蜡封上；
+     · 主视觉是「羊皮纸页 + 深褐厚框 + 金色内线」；
+     · 插画窗是蜡封 + 缎带 + 金色角饰（hero-seal.svg）；
+     · 文字列零装饰，标题、说明、按钮都落在纸面上。
+   ============================================================ */
+
+html[data-theme="grimoire"] {
+  --kit-paper: #f1e4c6;
+  --kit-header-bg: #e8d8b6;
+  --kit-panel: #f6ead0;
+  --kit-ink: #2a1b12;
+  --kit-ink-2: #5a3a25;
+  --kit-line: #8a6a3a;
+  --kit-accent: #7a1f2b;
+  --kit-accent-2: #b08a3e;
+  --kit-on-accent: #f4e6c8;
+  --kit-r: 0px;
+  --kit-art: clamp(220px, 26vw, 340px);
+  --kit-art-url: url("assets/hero-seal.svg?v=140");
+  --kit-art-rule: 2px solid #b08a3e;
+  --kit-shadow: #2a1b12;
+}
+
+html[data-theme="grimoire"] body { background-color: #dcc9a2; }
+html[data-theme="grimoire"] .atmosphere,
+html[data-theme="grimoire"] .atmosphere::before,
+html[data-theme="grimoire"] .atmosphere::after { background: none !important; }
+html[data-theme="grimoire"] .scene > img { filter: sepia(.18) saturate(1.02) contrast(1.02) !important; }
+
+html[data-theme="grimoire"] .hero-inner::before {
+  background-color: var(--kit-paper) !important;
+  background-image: none !important;
+  border: 10px solid #1d140e !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 0 1px #b08a3e,
+    inset 0 0 0 7px #f1e4c6,
+    inset 0 0 0 8px #b08a3e,
+    10px 10px 0 0 rgba(42, 27, 18, .25) !important;
+}
+
+html[data-theme="grimoire"] .hero-inner .hero-logo,
+html[data-theme="grimoire"] .hero-inner .tagline,
+html[data-theme="grimoire"] .hero-inner .meta-row,
+html[data-theme="grimoire"] .hero-inner .kicker,
+html[data-theme="grimoire"] .hero-inner .progress-block {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="grimoire"] .hero-inner .hero-logo { padding: 0 !important; }
+html[data-theme="grimoire"] .hero-inner .meta-row { padding: 0 !important; }
+html[data-theme="grimoire"] .hero-inner .kicker { padding: 0 0 7px !important; border: 0; border-bottom: 1px solid rgba(138, 106, 58, .55); }
+
+/* 旧版等级菱形贴在标题右侧，v2 移除（蜡封上已有菱形） */
+html[data-theme="grimoire"] .hero-logo::before,
+html[data-theme="grimoire"] .hero-logo::after { content: none !important; display: none !important; }
+
+html[data-theme="grimoire"] :is(.hero-logo, .detail-logo, .appearance-logo, .choice-logo, .editor-logo) {
+  --logo-font: var(--font-serif);
+  --logo-weight: 600;
+  --logo-style: normal;
+  --logo-track: .01em;
+  --logo-line: .92;
+  --logo-color: #2a1b12;
+  --logo-bg: none;
+  --logo-fill: currentColor;
+  --logo-shadow: none;
+  --logo-filter: none;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: #2a1b12;
+  letter-spacing: .01em;
+  text-shadow: none;
+}
+
+html[data-theme="grimoire"] .kicker { color: #7a1f2b; font-size: 9.5px; font-weight: 700; letter-spacing: .2em; }
+html[data-theme="grimoire"] .kicker-dot { width: 7px; height: 7px; background: #7a1f2b; box-shadow: none; transform: rotate(45deg); border-radius: 0; }
+html[data-theme="grimoire"] .kicker-sep { width: 1px; height: 10px; background: #b08a3e; }
+html[data-theme="grimoire"] .kicker-dim { color: #5a3a25; }
+
+html[data-theme="grimoire"] .tagline {
+  max-width: min(100%, 28em);
+  padding: 0 0 0 12px;
+  border-left: 3px solid #7a1f2b;
+  color: #43301f !important;
+  font-size: 12.5px;
+  line-height: 1.8;
+}
+
+html[data-theme="grimoire"] .meta-row { color: #5a3a25; font-size: 10px; letter-spacing: .1em; }
+html[data-theme="grimoire"] .meta-dot { width: 4px; height: 4px; background: #b08a3e; transform: rotate(45deg); border-radius: 0; }
+
+html[data-theme="grimoire"] .btn { border-radius: 0; }
+html[data-theme="grimoire"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  background: #7a1f2b !important;
+  color: #f4e6c8 !important;
+  border: 1px solid #2a1b12 !important;
+  box-shadow: inset 0 0 0 1px #b08a3e, 4px 4px 0 0 #2a1b12 !important;
+}
+html[data-theme="grimoire"] .btn.ghost { background: #f6ead0 !important; color: #2a1b12 !important; border: 1px solid #8a6a3a !important; }
+
+html[data-theme="grimoire"] .hero-inner .progress-block {
+  width: min(420px, 100%);
+  padding: 9px 0 0 !important;
+  border-top: 1px solid #8a6a3a !important;
+}
+html[data-theme="grimoire"] .progress-head { color: #6b4c2e !important; font-size: 9px; letter-spacing: .14em; }
+html[data-theme="grimoire"] .progress-pct { color: #7a1f2b; font-family: var(--font-serif); font-size: 26px; line-height: 1; }
+html[data-theme="grimoire"] .progress-track { height: 4px; border: 1px solid #8a6a3a; border-radius: 0; background: #dcc79b !important; }
+html[data-theme="grimoire"] .progress-track i { background: #7a1f2b; border-radius: 0; }
+html[data-theme="grimoire"] .progress-sub { color: #6b4c2e !important; }
+
+html[data-theme="grimoire"] .activity-strip {
+  background: #f6ead0 !important;
+  border: 1px solid #8a6a3a !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 0 rgba(42, 27, 18, .18) !important;
+}
+html[data-theme="grimoire"] .activity-icon { border: 1px solid #7a1f2b; background: #7a1f2b; color: #f4e6c8; border-radius: 0; }
+html[data-theme="grimoire"] .activity-kicker { color: #7a1f2b; letter-spacing: .16em; }
+html[data-theme="grimoire"] .activity-title { color: #2a1b12; font-family: var(--font-serif); font-size: 16px; }
+html[data-theme="grimoire"] .activity-pct { color: #7a1f2b; font-family: var(--font-serif); }
+html[data-theme="grimoire"] .activity-track { height: 3px; border: 0; border-radius: 0; background: #dcc79b; }
+html[data-theme="grimoire"] .activity-track i { background: #7a1f2b; border-radius: 0; }
+html[data-theme="grimoire"] .activity-arrow { color: #7a1f2b; }
+
+html[data-theme="grimoire"] .dock { border-top: 1px solid #2a1b12; background: #dcc9a2; }
+html[data-theme="grimoire"] .tile-art { border: 1px solid #5a3a25; border-radius: 0; }
+html[data-theme="grimoire"] .tile-art::after { display: none; }
+html[data-theme="grimoire"] .tile-art::before { background: #7a1f2b; color: #f4e6c8; border: 0; border-radius: 0; }
+html[data-theme="grimoire"] .tile.is-active .tile-art { border: 2px solid #7a1f2b; box-shadow: 5px 5px 0 0 #b08a3e; }
+
+/* v2 收尾：旧签名层的伪元素在统一版式里全部失效（它们按旧几何定位）。
+   这一段必须留在 theme.css 末尾——主题 CSS 在主样式之后注入，
+   只有在这里写 !important 才能真正压过旧规则。 */
+html[data-theme="grimoire"] .hero-inner :is(.meta-row, .progress-block, .kicker, .cta-row, .activity-strip)::before,
+html[data-theme="grimoire"] .hero-inner :is(.meta-row, .progress-block, .kicker, .cta-row, .activity-strip)::after {
+  content: none !important;
+  display: none !important;
+}
+
+html[data-theme="grimoire"] .hero-inner .meta-row,
+html[data-theme="grimoire"] .hero-inner .meta-row span,
+html[data-theme="grimoire"] .hero-inner .meta-row .age-badge,
+html[data-theme="grimoire"] .hero-inner .progress-head,
+html[data-theme="grimoire"] .hero-inner .progress-head span,
+html[data-theme="grimoire"] .hero-inner .progress-sub,
+html[data-theme="grimoire"] .hero-inner .progress-sub span {
+  color: #5a3a25 !important;
+  background: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="grimoire"] .hero-inner .progress-pct { color: #7a1f2b !important; }
+html[data-theme="grimoire"] .hero-inner .meta-dot { background: #b08a3e !important; }
+
+/* 导航当前项：酒红块 + 羊皮纸字 */
+html[data-theme="grimoire"] .nav-btn.is-active { background: #7a1f2b !important; color: #f4e6c8 !important; border-color: #b08a3e !important; }
+html[data-theme="grimoire"] .nav-glide { background: #7a1f2b !important; }
+
+/* 顶栏在浅色羊皮纸上：钟、图标、窗口键一律回到深褐（原来是被冲淡的金色） */
+html[data-theme="grimoire"] .clock-time,
+html[data-theme="grimoire"] .clock-date,
+html[data-theme="grimoire"] .icon-btn,
+html[data-theme="grimoire"] .win-btn,
+html[data-theme="grimoire"] .brand-word { color: #2a1b12 !important; }
+
+html[data-theme="grimoire"] .clock { background: #f6ead0 !important; border-color: #8a6a3a !important; }
+html[data-theme="grimoire"] .icon-btn:hover { background: #7a1f2b !important; color: #f4e6c8 !important; }
+html[data-theme="grimoire"] .window-controls { border-left-color: #8a6a3a !important; }
+
+/* 启动动画：蜡封盖章（缩放落下，硬收） */
+html[data-theme="grimoire"] .launch.is-open .launch-art {
+  animation: grStamp 520ms cubic-bezier(.2, 1.1, .3, 1) both;
+}
+@keyframes grStamp {
+  from { transform: scale(1.16); opacity: .35; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* 活动卡：羊皮纸底上的字必须回到深褐/酒红，不能沿用深色面板的米金 */
+html[data-theme="grimoire"] .activity-strip .activity-title { color: #2a1b12 !important; }
+html[data-theme="grimoire"] .activity-strip .activity-kicker,
+html[data-theme="grimoire"] .activity-strip .activity-pct { color: #7a1f2b !important; }
+html[data-theme="grimoire"] .activity-strip .activity-desc,
+html[data-theme="grimoire"] .activity-strip .activity-meta { color: #6b4c2e !important; }
+html[data-theme="grimoire"] .activity-strip .activity-icon { color: #f4e6c8 !important; }
+html[data-theme="grimoire"] .activity-strip .activity-arrow { color: #7a1f2b !important; }
+
+/* ============================================================
+   GRIMOIRE · v6「冒险者档案 · 重做」
+   ------------------------------------------------------------
+   用户原话：太丑了，需要重做。
+
+   旧版的问题不是配色，而是**构图空了一半**：右侧插画窗里只有一枚
+   巨大的火漆，游戏角色被丢到页面背景里当壁纸。参考图（新主题2）
+   的构图是「左：角色肖像卡 / 右：属性与档案正文 / 外：深色装帧」。
+
+   v6 按参考图重排：
+     · 肖像卡回到左侧：真实游戏主视觉（--nova-hero）装进金框，
+       右下压一枚小蜡封，底部印真实档号 `No.xx / xx`；
+     · 文字列回到右侧：酒红标题带、金色分隔线、红菱形属性行；
+     · 页面背景压成深色装帧 + 金色藤蔓（filigree.svg），
+       游戏封面只作为暗衬，不再抢主体；
+     · 活动条删除（与 dock 重复），把高度还给档案正文。
+   ============================================================ */
+
+html[data-theme="grimoire"] body { background-color: #120b06; }
+html[data-theme="grimoire"] .scene { background: #120b06 !important; }
+html[data-theme="grimoire"] .dock { background: #1b120a !important; }
+
+html[data-theme="grimoire"] .scene > img,
+html[data-theme="grimoire"] .scene.is-active > img {
+  opacity: .9 !important;
+  filter: sepia(.55) saturate(.6) contrast(1.12) brightness(.3) !important;
+}
+
+html[data-theme="grimoire"] .scene::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(62% 72% at 26% 46%, rgba(122, 31, 43, .26) 0%, rgba(122, 31, 43, 0) 70%),
+    radial-gradient(80% 80% at 70% 42%, rgba(20, 13, 7, 0) 0 34%, rgba(20, 13, 7, .72) 78%, rgba(20, 13, 7, .96) 100%);
+}
+
+/* 金色藤蔓：左右各一束，压在背景上、内容下 */
+html[data-theme="grimoire"] .scene-stack::before,
+html[data-theme="grimoire"] .scene-stack::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: url("assets/filigree.svg?v=1");
+  background-repeat: no-repeat;
+  background-size: min(330px, 23vw) auto;
+  opacity: .28;
+}
+html[data-theme="grimoire"] .scene-stack::before { background-position: 2% 48%; }
+html[data-theme="grimoire"] .scene-stack::after { background-position: 98% 52%; transform: scaleX(-1); }
+
+/* 面板：深色装帧里的一张羊皮纸 */
+html[data-theme="grimoire"] .hero { padding: clamp(34px, 3.4vw, 58px); }
+
+html[data-theme="grimoire"] .hero-inner::before {
+  background-color: #f1e4c6 !important;
+  background-image:
+    radial-gradient(120% 90% at 18% 8%, rgba(255, 255, 255, .3), transparent 58%),
+    radial-gradient(90% 80% at 92% 92%, rgba(90, 58, 37, .14), transparent 64%) !important;
+  border: 10px solid #1d140e !important;
+  border-radius: 0 !important;
+  box-shadow:
+    inset 0 0 0 1px #b08a3e,
+    inset 0 0 0 6px #f1e4c6,
+    inset 0 0 0 7px #b08a3e,
+    10px 10px 0 0 rgba(0, 0, 0, .38) !important;
+}
+
+/* 文字列让到右侧，肖像卡在左 */
+html[data-theme="grimoire"] .hero-inner {
+  padding: 0 0 24px calc(var(--kit-art) + 32px) !important;
+}
+
+/* 肖像卡：真实游戏主视觉 + 金框 + 小蜡封 + 档号 */
+html[data-theme="grimoire"] .hero-inner::after {
+  content: var(--nova-record, "") !important;
+  display: flex !important;
+  align-items: flex-end;
+  justify-content: flex-end;
+  position: absolute !important;
+  left: -20px !important;
+  right: auto !important;
+  top: 16px !important;
+  bottom: 16px !important;
+  width: var(--kit-art) !important;
+  height: auto !important;
+  padding: 0 12px 11px !important;
+  border: 2px solid #b08a3e !important;
+  border-radius: 0 !important;
+  background-color: #1a110a !important;
+  background-image:
+    radial-gradient(circle at 86% 88%, #7a1f2b 0 14px, #5c1620 15px 18px, transparent 19px),
+    radial-gradient(circle at 86% 88%, transparent 0 19px, #b08a3e 20px 21px, transparent 22px),
+    linear-gradient(180deg, rgba(20, 13, 7, 0) 52%, rgba(20, 13, 7, .78) 100%),
+    var(--nova-hero, none) !important;
+  background-position: center, center, center, 50% 26% !important;
+  background-size: auto, auto, auto, cover !important;
+  background-repeat: no-repeat !important;
+  box-shadow:
+    inset 0 0 0 5px #1d140e,
+    inset 0 0 0 6px #b08a3e,
+    10px 10px 0 rgba(0, 0, 0, .4) !important;
+  color: #efd6a2;
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  line-height: 1;
+  text-shadow: 0 1px 2px #000, 0 0 8px #000;
+  z-index: 2;
+}
+
+/* 眉标：酒红缎带 */
+html[data-theme="grimoire"] .hero-inner .kicker {
+  display: inline-flex !important;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  background: #7a1f2b !important;
+  color: #f4e6c8 !important;
+  padding: 4px 10px 5px !important;
+  border: 0 !important;
+  border-bottom: 2px solid #b08a3e !important;
+  font-size: 9.5px !important;
+  letter-spacing: .16em !important;
+}
+html[data-theme="grimoire"] .hero-inner .kicker-dot { background: #e8cf9a !important; }
+html[data-theme="grimoire"] .hero-inner .kicker-sep { background: #e8cf9a !important; }
+html[data-theme="grimoire"] .hero-inner .kicker-dim { color: #f0dcb4 !important; }
+
+/* 标题：深褐衬线，下面一道金线 */
+html[data-theme="grimoire"] .hero-inner .hero-logo {
+  font-family: var(--font-serif) !important;
+  font-weight: 600 !important;
+  font-size: clamp(30px, 3.6vw, 54px) !important;
+  line-height: .96 !important;
+  letter-spacing: .01em !important;
+  color: #2a1b12 !important;
+  -webkit-text-fill-color: #2a1b12 !important;
+  text-shadow: none !important;
+  padding: 0 0 10px !important;
+  border-bottom: 1px solid #b08a3e;
+  overflow-wrap: anywhere;
+}
+html[data-theme="grimoire"] .hero-inner .hero-logo.is-long-title {
+  font-size: clamp(21px, 2.4vw, 32px) !important;
+  line-height: 1.18 !important;
+}
+
+/* 正文与属性行 */
+html[data-theme="grimoire"] .hero-inner .tagline {
+  color: #3f2c1d !important;
+  font-size: 12.5px !important;
+  line-height: 1.8 !important;
+  padding: 0 0 0 11px;
+  border-left: 3px solid #7a1f2b;
+}
+html[data-theme="grimoire"] .hero-inner .meta-row { color: #4d3522 !important; font-size: 10px !important; }
+html[data-theme="grimoire"] .hero-inner .meta-dot { background: #b08a3e !important; }
+
+/* 进度块：档案属性表 */
+html[data-theme="grimoire"] .hero-inner .progress-block {
+  width: min(430px, 100%);
+  margin-top: 10px !important;
+  padding: 0 !important;
+  border: 1px solid #8a6a3a !important;
+  background: rgba(241, 228, 198, .55) !important;
+}
+html[data-theme="grimoire"] .hero-inner .progress-head {
+  padding: 5px 9px !important;
+  background: #7a1f2b !important;
+  color: #f4e6c8 !important;
+  font-size: 9px !important;
+  letter-spacing: .16em !important;
+}
+html[data-theme="grimoire"] .hero-inner .progress-pct {
+  color: #f4e6c8 !important;
+  font-family: var(--font-serif) !important;
+  font-size: 19px !important;
+}
+html[data-theme="grimoire"] .hero-inner .progress-track {
+  height: 6px !important;
+  margin: 8px 9px 0 !important;
+  border: 1px solid #8a6a3a !important;
+  background: #dcc79b !important;
+}
+html[data-theme="grimoire"] .hero-inner .progress-track i { background: #7a1f2b !important; }
+html[data-theme="grimoire"] .hero-inner .progress-sub {
+  padding: 6px 9px 8px !important;
+  color: #5a3a25 !important;
+  font-size: 9.5px !important;
+}
+
+/* 活动条与 dock 重复，删掉 */
+html[data-theme="grimoire"] .hero-inner .activity-strip { display: none !important; }
+
+/* 按钮：酒红 + 金内线 */
+html[data-theme="grimoire"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
+  background: #7a1f2b !important;
+  color: #f4e6c8 !important;
+  border: 1px solid #2a1b12 !important;
+  box-shadow: inset 0 0 0 1px #b08a3e, 4px 4px 0 0 #2a1b12 !important;
+}
+html[data-theme="grimoire"] .btn.ghost {
+  background: #f6ead0 !important;
+  color: #2a1b12 !important;
+  border: 1px solid #8a6a3a !important;
+}
+
+/* 顶栏：深色木框上的金字 */
+html[data-theme="grimoire"] .topbar { background: #1b120a !important; border-bottom: 1px solid #b08a3e !important; }
+html[data-theme="grimoire"] .brand-word,
+html[data-theme="grimoire"] .icon-btn,
+html[data-theme="grimoire"] .win-btn,
+html[data-theme="grimoire"] .clock-time { color: #e8cf9a !important; }
+html[data-theme="grimoire"] .clock { background: #20150c !important; border-color: #8a6a3a !important; }
+html[data-theme="grimoire"] .clock-date { color: rgba(232, 207, 154, .68) !important; }
+html[data-theme="grimoire"] .nav-btn { color: rgba(232, 207, 154, .66) !important; }
+html[data-theme="grimoire"] .nav-btn.is-active { color: #f4e6c8 !important; background: #7a1f2b !important; border-color: #b08a3e !important; }
+html[data-theme="grimoire"] .nav-glide { background: #7a1f2b !important; }
+
+@media (max-width: 1024px) {
+  html[data-theme="grimoire"] .hero-inner { padding: 0 0 18px !important; }
+  html[data-theme="grimoire"] .hero-inner::after { display: none !important; }
+}
+
+/* v6.1：属性表标题行左右分列，累计时长必须可见；档号移到肖像左下 */
+html[data-theme="grimoire"] .hero-inner .progress-head {
+  display: flex !important;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+html[data-theme="grimoire"] .hero-inner .progress-pct {
+  flex: 0 0 auto;
+  color: #f4e6c8 !important;
+  white-space: nowrap;
+}
+html[data-theme="grimoire"] .hero-inner::after {
+  justify-content: flex-start !important;
+  padding: 0 12px 11px 14px !important;
+}
+
+/* 铁律 3/4：font-size 必须带 --logo-fit；长名允许换行 */
+html[data-theme="grimoire"] .hero-inner .hero-logo:not(.is-long-title) {
+  font-size: calc(clamp(30px, 3.6vw, 54px) * var(--logo-fit, 1)) !important;
+  white-space: nowrap !important;
+}
+html[data-theme="grimoire"] .hero-inner .hero-logo.is-long-title {
+  white-space: normal !important;
+  max-width: 100% !important;
+  font-size: calc(clamp(20px, 2.3vw, 31px) * var(--logo-fit, 1)) !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* 旧重置里的 `.progress-head span`（0,3,2）压过了 `.progress-pct`，
+   这里加一层更高的特异性，保证红带上的累计时长是米白而不是深褐。 */
+html[data-theme="grimoire"] .hero-inner .progress-head .progress-pct {
+  color: #f4e6c8 !important;
+  font-size: 19px !important;
+  line-height: 1.1 !important;
+}
+
+/* 红带上的两个读数都必须是米白（旧的 `.progress-head span` 规则会染成深褐） */
+html[data-theme="grimoire"] .hero-inner .progress-head > #progressLabel {
+  color: #f4e6c8 !important;
+  font-size: 10px !important;
+  letter-spacing: .14em !important;
+}
+html[data-theme="grimoire"] .hero-inner .progress-head .progress-pct {
+  color: #f4e6c8 !important;
+}

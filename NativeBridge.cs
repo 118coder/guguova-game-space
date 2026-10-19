@@ -213,7 +213,8 @@ public sealed class NativeBridge
                     ok = t.Ok,
                     error = t.Error,
                     tokens = t.Tokens,
-                    icons = t.Icons
+                    icons = t.Icons,
+                    features = t.Features
                 }).ToList()
             };
         }

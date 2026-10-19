@@ -1,31 +1,343 @@
 # NOVA 交接文档
 
 > 写给接手这个项目的人（或下一个 AI 会话）。
-> 最后更新：2026-10-19 · 对应版本 1.2.2
+> 最后更新：2026-10-19 · 渲染层版本 **1.4.0**（本文正文写于 1.2.9，改版记录在 0.0 各段，
+> 主题/接口的最新状态在 `docs/HANDOFF-THEMES.md` 与 `docs/THEME-INTERFACES.md`）
 
 先读这一页，再按需跳到具体章节。文中所有路径都相对于仓库根目录。
 
 ---
 
-## 0.00 30 秒交接
+## 0.00 30 秒交接（2026-10-19 · v1.4.0）
 
-- 当前版本 **1.2.2**；共 **6 套主题**：`nova` / `aurum` / `endfield` / `codex` / `zerohour` / `mnemo`。
-- 每套主题都有自己的开场 id（`gilded` / `aurum` / `endfield` / `codex` / `zerohour` / `mnemo`）；
-  新增主题必须：注册开场 + 做一张统一概念板预览 + 过一遍 **`docs/THEME-COVERAGE.md`**。
-- 主题卡预览**不是截图**：源在 `tools/theme-concepts.html`，用 `tools/render-concepts.js` 渲染，
-  缩到 960×540 后放进主题的 `assets/preview.jpg`；内置 NOVA 用 `src/assets/theme-nova-preview.jpg`。
+- 渲染层版本 **1.4.0**；共 **11 套主题**：`nova` + `aurum` / `endfield` / `codex` / `zerohour` / `mnemo` / `riot` / `grimoire` / `riso` / `summer` / `broadcast`。
+- **开屏 11 套 preset 全部互不相同**：`gilded`（NOVA 星核）/ `aurum`（金门）/
+  `endfield` / `zerohour` / `codex`（星轨展开）/ `broadcast` / `draft`（SUMMER）/
+  `riso`（三色套印）/ `vinyl`（RIOT）/ `seal`（GRIMOIRE）/ `mnemo`。
+  新增舞台必须加入 `src/intro.js` 的 `STAGE_SELECTOR`，并在 `play()` 清理类列表里登记。
+- **进游戏动画 11 套也全部不同**（`nvLaunch / auLaunch / efLaunch / zhLaunch /
+  cxIris / bcSweep / suShutter / rsRoll / rtDrop / grStamp / mnUnfold`）。
+- **主题卡预览是设计概念板，不是应用截图**：源在 `tools/theme-concepts.html`，
+  `tools/render-concepts.js` 以 960×540 @2x 渲染后缩到 960×540，写入各主题
+  `assets/preview.jpg`；内置 NOVA 写入 `src/assets/theme-nova-preview.jpg`。
+  默认 NOVA 那张就是缩略图的版式基准：大字标 + 副题 + 调色板字段 + 迷你面板 + 页脚。
+- 主题面板默认折叠 6 套；`nova` 固定第一，其余按 `localStorage` 的
+  `nova.themeUsage` 在**启动时快照排序一次**，会话内不再重排。
 - 新主题最容易漏：**右键菜单**（`.context-menu` / `.context-item`）、**编辑器 `select`**、
-  **构图控件**（`.editor-framing`）、启动/睡眠、详情/外观预览。清单见覆盖文档第 7/8 节。
-- 改主题 CSS 后 **bump `theme.json` 的 version**（坑 #8）；发版同时改 csproj 版本和
-  `index.html` 的 `?v=`（坑 #2 / #13）。
-- ZERO HOUR 的主视觉是**黑色 command 面板 + 白字**，活动条是实色深面板；不要改回白纸卡片，
-  否则灰底黑字会再次出现。MNEMO 的红色错误牌只用于开场/错误态。
-- AURUM 的外观预览仍用基础卡片（覆盖表里标 `△`），下次可统一成铭牌 + 编号条。
-- 交接文件：本文件 + `docs/THEME-COVERAGE.md` + `docs/THEMES.md` + `README.md`。
+  **构图控件**（`.editor-framing`）、启动/睡眠、详情/外观预览。清单见
+  `docs/THEME-INTERFACES.md` 第 9 节与 `docs/THEME-COVERAGE.md`。
+- 改主题 CSS 后 **bump `theme.json` 的 version** → sync 到用户主题目录 → 重启/点「刷新」。
+  内存 CSS 缓存会让「只 sync 不重启」看不到新样式。
+- **性能基线**：全屏视图禁止 `backdrop-filter`；`.view` 有 `contain`；主题切换由
+  `#themeCurtain` 遮住样式重算；首屏后 idle 预取主题 CSS。
+- ZERO HOUR 的主视觉是**黑底白字的 command 台**：青柠做选中、警示黄做提醒、品红只做稀有度；
+  不要改回白纸卡片、粗白边、胶带贴纸或硬偏移阴影。MNEMO 已改名**神秘管理局**，
+  色相为雾紫/靛紫/梅红/琥珀；梅红错误牌只用于开场/错误态。
+- **主题精修单独交接**：见 **`docs/HANDOFF-THEMES.md`**（本轮进度、量化方法、
+  坑与下一轮清单）。**它的 §0.00b 是最新状态**，旧表只作历史。
+- 交接文件：本文件 + `docs/HANDOFF-THEMES.md` + `docs/THEME-INTERFACES.md` +
+  `docs/themes/`（单主题接口卡）+ `docs/THEME-COVERAGE.md` + `docs/THEMES.md` + `README.md`。
 
 ---
 
-## 0.0 1.2.2 变更记录（最新）
+## 0.0 1.2.9 变更记录（最新）
+
+这一轮按参考图的**实际像素分布**做了一次定量校准：不再凭感觉配色，先量再改。
+
+### 1. 顶部装饰条按参考图改正
+
+- **RIOT**：参考图顶部没有任何装饰条，删除 `body::after` 的斜纹带；顶栏改为纸白 + 1px 黑线，
+  导航选中改为红色下划线。
+- **BROADCAST**：参考图顶部只有颗粒渐变，删除 2px 黑线；顶栏改浅灰渐变、无边框。
+- **GRIMOIRE**：参考图是暗酒红描金顶带，顶栏改 `#2a1b12` + 金色细线，时钟/图标改金色。
+- **SUMMER**：参考图是整条青绿实色带，顶栏改 `#22b5a6` 实色，导航/图标改白色系。
+- **RISO**：参考图只有细蓝框线，`body::after` 从 8px 降到 2px。
+
+### 2. 颜色占比校准（量出来的数字）
+
+用像素分类统计参考图与实机截图的主视觉区，按偏差逐轮修正：
+
+| 主题 | 参考主色占比 | 校准后 |
+|---|---|---|
+| RIOT | 纸白 47% / 浅灰 14% / 红 11% / 黑 9% | 纸面底色降到 `#e2e0db`，活动条改纸底，黑块只留标题 |
+| GRIMOIRE | 羊皮纸 28% / 酒红 22% / 黑 12% | 主视觉加 12px 黑外框；进度条与活动条改酒红实底；dock 说明条酒红 |
+| RISO | 蓝 49% / 白 26% / 酸黄 15% | 主视觉改为蓝底 + 白色窄文字区；活动条/滤镜/导航选中全部改蓝 |
+| SUMMER | 蓝 28% / 白 27% / 青 13% | 天空渐变占满上半部；说明文字各带独立白色底板 |
+| BROADCAST | 浅灰 25% / 纸 24% / 中灰 22% / 白 20% | 主视觉改成胶片式中灰渐变；黑胶降为幽灵 |
+
+关键测量结果（主视觉区主导像素）：
+- GRIMOIRE 酒红 7.8% → 22.4%（参考 22.1%）
+- RISO 蓝 3.8% → 29%，白 57% → 37%
+- SUMMER 天空占比与参考接近，白区收敛到文字底板
+
+### 3. 布局回归
+
+- SUMMER / BROADCAST 的白底标题块曾用 `inline-block`，导致标题与说明挤在同一行；
+  改为 `display: block; width: fit-content`，各占一行，活动条不再被挤出主视觉。
+- GRIMOIRE 等级菱形与右侧竖幅内收，不再压住标题与正文。
+- 所有主题在 1439×1124 与 960×600 两档复查：无溢出、无裁切、`--logo-fit` 正常。
+
+### 4. 概念板
+
+- 五张概念板同步参考图的顶部处理（RIOT / BROADCAST 去掉顶部装饰条、SUMMER 改青绿带），
+  并把主视觉样张框改成与实机一致的蓝底/天空/胶片渐变。
+- 全部 960×540，version 已 bump。
+- 方法沉淀：`docs/THEMES.md` 第 15.5 节写了「缩略 → 色度判断中性 → 亮度分档 →
+  色相分类」的量化流程，以后新主题先量再画。
+
+### 5. 已知保留项
+
+- RIOT 的纸面占比 63% 仍高于参考的 47%：参考图的中灰来自照片拼贴，
+  而启动器主视觉是可读面板，继续压暗会降低正文对比度。**按可读性优先保留**，
+  已在 `docs/THEMES.md` 第 15.5 节记录。
+
+---
+
+## 0.0a 1.2.8 变更记录（上一版）
+
+这一轮按 `新主题参考/` 新增 5 套主题，并把主题面板做成可折叠、按使用频率排序的常用区。
+
+### 1. 五套新主题
+
+- `themes/riot/`「少女乐队呐喊 RIOT」：白纸拼贴、朱红信号、黑胶、撕裂胶带与硬偏移墨影；
+  封面降饱和成黑白；主按钮朱红 + 黑边；`"intro": "ember"`。
+- `themes/grimoire/`「冒险者档案 GRIMOIRE」：羊皮纸角色卡、酒红横幅、双线金框、菱形刻度、
+  Cormorant/宋体衬线标题；封面做旧；`"intro": "codex"`。
+- `themes/riso/`「电波海报 RISO」：蓝黄双色印刷、网点、几何碎片、硬阴影与超大衬线；
+  封面做蓝色双色调；`"intro": "ink"`。
+- `themes/summer/`「夏日轻程 SUMMER」：天蓝/酸柠、白色照片框、细线网格、胶带标签与杂志排版；
+  封面保持自然色；`"intro": "ink"`。
+- `themes/broadcast/`「深夜广播 BROADCAST」：灰阶、颗粒、黑胶、虚线路由、巨型幽灵字；
+  封面强制去色；`"intro": "veil"`。
+- 五套共用一份完整组件骨架（约 1100 行 CSS/主题），覆盖 `THEME-COVERAGE.md` 第 1–10 节；
+  在骨架上每套再追加独立的 **signature pass**，避免看起来像同一套模板：
+  - RIOT：撕纸主视觉、黑胶唱片、朱红手绘弧线、照片白边卡片；
+  - GRIMOIRE：双线金框、红色竖幅、蜡封、红色活动条、羊皮纸铭牌；
+  - RISO：蓝/黄错位标题、注册标记、蓝色活动块、酸黄三角卡片；
+  - SUMMER：照片角、酸柠胶带、斜置照片卡、细线框；
+  - BROADCAST：黑胶 + 虚线路由、细线日志式活动条、巨型幽灵字。
+- 同期精修 CODEX（星盘刻度环、星点、蜡封）、MNEMO（档案夹切口、CLASSIFIED 印章、
+  虚线表单活动条、衬线标题）与 ZERO HOUR（青柠角标、分段信号轨）。
+- 封面滤镜分别写在各自 `theme.css` 末尾。
+- 概念板：RIOT No.06、GRIMOIRE No.07、RISO No.08、SUMMER No.09、BROADCAST No.10，
+  全部 960×540。
+
+### 2. 主题面板折叠与常用排序
+
+- 新增 `#themeToggle` / `.theme-more`：默认折叠为 6 套，可展开全部 11 套；折叠状态存
+  `localStorage` 的 `nova.themeCollapsed`。
+- 排序规则：`nova` **永远第一**；其余按 `localStorage` 的 `nova.themeUsage` 次数降序；
+  次数相同保持原有顺序。切主题时在 `applyTheme()` 里记一次，静默启动不计数。
+- 当前主题即使不在前 6 套，也会替换末位显示，保证「使用中」卡片始终可达。
+- 折叠按钮沿用 `.btn.ghost.compact`，所有主题自动继承，不需要逐套写样式。
+- 使用次数与折叠状态是渲染层本地存储，不写进 `library.json`。
+
+### 3. 主题切换后的标题重排
+
+- 主题可以换展示字体，但标题的 `fitLogo` 原来只在渲染时测一次；切换主题后字体变宽，
+  标题会溢出主视觉（GRIMOIRE / BROADCAST 实测）。
+- `applyTheme()` 现在在主题激活后调用 `refitLogos()`，并在 `document.fonts.ready`
+  与 350ms 后再测一次，保证 WebFont 落定后仍不溢出。
+- 这是通用修复：以后任何换字体的主题都不需要自己算字号。
+
+### 4. 主题特征框架（1.2.8）
+
+- 新增 `src/theme-fx.css`：把材质、字体图层、面板结构做成可选模块。
+- `theme.json` 新增 `features`：
+  ```json
+  "features": { "texture": "paper", "type": "ink", "panel": "torn" }
+  ```
+- C# `ThemeManifest` / `ThemeInfo` 透传 `Features`；`listThemes` 返回 `features`；
+  `theme-engine.js` 在主题激活时把每个键写成根元素 `data-fx-*`，切主题时清空旧值。
+- 字体图层（PS 混合选项式）：`ink` / `misreg` / `letterpress` / `emboss` / `foil` /
+  `outline` / `papercut`，由 `--fx-type-x/y`、`--fx-ink`、`--fx-accent`、
+  `--fx-accent-2`、`--fx-foil-1..5` 控制；小尺寸 `.choice-logo` 自动减半偏移。
+- 纹理模块：`paper` / `parchment` / `halftone` / `riso` / `film` / `map` /
+  `scanline` / `starfield` / `photo`。
+- 面板模块：`torn` / `double` / `shard` / `photo` / `hairline` / `folder` / `bracket`。
+- 八套主题已声明组合：CODEX starfield+foil+double、ZERO HOUR scanline+bracket、
+  MNEMO map+emboss+folder、RIOT paper+ink+torn、GRIMOIRE parchment+emboss+double、
+  RISO riso+misreg+shard、SUMMER photo+letterpress+photo、BROADCAST film+letterpress+hairline。
+- 模块是**可选**的：不写键或写 `"none"` 就不启用；主题仍可用自己的 CSS 覆盖。
+- 主题 CSS 末尾统一补 `--fx-paper` / `--fx-ink` / `--fx-accent` / `--fx-accent-2` /
+  `--fx-line` / `--fx-panel`，让同一模块在不同主题里有正确的颜色。
+- 文档：`docs/THEMES.md` 第 15 节（模块表、变量表、推荐组合、取舍）。
+
+### 5. 版本与预览
+
+- 应用 1.2.3 → **1.2.8**，`index.html` 所有 `?v=` 同步；1.2.8 引入
+  features / theme-fx，需要刷新渲染层缓存。
+- 主题版本（1.2.8 末）：CODEX 1.0.5 / ZERO HOUR 1.0.4 / MNEMO 1.0.9 /
+  RIOT 1.1.2 / GRIMOIRE 1.1.2 / RISO 1.1.6 / SUMMER 1.1.3 / BROADCAST 1.1.2。
+- `tools/theme-concepts.html` 增加五块 `nt-*` 概念板；`tools/render-concepts.js` 渲染 11 块。
+- 主题卡截图更新为 11 套；README 增加 RIOT 首页、GRIMOIRE 详情与主题面板截图。
+
+### 验证
+
+- `dotnet build -c Debug`：0 错误（2 个既有警告）。
+- 11 套主题全部 `ok: true`；主题面板展开 11 张卡、折叠 6 张卡；`nova` 在第一；
+  切换后常用主题前移；当前主题在折叠态可见。
+- RIOT / GRIMOIRE / RISO / SUMMER / BROADCAST 的首页、库、详情逐一截图：
+  无横向溢出；详情弹层背景、文字、主按钮对比正常。
+- 主题卡点击切换后实测 GRIMOIRE 标题 `--logo-fit: 0.901`，不再压住红色竖幅；
+  BROADCAST / MNEMO 的衬线标题同样重排。
+- ZERO HOUR 960px 抽查：`scrollWidth === innerWidth`，标题、按钮、dock 不截断。
+- 五张新概念板 960×540，主题卡 264×148 下可读。
+- 特征框架：每套主题根元素 `data-fx-*` 与 manifest 一致；CODEX 标题为金属渐变，
+  RIOT 为黑字朱红偏移，RISO 为蓝字酸黄错位，MNEMO/GRIMOIRE 为浮雕，
+  SUMMER/BROADCAST 为压印；面板/纹理模块均实际生效。
+- `theme-fx.css` 已加入 csproj 渲染层清单；`dotnet build` 0 错误。
+
+---
+
+## 0.0b 1.2.7 变更记录（上一版）
+
+这一轮按 `新主题参考/` 的原始图片逐套重做主题的「签名层」，不再共用一套模板视觉。
+
+### 1. 每套主题的独立视觉签名
+
+- **RIOT**（专辑封面）：新增 `assets/splatter.svg`（灰墨泼溅）、`assets/spiral.svg`
+  （朱红毛笔螺旋）、`assets/Saira.ttf`（OFL，宽体重黑）；主视觉改为白纸专辑封套 +
+  右缘裁切黑胶 + 黑底白字歌词条 + 手写旁注 + 竖向 `SIDE A` 书脊 + 红色硬偏移。
+- **GRIMOIRE**（角色卡）：斑驳羊皮纸渐变、四角金点、双线金框、右上暗纹剪影、
+  酒红标题条 + 金字、金色描边菱形等级牌、朱红细线分隔、羊皮纸内嵌铭牌；
+  所有阅读面板都是「双线金框 + 内嵌羊皮纸」。
+- **RISO**（双色海报）：新增 `assets/streaks.svg`（蓝/酸黄速度线）、`assets/star.svg`
+  （四芒星徽记）、`assets/halftone.svg`；蓝色衬线标题 + 酸黄错印、右下角巨型 `AA` 越界字母、
+  酸黄三角角标、蓝色活动块、卡片酸黄切角。
+- **SUMMER**（照片拼贴）：新增 `assets/seams.svg`（青色细线接缝）、`assets/dots.svg`、
+  `assets/arrow.svg`；白色照片板 + 酸柠胶带 + 青色竖排标题 + 白色标题衬底 + 圆角药丸按钮。
+- **BROADCAST**（深夜广播）：新增 `assets/sparkle.svg`（圆形四芒星）、`assets/route.svg`
+  （带刻度的虚线路由）；胶片渐变底 + 粗颗粒 + 半融黑胶 + 星芒衬线大写 + 幽灵 `BROADCAST`
+  + 细线日志式活动条 + 灰阶联络表卡片。
+- **CODEX**：星点场、右下星盘刻度环、活动条蜡封（移入条内，不再被切角裁掉）。
+- **MNEMO**：档案夹切口、`CLASSIFIED` 印章、等高线地图、`EXHIBIT No.05` 展签、
+  衬线标题、打字机标签。
+- **ZERO HOUR**：青柠 L 形角标、分段信号轨、细描边深色命令台（维持 1.2.3 方向）。
+
+### 2. 主题特征框架（可选模块）
+
+- 新增 `src/theme-fx.css` + `theme.json` 的 `features`：
+  `texture`（paper / parchment / halftone / riso / film / map / scanline / starfield / photo）、
+  `type`（ink / misreg / letterpress / emboss / foil / outline / papercut）、
+  `panel`（torn / double / shard / photo / hairline / folder / bracket）。
+- 渲染层把每个键写成 `data-fx-*`；不写或写 `"none"` 即不启用。
+- 八套主题的组合见 `docs/THEMES.md` 第 15 节。
+- 本轮各主题的「签名层」用主题自己的 CSS + assets 实现（更贴近原图），
+  框架模块只负责可复用的通用质感；两者可以叠加，也可以只用一边。
+
+### 3. 通用修复
+
+- `fitLogo` 在字体切换后没有重测：主题换展示字体后标题会溢出。
+  `applyTheme()` 现在在激活后、`document.fonts.ready`、以及 350ms 后各重排一次。
+- `.type-recipe-name` / `.type-recipe-spec` 原来用 ellipsis 硬切，违反「不允许截断」铁律；
+  改为换行（`theme-fx.css` 顶部共享修复）。
+- 主题头衔的 `::after` 装饰统一检查了层级，避免压住按钮与文案。
+
+### 验证
+
+- `dotnet build -c Debug`：0 错误。
+- 八套主题逐套实机截图（首页 / 库 / 详情）：无横向溢出；标题 `--logo-fit` 正常；
+  1900×1100 与 960×600 两档都检查过。
+- 特征模块与 manifest 一致；切回 NOVA 后 `data-fx-*` 全部清空。
+- 5 套新概念板按参考图重绘，960×540：RIOT 加宽体重黑字 + 手写 + 黑胶；
+  GRIMOIRE 菱形等级牌；RISO 越界 `AA` + 酸黄三角 + 星徽；SUMMER 青色竖排标题；
+  BROADCAST 星芒圆章 + 虚线路由。
+
+---
+
+## 0.0c 1.2.3 变更记录（上一版）
+
+这一轮只改两套主题：ZERO HOUR 按 `绝区0参考/` 收敛成黑底白字的命令台；
+MNEMO 改名为**神秘管理局**并整体换色相，避开既有作品的名称与冰蓝/红/黄组合。
+
+### 1. ZERO HOUR 主界面重构
+
+- 在 `themes/zerohour/theme.css` 末尾追加 **command deck pass**，不改信息层级与交互。
+- 调色板：off-black `#08090A` / off-white `#F4F4F2` / 青柠 `#C9F73A` / 警示黄 `#FFD60A` /
+  危险红 `#FF4438` / 品红 `#C46BFF` / 青光 `#5CE1E6`。青柠只做当前与选中，
+  黄色只做提醒，红色只做退出/删除，品红只做稀有度。
+- 顶栏：青柠方形品牌标记、深色药丸导航轨道、当前项青柠药丸、时钟独立深色胶囊。
+- 首页：主视觉是 20px 圆角深色 command 卡（1px 细描边 + 45° 斜线纹），
+  左侧青柠信号轨、白色 Bebas 标题、青柠主按钮、深色细描边次按钮；进度条改成分段青柠读数。
+- 活动条：深色面板 + 青柠左信号 + 青柠图标；不再有纸白底与黄色硬阴影。
+- dock：黑底圆角卡片；6 张卡按青柠/品红/青光/黄/红/白循环出底部稀有度条；
+  编号 chip 改为深底细描边，当前卡青柠描边 + 青柠编号。
+- 库/外观：黑底命令页、药丸搜索与筛选、细描边深卡片；库的巨型背景字保留。
+- 弹层：详情、编辑器、扫描器、选择器、对话框统一深色面板 + 1px 描边 + 18px 圆角；
+  详情/外观预览/编辑器的文案铭牌从纸白改为深色 + 白字；`select` 深底 + 青柠箭头。
+- 右键菜单、通知、Toast、手柄提示、启动/睡眠全部改为同一套深色命令语言。
+- 移除：纸白面板、胶带贴纸、粗白边、硬偏移阴影、半调噪点墙。保留硬边斜线纹、
+  分段进度与顶部危险条。
+- `theme.json` 1.0.0 → **1.0.2**，description 与 tokens 同步；概念板重绘为黑色 command 面板。
+
+### 2. MNEMO → 神秘管理局
+
+- 主题显示名改为 **神秘管理局 · MNEMO**；`id` 与开场 preset 仍是 `mnemo`，
+  旧设置、收藏与开场引用不会失效。
+- 色相整体迁移：
+  - 冰蓝纸底 `#E9F1F0` → 雾紫 `#F0EDF6`
+  - 冷白 HUD `#F7FBFA` → 浅紫 `#FBF9FD`
+  - 青色数据线 `#2F8F8B` → 靛紫 `#5B4A8C`
+  - 红色节点 `#D6272F` → 梅红 `#9B3550`
+  - 黄色路径 `#F2D33C` → 琥珀 `#C99B3F`
+  - 深青字 `#102426` → 墨紫 `#241F33`
+- 变量同步改名为 `--mn-mist` / `--mn-violet` / `--mn-plum` / `--mn-amber`，
+  不再保留 `teal/red/ice` 这类会误导后续维护者的旧名。
+- 开场 `mnemo` 同步换色与文案：英文副标 `MYSTERY BUREAU`，错误牌 `档案无法读取`，
+  复位为 `档案已解密 / ARCHIVE DECRYPTED`；日期、时间、游戏数仍为真实数据。
+- `theme.json` 1.0.0 → **1.0.2**，tokens 改为梅红/琥珀/靛紫；概念板重绘为雾紫档案。
+
+### 3. 主题切换后的标题重排
+
+- 主题可以换展示字体，但标题的 `fitLogo` 原来只在渲染时测一次；切换主题后字体变宽，
+  标题会溢出主视觉（GRIMOIRE / BROADCAST 实测）。
+- `applyTheme()` 现在在主题激活后调用 `refitLogos()`，并在 `document.fonts.ready`
+  与 350ms 后再测一次，保证 WebFont 落定后仍不溢出。
+- 这是通用修复：以后任何换字体的主题都不需要自己算字号。
+
+### 4. 主题特征框架（1.2.8）
+
+- 新增 `src/theme-fx.css`：把材质、字体图层、面板结构做成可选模块。
+- `theme.json` 新增 `features`：
+  ```json
+  "features": { "texture": "paper", "type": "ink", "panel": "torn" }
+  ```
+- C# `ThemeManifest` / `ThemeInfo` 透传 `Features`；`listThemes` 返回 `features`；
+  `theme-engine.js` 在主题激活时把每个键写成根元素 `data-fx-*`，切主题时清空旧值。
+- 字体图层（PS 混合选项式）：`ink` / `misreg` / `letterpress` / `emboss` / `foil` /
+  `outline` / `papercut`，由 `--fx-type-x/y`、`--fx-ink`、`--fx-accent`、
+  `--fx-accent-2`、`--fx-foil-1..5` 控制；小尺寸 `.choice-logo` 自动减半偏移。
+- 纹理模块：`paper` / `parchment` / `halftone` / `riso` / `film` / `map` /
+  `scanline` / `starfield` / `photo`。
+- 面板模块：`torn` / `double` / `shard` / `photo` / `hairline` / `folder` / `bracket`。
+- 八套主题已声明组合：CODEX starfield+foil+double、ZERO HOUR scanline+bracket、
+  MNEMO map+emboss+folder、RIOT paper+ink+torn、GRIMOIRE parchment+emboss+double、
+  RISO riso+misreg+shard、SUMMER photo+letterpress+photo、BROADCAST film+letterpress+hairline。
+- 模块是**可选**的：不写键或写 `"none"` 就不启用；主题仍可用自己的 CSS 覆盖。
+- 主题 CSS 末尾统一补 `--fx-paper` / `--fx-ink` / `--fx-accent` / `--fx-accent-2` /
+  `--fx-line` / `--fx-panel`，让同一模块在不同主题里有正确的颜色。
+- 文档：`docs/THEMES.md` 第 15 节（模块表、变量表、推荐组合、取舍）。
+
+### 5. 版本与预览
+
+- 应用版本 1.2.2 → **1.2.3**；`index.html` 所有 `?v=` 同步为 1.2.3，
+  确保 `intro.js` / `intro.css` 的新文案与配色不会被 WebView2 缓存挡住。
+- 两张预览都按 `tools/theme-concepts.html` 概念板重绘，再缩到 960×540 写入
+  `themes/zerohour/assets/preview.jpg` 与 `themes/mnemo/assets/preview.jpg`。
+
+### 验证
+
+- `dotnet build -c Debug`：0 错误（2 个既有警告）。
+- ZERO HOUR：首页 `body` 为 `rgb(8,9,10)`，主按钮青柠、标题白色、dock 稀有度条可见；
+  详情/外观/编辑器铭牌为深色白字；右键菜单深色 + 青柠悬停。
+- 神秘管理局：主题卡片名称与描述已更新；首页底色 `rgb(240,237,246)`，
+  数据线靛紫、节点梅红、路径琥珀；开场错误牌/复位文案正确。
+- 主题卡：ZERO HOUR / MNEMO 两张新概念板为 960×540。
+
+---
+
+## 0.0d 1.2.2 变更记录（上一版）
 
 这一轮加入「终末地 ENDFIELD」主题与启动序列，并按用户反馈做了一次**反玻璃化 / 反渐变**收敛。
 
@@ -112,16 +424,17 @@
   圆角药丸按钮、硬偏移阴影、胶带贴纸与 CRT；黑色漫画面板 + 白色粗描边 + Bebas 标题；
   `"intro": "zerohour"`。按 `绝区0参考/` 与 `精选参考/` 补上 lime 选中态、圆角面板/按钮、
   斜线扫描纹理和背景巨字水印；活动条改为实色深面板 + 白字，修复灰底黑字对比度。
-- `themes/mnemo/`「记忆管理局 MNEMO」：冰蓝记忆地图、冷白 HUD、青色数据线、红色节点、
-  黄色路径、块状字标与红色「记忆无法读取」错误牌；`"intro": "mnemo"`。
+  **1.2.3 已进一步收敛为黑底白字命令台，纸白漫画层已移除，见 0.0。**
+- `themes/mnemo/`「神秘管理局 MNEMO」：雾紫档案地图、浅紫 HUD、靛紫数据线、梅红节点、
+  琥珀路径、块状字标与梅红「档案无法读取」错误牌；`"intro": "mnemo"`。
 - 三套都有独立的启动动画与演出：codex 是星盘/指针/菱形收束；zerohour 是 CRT 通电/
-  危险条/频道读数/折叠退场；mnemo 是冰蓝记忆地图 + 红色错误牌复位 + 横向折叠。
+  危险条/频道读数/折叠退场；mnemo 是雾紫档案地图 + 梅红错误牌复位 + 横向折叠。
   `test-intro-theme.js codex|zerohour|mnemo` 已验证 `dataset.intro` 与主题一致。
 - 右键菜单补齐：`.context-menu` / `.context-item` 与 `.popover` / `.menu-row` 是两套类；
   AURUM / ENDFIELD / CODEX / ZERO HOUR / MNEMO 现在都显式覆盖右键菜单。
 - 主题卡预览新增 CODEX（No.03）、ZERO HOUR（No.04）、MNEMO（No.05）三张统一概念板；
   六套预览共用同一构图。
-- **新增 `docs/THEME-COVERAGE.md`**：逐一列出全部界面/状态/选择器，带五套主题的覆盖状态、
+- **新增 `docs/THEME-COVERAGE.md`**：逐一列出全部界面/状态/选择器，带六套主题的覆盖状态、
   常见漏项与 DoD。以后每套新主题必须过完这张表；右键菜单、`select`、构图控件、启动/睡眠、
   详情/外观预览都在表内。
 
@@ -414,6 +727,7 @@ nova-game-space-desktop/
 │  ├─ views.css              ★ 原地视图、竖排模式、全屏退出按钮
 │  ├─ dialogs.css            对话框、文件浏览器
 │  ├─ themes.css             主题卡片 + 右键菜单
+│  ├─ theme-fx.css           ★ 可选特征模块（纹理 / 字体图层 / 面板）
 │  ├─ polish.css             导航滑动、封面淡入等交互层
 │  ├─ intro.css              ★ 开场动画预设与可访问性降级
 │  ├─ fonts.css              自托管字体（离线可用）
@@ -422,8 +736,13 @@ nova-game-space-desktop/
 ├─ themes/aurum/             自带主题：鎏金圣所 AURUM
 ├─ themes/endfield/          自带主题：终末地 ENDFIELD（Saira 字体 + OFL）
 ├─ themes/codex/             自带主题：星轨秘典 CODEX
-├─ themes/zerohour/          自带主题：零点街区 ZERO HOUR
-├─ themes/mnemo/             自带主题：记忆管理局 MNEMO
+├─ themes/zerohour/          自带主题：零点街区 ZERO HOUR（黑底白字命令台）
+├─ themes/mnemo/             自带主题：神秘管理局 MNEMO（雾紫档案）
+├─ themes/riot/              自带主题：少女乐队呐喊 RIOT（纸面朋克）
+├─ themes/grimoire/          自带主题：冒险者档案 GRIMOIRE（羊皮纸）
+├─ themes/riso/              自带主题：电波海报 RISO（蓝黄双色）
+├─ themes/summer/            自带主题：夏日轻程 SUMMER（照片拼贴）
+├─ themes/broadcast/         自带主题：深夜广播 BROADCAST（灰阶）
 ├─ build/icon.ico            主图标；tools/make-icon.py 可复现
 ├─ docs/
 │  ├─ INTEGRATION.md         非 Steam 游戏接入规范
@@ -648,6 +967,25 @@ ENDFIELD 的做法：隐藏 `::before/::after`，`img { inset:0; width:100%; hei
 开发期如果不想升版本，先退出程序，删掉 `%LOCALAPPDATA%\NOVA Game Space\webview2`
 下的缓存目录与 `.renderer-version`，再启动。
 
+**#19 背景层上不要信 `elementFromPoint` —— 它会给出假线索**
+`.scene-stack` / `.scene` / `.atmosphere` 都是 `pointer-events: none`：
+`elementsFromPoint()` 会**整层跳过**它们，`elementFromPoint()` 只会返回 `body`。
+2026-10 这轮 SUMMER 又踩了一次——照它去隐藏元素，改了 0 像素（RISO 那轮同样）。
+可靠做法：**读 CSS 里那几条全视口规则 → 临时插一层彩色 `!important` 背景 →
+重截 + 取样像素**（临时层测完必须删干净）。
+
+**#20 框架的「照片暗角纱」压在 `.atmosphere` 之上，主题写的东西会被洗淡**
+`src/theme.css` 里除了 `.atmosphere` 本体，还有 `.atmosphere::before` ——
+一条从左侧横铺的 `rgba(var(--scrim-rgb), .97 → 0)` 白纱（`::after` 还有两道 `--glow`）。
+它本来是为照片背景做文字可读性的，但**主题在 `.atmosphere` 上铺的任何渐变都会被洗掉
+55%–97%**，表现为「比例怎么调都不动」——SUMMER 的两轮修改就是这样白做的。
+另外主题若把 `.scene` 关掉（`opacity: 0`），页边底色其实来自 **`body` 的
+`background-color` + `background-image`**，不是 `.scene`。
+计划中的解法：`src/theme-fx.css` 增加
+`html[data-fx-scrim="none"] .atmosphere{,::before} { background: none }` 可选通道，
+主题在 `theme.json` 的 `features` 里声明 `"scrim": "none"`。
+细节、量化数据与后续做法见 `docs/HANDOFF-THEMES.md` §0.1 / §0.5。
+
 ---
 
 ## 7. 当前状态
@@ -661,9 +999,10 @@ ENDFIELD 的做法：隐藏 `::before/::after`，`img { inset:0; width:100%; hei
 - 沉浸式启动与退出动画、沉稳模式、睡眠模式
 - 应用内对话框、文件浏览器、右键菜单（无系统弹窗）
 - 无边框全屏、托盘常驻、关闭确认
-- 主题系统 + 自带 AURUM / ENDFIELD / CODEX / ZERO HOUR / MNEMO 主题 + 主题开发文档
+- 主题系统 + 十套附赠主题（AURUM / ENDFIELD / CODEX / ZERO HOUR / MNEMO / RIOT / GRIMOIRE / RISO / SUMMER / BROADCAST）+ 主题开发文档
 - 主题开场注册表（9 个预设，含 `endfield` / `codex` / `zerohour` / `mnemo`）、主题按 id 选择开场
 - `docs/THEME-COVERAGE.md` 覆盖清单：右键菜单、select、构图控件、启动/睡眠、预览等全量状态
+- 主题面板折叠 + 常用主题按使用次数排序，默认主题固定第一
 - 主题 CSS 相对资源 URL 自动重写（字体、纹理、预览图）
 - 焦点陷阱 / 恢复、键盘与手柄开场跳过
 - 终末地主题的纸面 dossier、墨色铭牌、编号 tile / 切换条、无渐变启动面
@@ -753,7 +1092,9 @@ NOVA_CDP_PORT=9223 ./NovaGameSpace.exe
 - [ ] 外观 → 终末地 → 首页纸面 dossier、右侧封面满幅无渐变；详情/外观预览是墨色铭牌，底部切换是 `No.01` 编号条
 - [ ] 终末地开场 → 日期/时间/游戏数/年份真实；任意键跳过；减少动效时直接显示最终状态
 - [ ] 终末地主题下 960 / 1280 / 1920 三档：标题、meta、按钮、编号条、库卡片都不截断
-- [ ] 六套主题预览都是概念板（不是截图），卡片在 264×148 下仍能读出主题气质
+- [ ] 十一套主题预览都是概念板（不是截图），卡片在 264×148 下仍能读出主题气质
+- [ ] 主题面板：默认折叠 6 套；展开 11 套；NOVA 在第一；常用主题靠前；当前主题在折叠态可见
+- [ ] 新主题：RIOT 纸面拼贴 / GRIMOIRE 羊皮纸 / RISO 蓝黄双色 / SUMMER 天蓝照片 / BROADCAST 灰阶，均有独立封面滤镜
 - [ ] AURUM / ENDFIELD / CODEX / ZERO HOUR 的右键菜单都跟随主题；`.context-item` 不是基础深色
 - [ ] CODEX / ZERO HOUR 的编辑器 `select`、构图控件、启动页、详情/外观预览都已打开检查
 - [ ] 编辑器「构图」：方向键 / 滚轮 / 拖动都能调整，保存后首页、外观预览、详情同步

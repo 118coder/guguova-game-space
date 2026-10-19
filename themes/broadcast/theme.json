@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "broadcast",
+  "name": "深夜广播 · BROADCAST",
+  "author": "NOVA",
+  "version": "1.4.1",
+  "description": "胶片噪点主题：满幅颗粒、线性擦除的幽灵字、带投影的文字与黑胶音频波形。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": false,
+  "intro": "broadcast",
+  "tokens": {
+    "--accent": "#141414",
+    "--accent-2": "#8c8c88",
+    "--glow": "rgba(20,20,20,.14)"
+  },
+  "features": {
+    "texture": "film",
+    "type": "none",
+    "panel": "none",
+    "hero": "plate",
+    "header": "rule",
+    "cards": "rule",
+    "plates": "off"
+  }
+}

@@ -2142,3 +2142,12 @@ html.perf-low body::before { display: none; }
 html.perf-low .view-library,
 html.perf-low .view-appearance { background-image: none; }
 html.perf-low .grain { display: none; }
+
+/* 进游戏动画：工业闸门（中线向两侧打开，酸黄闪一帧） */
+html[data-theme="endfield"] .launch.is-open .launch-art {
+  animation: efLaunch 640ms steps(10, end) both;
+}
+@keyframes efLaunch {
+  from { clip-path: inset(0 50% 0 50%); filter: grayscale(1) brightness(1.7) contrast(1.4); }
+  to { clip-path: inset(0); filter: brightness(.78) saturate(1.08); }
+}

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 520" preserveAspectRatio="xMidYMid meet">
+  <!-- BROADCAST · 黑胶 + 音频波形，透明底（颗粒由页面提供） -->
+  <g fill="none" stroke="#101010">
+    <!-- 音频线：一条水平基线 + 高低不一的竖刻度 -->
+    <path d="M-10 300h320" stroke-width="1.4"/>
+    <g stroke-width="1.4">
+      <path d="M8 292v16M18 296v8M28 288v24M38 294v12M48 300v2M58 284v32M68 292v16M78 298v4M88 286v28M98 294v12M108 300v1M118 290v20M128 296v8M138 282v36M148 292v16M158 298v4M168 288v24M178 294v12M188 300v1M198 286v28M208 292v16M218 298v4M228 290v20M238 296v8M248 284v32M258 292v16M268 298v4M278 288v24M288 294v12M298 300v1"/>
+    </g>
+  </g>
+
+  <!-- 黑胶 -->
+  <g transform="translate(150 300)">
+    <circle r="116" fill="#101010"/>
+    <g fill="none" stroke="#2e2e2b" stroke-width="1">
+      <circle r="108"/><circle r="101"/><circle r="94"/><circle r="87"/><circle r="80"/>
+      <circle r="73"/><circle r="66"/><circle r="59"/><circle r="52"/><circle r="45"/>
+    </g>
+    <path d="M-104-46a116 116 0 0 1 76-62" fill="none" stroke="#6a6a64" stroke-width="2" opacity=".7"/>
+    <circle r="38" fill="#f2efe7" stroke="#101010" stroke-width="2"/>
+    <circle r="28" fill="none" stroke="#101010" stroke-width="1" stroke-dasharray="1 4"/>
+    <circle r="4" fill="#101010"/>
+    <path d="M0-38v76M-38 0h76" stroke="#101010" stroke-width="1" opacity=".28"/>
+  </g>
+
+  <!-- 四角星 -->
+  <path d="M238 66l5 17 17 5-17 5-5 17-5-17-17-5 17-5z" fill="#101010"/>
+</svg>

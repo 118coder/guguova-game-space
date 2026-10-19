@@ -27,6 +27,7 @@ nova.log
 *.tmp
 *.bak
 *.broken-*.json
+.cache/
 
 # ---------- OS junk ----------
 Thumbs.db
@@ -42,3 +43,7 @@ _shots/
 
 # ---------- theme previews are content, keep them ----------
 !themes/**/assets/*
+
+# dev-only ad-hoc probes
+tools/_*.tmp.js
+tools/__pycache__/

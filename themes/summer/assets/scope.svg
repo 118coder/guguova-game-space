@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" preserveAspectRatio="xMinYMax meet">
+  <g fill="none" stroke="#1f93c8" stroke-width="1">
+    <!-- 半轮太阳：细射线 -->
+    <g opacity=".9">
+      <path d="M54 120V44"/>
+      <path d="M54 120 20 52M54 120 88 52M54 120 6 78M54 120 102 78"/>
+      <path d="M54 120 30 46M54 120 78 46M54 120 10 62M54 120 98 62"/>
+      <path d="M54 120 16 92M54 120 92 92M54 120 40 42M54 120 68 42"/>
+    </g>
+    <circle cx="54" cy="120" r="26"/>
+    <circle cx="54" cy="120" r="34" stroke-dasharray="2 5"/>
+
+    <!-- 地平线与浪 -->
+    <path d="M132 84h376"/>
+    <path d="M150 96q18-8 36 0t36 0 36 0 36 0" opacity=".7"/>
+    <path d="M172 108q16-7 32 0t32 0 32 0" opacity=".5"/>
+
+    <!-- 帆船 -->
+    <g stroke="#101820" stroke-width="1.4">
+      <path d="M196 84V52l30 32z"/>
+      <path d="M192 84h44l-8 9h-30z"/>
+      <path d="M214 84V56"/>
+    </g>
+
+    <!-- 遮阳伞：骨架线稿 -->
+    <g stroke="#101820" stroke-width="1.4">
+      <path d="M372 84a34 34 0 0 1 68 0z"/>
+      <path d="M406 50v70"/>
+      <path d="M406 50 380 84M406 50 432 84M406 50 406 84"/>
+      <circle cx="406" cy="50" r="3"/>
+    </g>
+
+    <!-- 十字与节点 -->
+    <g opacity=".85">
+      <path d="M320 40h18M329 31v18"/>
+      <path d="M488 104h18M497 95v18"/>
+    </g>
+    <circle cx="150" cy="84" r="3" fill="#1f93c8" stroke="none"/>
+    <circle cx="486" cy="84" r="3" fill="#1f93c8" stroke="none"/>
+
+    <!-- 黄规 -->
+    <path d="M118 34v86" stroke="#e8f21f" stroke-width="6"/>
+  </g>
+</svg>

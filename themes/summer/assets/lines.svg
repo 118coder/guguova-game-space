@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+  <g fill="none" stroke="#2aa3c2" stroke-width="1" opacity=".55">
+    <!-- left edge: rules + ticks -->
+    <path d="M44 0v900M62 0v900"/>
+    <path d="M24 180h38M24 420h38M24 660h38M24 780h38"/>
+    <path d="M44 300h-24M62 540h24"/>
+
+    <!-- left: large quarter arc -->
+    <path d="M-40 900a260 260 0 0 1 260-260"/>
+    <path d="M-40 900a310 310 0 0 1 310-310"/>
+    <path d="M-40 900a360 360 0 0 1 360-360"/>
+
+    <!-- left: diagonal + node dots -->
+    <path d="M96 360 330 596"/>
+    <circle cx="214" cy="478" r="4" fill="#2aa3c2" stroke="none"/>
+    <circle cx="258" cy="522" r="4" fill="#2aa3c2" stroke="none"/>
+
+    <!-- top: long diagonal crossing the empty band -->
+    <path d="M380 -20 900 500"/>
+    <path d="M470 -20 990 500" opacity=".5"/>
+
+    <!-- right edge: rules, arcs, cross -->
+    <path d="M1396 0v900M1378 0v900"/>
+    <path d="M1416 200h-38M1416 520h-38M1416 740h-38"/>
+    <path d="M1440 60a300 300 0 0 0-300 300"/>
+    <path d="M1440 100a360 360 0 0 0-360 360" opacity=".6"/>
+    <path d="M1330 640h60M1360 610v60"/>
+
+    <!-- small crosses -->
+    <g opacity=".8">
+      <path d="M120 820h28M134 806v28"/>
+      <path d="M1240 120h28M1254 106v28"/>
+      <path d="M1180 820h28M1194 806v28"/>
+    </g>
+  </g>
+</svg>

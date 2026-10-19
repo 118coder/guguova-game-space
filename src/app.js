@@ -329,8 +329,12 @@
     fullscreenPill: $('#fullscreenPill'),
     themeGrid: $('#themeGrid'),
     themeCountTag: $('#themeCountTag'),
+    themeToggle: $('#themeToggle'),
+    themeToggleLabel: $('#themeToggleLabel'),
     themeRefresh: $('#themeRefresh'),
     themeFolder: $('#themeFolder'),
+    themeCurtain: $('#themeCurtain'),
+    themeCurtainName: $('#themeCurtainName'),
     contextMenu: $('#contextMenu'),
     homeView: $('#homeView'),
     layoutBtn: $('#layoutBtn')
@@ -533,18 +537,95 @@
     element.style.setProperty('--logo-track', `${(baseTrack + jitter).toFixed(4)}em`);
   }
 
+  // Width the title actually has to fit into, and the width it actually wants.
+  // Both are measured on the *content* box: a theme may reserve a gutter for a
+  // badge with padding, and that gutter must not be handed back to the text.
+  function logoMetrics(element) {
+    const style = getComputedStyle(element);
+    const padX = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const rect = range.getBoundingClientRect();
+    const available = element.clientWidth - padX;
+    // A rect is empty for an empty element, so keep the box as a floor.
+    const required = Math.max(rect.width, 1);
+    return { available, required };
+  }
+
+  // Converge synchronously first: the ratio drives font-size, so leaving the
+  // first pass to requestAnimationFrame paints an oversized title for a frame
+  // or two on every theme switch and view change. Then keep re-measuring across
+  // a few frames, because web fonts, theme CSS and the intro swap all land
+  // after the first paint and would invalidate a one-shot measurement.
   function fitLogo(element) {
-    if (!element) return;
+    if (!element || !element.isConnected) return;
     element.style.removeProperty('--logo-fit');
-    requestAnimationFrame(() => {
-      if (!element.isConnected) return;
-      const available = element.clientWidth;
-      const required = element.scrollWidth;
-      if (available <= 0 || !required || required <= available + 1) return;
-      // Italic overhang and the last glyph's side bearing need a little
-      // head-room. Never let a title spill out of the hero.
-      const ratio = Math.max(.34, Math.min(1, (available / required) * .955));
+
+    // Returns true once the title fits the content box. Side bearings and the
+    // .985 safety factor make the correction slightly sub-linear, hence two
+    // synchronous passes rather than an assumed exact ratio.
+    const settle = () => {
+      const { available, required } = logoMetrics(element);
+      if (available <= 0 || required <= 1) return true;
+      if (required <= available * .998) return true;
+      const current = parseFloat(element.style.getPropertyValue('--logo-fit')) || 1;
+      const ratio = Math.max(.22, Math.min(1, current * (available / required) * .985));
       element.style.setProperty('--logo-fit', ratio.toFixed(3));
+      return false;
+    };
+
+    for (let i = 0; i < 2 && !settle(); i += 1) { /* re-measure, then correct */ }
+
+    let passes = 0;
+    const step = () => {
+      if (!element.isConnected) return;
+      const fits = settle();
+      if (fits && passes >= 2) return;
+      if (passes++ < 3) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Ink width of an element's text, measured with a Range so trailing spaces and
+  // the line box do not enter the number.
+  function textWidth(element) {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return Math.max(range.getBoundingClientRect().width, 1);
+  }
+
+  /* 铁律 3（任何文字都不许被截断）——统计格里的数值也要自适应。
+     .stat-value 在框架里是 nowrap + ellipsis，窄窗（960x600）下 detail 页的
+     「不到 1 分钟」需要 74px 而格子只有 66px，于是 11 个主题全被省略号吃掉
+     半个词（audit 的 clipped 报的就是这个）。这里按可用宽度等比缩字号——
+     注意是**同一行取同一个系数**：只缩溢出那一格会让一行里出现三种字号，
+     比截断更难看。缩得动就永远不落到 ellipsis 那一支，ellipsis 只作为字号
+     见底（8px）之后的最后防线。盒子由 grid 定宽，改字号不会反过来改盒子，
+     所以这里没有 fitLogo 那种自反馈震荡。 */
+  function refitStats() {
+    const groups = new Map();
+    $$('.stat-value').forEach((element) => {
+      const group = element.closest('.detail-stats') || element.parentElement;
+      if (!group) return;
+      if (!groups.has(group)) groups.set(group, []);
+      groups.get(group).push(element);
+    });
+    groups.forEach((items) => {
+      items.forEach((element) => element.style.removeProperty('font-size'));
+      let scale = 1;
+      const bases = items.map((element) => {
+        const available = element.clientWidth;
+        const required = textWidth(element);
+        const base = parseFloat(getComputedStyle(element).fontSize) || 12;
+        if (available > 0 && required > available) {
+          scale = Math.min(scale, (available / required) * .985);
+        }
+        return base;
+      });
+      if (scale >= 1) return;
+      items.forEach((element, index) => {
+        element.style.fontSize = `${Math.max(8, bases[index] * scale).toFixed(2)}px`;
+      });
     });
   }
 
@@ -553,6 +634,45 @@
       element.style.removeProperty('--logo-fit');
       fitLogo(element);
     });
+    refitStats();
+    watchLogos();
+  }
+
+  // fitLogo only runs at fixed moments (boot, theme switch, view switch, resize,
+  // fonts.ready). The appearance preview and the view overlays animate, so the box
+  // measured at +140ms is often not the final one, and nothing refits afterwards:
+  // grimoire's preview title stayed at 472px of required width inside a 450px box
+  // (22px of horizontal truncation) until the next unrelated refit. Rather than
+  // guess more delays, watch the logos' own boxes and settle whenever one changes.
+  let logoObserver = null;
+  function watchLogos() {
+    if (!('ResizeObserver' in window)) return;
+    if (!logoObserver) {
+      logoObserver = new ResizeObserver((entries) => {
+        let statsDirty = false;
+        entries.forEach((entry) => {
+          const element = entry.target;
+          // renderDetail() replaces .detail-stats wholesale on every game switch,
+          // so drop the old nodes instead of letting the observer hold them.
+          if (!element.isConnected) { logoObserver.unobserve(element); return; }
+          // Stat cells are grid-sized, so a font-size change cannot re-enter here;
+          // one refit pass per resize is enough (and it covers .detail-stats being
+          // re-laid out when the window or the detail sheet changes width).
+          if (element.classList.contains('stat-value')) { statsDirty = true; return; }
+          const { available, required } = logoMetrics(element);
+          if (available <= 0 || required <= 1) return;
+          const current = parseFloat(element.style.getPropertyValue('--logo-fit')) || 1;
+          // Shrinking changes the box height, which re-enters this callback once
+          // more; the second pass finds required <= available and stops. Growing
+          // back needs clear slack, otherwise a 1.5% undershoot would oscillate.
+          if (required > available * .998) fitLogo(element);
+          else if (current < 1 && required < available * .9) fitLogo(element);
+        });
+        if (statsDirty) refitStats();
+      });
+    }
+    $$('.logo').forEach((element) => logoObserver.observe(element));
+    $$('.stat-value').forEach((element) => logoObserver.observe(element));
   }
 
   function setLogo(element, game, baseClass, options = {}) {
@@ -582,6 +702,10 @@
       element.textContent = text;
       element.dataset.recipe = 'gilded';
     }
+
+    // 长标题走另一套字号规则：短名保持 fitLogo 的大字，长名由主题
+    // 决定是否换行 + 用更小的字号（.is-long-title）。
+    element.classList.toggle('is-long-title', [...(element.textContent || '')].length > 14);
 
     fitLogo(element);
     if (options.animate) {
@@ -1120,6 +1244,19 @@
   let activeLayer = 0;
   let backdropToken = 0;
 
+  /**
+   * Themes are pure CSS and cannot see the selected game. Publishing the
+   * current hero as a custom property lets a theme use the real game art
+   * inside its own composition (a framed portrait, a stamped print, …)
+   * without duplicating the image or touching the DOM.
+   */
+  function publishHeroVar(game) {
+    const root = document.documentElement;
+    const url = game && game.heroUrl;
+    if (url) root.style.setProperty('--nova-hero', `url("${String(url).replace(/"/g, '%22')}")`);
+    else root.style.removeProperty('--nova-hero');
+  }
+
   function buildBackdrop() {
     els.sceneStack.innerHTML = '';
     backdropLayers.length = 0;
@@ -1136,6 +1273,7 @@
     }
     if (backdropLayers[0]) backdropLayers[0].classList.add('is-active');
     const game = currentGame();
+    publishHeroVar(game);
     const image = $('img', backdropLayers[0]);
     if (image) {
       image.src = game ? game.heroUrl : 'assets/backdrop.jpg';
@@ -1145,6 +1283,7 @@
 
   function setBackdrop(game, instant = false) {
     if (!backdropLayers.length || !game) return;
+    publishHeroVar(game);
     const token = ++backdropToken;
     const nextIndex = 1 - activeLayer;
     const next = backdropLayers[nextIndex];
@@ -1241,11 +1380,22 @@
     return bits.join('<i class="meta-dot"></i>');
   }
 
+  // Position of the selected entry in the library — themes that print a
+  // record number need it, and only this module knows the ordering.
+  function recordIndexFor(game) {
+    if (!game || !state.games.length) return 0;
+    const at = state.games.findIndex((entry) => entry.id === game.id);
+    return at < 0 ? 0 : at + 1;
+  }
+
   function renderHero(game, animate = true) {
     const status = heroStatus(game);
     const logoText = game ? (game.logo || game.name || '') : 'NOVA';
     document.body.classList.toggle('is-long-logo', logoText.length > 18);
     setLogo(els.gameLogo, game, 'hero-logo');
+    if (window.NovaRecord) {
+      window.NovaRecord.publish(game, { index: recordIndexFor(game), total: state.games.length });
+    }
     els.kickerLabel.textContent = status.label;
     els.kickerDim.textContent = status.dim;
     els.gameTagline.textContent = game ? (game.tagline || '') : '选择游戏开始。';
@@ -2756,13 +2906,116 @@
      icons. Themes live in the user theme folder and never execute code.
      ============================================================ */
 
+  const THEME_USAGE_KEY = 'nova.themeUsage';
+  const THEME_COLLAPSE_KEY = 'nova.themeCollapsed';
+  const THEME_PINNED_LIMIT = 6;
+
+  function readThemeUsage() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(THEME_USAGE_KEY) || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function recordThemeUse(id) {
+    if (!id) return;
+    try {
+      const usage = readThemeUsage();
+      usage[id] = (Number(usage[id]) || 0) + 1;
+      localStorage.setItem(THEME_USAGE_KEY, JSON.stringify(usage));
+    } catch (error) {}
+  }
+
+  function themeCollapsed() {
+    try {
+      const saved = localStorage.getItem(THEME_COLLAPSE_KEY);
+      return saved === null ? true : saved === '1';
+    } catch (error) {
+      return true;
+    }
+  }
+
+  function setThemeCollapsed(value) {
+    try { localStorage.setItem(THEME_COLLAPSE_KEY, value ? '1' : '0'); } catch (error) {}
+  }
+
+  /* ------------------------------------------------------------
+     Theme order is a session snapshot.
+     ------------------------------------------------------------
+     Usage used to be re-sorted on every render, so clicking a theme
+     moved every card under the pointer — the next click landed on a
+     different theme. Now the "frequently used first" order is frozen
+     when the theme list is first read (and on an explicit refresh);
+     usage keeps counting for the next launch, but the grid never
+     reshuffles mid-session. New themes are appended, never inserted.
+     ------------------------------------------------------------ */
+
+  let themeOrder = null;
+
+  function computeThemeOrder(themes) {
+    const usage = readThemeUsage();
+    return [...themes]
+      .sort((a, b) => {
+        if (a.id === 'nova') return -1;
+        if (b.id === 'nova') return 1;
+        const delta = (Number(usage[b.id]) || 0) - (Number(usage[a.id]) || 0);
+        if (delta) return delta;
+        return String(a.name || a.id).localeCompare(String(b.name || b.id), 'zh-Hans-CN');
+      })
+      .map((theme) => theme.id);
+  }
+
+  function orderedThemes() {
+    if (!window.NovaTheme) return [];
+    const all = window.NovaTheme.themes;
+    if (!themeOrder) themeOrder = computeThemeOrder(all);
+    const byId = new Map(all.map((theme) => [theme.id, theme]));
+    const out = [];
+    themeOrder.forEach((id) => {
+      const theme = byId.get(id);
+      if (theme) { out.push(theme); byId.delete(id); }
+    });
+    // Themes added since the snapshot go to the end, in manifest order.
+    all.forEach((theme) => { if (byId.has(theme.id)) out.push(theme); });
+    return out;
+  }
+
+  function freezeThemeOrder() {
+    if (!window.NovaTheme) return;
+    themeOrder = computeThemeOrder(window.NovaTheme.themes);
+  }
+
   function renderThemes() {
     if (!els.themeGrid || !window.NovaTheme) return;
-    const themes = window.NovaTheme.themes;
+    const allThemes = window.NovaTheme.themes;
+    const themes = orderedThemes();
     const activeId = window.NovaTheme.activeId;
-    els.themeCountTag.textContent = `${themes.length} 套`;
+    const collapsed = themeCollapsed();
+    let visible = collapsed ? themes.slice(0, THEME_PINNED_LIMIT) : themes;
 
-    els.themeGrid.innerHTML = themes.map((theme) => {
+    // The active theme must always stay reachable. Append it instead of
+    // replacing the last card: replacing moved a card the user may be
+    // aiming at and made the grid feel unstable.
+    if (collapsed && activeId && !visible.some((theme) => theme.id === activeId)) {
+      const activeTheme = themes.find((theme) => theme.id === activeId);
+      if (activeTheme) visible = [...visible, activeTheme];
+    }
+
+    els.themeCountTag.textContent = `${allThemes.length} 套`;
+    if (els.themeToggle) {
+      const canFold = allThemes.length > THEME_PINNED_LIMIT;
+      els.themeToggle.hidden = !canFold;
+      els.themeToggle.setAttribute('aria-expanded', String(!collapsed));
+      if (els.themeToggleLabel) {
+        els.themeToggleLabel.textContent = collapsed
+          ? `展开全部 ${allThemes.length} 套`
+          : '收起，只看常用';
+      }
+    }
+
+    els.themeGrid.innerHTML = visible.map((theme) => {
       const active = theme.id === activeId;
       const broken = theme.ok === false;
       const preview = theme.previewUrl
@@ -2784,32 +3037,114 @@
     }).join('');
   }
 
+  /* ------------------------------------------------------------
+     Theme switch curtain
+     ------------------------------------------------------------
+     The shutter is painted with the incoming theme's accent, covers the
+     window while the stylesheet is swapped, then opens. That hides the
+     one expensive frame (a full style recalculation across ~2k theme
+     selectors) behind deliberate motion instead of a visible freeze.
+     ------------------------------------------------------------ */
+
+  let curtainTimer = 0;
+  let themeSwitching = false;
+
+  function curtainThemeName(theme) {
+    return String(theme.name || theme.id || 'NOVA').split('·')[0].trim() || 'NOVA';
+  }
+
+  function playThemeCurtain(theme) {
+    return new Promise((resolve) => {
+      if (!els.themeCurtain || state.settings.reduceMotion) { resolve(); return; }
+      const tokens = theme.tokens || {};
+      els.themeCurtain.style.setProperty('--tc-accent', tokens['--accent'] || '#ffa477');
+      els.themeCurtain.style.setProperty('--tc-accent-2', tokens['--accent-2'] || '#ff6f6f');
+      if (els.themeCurtainName) els.themeCurtainName.textContent = curtainThemeName(theme);
+      els.themeCurtain.classList.remove('is-reveal', 'is-cover');
+      els.themeCurtain.classList.add('is-on');
+      // Flush the closed state so the shutter grows from the seam.
+      void els.themeCurtain.offsetWidth;
+      els.themeCurtain.classList.add('is-cover');
+      clearTimeout(curtainTimer);
+      curtainTimer = setTimeout(resolve, 360);
+    });
+  }
+
+  function revealThemeCurtain() {
+    if (!els.themeCurtain || !els.themeCurtain.classList.contains('is-cover')) return;
+    els.themeCurtain.classList.remove('is-cover');
+    els.themeCurtain.classList.add('is-reveal');
+    clearTimeout(curtainTimer);
+    curtainTimer = setTimeout(() => {
+      els.themeCurtain.classList.remove('is-on', 'is-reveal', 'is-cover');
+    }, 520);
+  }
+
   async function applyTheme(id, options = {}) {
-    if (!window.NovaTheme) return;
+    if (!window.NovaTheme || themeSwitching) return;
     const theme = window.NovaTheme.find(id);
     if (!theme || theme.ok === false) {
       if (!options.silent) toast(theme?.error || '这个主题不可用', 'alert');
       return;
     }
     const before = window.NovaTheme.activeId;
-    const result = await window.NovaTheme.activate(id, options);
-    if (!result.ok) {
-      if (!options.silent) toast(result.error || '主题加载失败', 'alert');
+    const animate = !options.silent && before !== id && !state.settings.reduceMotion;
+    if (animate) {
+      themeSwitching = true;
+      await playThemeCurtain(theme);
+    }
+
+    let result = null;
+    try {
+      result = await window.NovaTheme.activate(id, options);
+    } finally {
+      if (!result || !result.ok) {
+        if (animate) { revealThemeCurtain(); themeSwitching = false; }
+      }
+    }
+    if (!result || !result.ok) {
+      if (!options.silent) toast(result?.error || '主题加载失败', 'alert');
       return;
     }
+
     state.theme = result.theme.id;
+    if (!options.silent && before !== state.theme) recordThemeUse(state.theme);
     renderThemes();
     if (before !== state.theme) {
       applyStyleModeUI();
       applyAccent(currentGame());
+      refitLogos();
+      // The theme changes nav paddings and font metrics. Without this the
+      // sliding highlight keeps the previous width/offset until the next
+      // view switch, which reads as a white pill stuck over another tab.
+      setNav(state.view || document.documentElement.dataset.view || 'home');
+      setTimeout(() => { refitLogos(); setNav(document.documentElement.dataset.view || 'home'); }, 350);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          refitLogos();
+          setNav(document.documentElement.dataset.view || 'home');
+        }).catch(() => {});
+      }
       audio.select();
       if (!options.silent) toast(`界面主题 · ${result.theme.name}`, 'spark');
+    }
+
+    if (animate) {
+      // Hold the curtain for two frames so the new styles are painted
+      // underneath before the shutter opens.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      revealThemeCurtain();
+      themeSwitching = false;
     }
   }
 
   async function startThemes() {
     if (!window.NovaTheme || !hasBridge) return;
     await window.NovaTheme.start({ call, styleMode: state.settings.styleMode });
+
+    // Freeze the "frequently used first" order for this session before the
+    // first render, so cards never move while the user is clicking.
+    freezeThemeOrder();
 
     // The host remembers the active theme; apply it before first paint settles.
     const preferred = state.settings.theme && window.NovaTheme.find(state.settings.theme)
@@ -2822,18 +3157,43 @@
     applyAccent(currentGame());
     renderHero(currentGame(), false);
     updateRail();
+
+    // Warm the stylesheet cache after the first frame: the first switch to
+    // any theme then only costs a style swap, not a disk read.
+    const warm = () => { if (window.NovaTheme) window.NovaTheme.preloadAll(); };
+    if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 2500 });
+    else setTimeout(warm, 900);
   }
 
   function bindThemePanel() {
+    if (els.themeToggle) {
+      els.themeToggle.addEventListener('click', () => {
+        setThemeCollapsed(!themeCollapsed());
+        renderThemes();
+        audio.select();
+      });
+    }
+
     els.themeGrid.addEventListener('click', (event) => {
       const card = event.target.closest('[data-theme]');
       if (!card || card.disabled) return;
       applyTheme(card.dataset.theme);
     });
 
+    // Warm the stylesheet as soon as the pointer or focus lands on a card.
+    const warmCard = (event) => {
+      const card = event.target.closest('[data-theme]');
+      if (card && window.NovaTheme) window.NovaTheme.preload(card.dataset.theme);
+    };
+    els.themeGrid.addEventListener('pointerover', warmCard, { passive: true });
+    els.themeGrid.addEventListener('focusin', warmCard);
+
     els.themeRefresh.addEventListener('click', async () => {
       if (!window.NovaTheme) return;
       await window.NovaTheme.refresh();
+      // A newly installed theme joins the end of the frozen order; existing
+      // cards keep their positions.
+      if (!themeOrder) freezeThemeOrder();
       const stillThere = window.NovaTheme.find(state.theme);
       if (!stillThere || stillThere.ok === false) await applyTheme('nova', { silent: true });
       renderThemes();
@@ -4221,6 +4581,81 @@
       }).catch(() => {});
     }
   }
+
+  // Dev-only hook for the headless capture tool (tools/export-all.js).
+  // Layout bugs hide at the edges of real data, so the tool needs to push
+  // hostile input (a 30-character title, a badge gutter, an empty library)
+  // through the *real* render path instead of editing the DOM behind it.
+  // 34 characters: 30 as the rule requires, plus redundancy for the badge gutter.
+  const LONG_TITLE_STRESS = '沉睡的法则 THINGS AS THEY ARE 终章';
+  // stressTitle() overwrites the selected game's real name, so the restore path
+  // has to remember it: a QA run must be able to leave the app exactly as it
+  // found it, or a later capture silently shows the hostile title.
+  const stressBackup = new Map();
+  function devStressTitle(text) {
+    const game = state.games[state.index];
+    const restore = text == null || text === false;
+    const value = restore ? '' : String(text || LONG_TITLE_STRESS);
+    if (game) {
+      if (restore) {
+        const prev = stressBackup.get(game.id);
+        if (prev) {
+          game.logo = prev.logo;
+          game.name = prev.name;
+          stressBackup.delete(game.id);
+        }
+      } else {
+        if (!stressBackup.has(game.id)) stressBackup.set(game.id, { logo: game.logo, name: game.name });
+        game.logo = value;
+        game.name = value;
+      }
+      renderHero(game, false);
+    } else if (!restore) {
+      setLogo(els.gameLogo, null, 'hero-logo', { text: value });
+    }
+    if (els.detailLogo) setLogo(els.detailLogo, game, 'detail-logo', restore ? {} : { text: value });
+    refitLogos();
+    return {
+      text: game ? game.logo : value,
+      length: (game ? game.logo : value).length,
+      fit: els.gameLogo ? els.gameLogo.style.getPropertyValue('--logo-fit') : ''
+    };
+  }
+
+  function devClearSelection() {
+    state.games.splice(0, state.games.length);
+    state.index = 0;
+    renderHero(null, false);
+    renderLibrary();
+    return state.games.length;
+  }
+
+  window.NovaDev = {
+    stressTitle: devStressTitle,
+    clearSelection: devClearSelection,
+    refit: refitLogos,
+    // Headless capture support. The nav buttons deliberately refuse to switch
+    // views while any surface is open (`if (state.overlay) return`), and a
+    // screenshot tool drives the DOM directly, so it can walk away leaving
+    // state.overlay set — after which every later view switch is silently
+    // ignored and the tool captures the wrong screen (the appearance-only
+    // widgets came out empty for exactly this reason). One call puts the app
+    // back to "home view, nothing open" without touching anything visual.
+    resetSurfaces() {
+      if (window.NovaSurfaces) {
+        window.NovaSurfaces.ids.forEach((id) => {
+          try { window.NovaSurfaces.close(id, { focus: false }); } catch (error) { /* already closed */ }
+        });
+      }
+      state.overlay = null;
+      state.view = null;
+      setView('home', { force: true });
+      setNav('home');
+      updateAppearanceScrollState?.();
+      return 'ok';
+    },
+    state
+  };
 
   init();
 })();

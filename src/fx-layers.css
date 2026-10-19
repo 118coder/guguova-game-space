@@ -1,0 +1,244 @@
+/* ============================================================
+   NOVA · LAYER STYLES  (src/fx-layers.css)
+   Photoshop-style "blending options" for display type.
+
+   A theme opts in by declaring a recipe:
+       theme.json → "features": { "layer": "gold" }
+   which the theme engine turns into data-fx-layer="gold" on <html>.
+
+   Everything is driven by variables, so a theme can (a) pick a
+   recipe and (b) retune any single layer without touching the
+   stack. The stack, front to back:
+
+       pattern overlay  →  inner shading  →  fill / gradient
+       stroke (painted under the fill)    →  cast shadows  →  glow
+
+   Layers:
+     --fx-l-fill / --fx-l-fill2 / --fx-l-angle   gradient fill
+     --fx-l-pattern / --fx-l-pattern-size        pattern overlay
+     --fx-l-top / --fx-l-bottom                  inner shading (bevel)
+     --fx-l-stroke / --fx-l-stroke-w             stroke, behind fill
+     --fx-l-dx/dy/blur/shadow                      cast shadow 1
+     --fx-l-dx2/dy2/blur2/shadow2                  cast shadow 2
+     --fx-l-dx3/dy3/blur3/shadow3                  cast shadow 3
+     --fx-l-glow / --fx-l-glow-blur                outer glow
+
+   Stroke never eats the fill: the browser paints it with
+   `paint-order: stroke fill`, so the glyph body stays solid.
+   ============================================================ */
+
+:root {
+  --fx-l-fill: currentColor;
+  --fx-l-fill2: currentColor;
+  --fx-l-angle: 100deg;
+  --fx-l-pattern: none;
+  --fx-l-pattern-size: auto;
+  --fx-l-pattern-blend: normal;
+  --fx-l-top: transparent;
+  --fx-l-top-stop: 42%;
+  --fx-l-bottom: transparent;
+  --fx-l-bottom-stop: 58%;
+  --fx-l-stroke: transparent;
+  --fx-l-stroke-w: 0px;
+  --fx-l-dx: 0px;
+  --fx-l-dy: 0px;
+  --fx-l-blur: 0px;
+  --fx-l-shadow: transparent;
+  --fx-l-dx2: 0px;
+  --fx-l-dy2: 0px;
+  --fx-l-blur2: 0px;
+  --fx-l-shadow2: transparent;
+  --fx-l-dx3: 0px;
+  --fx-l-dy3: 0px;
+  --fx-l-blur3: 0px;
+  --fx-l-shadow3: transparent;
+  --fx-l-glow: transparent;
+  --fx-l-glow-blur: 0px;
+}
+
+/* ------------------------------------------------------------
+   THE STACK · display type
+   ------------------------------------------------------------ */
+
+html[data-fx-layer] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo) {
+  background-image:
+    linear-gradient(180deg,
+      var(--fx-l-top) 0%,
+      transparent var(--fx-l-top-stop),
+      transparent var(--fx-l-bottom-stop),
+      var(--fx-l-bottom) 100%),
+    var(--fx-l-pattern),
+    linear-gradient(var(--fx-l-angle), var(--fx-l-fill) 0%, var(--fx-l-fill2) 100%);
+  background-size: auto, var(--fx-l-pattern-size), auto;
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-blend-mode: var(--fx-l-pattern-blend), normal, normal;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  -webkit-text-stroke: var(--fx-l-stroke-w) var(--fx-l-stroke);
+  paint-order: stroke fill;
+  text-shadow: none;
+  filter:
+    drop-shadow(var(--fx-l-dx) var(--fx-l-dy) var(--fx-l-blur) var(--fx-l-shadow))
+    drop-shadow(var(--fx-l-dx2) var(--fx-l-dy2) var(--fx-l-blur2) var(--fx-l-shadow2))
+    drop-shadow(var(--fx-l-dx3) var(--fx-l-dy3) var(--fx-l-blur3) var(--fx-l-shadow3))
+    drop-shadow(0 0 var(--fx-l-glow-blur) var(--fx-l-glow));
+}
+
+/* Decorative pseudo-elements must keep their own paint: the fill
+   colour is inherited and would otherwise blank them out. */
+html[data-fx-layer] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo)::before,
+html[data-fx-layer] :is(.hero-logo, .detail-logo, .appearance-logo, .editor-logo)::after {
+  -webkit-text-fill-color: currentColor;
+  background-repeat: no-repeat;
+  paint-order: normal;
+}
+
+/* Small logo samples in the style picker get the same recipe at a
+   lighter weight — they sit on cards and must stay legible. */
+html[data-fx-layer] .choice-logo {
+  background-image: linear-gradient(var(--fx-l-angle), var(--fx-l-fill) 0%, var(--fx-l-fill2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  -webkit-text-stroke: 0;
+  filter: none;
+}
+
+/* ------------------------------------------------------------
+   RECIPES
+   ------------------------------------------------------------ */
+
+/* gold · engraved gold leaf on vellum */
+html[data-fx-layer="gold"] {
+  --fx-l-fill: #8a5f22;
+  --fx-l-fill2: #f3d99a;
+  --fx-l-angle: 104deg;
+  --fx-l-top: rgba(255, 252, 235, .58);
+  --fx-l-top-stop: 34%;
+  --fx-l-bottom: rgba(58, 34, 10, .5);
+  --fx-l-bottom-stop: 62%;
+  --fx-l-stroke: #33200d;
+  --fx-l-stroke-w: 1.2px;
+  --fx-l-dx: 0px;
+  --fx-l-dy: 3px;
+  --fx-l-blur: 0px;
+  --fx-l-shadow: rgba(43, 25, 8, .62);
+  --fx-l-dx2: 0px;
+  --fx-l-dy2: 1px;
+  --fx-l-blur2: 0px;
+  --fx-l-shadow2: rgba(255, 246, 214, .3);
+  --fx-l-glow: rgba(214, 168, 84, .34);
+  --fx-l-glow-blur: 10px;
+}
+
+/* emboss · raised paper */
+html[data-fx-layer="emboss"] {
+  --fx-l-fill: #3a2716;
+  --fx-l-fill2: #5d4128;
+  --fx-l-angle: 96deg;
+  --fx-l-top: rgba(255, 255, 255, .5);
+  --fx-l-top-stop: 40%;
+  --fx-l-bottom: rgba(0, 0, 0, .42);
+  --fx-l-bottom-stop: 60%;
+  --fx-l-stroke: rgba(38, 24, 12, .55);
+  --fx-l-stroke-w: .8px;
+  --fx-l-dx: 0px;
+  --fx-l-dy: 2px;
+  --fx-l-blur: 3px;
+  --fx-l-shadow: rgba(30, 18, 8, .34);
+  --fx-l-glow: rgba(255, 250, 236, .22);
+  --fx-l-glow-blur: 6px;
+}
+
+/* deboss · pressed into the sheet */
+html[data-fx-layer="deboss"] {
+  --fx-l-fill: #4a3320;
+  --fx-l-fill2: #2c1d10;
+  --fx-l-angle: 180deg;
+  --fx-l-top: rgba(0, 0, 0, .5);
+  --fx-l-top-stop: 38%;
+  --fx-l-bottom: rgba(255, 248, 228, .42);
+  --fx-l-bottom-stop: 66%;
+  --fx-l-stroke: transparent;
+  --fx-l-stroke-w: 0px;
+  --fx-l-dx: 0px;
+  --fx-l-dy: 1px;
+  --fx-l-blur: 0px;
+  --fx-l-shadow: rgba(255, 252, 240, .5);
+}
+
+/* print · riso misregistration, flat inks only */
+html[data-fx-layer="print"] {
+  --fx-l-fill: #12233f;
+  --fx-l-fill2: #12233f;
+  --fx-l-angle: 0deg;
+  --fx-l-stroke: transparent;
+  --fx-l-stroke-w: 0px;
+  --fx-l-dx: 5px;
+  --fx-l-dy: 5px;
+  --fx-l-blur: 0px;
+  --fx-l-shadow: #e9e04a;
+  --fx-l-dx2: -3px;
+  --fx-l-dy2: -3px;
+  --fx-l-blur2: 0px;
+  --fx-l-shadow2: rgba(255, 255, 255, .3);
+}
+
+/* outline · hollow letters, thick rule, hard cast */
+html[data-fx-layer="outline"] {
+  --fx-l-fill: transparent;
+  --fx-l-fill2: transparent;
+  --fx-l-stroke: #17181c;
+  --fx-l-stroke-w: 3px;
+  --fx-l-dx: 6px;
+  --fx-l-dy: 6px;
+  --fx-l-blur: 0px;
+  --fx-l-shadow: #e2001a;
+}
+
+/* plate · brushed metal face */
+html[data-fx-layer="plate"] {
+  --fx-l-fill: #6d6a63;
+  --fx-l-fill2: #d8d4c9;
+  --fx-l-angle: 96deg;
+  --fx-l-pattern: repeating-linear-gradient(90deg,
+    rgba(255, 255, 255, .16) 0 1px,
+    rgba(0, 0, 0, .12) 1px 2px,
+    transparent 2px 4px);
+  --fx-l-pattern-size: 4px 100%;
+  --fx-l-top: rgba(255, 255, 255, .62);
+  --fx-l-top-stop: 30%;
+  --fx-l-bottom: rgba(12, 12, 14, .58);
+  --fx-l-bottom-stop: 64%;
+  --fx-l-stroke: rgba(16, 16, 18, .85);
+  --fx-l-stroke-w: 1.6px;
+  --fx-l-dx: 0px;
+  --fx-l-dy: 3px;
+  --fx-l-blur: 0px;
+  --fx-l-shadow: rgba(0, 0, 0, .5);
+}
+
+/* neon · lit tube */
+html[data-fx-layer="neon"] {
+  --fx-l-fill: #f4fbff;
+  --fx-l-fill2: #9fe8ff;
+  --fx-l-angle: 100deg;
+  --fx-l-top: rgba(255, 255, 255, .85);
+  --fx-l-top-stop: 30%;
+  --fx-l-stroke: transparent;
+  --fx-l-stroke-w: 0px;
+  --fx-l-dx: 0px;
+  --fx-l-dy: 0px;
+  --fx-l-blur: 0px;
+  --fx-l-shadow: transparent;
+  --fx-l-glow: rgba(88, 214, 255, .85);
+  --fx-l-glow-blur: 16px;
+}
+
+/* custom · the theme sets every variable itself */
+html[data-fx-layer="custom"] {
+  /* intentionally empty: all values come from theme CSS */
+}

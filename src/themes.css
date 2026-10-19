@@ -108,6 +108,15 @@
   letter-spacing: .06em;
 }
 
+.theme-more {
+  display: flex;
+  margin: 12px auto 0;
+}
+
+.theme-more[hidden] { display: none; }
+.theme-more .ic { transition: transform .2s var(--ease, ease); }
+.theme-more[aria-expanded="true"] .ic { transform: rotate(90deg); }
+
 .theme-actions {
   display: flex;
   align-items: center;

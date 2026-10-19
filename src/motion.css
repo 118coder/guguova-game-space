@@ -509,3 +509,127 @@ html.reduce-motion .scene-stack { transform: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .launch-art { transition-duration: .001ms !important; }
 }
+
+/* ============================================================
+   THEME SWITCH CURTAIN
+   ------------------------------------------------------------
+   A two-panel shutter in the incoming theme's accent colour. It
+   covers the whole window before the stylesheet is swapped, so the
+   expensive style recalculation happens behind the curtain and the
+   user only sees a deliberate, 60fps transition.
+   ============================================================ */
+
+.theme-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 640;
+  pointer-events: none;
+  visibility: hidden;
+  --tc-bg: #0a0b0d;
+  --tc-fg: #f7f4ec;
+  --tc-accent: #ffa477;
+  --tc-accent-2: #ff6f6f;
+  contain: strict;
+}
+
+.theme-curtain.is-on { visibility: visible; }
+
+.tc-half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50.2%;
+  background: var(--tc-bg);
+  transform: scaleY(0);
+  transition: transform .34s cubic-bezier(.72, 0, .24, 1);
+  will-change: transform;
+}
+
+.tc-top { top: 0; transform-origin: top; }
+.tc-bottom { bottom: 0; transform-origin: bottom; }
+
+/* A coloured seam belongs to the incoming theme, so the wipe already
+   previews its palette before the first themed frame is painted. */
+.theme-curtain .tc-rule {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  margin-top: -1px;
+  z-index: 2;
+  background: linear-gradient(90deg, transparent 0%, var(--tc-accent) 18%, var(--tc-accent) 82%, transparent 100%);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+.theme-curtain .tc-label {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: var(--tc-fg);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .2s ease .1s, transform .3s var(--ease) .1s;
+}
+
+.theme-curtain .tc-kicker,
+.theme-curtain .tc-sub {
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .34em;
+  text-indent: .34em;
+  color: color-mix(in srgb, var(--tc-accent) 82%, #fff 18%);
+}
+
+.theme-curtain .tc-sub { color: color-mix(in srgb, var(--tc-fg) 58%, transparent); letter-spacing: .22em; }
+.theme-curtain .tc-label b {
+  font-family: var(--font-display, "Space Grotesk", sans-serif);
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: .06em;
+  line-height: 1.1;
+}
+
+.theme-curtain.is-cover .tc-half { transform: scaleY(1); }
+.theme-curtain.is-cover .tc-rule { opacity: 1; transition-delay: .16s; }
+.theme-curtain.is-cover .tc-label { opacity: 1; transform: none; }
+
+.theme-curtain.is-reveal .tc-half { transform: scaleY(0); }
+.theme-curtain.is-reveal .tc-rule { opacity: 0; }
+.theme-curtain.is-reveal .tc-label { opacity: 0; transform: translateY(-6px); transition-delay: 0s; }
+
+.theme-curtain.is-reveal .tc-top { transition-delay: .04s; }
+.theme-curtain.is-reveal .tc-bottom { transition-delay: 0s; }
+
+html.reduce-motion .theme-curtain,
+html.reduce-motion .theme-curtain .tc-half,
+html.reduce-motion .theme-curtain .tc-label,
+html.reduce-motion .theme-curtain .tc-rule {
+  transition: none !important;
+}
+
+/* ---------- NOVA launch: anamorphic slit ---------- */
+html[data-theme="nova"] .launch.is-open .launch-art {
+  animation: nvLaunch 720ms cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes nvLaunch {
+  from { clip-path: inset(49.6% 0 49.6% 0); transform: scale(1.08); filter: brightness(.4) saturate(1.1); }
+  to { clip-path: inset(0); transform: none; filter: brightness(.78) saturate(1.08); }
+}
+
+/* 幕布缝线不能穿过主题名：给文字一层同色底，让线在文字处断开 */
+.theme-curtain .tc-kicker,
+.theme-curtain .tc-sub,
+.theme-curtain .tc-label b {
+  background: var(--tc-bg);
+  padding: 2px 10px;
+}
+.theme-curtain .tc-label b { padding: 4px 18px 6px; }

@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="halftone" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="1.4" cy="1.4" r="1" fill="#1f93c8"/>
+    </pattern>
+  </defs>
+
+  <!-- sky -->
+  <rect width="300" height="440" fill="#cfeaf5"/>
+  <rect width="300" height="120" fill="#b9e2f1"/>
+  <rect y="120" width="300" height="70" fill="#d9f0f8"/>
+  <rect width="300" height="230" fill="url(#halftone)" opacity=".2"/>
+
+  <!-- sun -->
+  <circle cx="214" cy="92" r="52" fill="#f2a65a"/>
+  <circle cx="214" cy="92" r="45" fill="#fff0c2"/>
+  <circle cx="214" cy="92" r="45" fill="none" stroke="#e0863f" stroke-width="2"/>
+
+  <!-- birds -->
+  <g stroke="#123c4a" stroke-width="2" fill="none" stroke-linecap="round">
+    <path d="M62 62q6-5 12 0M73 62q6-5 12 0"/>
+    <path d="M104 44q5-4 10 0M114 44q5-4 10 0"/>
+  </g>
+
+  <!-- sea -->
+  <rect y="196" width="300" height="3" fill="#ffffff"/>
+  <rect y="199" width="300" height="48" fill="#63c6dc"/>
+  <rect y="247" width="300" height="38" fill="#2aa3c2"/>
+  <rect y="285" width="300" height="26" fill="#12718f"/>
+
+  <!-- far island: three depth steps -->
+  <path d="M0 196c10-14 24-20 38-18 12 2 18 8 24 18z" fill="#8fc3cc"/>
+  <path d="M0 196c8-24 24-36 44-34 18 2 30 14 38 34z" fill="#3f7d88"/>
+  <path d="M0 196c10-10 22-14 34-12 8 1 13 5 17 12z" fill="#10323d"/>
+
+  <!-- wave crests: thick cuts instead of hairlines -->
+  <g fill="#ffffff">
+    <path d="M0 222q22-8 44 0t44 0 44 0 44 0 44 0 44 0v4H0z" opacity=".85"/>
+    <path d="M0 268q26-7 52 0t52 0 52 0 52 0 52 0v3H0z" opacity=".6"/>
+    <path d="M0 300q30-6 60 0t60 0 60 0 60 0v3H0z" opacity=".45"/>
+  </g>
+
+  <!-- sun reflection -->
+  <g fill="#fff0c2">
+    <rect x="190" y="212" width="48" height="3"/>
+    <rect x="196" y="222" width="36" height="3"/>
+    <rect x="186" y="232" width="56" height="3"/>
+    <rect x="198" y="242" width="32" height="3"/>
+  </g>
+
+  <!-- sailboat -->
+  <g transform="translate(60 210)">
+    <rect x="11" y="-2" width="2" height="24" fill="#10323d"/>
+    <path d="M12 1 12 20 28 20z" fill="#fffaf0"/>
+    <path d="M10 2 10 20 -3 20z" fill="#fdf1d4"/>
+    <path d="M-9 22h40l-6 5h-28z" fill="#10323d"/>
+  </g>
+
+  <!-- beach -->
+  <path d="M0 308 300 292 300 440 0 440z" fill="#e2c795"/>
+  <path d="M0 330 300 308 300 440 0 440z" fill="#f4e2c0"/>
+
+  <!-- parasol shadow, hard edge -->
+  <path d="M212 344 286 344 300 386 232 392z" fill="#dfc79a"/>
+
+  <!-- parasol -->
+  <g transform="translate(196 322)">
+    <rect x="-2" y="0" width="4" height="118" fill="#10323d"/>
+    <path d="M0-54a54 54 0 0 1 54 54H0z" fill="#f0654f"/>
+    <path d="M0-54a54 54 0 0 0-54 54H0z" fill="#fff6e6"/>
+    <path d="M0-54a54 54 0 0 1 27 7L0 0z" fill="#fff6e6"/>
+    <path d="M0-54a54 54 0 0 0-27 7L0 0z" fill="#f0654f"/>
+    <path d="M0-54v54" stroke="#10323d" stroke-width="2"/>
+    <circle cx="0" cy="-54" r="3" fill="#10323d"/>
+  </g>
+
+  <!-- 青色制图线：压在照片上，和页面线稿同一套语言 -->
+  <g fill="none" stroke="#2aa3c2" stroke-width="1.4" opacity=".85">
+    <path d="M18 388 268 138"/>
+    <path d="M36 420 286 170" opacity=".6"/>
+    <path d="M236 44h26M249 31v26"/>
+    <path d="M22 92h20M32 82v20"/>
+  </g>
+  <circle cx="118" cy="288" r="3.5" fill="#2aa3c2"/>
+  <circle cx="154" cy="252" r="3.5" fill="#2aa3c2"/>
+</svg>

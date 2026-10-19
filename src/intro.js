@@ -73,7 +73,7 @@
   });
 
   register('mnemo', {
-    label: '记忆管理局',
+    label: '神秘管理局',
     duration: 2600,
     hint: '点击或按任意键跳过',
     setup(overlay) {
@@ -109,8 +109,8 @@
         plate.classList.add('is-ok');
         const title = plate.querySelector('b');
         const sub = plate.querySelector('i');
-        if (title) title.textContent = '记忆已恢复';
-        if (sub) sub.textContent = 'ARCHIVE RESTORED';
+        if (title) title.textContent = '档案已解密';
+        if (sub) sub.textContent = 'ARCHIVE DECRYPTED';
       };
       if (reduce) settle();
       else setTimeout(settle, 1300);
@@ -149,6 +149,87 @@
     }
   });
 
+  /* ---------- GRIMOIRE 归档仪式 ----------
+     与其它预设的区别是**结构**而不只是配色：这里没有星盘、没有时钟、
+     也没有百分比表（那三样正是「每套主题的开屏都像时钟加载」的来源）。
+     GRIMOIRE 的语言是「档案 + 火漆印」，所以开场就是一次**盖章归档**：
+     火漆菱形从上方落下、压出冲击环与四角金点，页面上印出真实档号，
+     底部的进度是一条**归档环**，落章后由「归档中」变为「已归档」。 */
+  register('seal', {
+    label: '档案归档',
+    duration: 2500,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-seal');
+      const stage = ensureSealStage(overlay);
+      const reduce = !!(window.NovaMotion && window.NovaMotion.reduce);
+      const now = new Date();
+      const pad2 = (value) => String(value).padStart(2, '0');
+      const date = `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}`;
+      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+      // 真实数据：dock 里的条目数就是「档案册里有几份档案」。
+      const dockCount = document.getElementById('dockCount');
+      const countMatch = (dockCount && dockCount.textContent || '').match(/\d+/);
+      const games = Math.max(0, Math.min(99, countMatch ? Number(countMatch[0]) : 0));
+      const no = `No.${pad2(games)}`;
+
+      const write = (key, value) => {
+        const node = stage.querySelector(`[data-gs="${key}"]`);
+        if (!node) return;
+        if (reduce) node.textContent = value;
+        else scramble(node, value, 520);
+      };
+
+      write('date', date);
+      write('time', time);
+      write('games', pad2(games));
+      write('no', no);
+      const sealNo = stage.querySelector('.intro-gs-seal b');
+      if (sealNo) sealNo.textContent = pad2(games);
+
+      const stamp = stage.querySelector('[data-gs="stamp"]');
+      const settle = () => {
+        stage.classList.add('is-stamped');
+        if (stamp) stamp.textContent = '已归档';
+      };
+      if (reduce) settle();
+      else setTimeout(settle, 1450);
+    }
+  });
+
+  /* ---------- SUMMER 开窗 ----------
+     RISO 与 SUMMER 原先共用 ink，开屏长得一样。这里给 SUMMER 一个有
+     独立结构的开窗：青绿顶带 → 地平线光带横向拉开 → 三行字各自落在
+     自己的白色底板上（正是参考图的语言），没有星盘也没有百分比表。 */
+  register('sun', {
+    label: '开窗',
+    duration: 2200,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-sun');
+      const stage = ensureSunStage(overlay);
+      const reduce = !!(window.NovaMotion && window.NovaMotion.reduce);
+      const now = new Date();
+      const pad2 = (value) => String(value).padStart(2, '0');
+      const date = `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}`;
+      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+      const dockCount = document.getElementById('dockCount');
+      const countMatch = (dockCount && dockCount.textContent || '').match(/\d+/);
+      const games = pad2(countMatch ? Math.min(99, Number(countMatch[0])) : 0);
+
+      const write = (key, value) => {
+        const node = stage.querySelector(`[data-su="${key}"]`);
+        if (!node) return;
+        if (reduce) node.textContent = value;
+        else scramble(node, value, 480);
+      };
+      write('date', date);
+      write('time', time);
+      write('games', games);
+    }
+  });
+
   register('codex', {
     label: '星轨秘典',
     duration: 2600,
@@ -171,11 +252,324 @@
     hint: '点击或按任意键跳过'
   });
 
+  /* RIOT：黑胶升速，红圈落定。 */
+  register('vinyl', {
+    label: '黑胶',
+    duration: 2100,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-vinyl');
+      if (overlay.querySelector('.intro-vn')) return;
+      const stage = document.createElement('div');
+      stage.className = 'intro-vn';
+      stage.setAttribute('aria-hidden', 'true');
+      stage.innerHTML = `
+        <div class="intro-vn-disc"><i></i></div>
+        <div class="intro-vn-ring"></div>
+        <div class="intro-vn-copy">
+          <b>RIOT</b>
+          <span>SIDE A · 33⅓</span>
+        </div>`;
+      overlay.appendChild(stage);
+    }
+  });
+
+  /* SUMMER：制图线稿自己画出来，黑块 / 黄块落定。 */
+  register('draft', {
+    label: '制图',
+    duration: 2000,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-draft');
+      if (overlay.querySelector('.intro-dr')) return;
+      const stage = document.createElement('div');
+      stage.className = 'intro-dr';
+      stage.setAttribute('aria-hidden', 'true');
+      stage.innerHTML = `
+        <div class="intro-dr-sheet">
+          <svg class="intro-dr-lines" viewBox="0 0 560 360" aria-hidden="true">
+            <g fill="none" stroke="#1f93c8" stroke-width="1.4">
+              <circle cx="118" cy="286" r="48"/>
+              <circle cx="118" cy="286" r="60" stroke-dasharray="2 6"/>
+              <path d="M118 286V196"/>
+              <path d="M118 286 56 214M118 286 180 214M118 286 40 250M118 286 196 250"/>
+              <path d="M118 286 70 200M118 286 166 200M118 286 46 232M118 286 190 232"/>
+              <path d="M232 236h304"/>
+              <path d="M262 258q20-8 40 0t40 0 40 0 40 0"/>
+              <path d="M286 278q18-7 36 0t36 0 36 0"/>
+              <path d="M232 150h18M241 141v18"/>
+              <path d="M500 300h18M509 291v18"/>
+            </g>
+            <g fill="none" stroke="#101820" stroke-width="1.6">
+              <path d="M392 236a42 42 0 0 1 84 0z"/>
+              <path d="M434 236v70"/>
+              <path d="M434 194 404 236M434 194 464 236M434 194v42"/>
+              <circle cx="434" cy="194" r="3"/>
+              <path d="M250 236v-40l34 40z"/>
+              <path d="M246 236h46l-8 10h-30z"/>
+            </g>
+          </svg>
+          <div class="intro-dr-copy">
+            <b>SUMMER</b>
+            <i>夏日特辑</i>
+          </div>
+        </div>`;
+      overlay.appendChild(stage);
+    }
+  });
+
+  /* BROADCAST：调频刻度扫过，指针锁定后亮 ON AIR。 */
+  register('broadcast', {
+    label: '调频',
+    duration: 2200,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-broadcast');
+      if (overlay.querySelector('.intro-bc')) return;
+      const stage = document.createElement('div');
+      stage.className = 'intro-bc';
+      stage.setAttribute('aria-hidden', 'true');
+      stage.innerHTML = `
+        <div class="intro-bc-scan"></div>
+        <div class="intro-bc-main">
+          <span class="intro-bc-kicker">// NIGHT FREQUENCY</span>
+          <b class="intro-bc-word">ON AIR</b>
+          <span class="intro-bc-sub">BROADCAST</span>
+        </div>
+        <div class="intro-bc-dial"><i></i></div>`;
+      overlay.appendChild(stage);
+    }
+  });
+
   register('veil', {
     label: '薄幕',
     duration: 1100,
     hint: '点击或按任意键跳过'
   });
+
+  /* ============================================================
+     FOUR STRUCTURALLY DISTINCT STAGES
+     ------------------------------------------------------------
+     gilded / aurum / codex / ink used to share the astrolabe. The
+     user's rule is "every theme gets its own opening", so these four
+     now have their own stage markup and choreography:
+
+       gilded → NOVA star-core (diamond draws itself, particles converge)
+       aurum  → gilded doors part, sunburst halo
+       codex  → a scroll unrolls, constellation + compass needle
+       riso   → three ink plates fall into register, word snaps
+     ============================================================ */
+
+  function introData() {
+    const now = new Date();
+    const pad2 = (value) => String(value).padStart(2, '0');
+    const dockCount = document.getElementById('dockCount');
+    const countMatch = (dockCount && dockCount.textContent || '').match(/\d+/);
+    const games = Math.max(0, Math.min(99, countMatch ? Number(countMatch[0]) : 0));
+    return {
+      date: `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}`,
+      time: `${pad2(now.getHours())}:${pad2(now.getMinutes())}`,
+      games: pad2(games)
+    };
+  }
+
+  function ensureIntroStage(overlay, className, markup) {
+    let stage = overlay.querySelector('.' + className);
+    if (stage) return stage;
+    stage = document.createElement('div');
+    stage.className = className;
+    stage.setAttribute('aria-hidden', 'true');
+    stage.innerHTML = markup;
+    overlay.appendChild(stage);
+    return stage;
+  }
+
+  register('gilded', {
+    label: '星核',
+    duration: 2350,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-nova');
+      const stage = ensureIntroStage(overlay, 'intro-nv', `
+        <span class="intro-nv-axis"></span>
+        <span class="intro-nv-halo"></span>
+        <svg class="intro-nv-diamond" viewBox="0 0 260 260" aria-hidden="true">
+          <path class="d1" d="M130 18 242 130 130 242 18 130Z"/>
+          <path class="d2" d="M130 58 202 130 130 202 58 130Z"/>
+          <path class="d3" d="M130 98 162 130 130 162 98 130Z"/>
+        </svg>
+        <span class="intro-nv-bit b1"></span><span class="intro-nv-bit b2"></span>
+        <span class="intro-nv-bit b3"></span><span class="intro-nv-bit b4"></span>
+        <span class="intro-nv-bit b5"></span><span class="intro-nv-bit b6"></span>
+        <span class="intro-nv-bit b7"></span><span class="intro-nv-bit b8"></span>
+        <div class="intro-nv-main">
+          <span class="intro-nv-kicker">NOVA · CORE ONLINE</span>
+          <b class="intro-nv-word">NOVA</b>
+          <span class="intro-nv-sub">GAME SPACE<i></i><b data-nv="time">--:--</b></span>
+        </div>
+        <div class="intro-nv-foot">
+          <span>CORE</span>
+          <span class="intro-nv-bar"><i></i></span>
+          <span data-nv="games">--</span>
+        </div>`);
+      const data = introData();
+      const put = (key, value) => {
+        const node = stage.querySelector(`[data-nv="${key}"]`);
+        if (node) node.textContent = value;
+      };
+      put('time', data.time);
+      put('games', data.games);
+    }
+  });
+
+  register('aurum', {
+    label: '鎏金之门',
+    duration: 2450,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-aurum-v2');
+      const stage = ensureIntroStage(overlay, 'intro-au', `
+        <span class="intro-au-halo"></span>
+        <span class="intro-au-ray"></span>
+        <span class="intro-au-door left"><i></i></span>
+        <span class="intro-au-door right"><i></i></span>
+        <div class="intro-au-main">
+          <span class="intro-au-kicker">GILDED SANCTUM · <b data-au="date">----.--.--</b></span>
+          <b class="intro-au-word">AURUM</b>
+          <span class="intro-au-sub">鎏金圣所</span>
+          <span class="intro-au-gems"><i></i><i></i><i></i><i></i><i></i></span>
+        </div>`);
+      const data = introData();
+      const date = stage.querySelector('[data-au="date"]');
+      if (date) date.textContent = data.date;
+    }
+  });
+
+  register('codex', {
+    label: '星轨展开',
+    duration: 2600,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-codex-v2');
+      const stage = ensureIntroStage(overlay, 'intro-cx', `
+        <div class="intro-cx-sheet">
+          <span class="intro-cx-rule r1"></span>
+          <span class="intro-cx-rule r2"></span>
+          <svg class="intro-cx-chart" viewBox="0 0 520 280" aria-hidden="true">
+            <path class="c1" d="M38 214 112 118 188 168 282 72 360 142 478 58"/>
+            <path class="c2" d="M112 118 172 226 282 72M188 168 330 206 360 142M282 72 412 96 478 58"/>
+            <g class="stars">
+              <circle cx="38" cy="214" r="3"/><circle cx="112" cy="118" r="4"/>
+              <circle cx="188" cy="168" r="3"/><circle cx="282" cy="72" r="5"/>
+              <circle cx="360" cy="142" r="3"/><circle cx="478" cy="58" r="4"/>
+            </g>
+            <circle class="chart-ring" cx="282" cy="150" r="86"/>
+            <path class="chart-needle" d="M282 150 330 96"/>
+          </svg>
+          <div class="intro-cx-main">
+            <span class="intro-cx-kicker">ARCHIVE · No.<b data-cx="no">--</b></span>
+            <b class="intro-cx-word">CODEX</b>
+            <i class="intro-cx-sub">星轨秘典</i>
+          </div>
+          <span class="intro-cx-foot"><b data-cx="date">----.--.--</b><i></i><b data-cx="time">--:--</b></span>
+        </div>`);
+      const data = introData();
+      const put = (key, value) => {
+        const node = stage.querySelector(`[data-cx="${key}"]`);
+        if (node) node.textContent = value;
+      };
+      put('no', data.games);
+      put('date', data.date);
+      put('time', data.time);
+    }
+  });
+
+  register('riso', {
+    label: '三色套印',
+    duration: 2400,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-riso');
+      const stage = ensureIntroStage(overlay, 'intro-rs', `
+        <span class="intro-rs-plate blue"></span>
+        <span class="intro-rs-plate yellow"></span>
+        <span class="intro-rs-plate pink"></span>
+        <span class="intro-rs-dots"></span>
+        <div class="intro-rs-main">
+          <span class="intro-rs-kicker">RISOGRAPH · PRINT 01</span>
+          <b class="intro-rs-word" data-text="RISO">RISO</b>
+          <span class="intro-rs-sub">电波海报<i></i><b data-rs="games">--</b> TITLES</span>
+        </div>
+        <span class="intro-rs-bar"><i></i></span>`);
+      const data = introData();
+      const games = stage.querySelector('[data-rs="games"]');
+      if (games) games.textContent = data.games;
+    }
+  });
+
+
+  function ensureSealStage(overlay) {
+    let stage = overlay.querySelector('.intro-gs');
+    if (stage) return stage;
+    stage = document.createElement('div');
+    stage.className = 'intro-gs';
+    stage.setAttribute('aria-hidden', 'true');
+    stage.innerHTML = `
+      <span class="intro-gs-page" aria-hidden="true"></span>
+      <span class="intro-gs-shock" aria-hidden="true"></span>
+      <i class="intro-gs-corner tl" aria-hidden="true"></i>
+      <i class="intro-gs-corner tr" aria-hidden="true"></i>
+      <i class="intro-gs-corner bl" aria-hidden="true"></i>
+      <i class="intro-gs-corner br" aria-hidden="true"></i>
+      <div class="intro-gs-seal" aria-hidden="true"><b>--</b></div>
+      <div class="intro-gs-main">
+        <div class="intro-gs-kicker">// ADVENTURER RECORD · <b data-gs="no">No.--</b></div>
+        <div class="intro-gs-word">
+          <span class="intro-gs-solid">GRIMOIRE</span>
+          <span class="intro-gs-hollow">ADVENTURER RECORD</span>
+        </div>
+        <div class="intro-gs-mark">冒险者档案</div>
+        <div class="intro-gs-fields">
+          <span>DATE <b data-gs="date">----.--.--</b></span>
+          <span>TIME <b data-gs="time">--:--</b></span>
+          <span>RECORDS <b data-gs="games">--</b></span>
+        </div>
+      </div>
+      <div class="intro-gs-foot">
+        <span class="intro-gs-status"><i></i><b data-gs="stamp">归档中</b></span>
+        <span class="intro-gs-bar"><i></i></span>
+        <span class="intro-gs-count" data-gs="foot">No.--</span>
+      </div>`;
+    overlay.appendChild(stage);
+    return stage;
+  }
+
+
+  function ensureSunStage(overlay) {
+    let stage = overlay.querySelector('.intro-su');
+    if (stage) return stage;
+    stage = document.createElement('div');
+    stage.className = 'intro-su';
+    stage.setAttribute('aria-hidden', 'true');
+    stage.innerHTML = `
+      <span class="intro-su-top" aria-hidden="true"></span>
+      <span class="intro-su-horizon" aria-hidden="true"></span>
+      <span class="intro-su-disc" aria-hidden="true"></span>
+      <div class="intro-su-main">
+        <span class="intro-su-plate"><b class="intro-su-lead">SUMMER</b></span>
+        <span class="intro-su-plate"><b class="intro-su-sub">SEASON SALE</b></span>
+        <span class="intro-su-plate"><b class="intro-su-mark">夏日特辑</b></span>
+      </div>
+      <div class="intro-su-foot">
+        <span class="intro-su-chip" data-su="date">----.--.--</span>
+        <i></i>
+        <span class="intro-su-chip" data-su="time">--:--</span>
+        <i></i>
+        <span class="intro-su-chip"><b data-su="games">--</b> TITLES</span>
+      </div>`;
+    overlay.appendChild(stage);
+    return stage;
+  }
 
   function ensureMnemoStage(overlay) {
     let stage = overlay.querySelector('.intro-mn');
@@ -189,23 +583,23 @@
         <i class="mn-node d"></i><i class="mn-node e"></i><span class="mn-route"></span>
       </div>
       <div class="intro-mn-head">
-        <span>// MEMORY BUREAU</span>
+        <span>// MYSTERY BUREAU</span>
         <span class="intro-mn-clock"><b data-mn="date">----.--.--</b><i>│</i><b data-mn="time">--:--</b></span>
       </div>
       <div class="intro-mn-main">
         <div class="intro-mn-kicker">// ARCHIVE ACCESS · <b data-mn="games">--</b> ENTRIES</div>
         <div class="intro-mn-word">
           <span class="intro-mn-solid">MNEMO</span>
-          <span class="intro-mn-hollow">MEMORY BUREAU</span>
+          <span class="intro-mn-hollow">MYSTERY BUREAU</span>
         </div>
-        <div class="intro-mn-mark">记忆管理局</div>
+        <div class="intro-mn-mark">神秘管理局</div>
         <div class="intro-mn-fields">
           <span>YEAR <b data-mn="year">----</b></span>
           <span>ENTRY <b data-mn="entry">--</b></span>
           <span>STATUS <b>SYNC</b></span>
         </div>
       </div>
-      <div class="intro-mn-error"><b>记忆无法读取</b><i>UNABLE TO ACCESS MEMORY</i></div>
+      <div class="intro-mn-error"><b>档案无法读取</b><i>UNABLE TO READ ARCHIVE</i></div>
       <div class="intro-mn-foot">
         <span class="intro-mn-status"><i></i>SCAN</span>
         <span class="intro-mn-bar"><i></i></span>
@@ -317,12 +711,43 @@
     requestAnimationFrame(tick);
   }
 
+  /* ============================================================
+     REPLAY SUPPORT
+     finish() removes the overlay, so a second play() would find nothing.
+     Keep a pristine copy and rebuild from it on replay, stripping the
+     previous preset's classes and any stage it built. This is what makes
+     headless intro capture (tools/shot-intro.js) possible after boot.
+     ============================================================ */
+
+  let overlayStash = null;
+
+  function stashOverlay(overlay) {
+    if (!overlay) return;
+    try { overlayStash = overlay.cloneNode(true); } catch (error) { overlayStash = null; }
+  }
+
+  function restoreOverlay() {
+    if (!overlayStash) return null;
+    const node = overlayStash.cloneNode(true);
+    node.className = 'intro';
+    node.removeAttribute('style');
+    node.setAttribute('aria-hidden', 'true');
+    node.querySelectorAll(STAGE_SELECTOR).forEach((el) => el.remove());
+    document.body.appendChild(node);
+    return node;
+  }
+
+  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-zh, .intro-ef, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
+
+  function isPlaying() { return state.playing; }
+
   const state = {
     playing: false,
     finished: false,
     overlay: null,
     preset: DEFAULT,
     timer: 0,
+    removeTimer: 0,
     resolve: null,
     startedAt: 0
   };
@@ -370,7 +795,13 @@
     if (overlay) {
       overlay.classList.add('is-done');
       overlay.setAttribute('aria-hidden', 'true');
-      setTimeout(() => {
+      // Keep one clean copy so the sequence can be replayed headlessly.
+      // The overlay is removed from the DOM after boot, and a screenshot run
+      // that starts after boot would otherwise have nothing to capture.
+      stashOverlay(overlay);
+      clearTimeout(state.removeTimer);
+      state.removeTimer = setTimeout(() => {
+        state.removeTimer = 0;
         if (overlay && overlay.parentNode) overlay.remove();
       }, reduceMotion() ? 240 : 900);
     }
@@ -391,9 +822,27 @@
   function play(options = {}) {
     if (state.playing) return Promise.resolve({ skipped: false, preset: state.preset, already: true });
 
-    const overlay = document.getElementById('introOverlay');
+    const overlay = document.getElementById('introOverlay') || restoreOverlay();
     state.overlay = overlay;
     state.startedAt = performance.now();
+    state.finished = false;
+    // A pending removal from the previous sequence must not delete the
+    // overlay while a replay is using it.
+    clearTimeout(state.removeTimer);
+    state.removeTimer = 0;
+
+    // A replay must start from a clean stage. Without this, the previous
+    // preset's custom stage (e.g. NOVA's diamond) stays in the DOM and
+    // shows through the next preset (e.g. AURUM's doors).
+    if (overlay) {
+      overlay.querySelectorAll(STAGE_SELECTOR).forEach((el) => el.remove());
+      overlay.classList.remove(
+        'is-done', 'intro-nova', 'intro-aurum-v2', 'intro-codex-v2', 'intro-riso',
+        'intro-aurum', 'intro-mnemo', 'intro-endfield', 'intro-zerohour',
+        'intro-seal', 'intro-sun', 'intro-codex', 'intro-vinyl', 'intro-draft',
+        'intro-broadcast'
+      );
+    }
 
     const preset = setPreset(options.intro);
     document.body.classList.add('is-intro');

@@ -106,6 +106,8 @@
 | 调色板 | `.palette-strip-label`, `.swatch` | 色块/文字 | ✔ | ✔ | ✔ | ✔ | ✔ |
 | 偏好行 | `.pref-row`, `.switch` | 边框/开关态 | ✔ | ✔ | ✔ | ✔ | ✔ |
 | 主题卡 | `.theme-card`, `.theme-preview`, `.theme-active-tag` | 当前/悬停/占位 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 主题面板折叠 | `#themeToggle`, `.theme-more` | 展开/收起、常用排序、默认主题置顶 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 特征模块 | `data-fx-texture/type/panel`, `theme-fx.css` | 模块启用与关闭、变量、无模块时无副作用 | ✔ | ✔ | ✔ | ✔ | ✔ |
 | 页脚 | `.appearance-footer`, `.autosave`, `.appearance-data` | 分隔/弱文字 | ✔ | ✔ | ✔ | ✔ | ✔ |
 
 ## 7. 浮层、菜单与通知
@@ -184,6 +186,31 @@
 
 ---
 
+## 11.1 1.2.9 新增五套主题
+
+RIOT / GRIMOIRE / RISO / SUMMER / BROADCAST 共用同一份完整组件骨架（约 1100 行 CSS/主题），
+所以逐项覆盖状态相同；主题差异只在材质、边框、字体与信号色：
+
+| 检查项 | RIOT | GRIMOIRE | RISO | SUMMER | BROADCAST |
+|---|---|---|---|---|---|
+| 顶栏 / 导航 / 时钟 / 头像 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 首页主视觉 / 眉标 / 标题 / meta / 双按钮 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 进度 / 活动条 / dock / 稀有度 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 库 / 外观 / 主题卡 / 开关 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 详情 / 编辑器 / 扫描器 / 选择器 / 对话框 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 右键菜单 / 通知 / Toast / 手柄 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 启动 / 睡眠 / 减少动效 / 低性能 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `select` / 构图控件 / 960px | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 概念板预览（960×540） | No.06 | No.07 | No.08 | No.09 | No.10 |
+
+新增主题如果改动共享骨架，必须五套一起回归；不要在单个主题里改布局。
+
+1.2.9 的 `theme-fx.css` 是**可选**模块：主题在 `theme.json` 的 `features` 里选择
+`texture` / `type` / `panel`，不写或写 `"none"` 就不启用。逐套组合见
+`docs/THEMES.md` 第 15 节；改模块后要八套主题一起回归。
+
+---
+
 ## 12. 设计参考（做主题前读）
 
 - 机核《[绝区零 UI 设计](https://www.gcores.com/articles/185949)》与
@@ -201,6 +228,6 @@
 - [ ] 右键菜单、编辑器 `select`、构图控件、启动页、详情/外观预览、四个弹层、Toast 都已实际打开检查。
 - [ ] 960 / 1280 / 全屏三档截图，无截断、重叠、横向滚动。
 - [ ] 开场：`introOverlay.dataset.intro` 等于 `theme.json` 的 `intro`；跳过与减少动效都试过。
-- [ ] 主题卡：5 套都有统一概念板预览；没有截图和占位。
-- [ ] `dotnet build -c Debug` 0 错误；主题切换 NOVA / AURUM / ENDFIELD / CODEX / ZERO HOUR 回归。
+- [ ] 主题卡：11 套都有统一概念板预览；没有截图和占位。
+- [ ] `dotnet build -c Debug` 0 错误；主题切换 NOVA / 十套附赠主题回归；折叠/展开与常用排序都试过。
 - [ ] 更新 `docs/HANDOFF.md` 的变更记录与 `README.md` 的主题列表。
