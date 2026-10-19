@@ -27,4 +27,5 @@ fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2) + '\n');
 console.log('updated version.json');
 
 write('NovaGameSpace.csproj', (s) => s.replace(/<Version>[^<]+<\/Version>/, `<Version>${value}</Version>`));
+write('legacy/NovaGameSpace.Legacy.csproj', (s) => s.replace(/<Version>[^<]+<\/Version>/, `<Version>${value}</Version>`));
 write('src/index.html', (s) => s.replace(/\?v=\d+\.\d+\.\d+/g, `?v=${value}`));

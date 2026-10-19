@@ -22,7 +22,7 @@
   --mn-amber: #c99b3f;
   --mn-line: rgba(36, 31, 51, .2);
   --mn-hair: rgba(91, 74, 140, .26);
-  --mn-mono: 'Consolas', 'Cascadia Mono', 'SFMono-Regular', monospace;
+  --mn-mono: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 
   --ink: var(--mn-ink);
   --muted: var(--mn-ink-2);
@@ -33,10 +33,10 @@
   --glow: rgba(91, 74, 140, .22);
   --ease: cubic-bezier(.2, .8, .3, 1);
 
-  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
-  --font-display: 'Bebas Neue', 'Space Grotesk', 'Microsoft YaHei UI', 'Noto Sans SC', sans-serif;
-  --font-serif: 'Space Grotesk', 'Microsoft YaHei UI', sans-serif;
-  --font-condensed: 'Bebas Neue', 'Space Grotesk', sans-serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 }
 
 /* ------------------------------------------------------------
@@ -1132,7 +1132,7 @@ html.perf-low .grain { display: none; }
    ============================================================ */
 
 :root {
-  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 }
 
 html[data-theme="mnemo"] :is(.hero-logo, .detail-logo, .appearance-logo, .choice-logo, .editor-logo) {

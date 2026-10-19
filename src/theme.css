@@ -5,8 +5,8 @@
    ============================================================ */
 
 :root {
-  --font-serif: "Cormorant Garamond", Georgia, "Songti SC", "SimSun", serif;
-  --font-condensed: "Bebas Neue", "Arial Narrow", var(--font-display);
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
   --scrim-rgb: 4, 5, 8;
 }
 

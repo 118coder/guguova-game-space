@@ -1,10 +1,40 @@
 # NOVA 交接文档
 
 > 写给接手这个项目的人（或下一个 AI 会话）。
-> 最后更新：2026-10-19 · 渲染层版本 **1.5.0**（本文正文写于 1.2.9，改版记录在 0.0 各段，
+> 最后更新：2026-10-19 · 渲染层版本 **1.5.1**（本文正文写于 1.2.9，改版记录在 0.0 各段，
 > 主题/接口的最新状态在 `docs/HANDOFF-THEMES.md` 与 `docs/THEME-INTERFACES.md`）
 
 先读这一页，再按需跳到具体章节。文中所有路径都相对于仓库根目录。
+
+---
+
+## 0.00c 30 秒交接（2026-10-19 · v1.5.1）
+
+- 版本 **1.5.1**。本轮四件事：主题切换编舞、思源字体、设置控制台 / 用户卡、音效。
+- **11 套主题各有不同的切换动画**：`#themeCurtain[data-variant]`，NOVA 遮幅、AURUM 金门、
+  ENDFIELD 蓝图推进（切角 + 三色条，按 endfield-ui 规则）、ZERO HOUR 硬切、CODEX 翻页、BROADCAST CRT、SUMMER 白纸排版压版 / 白纸排版开屏、
+  RISO 套印、RIOT 舞台幕布、GRIMOIRE 墨渍、MNEMO 记忆条带。
+  时长表在 `src/app.js` 的 `CURTAIN_HOLD`；视觉在 `src/motion.css` 的变体段；
+  接口见 `docs/THEME-INTERFACES.md` §8。
+- **全主题字体改为思源黑体 / 思源宋体**；不再内置 `src/fonts/` 与 `Saira.ttf`。
+  WebView2 里优先命中 `思源黑体 CN Medium`（Regular 家族名不稳定），衬线用 `思源宋体`。
+  字体契约见 `docs/THEME-INTERFACES.md` §8.2。
+- **设置页改为全宽双栏控制台**（`min(1640px,100%)`）：左列玩家 / 数据 / 统计，
+  右列启动 / 兼容性 / 关于；顶部 `.settings-id` 本机用户卡按 11 套主题分别设计
+  （玻璃 / 铜牌 / 工业标签 / 危险贴纸 / 书铭牌 / 剪报 / 明信片 / 套印卡 / 演出通行证 /
+  蜡封书牌 / 记忆模块）。`≤1080px` 自动单列。
+- **主题顺序固定**：`NOVA → 终末地 → 零点街区 → 秘典` 永远占据前四，其余按使用次数；
+  主题切换不再让导航滑块拉伸，也不再让标题字号连续抖动
+  （移除 logo 的 letter-spacing 过渡、120ms 合并 fit、`nav-glide.is-instant`）。
+- **RIOT 更名**：`少女乐队的呐喊 · RIOT` → **`舞台残响 · RIOT`**，id 仍为 `riot`，
+  `theme.json` 升到 1.5.3。
+- **音效**：Gavilya 参考集的 Kenney Interface Sounds（CC0）+ Kenney 环境音；
+  主题切换有专属 `theme.ogg`。来源/许可见 `src/assets/sfx/LICENSE-SFX.md`。
+- **头像**：设置 → 本机档案卡可「更换头像 / 移除头像」；图片裁成 256×256 PNG 存到
+  `media/avatar/avatar.png`，同时同步顶栏与个人菜单头像。
+- 验收：`export-all.js --views=home,settings --sizes=1439x1124,960x600 --stress`
+  → 66 captures / 0 clipping / 0 overflow；30 汉字标题在 1920 与 1366 下均不截断。
+- 主题层细节与下一轮清单见 **`docs/HANDOFF-THEMES.md` §0.00c**。
 
 ---
 
@@ -36,10 +66,10 @@
 - **正式启动器数据层**：`docs/LAUNCHER-FEATURES.md` 是本轮补齐表；设置中心（快捷键 `S`）、
   `.nova-pack` 导出/导入、每日自动备份、游玩记录/统计、CSV、库排序/缺失筛选都在 1.5.0。
 - **主题精修单独交接**：见 **`docs/HANDOFF-THEMES.md`**（本轮进度、量化方法、
-  坑与下一轮清单）。**它的 §0.00b 是最新状态**，旧表只作历史。
+  坑与下一轮清单）。**它的 §0.00c 是最新状态**，旧表只作历史。
 - 交接文件：本文件 + `docs/HANDOFF-THEMES.md` + `docs/THEME-INTERFACES.md` +
   `docs/themes/`（单主题接口卡）+ `docs/LAUNCHER-FEATURES.md` + `docs/THEME-COVERAGE.md` +
-  `docs/THEMES.md` + `README.md`。
+  `docs/THEMES.md` + `docs/SFX-MAP.md`（按钮/选项音效对照）+ `README.md`。
 
 ---
 
@@ -117,10 +147,10 @@
 - 发布：`bash tools/pipeline.sh`（审计 + Legacy 包），`--modern` 额外产出
   self-contained 大包，`--skip-audit` 快速打包。产物在 `dist/`，
   `release-manifest.json` 含大小与 SHA-256。
-- 默认包是 **Legacy net48 单文件版（zip 约 3.13 MB）**：一个 exe 内嵌
+- 默认包是 **Legacy net48 单文件版（zip 约 2.34 MB）**：一个 exe 内嵌
   托管 DLL、WebView2 loader、`src/` 与 `themes/`；首次运行解压到
   `%LOCALAPPDATA%/NOVA Game Space/runtime/<version>/assets`。
-- 另有 **全主题文件夹版（约 5.38 MB zip）**：EXE + `src/` + `themes/`，
+- 另有 **全主题文件夹版（约 3.80 MB zip）**：EXE + `src/` + `themes/`，
   主题可直接编辑。
 - 依赖 .NET Framework 4.8 + WebView2；Win10/11 通常已内置，Win7 用 109。
   `launch.cmd` 会检查依赖。详见 `docs/RELEASE.md`。
@@ -193,7 +223,7 @@
 
 ### 1. 五套新主题
 
-- `themes/riot/`「少女乐队呐喊 RIOT」：白纸拼贴、朱红信号、黑胶、撕裂胶带与硬偏移墨影；
+- `themes/riot/`「舞台残响 RIOT」：白纸拼贴、朱红信号、黑胶、撕裂胶带与硬偏移墨影；
   封面降饱和成黑白；主按钮朱红 + 黑边；`"intro": "ember"`。
 - `themes/grimoire/`「冒险者档案 GRIMOIRE」：羊皮纸角色卡、酒红横幅、双线金框、菱形刻度、
   Cormorant/宋体衬线标题；封面做旧；`"intro": "codex"`。
@@ -832,7 +862,7 @@ nova-game-space-desktop/
 ├─ themes/codex/             自带主题：星轨秘典 CODEX
 ├─ themes/zerohour/          自带主题：零点街区 ZERO HOUR（黑底白字命令台）
 ├─ themes/mnemo/             自带主题：神秘管理局 MNEMO（雾紫档案）
-├─ themes/riot/              自带主题：少女乐队呐喊 RIOT（纸面朋克）
+├─ themes/riot/              自带主题：舞台残响 RIOT（纸面朋克）
 ├─ themes/grimoire/          自带主题：冒险者档案 GRIMOIRE（羊皮纸）
 ├─ themes/riso/              自带主题：电波海报 RISO（蓝黄双色）
 ├─ themes/summer/            自带主题：夏日轻程 SUMMER（照片拼贴）

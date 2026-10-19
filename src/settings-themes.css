@@ -58,7 +58,7 @@ html[data-theme="endfield"] .settings-field select {
   border-radius: 0;
   color: var(--ef-ink);
   box-shadow: 3px 3px 0 var(--ef-rule);
-  font-family: 'Saira', var(--font-ui);
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 }
 html[data-theme="endfield"] .settings-field input:focus,
 html[data-theme="endfield"] .settings-field select:focus {
@@ -67,7 +67,7 @@ html[data-theme="endfield"] .settings-field select:focus {
 }
 html[data-theme="endfield"] .settings-field label {
   color: var(--ef-ink);
-  font-family: 'Saira', var(--font-ui);
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
   letter-spacing: .16em;
   text-transform: uppercase;
 }
@@ -79,10 +79,10 @@ html[data-theme="endfield"] .settings-stat {
 }
 html[data-theme="endfield"] .settings-stat span {
   color: var(--ef-ink-2);
-  font-family: 'Saira', var(--font-ui);
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
   letter-spacing: .18em;
 }
-html[data-theme="endfield"] .settings-stat b { color: var(--ef-ink); font-family: 'Saira', var(--font-ui); }
+html[data-theme="endfield"] .settings-stat b { color: var(--ef-ink); font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; }
 html[data-theme="endfield"] .settings-stat em { color: var(--ef-ink-2); }
 html[data-theme="endfield"] .settings-note b { color: var(--ef-ink); }
 html[data-theme="endfield"] .session-row { border-color: var(--ef-rule); }
@@ -96,7 +96,7 @@ html[data-theme="zerohour"] .settings-field select {
   border: 1px solid rgba(201, 247, 58, .34);
   border-radius: 0;
   color: var(--zh-white);
-  font-family: var(--mn-mono, Consolas, monospace);
+  font-family: var(--mn-mono);
   box-shadow: inset 0 0 0 1px rgba(201, 247, 58, .06);
 }
 html[data-theme="zerohour"] .settings-field input:focus,
@@ -112,7 +112,7 @@ html[data-theme="zerohour"] .settings-stat {
   border-radius: 0;
 }
 html[data-theme="zerohour"] .settings-stat span { color: var(--zh-yellow); }
-html[data-theme="zerohour"] .settings-stat b { color: var(--zh-white); font-family: var(--mn-mono, Consolas, monospace); }
+html[data-theme="zerohour"] .settings-stat b { color: var(--zh-white); font-family: var(--mn-mono); }
 html[data-theme="zerohour"] .settings-stat em { color: var(--zh-gray); }
 html[data-theme="zerohour"] .settings-note b { color: var(--zh-yellow); }
 html[data-theme="zerohour"] .session-row { border-color: rgba(201, 247, 58, .18); }
@@ -189,10 +189,58 @@ html[data-theme="summer"] .settings-field select {
 }
 html[data-theme="summer"] .settings-field input:focus,
 html[data-theme="summer"] .settings-field select:focus {
-  border-color: #1f93c8;
-  box-shadow: 0 0 0 1px #1f93c8;
+  border-color: #101820;
+  box-shadow: 3px 3px 0 #e8f21f;
 }
 html[data-theme="summer"] .settings-field label { color: #1f93c8; letter-spacing: .14em; }
+html[data-theme="summer"] .settings-card {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+}
+html[data-theme="summer"] .settings-card:focus-within {
+  border-color: #101820;
+  box-shadow: 5px 5px 0 #e8f21f;
+}
+html[data-theme="summer"] .settings-hero { border-bottom-color: #101820; }
+html[data-theme="summer"] .settings-foot { border-top-color: #101820; }
+html[data-theme="summer"] .section-tag {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #e8f21f;
+  color: #101820;
+  font-weight: 800;
+}
+html[data-theme="summer"] .pref-row { border-color: rgba(16, 24, 32, .16); }
+html[data-theme="summer"] .pref-row .pref-label { color: #101820; }
+html[data-theme="summer"] .pref-hint,
+html[data-theme="summer"] .pref-note { color: #4a5a66; }
+html[data-theme="summer"] .switch {
+  width: 38px;
+  height: 18px;
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+}
+html[data-theme="summer"] .switch::after {
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: #101820;
+}
+html[data-theme="summer"] .switch.on { background: #e8f21f; }
+html[data-theme="summer"] .switch.on::after { transform: translateX(20px); background: #101820; }
+html[data-theme="summer"] .settings-avatar-btn {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+  color: #101820;
+  font-weight: 700;
+}
+html[data-theme="summer"] .settings-avatar-btn:hover { background: #101820; color: #ffffff; }
+html[data-theme="summer"] .settings-about p { color: #2a3a46; }
 html[data-theme="summer"] .settings-stat {
   background: #ffffff;
   border: 1px solid #101820;
@@ -304,7 +352,7 @@ html[data-theme="mnemo"] .settings-field select {
   border: 1px solid var(--mn-hair);
   border-radius: 8px;
   color: var(--mn-ink);
-  font-family: var(--mn-mono, Consolas, monospace);
+  font-family: var(--mn-mono);
 }
 html[data-theme="mnemo"] .settings-field input:focus,
 html[data-theme="mnemo"] .settings-field select:focus {
@@ -318,9 +366,278 @@ html[data-theme="mnemo"] .settings-stat {
   border-top: 3px solid var(--mn-violet);
   border-radius: 8px;
 }
-html[data-theme="mnemo"] .settings-stat span { color: var(--mn-violet); font-family: var(--mn-mono, Consolas, monospace); }
+html[data-theme="mnemo"] .settings-stat span { color: var(--mn-violet); font-family: var(--mn-mono); }
 html[data-theme="mnemo"] .settings-stat b { color: var(--mn-ink); }
 html[data-theme="mnemo"] .settings-stat em { color: var(--mn-ink-2); }
 html[data-theme="mnemo"] .settings-note b { color: var(--mn-ink); }
 html[data-theme="mnemo"] .session-row { border-color: var(--mn-line); }
 html[data-theme="mnemo"] .session-row em { color: var(--mn-plum); }
+
+/* ============================================================
+   SETTINGS · local identity card
+   One card, eleven materials. The card is the first thing a
+   player sees, so each theme stamps it with its own paper,
+   border logic and seal instead of reusing the generic glass.
+   ============================================================ */
+
+.settings-id { position: relative; }
+
+/* ---------- NOVA · cinema glass ---------- */
+html[data-theme="nova"] .settings-id {
+  border-color: rgba(255, 164, 119, .26);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(255, 164, 119, .16), transparent 55%),
+    linear-gradient(145deg, rgba(20, 18, 24, .9), rgba(9, 10, 14, .72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07), 0 18px 40px -28px rgba(255, 164, 119, .5);
+}
+html[data-theme="nova"] .settings-id-avatar {
+  border-color: rgba(255, 164, 119, .55);
+  background: radial-gradient(circle at 34% 28%, rgba(255, 196, 160, .42), rgba(255, 164, 119, .12) 62%);
+  color: #ffd9c2;
+  box-shadow: 0 0 24px -6px rgba(255, 164, 119, .6);
+}
+html[data-theme="nova"] .settings-id-copy b { letter-spacing: .01em; }
+html[data-theme="nova"] .settings-id-tags i { border-color: rgba(255, 164, 119, .3); color: rgba(255, 214, 190, .8); }
+
+/* ---------- AURUM · bronze plaque ---------- */
+html[data-theme="aurum"] .settings-id {
+  border: 1px solid var(--aurum-bronze);
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, rgba(232, 201, 138, .14), transparent 46%),
+    linear-gradient(180deg, var(--aurum-panel-2), var(--aurum-panel));
+  box-shadow:
+    inset 0 0 0 1px rgba(232, 201, 138, .1),
+    inset 0 1px 0 rgba(232, 201, 138, .24),
+    0 14px 34px -24px rgba(0, 0, 0, .9);
+}
+html[data-theme="aurum"] .settings-id::before,
+html[data-theme="aurum"] .settings-id::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--aurum-bronze-hi);
+  opacity: .7;
+  pointer-events: none;
+}
+html[data-theme="aurum"] .settings-id::before { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
+html[data-theme="aurum"] .settings-id::after { right: 6px; bottom: 6px; border-left: 0; border-top: 0; }
+html[data-theme="aurum"] .settings-id-avatar {
+  border: 1px solid var(--aurum-bronze-hi);
+  background: radial-gradient(circle at 34% 26%, rgba(232, 201, 138, .3), rgba(0, 0, 0, .3) 70%);
+  color: var(--aurum-bronze-hi);
+  font-family: var(--font-serif);
+}
+html[data-theme="aurum"] .settings-id-copy b { color: var(--aurum-text); font-family: var(--font-serif); letter-spacing: .08em; }
+html[data-theme="aurum"] .settings-id-copy em { color: var(--aurum-text-dim); }
+html[data-theme="aurum"] .settings-id-tags i { border-color: rgba(232, 201, 138, .38); border-radius: 0; color: var(--aurum-bronze-hi); }
+
+/* ---------- ENDFIELD · industrial label ---------- */
+html[data-theme="endfield"] .settings-id {
+  border: 2px solid var(--ef-ink);
+  border-radius: 0;
+  background: var(--ef-panel);
+  box-shadow: 5px 5px 0 rgba(22, 22, 22, .12);
+}
+html[data-theme="endfield"] .settings-id-avatar {
+  border: 2px solid var(--ef-ink);
+  border-radius: 0;
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+  font-weight: 800;
+}
+html[data-theme="endfield"] .settings-id-copy b { color: var(--ef-ink); font-weight: 800; }
+html[data-theme="endfield"] .settings-id-copy em { color: var(--ef-ink-2); letter-spacing: .04em; }
+html[data-theme="endfield"] .settings-id-tags i {
+  border: 1px solid var(--ef-ink);
+  border-radius: 0;
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+  font-weight: 700;
+}
+
+/* ---------- ZERO HOUR · hazard sticker ---------- */
+html[data-theme="zerohour"] .settings-id {
+  border: 2px solid var(--zh-paper);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, var(--zh-yellow) 0 8px, transparent 8px),
+    repeating-linear-gradient(135deg, rgba(255, 230, 0, .07) 0 10px, transparent 10px 20px),
+    var(--zh-black);
+  box-shadow: 6px 6px 0 rgba(255, 230, 0, .2);
+}
+html[data-theme="zerohour"] .settings-id-avatar {
+  border: 2px solid var(--zh-black);
+  border-radius: 0;
+  background: var(--zh-yellow);
+  color: var(--zh-black);
+  font-weight: 800;
+}
+html[data-theme="zerohour"] .settings-id-copy b { color: var(--zh-white); letter-spacing: .04em; }
+html[data-theme="zerohour"] .settings-id-copy em { color: var(--zh-gray); }
+html[data-theme="zerohour"] .settings-id-tags i {
+  border: 1px solid var(--zh-yellow);
+  border-radius: 0;
+  background: transparent;
+  color: var(--zh-yellow);
+  font-weight: 700;
+}
+
+/* ---------- CODEX · gilded bookplate ---------- */
+html[data-theme="codex"] .settings-id {
+  border: 1px solid var(--cx-gold-line);
+  border-radius: 2px;
+  background:
+    linear-gradient(135deg, rgba(226, 199, 142, .12), transparent 50%),
+    var(--cx-panel);
+  box-shadow: inset 0 0 0 1px rgba(226, 199, 142, .07), inset 0 1px 0 rgba(246, 227, 187, .16);
+}
+html[data-theme="codex"] .settings-id-avatar {
+  border: 1px solid var(--cx-gold);
+  background: radial-gradient(circle, rgba(138, 47, 40, .35), rgba(16, 11, 7, .8));
+  color: var(--cx-gold-hi);
+  font-family: var(--font-serif);
+}
+html[data-theme="codex"] .settings-id-copy b { color: var(--cx-cream); font-family: var(--font-serif); letter-spacing: .05em; }
+html[data-theme="codex"] .settings-id-copy em { color: var(--cx-cream-3); }
+html[data-theme="codex"] .settings-id-tags i { border-color: var(--cx-gold-line); border-radius: 0; color: var(--cx-gold); }
+
+/* ---------- BROADCAST · clipped newspaper ---------- */
+html[data-theme="broadcast"] .settings-id {
+  border: 1px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-panel);
+  box-shadow: 4px 4px 0 rgba(20, 20, 20, .1);
+}
+html[data-theme="broadcast"] .settings-id-avatar {
+  border: 1px solid var(--t-ink);
+  background: var(--t-ink);
+  color: var(--t-panel);
+  font-family: var(--font-serif);
+}
+html[data-theme="broadcast"] .settings-id-copy b { color: var(--t-ink); font-family: var(--font-serif); }
+html[data-theme="broadcast"] .settings-id-copy em { color: var(--t-muted); }
+html[data-theme="broadcast"] .settings-id-tags i {
+  border: 1px solid var(--t-line);
+  border-radius: 0;
+  color: var(--t-ink-2);
+}
+
+/* ---------- SUMMER · print block ---------- */
+html[data-theme="summer"] .settings-id {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow: 6px 6px 0 #e8f21f;
+}
+html[data-theme="summer"] .settings-id-avatar {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #101820;
+  color: #ffffff;
+  font-weight: 800;
+  box-shadow: none;
+}
+html[data-theme="summer"] .settings-id-copy b { color: #101820; font-family: var(--font-serif); }
+html[data-theme="summer"] .settings-id-copy em { color: #4a5a66; }
+html[data-theme="summer"] .settings-id-tags i {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #e8f21f;
+  color: #101820;
+  font-weight: 700;
+}
+
+/* ---------- RISO · misregistered print card ---------- */
+html[data-theme="riso"] .settings-id {
+  border: 2px solid var(--t-ink);
+  border-radius: 0;
+  background:
+    radial-gradient(rgba(47, 63, 212, .16) 1px, transparent 1.4px) 0 0 / 6px 6px,
+    var(--t-panel);
+  box-shadow: 6px 6px 0 var(--t-accent-2), 6px 6px 0 2px var(--t-ink);
+}
+html[data-theme="riso"] .settings-id-avatar {
+  border: 2px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  box-shadow: 3px 3px 0 var(--t-accent-2);
+}
+html[data-theme="riso"] .settings-id-copy b { color: var(--t-ink); }
+html[data-theme="riso"] .settings-id-copy em { color: var(--t-muted); }
+html[data-theme="riso"] .settings-id-tags i {
+  border: 1px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-accent-2);
+  color: var(--t-ink);
+  font-weight: 700;
+}
+
+/* ---------- RIOT · stage pass ---------- */
+html[data-theme="riot"] .settings-id {
+  border: 2px solid var(--t-accent);
+  border-radius: 4px;
+  background: var(--t-panel);
+  box-shadow: 6px 6px 0 var(--t-ink);
+}
+html[data-theme="riot"] .settings-id-avatar {
+  border: 2px solid var(--t-ink);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--t-ink) 0 30%, var(--t-accent) 31% 36%, var(--t-ink) 37% 100%);
+  color: #fffaf2;
+  font-family: var(--font-hero, var(--font-display));
+}
+html[data-theme="riot"] .settings-id-copy b { color: var(--t-ink); text-transform: uppercase; letter-spacing: .04em; }
+html[data-theme="riot"] .settings-id-copy em { color: var(--t-muted); }
+html[data-theme="riot"] .settings-id-tags i {
+  border: 1px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-weight: 700;
+}
+
+/* ---------- GRIMOIRE · wax-sealed bookplate ---------- */
+html[data-theme="grimoire"] .settings-id {
+  border: 1px solid var(--t-accent);
+  border-radius: 2px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .3), transparent 45%),
+    var(--t-panel);
+  box-shadow: inset 0 0 0 4px var(--t-panel), inset 0 0 0 5px rgba(122, 31, 43, .45);
+}
+html[data-theme="grimoire"] .settings-id-avatar {
+  border: 2px solid var(--t-accent-2);
+  border-radius: 52% 48% 55% 45%;
+  background: radial-gradient(circle at 36% 30%, #a33240, var(--t-accent) 62%, #5c1620);
+  color: #f4e6c8;
+  font-family: var(--font-serif);
+  box-shadow: 0 2px 6px rgba(42, 27, 18, .35);
+}
+html[data-theme="grimoire"] .settings-id-copy b { color: var(--t-ink); font-family: var(--font-serif); letter-spacing: .05em; }
+html[data-theme="grimoire"] .settings-id-copy em { color: var(--t-muted); }
+html[data-theme="grimoire"] .settings-id-tags i { border-color: rgba(122, 31, 43, .5); border-radius: 0; color: var(--t-accent); }
+
+/* ---------- MNEMO · memory module ---------- */
+html[data-theme="mnemo"] .settings-id {
+  border: 1px solid var(--mn-violet);
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(0deg, rgba(91, 74, 140, .05) 0 3px, transparent 3px 6px),
+    var(--mn-panel);
+  box-shadow: inset 3px 0 0 var(--mn-violet), 0 0 0 1px rgba(91, 74, 140, .08);
+}
+html[data-theme="mnemo"] .settings-id-avatar {
+  border: 1px solid var(--mn-violet);
+  border-radius: 2px;
+  background: var(--mn-violet-soft);
+  color: var(--mn-violet);
+  text-shadow: 1px 0 0 rgba(155, 53, 80, .5);
+}
+html[data-theme="mnemo"] .settings-id-copy b { color: var(--mn-ink); font-family: var(--mn-mono); letter-spacing: .04em; }
+html[data-theme="mnemo"] .settings-id-copy em { color: var(--mn-ink-2); font-family: var(--mn-mono); }
+html[data-theme="mnemo"] .settings-id-tags i { border-color: var(--mn-hair); border-radius: 2px; color: var(--mn-violet); font-family: var(--mn-mono); }

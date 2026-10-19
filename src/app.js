@@ -81,6 +81,7 @@
     running: new Map(),
     settings: {
       playername: '玩家',
+      avatarFile: null,
       sound: true,
       reduceMotion: false,
       styleMode: 'adaptive',
@@ -91,6 +92,7 @@
       librarySort: 'recent'
     },
     userName: '',
+    avatarStamp: 0,
     stats: null,
     storage: null,
     system: null,
@@ -125,7 +127,7 @@
     editorFraming: { x: 50, y: 45, zoom: 1 },
     dataFolder: '',
     backupsFolder: '',
-    version: '1.5.0'
+    version: '1.5.1'
   };
 
   const notices = [];
@@ -372,6 +374,15 @@
     settingsSessions: $('#settingsSessions'),
     settingsSessionTag: $('#settingsSessionTag'),
     settingsVersion: $('#settingsVersion'),
+    settingsAvatar: $('#settingsAvatar'),
+    settingsAvatarImg: $('#settingsAvatarImg'),
+    settingsChangeAvatar: $('#settingsChangeAvatar'),
+    settingsClearAvatar: $('#settingsClearAvatar'),
+    settingsHeroName: $('#settingsHeroName'),
+    settingsHeroAccount: $('#settingsHeroAccount'),
+    settingsHeroTier: $('#settingsHeroTier'),
+    settingsHeroVersion: $('#settingsHeroVersion'),
+    settingsFootPath: $('#settingsFootPath'),
     settingsBackupNote: $('#settingsBackupNote'),
     contextMenu: $('#contextMenu'),
     homeView: $('#homeView'),
@@ -396,14 +407,14 @@
   };
 
   const TYPE_RECIPES = [
-    { id: 'gilded', label: 'GILDED SERIF', family: 'Cormorant Garamond', detail: 'Italic · 600 · Optical gradient', profile: { luma: .31, sat: .62, warmth: .66, edge: .09 } },
-    { id: 'poster', label: 'POSTER CONDENSED', family: 'Bebas Neue', detail: 'Condensed · Offset impression', displayCase: 'upper', profile: { luma: .28, sat: .42, warmth: .53, edge: .15 } },
-    { id: 'grotesk', label: 'NEO GROTESK', family: 'Space Grotesk', detail: 'Bold · Cool gradient', profile: { luma: .62, sat: .36, warmth: .44, edge: .12 } },
-    { id: 'inscription', label: 'INSCRIPTION', family: 'Cormorant Garamond', detail: 'Wide caps · Metallic gradient', profile: { luma: .21, sat: .47, warmth: .48, edge: .07 } },
-    { id: 'boutique', label: 'BOUTIQUE SERIF', family: 'Cormorant Garamond', detail: 'Italic · Title case · Soft light', displayCase: 'title', profile: { luma: .48, sat: .62, warmth: .72, edge: .11 } },
-    { id: 'monolith', label: 'MONOLITH', family: 'Space Grotesk', detail: 'Light · Wide tracking · No fill effects', profile: { luma: .09, sat: .16, warmth: .50, edge: .03 } },
-    { id: 'kinetic', label: 'KINETIC DISPLAY', family: 'Space Grotesk', detail: 'Bold italic · Chromatic gradient', profile: { luma: .49, sat: .48, warmth: .45, edge: .17 } },
-    { id: 'outline', label: 'OUTLINE', family: 'Bebas Neue', detail: 'Condensed · Stroke + offset', displayCase: 'upper', profile: { luma: .35, sat: .40, warmth: .55, edge: .12 } }
+    { id: 'gilded', label: 'GILDED SERIF', family: '思源宋体', detail: 'Italic · 600 · Optical gradient', profile: { luma: .31, sat: .62, warmth: .66, edge: .09 } },
+    { id: 'poster', label: 'POSTER CONDENSED', family: '思源黑体', detail: 'Condensed · Offset impression', displayCase: 'upper', profile: { luma: .28, sat: .42, warmth: .53, edge: .15 } },
+    { id: 'grotesk', label: 'NEO GROTESK', family: '思源黑体', detail: 'Bold · Cool gradient', profile: { luma: .62, sat: .36, warmth: .44, edge: .12 } },
+    { id: 'inscription', label: 'INSCRIPTION', family: '思源宋体', detail: 'Wide caps · Metallic gradient', profile: { luma: .21, sat: .47, warmth: .48, edge: .07 } },
+    { id: 'boutique', label: 'BOUTIQUE SERIF', family: '思源宋体', detail: 'Italic · Title case · Soft light', displayCase: 'title', profile: { luma: .48, sat: .62, warmth: .72, edge: .11 } },
+    { id: 'monolith', label: 'MONOLITH', family: '思源黑体', detail: 'Light · Wide tracking · No fill effects', profile: { luma: .09, sat: .16, warmth: .50, edge: .03 } },
+    { id: 'kinetic', label: 'KINETIC DISPLAY', family: '思源黑体', detail: 'Bold italic · Chromatic gradient', profile: { luma: .49, sat: .48, warmth: .45, edge: .17 } },
+    { id: 'outline', label: 'OUTLINE', family: '思源黑体', detail: 'Condensed · Stroke + offset', displayCase: 'upper', profile: { luma: .35, sat: .40, warmth: .55, edge: .12 } }
   ];
 
   const LOGO_VARS = [
@@ -683,6 +694,18 @@
   // (22px of horizontal truncation) until the next unrelated refit. Rather than
   // guess more delays, watch the logos' own boxes and settle whenever one changes.
   let logoObserver = null;
+  // Theme CSS and layout transitions can resize a logo's box several times in
+  // a row. Fitting on every callback made the headline step through a handful
+  // of sizes after each switch; coalesce the burst into one settle.
+  const pendingFits = new WeakMap();
+  function scheduleFit(element) {
+    const previous = pendingFits.get(element);
+    if (previous) clearTimeout(previous);
+    pendingFits.set(element, setTimeout(() => {
+      pendingFits.delete(element);
+      if (element.isConnected) fitLogo(element);
+    }, 120));
+  }
   function watchLogos() {
     if (!('ResizeObserver' in window)) return;
     if (!logoObserver) {
@@ -703,8 +726,8 @@
           // Shrinking changes the box height, which re-enters this callback once
           // more; the second pass finds required <= available and stops. Growing
           // back needs clear slack, otherwise a 1.5% undershoot would oscillate.
-          if (required > available * .998) fitLogo(element);
-          else if (current < 1 && required < available * .9) fitLogo(element);
+          if (required > available * .998) scheduleFit(element);
+          else if (current < 1 && required < available * .9) scheduleFit(element);
         });
         if (statsDirty) refitStats();
       });
@@ -766,7 +789,7 @@
 
     if (system) {
       els.typeRecipeName.textContent = 'NOVA 统一字体';
-      els.typeRecipeSpec.textContent = 'Cormorant Garamond · 统一字标';
+      els.typeRecipeSpec.textContent = '思源宋体 · 统一字标';
       els.typeSeedLabel.textContent = '统一字标';
       els.typeShuffleLabel.textContent = '系统固定';
       els.typeShuffleBtn.disabled = true;
@@ -829,6 +852,7 @@
     close: 'assets/sfx/close.ogg',
     toggle: 'assets/sfx/toggle.ogg',
     switch: 'assets/sfx/switch.ogg',
+    theme: 'assets/sfx/theme.ogg',
     confirm: 'assets/sfx/confirm.ogg',
     error: 'assets/sfx/error.ogg',
     tick: 'assets/sfx/tick.ogg',
@@ -935,6 +959,12 @@
     },
     confirm() {
       if (!this.play('confirm', { gain: .5 })) this.select();
+    },
+    theme() {
+      if (!this.play('theme', { gain: .42 })) {
+        this.tone(520, { dur: .22, gain: .008, type: 'sine' });
+        this.tone(780, { dur: .3, gain: .006, delay: .05 });
+      }
     },
     error() {
       if (!this.play('error', { gain: .45 })) {
@@ -1089,7 +1119,7 @@
     if (window.NovaSurfaces) window.NovaSurfaces.close(id, Object.assign({ focus: false }, options));
   }
 
-  function setNav(view) {
+  function setNav(view, options = {}) {
     const buttons = $$('.nav-btn');
     buttons.forEach((button) => {
       const active = button.dataset.nav === view;
@@ -1101,6 +1131,11 @@
     const glide = $('.nav-glide');
     const active = buttons.find((button) => button.dataset.nav === view);
     if (glide && active) {
+      const instant = options.instant === true;
+      if (instant) {
+        glide.classList.add('is-instant');
+        requestAnimationFrame(() => requestAnimationFrame(() => glide.classList.remove('is-instant')));
+      }
       const nav = active.parentElement;
       glide.style.width = `${active.offsetWidth}px`;
       glide.style.transform = `translateX(${active.offsetLeft - nav.clientLeft}px)`;
@@ -2275,6 +2310,13 @@
     if (els.settingsVersion) els.settingsVersion.textContent = state.version;
     if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
     const system = state.system || {};
+    const displayName = state.settings.playername || state.userName || '玩家';
+    if (els.settingsHeroName) els.settingsHeroName.textContent = displayName;
+    if (els.settingsHeroAccount) els.settingsHeroAccount.textContent = state.userName ? `本机账户 · ${state.userName}` : '本机离线账户';
+    if (els.settingsAvatar) els.settingsAvatar.textContent = (displayName.trim().slice(0, 1) || 'N').toUpperCase();
+    if (els.settingsHeroTier) els.settingsHeroTier.textContent = system.tierLabel || '完整效果';
+    if (els.settingsHeroVersion) els.settingsHeroVersion.textContent = `v${state.version}`;
+    if (els.settingsFootPath) els.settingsFootPath.textContent = storage.root ? `数据目录 · ${storage.root}` : '数据目录 · —';
     if (els.settingsTier) els.settingsTier.value = state.settings.compatibilityTier || 'auto';
     if (els.settingsTierTag) els.settingsTierTag.textContent = system.tierLabel || '完整效果';
     if (els.settingsSystemStats) {
@@ -2335,6 +2377,7 @@
     }
     if (els.settingsOpenBackups) els.settingsOpenBackups.hidden = !state.backupsFolder;
     if (els.settingsUserTag) els.settingsUserTag.textContent = state.settings.playername ? '本机用户' : 'Windows 用户';
+    syncAvatarImages();
   }
 
   async function refreshSettingsData() {
@@ -2379,6 +2422,7 @@
     const result = await call('saveSettings', { playerName: name });
     if (result && result.ok === false) toast(result.error || '保存失败', 'alert');
     else toast('玩家名称已保存', 'check');
+    renderSettings();
   }
 
   function toggleTraySetting() {
@@ -2386,6 +2430,81 @@
     setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
     saveSettings();
     toast(state.settings.closeToTray ? '关闭窗口时最小化到托盘' : '关闭窗口时每次询问', 'moon');
+  }
+
+  function avatarFileUrl() {
+    const file = state.settings && state.settings.avatarFile;
+    if (!file) return '';
+    const normalized = String(file).replace(/\\/g, '/').replace(/^\/+/, '');
+    const stamp = state.avatarStamp || state.version || '1';
+    return `https://nova.media/${normalized}?v=${stamp}`;
+  }
+
+  function avatarLetter() {
+    const name = (state.settings && state.settings.playername) || state.userName || 'N';
+    return (String(name).trim().slice(0, 1) || 'N').toUpperCase();
+  }
+
+  function syncAvatarImages() {
+    const url = avatarFileUrl();
+    const letter = avatarLetter();
+    if (els.settingsAvatarImg) {
+      els.settingsAvatarImg.hidden = !url;
+      if (url) els.settingsAvatarImg.src = url;
+      else els.settingsAvatarImg.removeAttribute('src');
+    }
+    if (els.settingsAvatar) {
+      els.settingsAvatar.textContent = letter;
+      els.settingsAvatar.hidden = !!url;
+    }
+    if (els.settingsClearAvatar) els.settingsClearAvatar.hidden = !url;
+    [els.avatarLetter, els.avatarLarge].forEach((element) => {
+      if (!element) return;
+      if (url) {
+        element.style.backgroundImage = `url("${url}")`;
+        element.style.backgroundSize = 'cover';
+        element.style.backgroundPosition = 'center';
+        element.textContent = '';
+      } else {
+        element.style.backgroundImage = '';
+        element.textContent = letter;
+      }
+    });
+  }
+
+  async function chooseAvatar() {
+    if (!window.NovaOverlays || !window.NovaOverlays.pickerOpen) return;
+    const path = await window.NovaOverlays.pickerOpen({
+      filter: 'image',
+      title: '选择头像',
+      note: '建议正方形，至少 256×256；会自动裁切'
+    });
+    if (!path) return;
+    const result = await call('setAvatar', { path });
+    if (!result || !result.ok) {
+      audio.error();
+      toast((result && result.error) || '头像保存失败', 'alert');
+      return;
+    }
+    state.settings.avatarFile = result.avatarFile;
+    state.avatarStamp = Date.now();
+    syncAvatarImages();
+    audio.confirm();
+    toast('头像已更新', 'check');
+  }
+
+  async function clearAvatar() {
+    const result = await call('clearAvatar');
+    if (!result || result.ok === false) {
+      audio.error();
+      toast('头像移除失败', 'alert');
+      return;
+    }
+    state.settings.avatarFile = null;
+    state.avatarStamp = Date.now();
+    syncAvatarImages();
+    audio.toggle();
+    toast('已恢复字母头像', 'check');
   }
 
   function toggleAutoBackup() {
@@ -3290,17 +3409,21 @@
 
   let themeOrder = null;
 
+  // Fixed shelf: the first four cards never move, regardless of usage counts.
+  const THEME_PREFIX = ['nova', 'endfield', 'zerohour', 'codex'];
+
   function computeThemeOrder(themes) {
     const usage = readThemeUsage();
-    return [...themes]
+    const byId = new Map(themes.map((theme) => [theme.id, theme]));
+    const head = THEME_PREFIX.map((id) => byId.get(id)).filter(Boolean);
+    const tail = themes
+      .filter((theme) => !THEME_PREFIX.includes(theme.id))
       .sort((a, b) => {
-        if (a.id === 'nova') return -1;
-        if (b.id === 'nova') return 1;
         const delta = (Number(usage[b.id]) || 0) - (Number(usage[a.id]) || 0);
         if (delta) return delta;
         return String(a.name || a.id).localeCompare(String(b.name || b.id), 'zh-Hans-CN');
-      })
-      .map((theme) => theme.id);
+      });
+    return [...head, ...tail].map((theme) => theme.id);
   }
 
   function orderedThemes() {
@@ -3385,6 +3508,13 @@
   let curtainTimer = 0;
   let themeSwitching = false;
 
+  // Each theme owns a different shutter: doors, page turn, CRT, ink blot…
+  // The hold time matches the longest cover phase so the style swap stays hidden.
+  const CURTAIN_HOLD = {
+    nova: 360, aurum: 400, endfield: 380, zerohour: 340, codex: 430,
+    broadcast: 360, summer: 470, riso: 380, riot: 380, grimoire: 650, mnemo: 360
+  };
+
   function curtainThemeName(theme) {
     return String(theme.name || theme.id || 'NOVA').split('·')[0].trim() || 'NOVA';
   }
@@ -3394,16 +3524,22 @@
       if (!els.themeCurtain || state.settings.reduceMotion ||
           (state.system && state.system.tier === 'safe')) { resolve(); return; }
       const tokens = theme.tokens || {};
+      els.themeCurtain.dataset.variant = theme.id || 'nova';
       els.themeCurtain.style.setProperty('--tc-accent', tokens['--accent'] || '#ffa477');
       els.themeCurtain.style.setProperty('--tc-accent-2', tokens['--accent-2'] || '#ff6f6f');
       if (els.themeCurtainName) els.themeCurtainName.textContent = curtainThemeName(theme);
       els.themeCurtain.classList.remove('is-reveal', 'is-cover');
       els.themeCurtain.classList.add('is-on');
-      // Flush the closed state so the shutter grows from the seam.
+      // Paint the new variant's closed state before starting the transition.
+      // On the first switch the browser has not computed these transforms yet,
+      // so starting in the same frame made the cover look truncated.
       void els.themeCurtain.offsetWidth;
-      els.themeCurtain.classList.add('is-cover');
       clearTimeout(curtainTimer);
-      curtainTimer = setTimeout(resolve, 360);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (!els.themeCurtain || !els.themeCurtain.classList.contains('is-on')) { resolve(); return; }
+        els.themeCurtain.classList.add('is-cover');
+        curtainTimer = setTimeout(resolve, CURTAIN_HOLD[theme.id] || 380);
+      }));
     });
   }
 
@@ -3429,6 +3565,7 @@
       !(state.system && state.system.tier === 'safe');
     if (animate) {
       themeSwitching = true;
+      audio.theme();
       await playThemeCurtain(theme);
     }
 
@@ -3455,14 +3592,8 @@
       // The theme changes nav paddings and font metrics. Without this the
       // sliding highlight keeps the previous width/offset until the next
       // view switch, which reads as a white pill stuck over another tab.
-      setNav(state.view || document.documentElement.dataset.view || 'home');
-      setTimeout(() => { refitLogos(); setNav(document.documentElement.dataset.view || 'home'); }, 350);
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => {
-          refitLogos();
-          setNav(document.documentElement.dataset.view || 'home');
-        }).catch(() => {});
-      }
+      setNav(state.view || document.documentElement.dataset.view || 'home', { instant: true });
+      setTimeout(() => { refitLogos(); setNav(document.documentElement.dataset.view || 'home', { instant: true }); }, 350);
       audio.select();
       if (!options.silent) toast(`界面主题 · ${result.theme.name}`, 'spark');
     }
@@ -3515,6 +3646,8 @@
       });
     }
     if (els.settingsTrayRow) els.settingsTrayRow.addEventListener('click', toggleTraySetting);
+    if (els.settingsChangeAvatar) els.settingsChangeAvatar.addEventListener('click', chooseAvatar);
+    if (els.settingsClearAvatar) els.settingsClearAvatar.addEventListener('click', clearAvatar);
     if (els.settingsAutoBackupRow) els.settingsAutoBackupRow.addEventListener('click', toggleAutoBackup);
     if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));
     if (els.settingsTier) els.settingsTier.addEventListener('change', changeCompatibilityTier);
@@ -4842,6 +4975,7 @@
     state.games = Array.isArray(boot.games) ? boot.games : [];
     state.settings = {
       playername: boot.settings?.playername || boot.userName || '玩家',
+      avatarFile: boot.settings?.avatarFile || null,
       sound: boot.settings?.sound !== false,
       reduceMotion: boot.settings?.reduceMotion === true,
       styleMode: boot.settings?.styleMode === 'system' ? 'system' : 'adaptive',
@@ -4864,7 +4998,7 @@
     state.storage = boot.storage || null;
     state.dataFolder = boot.dataFolder || '';
     state.backupsFolder = boot.backupsFolder || '';
-    state.version = boot.version || '1.5.0';
+    state.version = boot.version || '1.5.1';
     if (els.libSort) els.libSort.value = state.settings.librarySort;
     if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
     state.running = new Map();
@@ -4874,11 +5008,8 @@
     const index = state.games.findIndex((game) => game.id === currentId);
     state.index = index >= 0 ? index : 0;
 
-    const initial = currentGame()?.zh || currentGame()?.name || '玩家';
-    const letter = initial.trim().slice(0, 1).toUpperCase();
-    els.avatarLetter.textContent = letter;
-    els.avatarLarge.textContent = letter;
     els.profileName.textContent = state.settings.playername;
+    syncAvatarImages();
     els.appearanceDataPath.textContent = state.dataFolder;
     els.appearanceDataPath.title = state.dataFolder;
   }

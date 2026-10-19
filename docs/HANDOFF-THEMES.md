@@ -12,6 +12,152 @@
 
 ---
 
+## 0.00c 2026-10-19 · v1.5.1 切换编舞 / 思源字体 / 设置控制台 / 音效（**最新，先读这一段**）
+
+> 本节覆盖 0.00b 及更早记录。旧文中的 Cormorant / Saira / Manrope 等字体名只代表
+> 当时的西文字形；v1.5.1 起全主题统一使用思源黑体 / 思源宋体。
+
+### 一句话状态
+
+11 套主题各自拥有**完全不同的主题切换动画**；全主题字体换成思源黑体 / 思源宋体
+（标题与正文按主题配对）；设置页改为全宽双栏控制台，用户卡按 11 套主题分别设计；
+RIOT 主题正式更名为「舞台残响 · RIOT」；界面音效换成 Kenney Interface Sounds（CC0）。
+
+### 1. 主题切换编舞（`data-variant`，不再共用同一套幕布）
+
+`app.js` 的 `playThemeCurtain()` 把目标主题 id 写到 `#themeCurtain.dataset.variant`，
+`motion.css` 按变体定义覆盖/揭开两段动画。每个变体只动 `transform / clip-path / opacity`，
+不碰 `filter`，避免切换时重栅格化全屏。
+
+| 主题 | 切换动作 | 时长（覆盖） | 视觉记忆点 |
+|---|---|---|---|
+| NOVA | 上下双幕布合拢 + 中央光缝 | 360ms | 电影遮幅 |
+| AURUM | 左右青铜门合拢 + 竖金缝 + 门环 | 400ms | 鎏金圣所大门 |
+| ENDFIELD | 蓝图面板从左横扫，右侧信号条 + 切角 + 三色条 | 380ms | 工程图纸推进（endfield-ui 规则） |
+| ZERO HOUR | 斜切硬边面板从上砸下 | 340ms | 夜间施工挡板 |
+| CODEX | 整页绕顶边 3D 翻下 / 翻开 | 430ms | 书页翻动 |
+| BROADCAST | CRT 开机闪白 → 关机收成横线 | 360ms | 老电视 |
+| SUMMER | 白纸印版从左侧扫入，黑条/黄条压版 | 470ms | 白纸 + 制图线 + 黑/黄块排版 |
+| RISO | 蓝、纸两片印版反向错位通过 | 380ms | 套印错版 |
+| RIOT | 朱红褶皱舞台幕布 + 撕胶带缝 | 380ms | 演出开场 |
+| GRIMOIRE | 羊皮纸页上升 + 蜡封落下 | 650ms | 档案页翻开 |
+| MNEMO | 纵向记忆条带 + 紫色重影扫描 | 360ms | 磁带/内存扫描 |
+
+实现要点：
+- `CURTAIN_HOLD` 控制“覆盖完成 → 换样式表”的等待时间，必须 ≥ 该变体最长覆盖动画；
+- `revealThemeCurtain()` 仍负责 520ms 后清理 `is-on / is-cover / is-reveal`；
+- `prefers-reduced-motion` 或 `safe` 档直接切换，不播放幕布；
+- 变体样式全部在 `src/motion.css` 的 “PER-THEME SWITCH CHOREOGRAPHY” 段；
+- 全屏面板必须用 `clip-path` 的 240% 半径或 101% 位移保证四角覆盖，不要用 150% 圆。
+
+### 2. 字体：思源黑体 / 思源宋体
+
+系统已安装：`思源黑体 CN`（Source Han Sans CN）与 `思源宋体`（Source Han Serif SC）。
+WebView2 中 **Regular 家族名未稳定命中，Medium 家族名稳定命中**，因此统一把
+`思源黑体 CN Medium` 放在字体栈首位；`font-weight: 700` 由 Chromium 合成加粗。
+衬线标题使用 `思源宋体 Medium`，正文衬线使用 `思源宋体`。
+
+| 主题 | UI / 正文 | 标题 / 字标 |
+|---|---|---|
+| NOVA | 思源黑体 Medium | 思源黑体 Medium；衬线字标用思源宋体 |
+| AURUM | 思源黑体 Medium | 思源宋体 Medium（宽字距） |
+| ENDFIELD | 思源黑体 Medium | 思源黑体 Medium |
+| ZERO HOUR | 思源黑体 Medium | 思源黑体 Medium |
+| CODEX | 思源黑体 Medium | 思源宋体 Medium |
+| BROADCAST | 思源黑体 Medium | 思源宋体（报头） |
+| SUMMER | 思源黑体 Medium | 思源宋体 Medium |
+| RISO | 思源黑体 Medium | 思源宋体 Medium |
+| RIOT | 思源黑体 Medium | 思源黑体 Medium；旁注思源宋体 |
+| GRIMOIRE | 思源宋体 | 思源宋体 Medium / SemiBold |
+| MNEMO | 思源黑体 Medium | 思源黑体 Medium |
+
+- 已删除 `src/fonts.css`、`src/fonts/`（452KB）与两套 `Saira.ttf`（各 476KB）；
+- 主题字体令牌仍为 `--font-ui / --font-display / --font-serif / --font-condensed`，
+  外部主题只需覆盖这四个变量；
+- 不要重新引入 `@font-face` 指向主题内字体文件；如需扩展，使用本机 `local()` 或 OFL 字体。
+
+### 3. 设置页：全宽双栏 + 主题用户卡
+
+- `.view-settings .appearance-shell` 宽度改为 `min(1640px, 100%)`，占满内容区；
+- 顶部 hero：左侧标题，右侧 `.settings-id` 本机档案卡；
+- 卡片按两列排布：左列玩家 / 数据与备份 / 游玩统计，右列启动与关闭 / 系统与兼容性 / 关于；
+- `≤1080px` 单列，`.settings-col { display: contents }` 并用 `order` 恢复优先级；
+- `.settings-id` 在 `src/settings-themes.css` 末尾有 11 套材质：玻璃、铜牌、工业标签、
+  危险贴纸、书铭牌、剪报、明信片、套印卡、演出通行证、蜡封书牌、记忆模块；
+- 用户卡姓名/账户/档位/版本由 `renderSettings()` 同步，头像取显示名首字。
+
+### 4. RIOT 更名
+
+`少女乐队的呐喊 · RIOT` → **`舞台残响 · RIOT`**（主题 id 仍为 `riot`，避免破坏存档）。
+`theme.json` 版本升到 **1.5.3**；README、THEMES、HANDOFF、单主题卡片已同步。
+
+### 4.1 主题顺序与字体抖动
+
+- 主题网格**固定前四**：`nova` → `endfield` → `zerohour` → `codex`；
+  其余主题仍按 `localStorage` 使用次数排序，会话内不重排。实现在 `THEME_PREFIX` +
+  `computeThemeOrder()`，不要再改回“用得多就往前挤”。
+- 字体“抽搐”的三个根因与修法：
+  1. `.logo` 曾对 `letter-spacing` 做 0.4s 过渡，`fitLogo` 在过渡中反复测宽/改字号；
+     现已删除该过渡，只保留 `opacity`。
+  2. `ResizeObserver` 每个回调都直接 `fitLogo`；现改为 120ms 合并（`scheduleFit`），
+     一次主题切换最多落一个最终字号。
+  3. 主题切换时 `nav-glide` 会从旧主题宽度滑到新主题宽度；现在 `setNav(view,{instant:true})`
+     加 `.is-instant`，直接吸附，不再拉伸。
+  4. 幕布中央的主题名原来继承 `--font-display`，样式表一换字体就跟着换，字宽会在
+     幕布中央跳一下；现在 `.tc-label b` 固定思源宋体，`.tc-kicker/.tc-sub` 固定思源黑体。
+  5. 第一次切换动画“显示不全”：`playThemeCurtain()` 现在先在 `is-on` 状态等两帧，
+     让目标 variant 的初始 transform 完成绘制，再加 `is-cover`；第二次切换不再依赖缓存。
+  - 另外删除了 `fonts.ready` 时的第二次 refit/setNav；本机思源字体是同步可用的。
+
+### 5. 音效
+
+- `src/assets/sfx/` 的界面音效换成 Gavilya 参考集中的 Kenney Interface Sounds（CC0，无需署名）；
+- `theme.ogg` 专门用于主题切换，`applyTheme()` 在幕布合拢时播放；
+- `theme.ogg` 用 `switch_001`，`launch-rise.ogg` 用 `maximize_001`；保留 `chime / deep / launch-fall`；
+- 许可与来源表：`src/assets/sfx/LICENSE-SFX.md`（全部 CC0）。
+
+### 6. 验证
+
+- `node tools/export-all.js --views=home,settings --sizes=1439x1124,960x600 --stress`
+  → 66 captures / 11 themes / 0 clipping / 0 overflow；
+- 30 汉字标题：1920×1080 与 1366×768 均为单行 `--logo-fit: .443`，无截断；
+- 真实切换采样：AURUM 覆盖 62–513ms、换主题 513ms、揭开 708ms、清理 1.05s+；
+- 所有 `.ogg` 在 WebView `decodeAudioData` 通过；页面无 `window.onerror` / unhandledrejection；
+- 单文件 Legacy 包（1.5.1）实机验证：`version=1.5.1`、`NovaTheme.themes.length=11`、
+  RIOT 名称「舞台残响 · RIOT」、正文命中思源黑体、16 条 SFX 请求全部成功；
+- 出包：`NOVA-1.5.1-legacy-single.zip` **2.34 MB** / `NOVA-1.5.1-legacy-full.zip` **3.80 MB**；
+- SUMMER 开屏同步重做：整张白纸 + 青色制图线 + 黑块 `SUMMER` + 黄块 `夏日轻程`
+  + 真实日期/时间/游戏数；退出改为整页淡出（默认的中心圆形裁切会留下 "ER" 残块）；
+  切换动画的底部黑条从 34% 降到 14%，只做页脚压条。
+- GRIMOIRE 切换改为“羊皮纸页上升 + 蜡封落下”，覆盖 500ms、停留至 650ms，不再像墨点
+  一样瞬间铺满又消失。
+- SUMMER 缩略图重绘为白纸 + 青色线稿 + 黑/黄字块；右侧不再放蓝印插画。主题版本 1.8.3。
+- 版本 `1.5.1`，缓存仍写到 `NOVA_CACHE_ROOT`（E:），收尾时清理 `.cache/webview2`。
+
+### 6.1 这一轮改过的文件
+
+```
+src/app.js                  CURTAIN_HOLD / data-variant / audio.theme / 设置身份卡同步 / 字体配方
+src/motion.css              11 套切换编舞 + AURUM 门环 + 覆盖半径修正
+src/views.css               设置页全宽双栏 / 卡片 / 页脚
+src/settings-themes.css     11 套用户卡材质
+src/index.html              设置 hero + 双栏结构 + 用户卡 DOM + 版本
+src/base.css / theme.css    思源字体栈
+src/type.css                --serif → var(--font-serif)
+themes/*/theme.css          字体变量 / 删除 Saira @font-face
+themes/riot/theme.json      舞台残响 · RIOT / 1.5.3
+src/assets/sfx/*            Kenney Interface Sounds + LICENSE-SFX.md
+tools/bump-version.js       同步 legacy csproj 版本
+```
+
+### 7. 下一轮
+
+1. Win7 SP1 + WebView2 109 真机验收（唯一未完成的兼容项）；
+2. 若比赛机器未安装思源字体，需要随包附带子集化字体（需先确认授权与体积）；
+3. 主题切换动画的真机手感（尤其是 SUMMER 排版压版与 GRIMOIRE 墨渍）可在 60Hz 屏幕上再确认一次。
+
+---
+
 ## 0.00b 2026-10-19 · v1.4.0 性能 / 主题切换 / 六套重做（**主题层最新，先读这一段**）
 
 > 应用层已升级到 **v1.5.0**（本机用户 / 设置中心 / 数据包 / 统计），见 `docs/HANDOFF.md` §0.0a
@@ -37,7 +183,7 @@
 | zerohour | 1.0.7 | 仅新增进游戏 | `zerohour` | `zhLaunch` |
 | codex | **1.7.1** | 小修：深褐铜版背景 + 罗盘 + 红菱形 + 长名 | `codex`（星轨展开） | `cxIris` |
 | broadcast | **1.4.1** | 恢复背景图 + 胶片颗粒 + 文字对比 + 幽灵字 | `broadcast` | `bcSweep` |
-| summer | **1.8.1** | 背景图改成蓝印照片 + 套准框 + 网点 | `draft` | `suShutter` |
+| summer | **1.8.3** | 白纸排版 + 黑黄字块 + 青色线稿；切换/开屏重做 | `draft` | `suShutter` |
 | riso | **1.4.1** | 蓝白双色印版 + 网点/斜线/巨字；修复滤镜失效 | `riso`（三色套印） | `rsRoll` |
 | riot | **1.5.2** | 镜像回原图：字左、唱片右、角色右缘；红环连笔 | `vinyl` | `rtDrop` |
 | grimoire | **1.5.1** | 重做：左肖像卡 + 右档案正文 + 金框/蜡封/藤蔓 | `seal` | `grStamp` |
@@ -53,7 +199,7 @@
    - 实测 view 切换无 >50ms 长任务（PerformanceObserver longtask 为空）。
 2. **主题切换动画**：`#themeCurtain`（`src/index.html` + `src/motion.css` + `src/app.js`）
    - 两片幕布按目标主题强调色合拢，覆盖期间换样式表，再从中间向上下揭开；
-   - 中央显示目标主题名（`少女乐队呐喊` 等），`prefers-reduced-motion` 时直接切换；
+   - 中央显示目标主题名（`舞台残响` 等），`prefers-reduced-motion` 时直接切换；
    - `applyTheme` 用 `themeSwitching` 防连点，覆盖 360ms，换完两帧后揭开。
 3. **主题排序稳定**：`src/app.js`
    - `themeOrder` 在启动时按使用次数快照一次；会话内**不再重排**。
@@ -67,7 +213,7 @@
    `setNav()` 时量一次，导致换主题后白色滑块停在错误位置，直到切页才恢复。
    现在 `applyTheme()` 在应用样式后立即 `setNav()`，并在 350ms 后与 `fonts.ready`
    再量一次。
-6. **静态资源版本**：`src/index.html` `?v=1.5.0`；`theme.json` 版本见上表。
+6. **静态资源版本**：`src/index.html` `?v=1.5.1`；`theme.json` 版本见上表。
 
 ### 六套主题的改动要点
 

@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "id": "riot",
-  "name": "少女乐队的呐喊 · RIOT",
+  "name": "舞台残响 · RIOT",
   "author": "NOVA",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "纸面唱片封套：黑色黑胶 + 红色刷圈插画、硬偏移标题与墨点。",
   "css": "theme.css",
   "preview": "assets/preview.jpg",

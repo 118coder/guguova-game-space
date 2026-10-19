@@ -6,17 +6,8 @@
    dark command surfaces. No borrowed game assets.
 
    Template contract: no layout logic changes, only appearance.
-   Display font: Saira (SIL OFL 1.1, see assets/Saira-OFL.txt).
+   Display font: Source Han Sans CN Medium (思源黑体).
    ============================================================ */
-
-@font-face {
-  font-family: 'Saira';
-  src: url("assets/Saira.ttf") format("truetype-variations");
-  font-weight: 100 900;
-  font-stretch: 50% 125%;
-  font-style: normal;
-  font-display: swap;
-}
 
 :root {
   /* ---- palette: standard / neutral / yellow ---- */
@@ -48,10 +39,10 @@
   --glow: rgba(22, 22, 22, .14);
   --ease: var(--ef-snap);
 
-  --font-ui: 'Saira', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
-  --font-display: 'Saira', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
-  --font-serif: 'Saira', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
-  --font-condensed: 'Saira', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 }
 
 /* ------------------------------------------------------------

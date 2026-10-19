@@ -26,6 +26,10 @@
   pointer-events: none;
 }
 
+/* A theme switch changes the label metrics; let the pill snap to the new
+   geometry instead of stretching across it while the curtain opens. */
+.nav-glide.is-instant { transition: none !important; }
+
 .nav-btn { position: relative; z-index: 1; }
 
 .nav-glide ~ .nav-btn.is-active {

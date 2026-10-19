@@ -20,7 +20,7 @@
   --text-soft: rgba(244, 240, 231, .74);
   --text-muted: rgba(244, 240, 231, .54);
   --text-faint: rgba(244, 240, 231, .38);
-  --serif: "Cormorant Garamond", Georgia, "Songti SC", "SimSun", serif;
+  --serif: var(--font-serif);
   --sans: var(--font-ui);
   --display: var(--font-display);
   --warm-white: #f3eee3;
@@ -649,7 +649,10 @@ body {
   text-shadow: var(--logo-shadow, none);
   filter: var(--logo-filter, none);
   white-space: nowrap;
-  transition: opacity .35s ease, letter-spacing .4s var(--ease);
+  /* Never animate letter-spacing: it reflows the title on every frame while
+     fitLogo is measuring, which reads as the headline twitching during a
+     theme switch. The curtain already hides the style swap. */
+  transition: opacity .35s ease;
 }
 
 .logo > span {

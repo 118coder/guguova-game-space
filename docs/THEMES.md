@@ -3,6 +3,10 @@
 > 版本 1.2 · 对应 NOVA Game Space 1.2.2
 > 每个主题交付前必须过一遍 **[THEME-COVERAGE.md](THEME-COVERAGE.md)**。
 > 一个主题可以整套换掉界面的颜色、描边、按钮、图标与纹理，**不会**影响布局逻辑、启动流程或数据。
+>
+> **v1.5.1 起**：全主题字体统一为思源黑体 / 思源宋体，不再内置西文字体；下文历史章节中的
+> Cormorant / Saira / Manrope / Bebas 只代表当时的西文字形，视觉角色现由字重、字距、
+> 大小写与描边承担。主题切换动画也改为 11 套独立编舞（见 `THEME-INTERFACES.md` §8.1）。
 
 ---
 
@@ -387,7 +391,7 @@ zip -r my-theme.zip my-theme/
 | CODEX | Cormorant `CODEX` + 星轨秘典 | 墨绿/金样张框 + 罗盘环 + 红玉菱形刻度 | `DOUBLE GOLD · MAROON DIAMOND · SERIF` |
 | ZERO HOUR | Bebas `ZERO` 实心 + `HOUR` 空心 + 零点街区青柠胶囊 | 深色 command 面板 + 青柠读数 + 品红稀有度条 | `LIME · HAZARD · MAGENTA RARITY` |
 | MNEMO | Bebas `MNEMO` 实心 + 空心 `MYSTERY BUREAU` + 神秘管理局梅红牌 | 雾紫档案地图 + 靛紫环 + 梅红节点 + 琥珀路径 | `MIST HUD · INDIGO LINE · PLUM NODE · AMBER ROUTE` |
-| RIOT | Bebas `RIOT` + 少女乐队呐喊朱红块 | 黑胶 + 朱红手绘弧线 + 黑白胶带 | `PAPER · CRIMSON · VINYL` |
+| RIOT | Bebas `RIOT` + 舞台残响朱红块 | 黑胶 + 朱红手绘弧线 + 黑白胶带 | `PAPER · CRIMSON · VINYL` |
 | GRIMOIRE | Cormorant `GRIMOIRE` + 冒险者档案酒红横幅 | 羊皮纸角色卡 + 双线金框 + 菱形 | `PARCHMENT · OXBLOOD · GOLD` |
 | RISO | Cormorant `RISO` + 电波海报酸黄块 | 蓝黄海报 + 网点 + 几何碎片 | `BLUE · ACID YELLOW · HALFTONE` |
 | SUMMER | Bebas `SUMMER` + 夏日轻程天蓝标 | 照片框 + 酸柠胶带 + 细线框 | `SKY · LIME TAPE · WIREFRAME` |
@@ -473,7 +477,7 @@ ZERO HOUR 与 MNEMO 在 1.2.3 做了一次主界面与色相修订。
 - **参考**：`记忆管理局UI参考/` 的地图、节点、路径、块状字标与 ERROR 屏只作为结构参考，
   没有复制任何素材；梅红错误牌只出现在开场/错误态，不进入日常阅读界面。
 
-### 14.5 少女乐队呐喊 · RIOT（`themes/riot/`）
+### 14.5 舞台残响 · RIOT（`themes/riot/`）
 
 - **变体**：纸面朋克 / 黑白拼贴 / 朱红信号 / 黑胶唱片 / 撕裂胶带 / 硬偏移墨影。
 - **主界面**：白纸拼贴主视觉压在降饱和封面上，黑色粗边 + 朱红偏移阴影；眉标是旋转的朱红块，

@@ -1,5 +1,5 @@
 // Dev-only: render the theme concept boards in the app WebView.
-// Usage: node render-concepts.js <outDir>
+// Usage: node render-concepts.js <outDir> [--only=summer]
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -7,7 +7,10 @@ const WebSocket = require('ws');
 
 const PORT = Number(process.env.NOVA_CDP_PORT || 9223);
 const outDir = process.argv[2] || '_shots';
-const boards = ['nova', 'aurum', 'endfield', 'codex', 'zerohour', 'mnemo', 'riot', 'grimoire', 'riso', 'summer', 'broadcast'];
+const onlyArg = process.argv.find((arg) => arg.startsWith('--only='));
+const only = onlyArg ? onlyArg.split('=')[1] : '';
+const boards = ['nova', 'aurum', 'endfield', 'codex', 'zerohour', 'mnemo', 'riot', 'grimoire', 'riso', 'summer', 'broadcast']
+  .filter((id) => !only || id === only);
 
 // The boards are served from the app's virtual host (nova.site → WebRoot),
 // not from the repo tools/ folder. Stage the source there for the render and

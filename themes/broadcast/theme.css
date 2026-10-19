@@ -29,10 +29,10 @@
   --glow: rgba(20,20,20,.14);
   --ease: var(--t-ease);
 
-  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
-  --font-display: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-condensed: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源宋体 Medium", "Source Han Serif SC Medium", "Noto Serif SC Medium", "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 
   --r-panel: 0px;
   --r-btn: 0px;
@@ -1202,7 +1202,7 @@ body::after { height: 2px; background: var(--t-ink); }
   right: 18px;
   z-index: 2;
   writing-mode: vertical-rl;
-  font-family: 'Consolas', monospace;
+  font-family: var(--font-ui);
   font-size: 8px;
   letter-spacing: .3em;
   color: rgba(20, 20, 20, .28);
@@ -1338,7 +1338,7 @@ html[data-theme="broadcast"] .kicker {
   border-radius: 0;
   background: rgba(246, 246, 243, .7);
   color: var(--bc-ink);
-  font-family: 'Consolas', monospace;
+  font-family: var(--font-ui);
   font-size: 9px;
   letter-spacing: .16em;
   padding: 4px 10px 5px;
@@ -1358,7 +1358,7 @@ html[data-theme="broadcast"] .tagline {
 
 /* ---- meta row ---- */
 
-html[data-theme="broadcast"] .meta-row { color: rgba(20, 20, 20, .66); font-family: 'Consolas', monospace; font-size: 9.5px; letter-spacing: .06em; }
+html[data-theme="broadcast"] .meta-row { color: rgba(20, 20, 20, .66); font-family: var(--font-ui); font-size: 9.5px; letter-spacing: .06em; }
 html[data-theme="broadcast"] .meta-dot { width: 1px; height: 10px; background: rgba(20, 20, 20, .4); }
 html[data-theme="broadcast"] .age-badge { border: 1px solid rgba(20, 20, 20, .4); color: var(--bc-ink); background: transparent; }
 html[data-theme="broadcast"] .update-badge { border: 1px solid var(--bc-ink); background: transparent; color: var(--bc-ink); }
@@ -1391,11 +1391,11 @@ html[data-theme="broadcast"] .btn.ghost:hover { background: var(--bc-ink); color
 /* ---- progress: hairline + ink fill ---- */
 
 html[data-theme="broadcast"] .progress-block { border-top: 1px solid rgba(20, 20, 20, .55); }
-html[data-theme="broadcast"] .progress-head { color: rgba(20, 20, 20, .6); font-family: 'Consolas', monospace; font-size: 9px; letter-spacing: .08em; }
+html[data-theme="broadcast"] .progress-head { color: rgba(20, 20, 20, .6); font-family: var(--font-ui); font-size: 9px; letter-spacing: .08em; }
 html[data-theme="broadcast"] .progress-pct { color: var(--bc-ink); font-family: var(--font-serif); font-weight: 600; }
 html[data-theme="broadcast"] .progress-track { height: 2px; border: 0; border-radius: 0; background: rgba(20, 20, 20, .18); }
 html[data-theme="broadcast"] .progress-track i { border-radius: 0; background: var(--bc-ink); }
-html[data-theme="broadcast"] .progress-sub { color: rgba(20, 20, 20, .55); font-family: 'Consolas', monospace; font-size: 9px; }
+html[data-theme="broadcast"] .progress-sub { color: rgba(20, 20, 20, .55); font-family: var(--font-ui); font-size: 9px; }
 
 /* ---- activity: a broadcast log line ---- */
 
@@ -1412,11 +1412,11 @@ html[data-theme="broadcast"] .activity-strip::before { display: none; }
 html[data-theme="broadcast"] .activity-strip::after { display: none; }
 html[data-theme="broadcast"] .activity-strip:hover { background: rgba(20, 20, 20, .04); transform: none; box-shadow: none; }
 html[data-theme="broadcast"] .activity-icon { border: 1px solid rgba(20, 20, 20, .5); border-radius: 50%; background: transparent; color: var(--bc-ink); }
-html[data-theme="broadcast"] .activity-kicker { color: rgba(20, 20, 20, .55); font-family: 'Consolas', monospace; letter-spacing: .12em; }
+html[data-theme="broadcast"] .activity-kicker { color: rgba(20, 20, 20, .55); font-family: var(--font-ui); letter-spacing: .12em; }
 html[data-theme="broadcast"] .activity-title { color: var(--bc-ink); font-family: var(--font-serif); font-weight: 600; }
 html[data-theme="broadcast"] .activity-desc { color: rgba(20, 20, 20, .55); }
 html[data-theme="broadcast"] .activity-pct { color: var(--bc-ink); }
-html[data-theme="broadcast"] .activity-meta { color: rgba(20, 20, 20, .45); font-family: 'Consolas', monospace; }
+html[data-theme="broadcast"] .activity-meta { color: rgba(20, 20, 20, .45); font-family: var(--font-ui); }
 html[data-theme="broadcast"] .activity-arrow { color: var(--bc-ink); }
 html[data-theme="broadcast"] .activity-track { border: 0; border-radius: 0; background: rgba(20, 20, 20, .16); }
 html[data-theme="broadcast"] .activity-track i { border-radius: 0; background: var(--bc-ink); }
@@ -1433,14 +1433,14 @@ html[data-theme="broadcast"] .tile-art::before {
   border-radius: 0;
   background: rgba(243, 243, 240, .92);
   color: var(--bc-ink);
-  font-family: 'Consolas', monospace;
+  font-family: var(--font-ui);
   font-size: 8px;
   letter-spacing: .06em;
 }
 html[data-theme="broadcast"] .tile.is-active .tile-art { border-color: var(--bc-ink); box-shadow: 0 0 0 1px var(--bc-ink); filter: saturate(1.04) contrast(1.04); }
 html[data-theme="broadcast"] .tile-label { color: rgba(20, 20, 20, .7); font-family: var(--font-serif); }
 html[data-theme="broadcast"] .tile-name { color: var(--bc-ink); }
-html[data-theme="broadcast"] .tile-sub { color: rgba(20, 20, 20, .5); font-family: 'Consolas', monospace; }
+html[data-theme="broadcast"] .tile-sub { color: rgba(20, 20, 20, .5); font-family: var(--font-ui); }
 html[data-theme="broadcast"] .tile.is-active .tile-name { color: var(--bc-ink); }
 
 /* ---- library / appearance ---- */
@@ -1459,7 +1459,7 @@ html[data-theme="broadcast"] .filter {
   border-radius: 0;
   background: rgba(255, 255, 255, .3);
   color: var(--bc-ink);
-  font-family: 'Consolas', monospace;
+  font-family: var(--font-ui);
   font-size: 9.5px;
   letter-spacing: .06em;
 }
@@ -1467,7 +1467,7 @@ html[data-theme="broadcast"] .filter.is-active { background: var(--bc-ink); bord
 html[data-theme="broadcast"] .lib-title h2 { color: var(--bc-ink); font-family: var(--font-serif); font-weight: 600; }
 html[data-theme="broadcast"] .lib-art { border: 1px solid rgba(20, 20, 20, .7); border-radius: 0; filter: none; }
 html[data-theme="broadcast"] .lib-card:hover .lib-art { box-shadow: 0 0 0 1px var(--bc-ink); }
-html[data-theme="broadcast"] .lib-current { border: 1px solid var(--bc-ink); border-radius: 0; background: transparent; color: var(--bc-ink); font-family: 'Consolas', monospace; }
+html[data-theme="broadcast"] .lib-current { border: 1px solid var(--bc-ink); border-radius: 0; background: transparent; color: var(--bc-ink); font-family: var(--font-ui); }
 
 /* ---- panels ---- */
 
@@ -1518,7 +1518,7 @@ html[data-theme="broadcast"] .popover {
   box-shadow: none;
 }
 html[data-theme="broadcast"] .context-item,
-html[data-theme="broadcast"] .menu-row { border-radius: 0; font-family: 'Consolas', monospace; font-size: 11px; }
+html[data-theme="broadcast"] .menu-row { border-radius: 0; font-family: var(--font-ui); font-size: 11px; }
 html[data-theme="broadcast"] .context-item:hover,
 html[data-theme="broadcast"] .menu-row:hover { background: var(--bc-ink); color: #f2f2ef; }
 
@@ -1921,7 +1921,7 @@ html[data-theme="broadcast"] .hero::before {
   left: 44%;
   top: 26px;
   z-index: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-size: 118px;
   font-weight: 400;
   letter-spacing: .04em;

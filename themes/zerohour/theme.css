@@ -30,10 +30,10 @@
   --glow: rgba(255, 230, 0, .2);
   --ease: var(--zh-ease);
 
-  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
-  --font-display: 'Bebas Neue', 'Space Grotesk', 'Microsoft YaHei UI', 'Noto Sans SC', sans-serif;
-  --font-condensed: 'Bebas Neue', 'Space Grotesk', sans-serif;
-  --font-serif: 'Bebas Neue', 'Space Grotesk', sans-serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-condensed: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 }
 
 /* ------------------------------------------------------------

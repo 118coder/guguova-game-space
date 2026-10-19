@@ -274,47 +274,56 @@
     }
   });
 
-  /* SUMMER：制图线稿自己画出来，黑块 / 黄块落定。 */
+  /* SUMMER：整张白纸 + 制图线 + 黑块白字 / 黄块黑字的排版开机。 */
   register('draft', {
-    label: '制图',
-    duration: 2000,
+    label: '排版',
+    duration: 1900,
     hint: '点击或按任意键跳过',
     setup(overlay) {
       overlay.classList.add('intro-draft');
-      if (overlay.querySelector('.intro-dr')) return;
-      const stage = document.createElement('div');
-      stage.className = 'intro-dr';
-      stage.setAttribute('aria-hidden', 'true');
-      stage.innerHTML = `
-        <div class="intro-dr-sheet">
-          <svg class="intro-dr-lines" viewBox="0 0 560 360" aria-hidden="true">
-            <g fill="none" stroke="#1f93c8" stroke-width="1.4">
-              <circle cx="118" cy="286" r="48"/>
-              <circle cx="118" cy="286" r="60" stroke-dasharray="2 6"/>
-              <path d="M118 286V196"/>
-              <path d="M118 286 56 214M118 286 180 214M118 286 40 250M118 286 196 250"/>
-              <path d="M118 286 70 200M118 286 166 200M118 286 46 232M118 286 190 232"/>
-              <path d="M232 236h304"/>
-              <path d="M262 258q20-8 40 0t40 0 40 0 40 0"/>
-              <path d="M286 278q18-7 36 0t36 0 36 0"/>
-              <path d="M232 150h18M241 141v18"/>
-              <path d="M500 300h18M509 291v18"/>
-            </g>
-            <g fill="none" stroke="#101820" stroke-width="1.6">
-              <path d="M392 236a42 42 0 0 1 84 0z"/>
-              <path d="M434 236v70"/>
-              <path d="M434 194 404 236M434 194 464 236M434 194v42"/>
-              <circle cx="434" cy="194" r="3"/>
-              <path d="M250 236v-40l34 40z"/>
-              <path d="M246 236h46l-8 10h-30z"/>
+      const stage = ensureIntroStage(overlay, 'intro-dr', `
+        <div class="intro-dr-paper" aria-hidden="true">
+          <span class="intro-dr-grid"></span>
+          <span class="intro-dr-edge"></span>
+          <svg class="intro-dr-lines" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+            <g fill="none" stroke="#1f93c8" stroke-width="2">
+              <circle cx="1180" cy="120" r="340"/>
+              <path d="M-80 780 660 40"/>
+              <path d="M400 920 1180 130"/>
+              <path d="M980 920 1660 240"/>
+              <path d="M120 210h46M143 187v46"/>
+              <path d="M1320 700h36M1338 682v36"/>
+              <path d="M250 560h330" stroke-dasharray="4 10"/>
+              <path d="M250 592h210" stroke-dasharray="4 10"/>
             </g>
           </svg>
-          <div class="intro-dr-copy">
-            <b>SUMMER</b>
-            <i>夏日特辑</i>
+          <span class="intro-dr-check"></span>
+          <span class="intro-dr-bar"></span>
+        </div>
+        <div class="intro-dr-compose">
+          <span class="intro-dr-kicker">// NOVA · SUMMER ISSUE</span>
+          <div class="intro-dr-title">
+            <i class="intro-dr-ghost" aria-hidden="true">SUMMER</i>
+            <b class="intro-dr-black">SUMMER</b>
+            <b class="intro-dr-yellow">夏日轻程</b>
           </div>
-        </div>`;
-      overlay.appendChild(stage);
+          <div class="intro-dr-field">
+            <span data-dr="date">----.--.--</span><i>│</i>
+            <span data-dr="time">--:--</span><i>│</i>
+            <span><b data-dr="games">--</b> 款游戏</span>
+          </div>
+        </div>`);
+      const data = introData();
+      const reduce = !!(window.NovaMotion && window.NovaMotion.reduce);
+      const write = (key, value) => {
+        const node = stage.querySelector(`[data-dr="${key}"]`);
+        if (!node) return;
+        if (reduce) node.textContent = value;
+        else scramble(node, value, 460);
+      };
+      write('date', data.date);
+      write('time', data.time);
+      write('games', data.games);
     }
   });
 

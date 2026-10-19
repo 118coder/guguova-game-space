@@ -29,10 +29,10 @@
   --glow: rgba(122,31,43,.2);
   --ease: var(--t-ease);
 
-  --font-ui: 'Cormorant Garamond', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Serif SC', serif;
-  --font-display: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-condensed: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源宋体 Medium", "Source Han Serif SC Medium", "Noto Serif SC Medium", "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 
   --r-panel: 0px;
   --r-btn: 0px;
@@ -1262,7 +1262,7 @@ body::after { height: 4px; background: linear-gradient(90deg, var(--t-accent) 0 
 
 @font-face {
   font-family: 'Grimoire Serif';
-  src: local('STSong'), local('SimSun'), local('Songti SC');
+  src: local('思源宋体'), local('Source Han Serif SC'), local('Noto Serif SC'), local('STSong'), local('SimSun');
 }
 
 /* ---- mottled parchment everywhere ---- */

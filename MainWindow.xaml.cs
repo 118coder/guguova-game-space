@@ -119,16 +119,51 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Renderer cache lives under the app data folder by default. Development
-    /// sessions can point NOVA_CACHE_ROOT at a scratch folder on another drive,
-    /// so the throw-away WebView2 cache never has to live on the system disk.
+    /// Renderer cache is disposable and should never sit on the system disk when
+    /// another fixed drive is available. NOVA_CACHE_ROOT still wins for dev
+    /// sessions; otherwise use the app-data folder when it is already off C:,
+    /// then the first writable fixed drive, and only fall back to C: as a last
+    /// resort (a single-drive machine).
     /// </summary>
     private static string CacheRoot()
     {
         var over = Environment.GetEnvironmentVariable("NOVA_CACHE_ROOT");
-        if (string.IsNullOrWhiteSpace(over)) return Path.Combine(AppPaths.Root, "webview2");
-        Directory.CreateDirectory(over);
-        return over;
+        if (!string.IsNullOrWhiteSpace(over))
+        {
+            Directory.CreateDirectory(over);
+            return over;
+        }
+
+        var defaultRoot = Path.Combine(AppPaths.Root, "webview2");
+        try
+        {
+            var systemRoot = Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\";
+            if (!string.Equals(Path.GetPathRoot(defaultRoot), systemRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.CreateDirectory(defaultRoot);
+                return defaultRoot;
+            }
+
+            var drives = DriveInfo.GetDrives();
+            for (var i = 0; i < drives.Length; i++)
+            {
+                var drive = drives[i];
+                if (drive.DriveType != DriveType.Fixed || !drive.IsReady) continue;
+                if (string.Equals(drive.RootDirectory.FullName, systemRoot, StringComparison.OrdinalIgnoreCase)) continue;
+                if (drive.AvailableFreeSpace < 512L * 1024 * 1024) continue;
+                var candidate = Path.Combine(drive.RootDirectory.FullName, "NOVA Game Space", "cache", "webview2");
+                try
+                {
+                    Directory.CreateDirectory(candidate);
+                    return candidate;
+                }
+                catch { }
+            }
+        }
+        catch { }
+
+        Directory.CreateDirectory(defaultRoot);
+        return defaultRoot;
     }
 
     /// <summary>

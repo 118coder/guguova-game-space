@@ -29,10 +29,10 @@
   --glow: rgba(47,63,212,.2);
   --ease: var(--t-ease);
 
-  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
-  --font-display: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-condensed: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源宋体 Medium", "Source Han Serif SC Medium", "Noto Serif SC Medium", "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 
   --r-panel: 0px;
   --r-btn: 0px;
@@ -1168,7 +1168,7 @@ html[data-theme="riso"] .hero-logo::before {
   margin-left: 4px;
   padding-left: 8px;
   border-left: 1px solid rgba(16, 16, 20, .3);
-  font-family: 'Consolas', monospace;
+  font-family: var(--font-ui);
   font-size: 7px;
   letter-spacing: .12em;
 }
@@ -1212,7 +1212,7 @@ html[data-theme="riso"] .hero-logo::before {
   top: -7px;
   right: 0;
   color: var(--t-accent);
-  font-family: 'Consolas', monospace;
+  font-family: var(--font-ui);
   font-size: 12px;
   line-height: 1;
   opacity: .5;

@@ -10,9 +10,9 @@
 | [零点街区 · ZERO HOUR](zerohour.md) | 1.0.7 | `zerohour（CRT 信号接入）` | `zhLaunch（CRT 同步）` | 保留区（仅补动画） |
 | [星轨秘典 · CODEX](codex.md) | 1.7.1 | `codex（星轨展开）` | `cxIris（菱形虹膜）` | 本轮已重做/精修 |
 | [深夜广播 · BROADCAST](broadcast.md) | 1.4.1 | `broadcast（调频）` | `bcSweep（扫描揭示）` | 本轮已重做/精修 |
-| [夏日轻程 · SUMMER](summer.md) | 1.8.1 | `draft（制图线稿）` | `suShutter（快门下落）` | 本轮已重做/精修 |
+| [夏日轻程 · SUMMER](summer.md) | 1.8.3 | `draft（白纸排版）` | `suShutter（快门下落）` | 本轮已重做/精修 |
 | [电波海报 · RISO](riso.md) | 1.4.1 | `riso（三色套印）` | `rsRoll（油墨滚过）` | 本轮已重做/精修 |
-| [少女乐队的呐喊 · RIOT](riot.md) | 1.5.2 | `vinyl（黑胶升速）` | `rtDrop（唱片落盘）` | 本轮已重做/精修 |
+| [舞台残响 · RIOT](riot.md) | 1.5.3 | `vinyl（黑胶升速）` | `rtDrop（唱片落盘）` | 本轮已重做/精修 |
 | [冒险者档案 · GRIMOIRE](grimoire.md) | 1.5.1 | `seal（归档盖章）` | `grStamp（火漆盖章）` | 本轮已重做/精修 |
 | [神秘管理局 · MNEMO](mnemo.md) | 1.1.2 | `mnemo（档案解密）` | `mnUnfold（卷宗展开）` | 保留区（仅更新预览） |
 
