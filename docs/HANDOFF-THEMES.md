@@ -107,6 +107,9 @@ WebView2 中 **Regular 家族名未稳定命中，Medium 家族名稳定命中**
      幕布中央跳一下；现在 `.tc-label b` 固定思源宋体，`.tc-kicker/.tc-sub` 固定思源黑体。
   5. 第一次切换动画“显示不全”：`playThemeCurtain()` 现在先在 `is-on` 状态等两帧，
      让目标 variant 的初始 transform 完成绘制，再加 `is-cover`；第二次切换不再依赖缓存。
+  6. 深夜广播标题“抽搐”：`fit-content` 标题的 `available` 原来取自身宽度，缩字号会同时
+     缩小可用宽度，形成来回振荡；现在改为测量稳定的父级文字列宽，并且 ResizeObserver
+     只收缩、不再自动回涨。
   - 另外删除了 `fonts.ready` 时的第二次 refit/setNav；本机思源字体是同步可用的。
 
 ### 5. 音效
@@ -125,7 +128,7 @@ WebView2 中 **Regular 家族名未稳定命中，Medium 家族名稳定命中**
 - 所有 `.ogg` 在 WebView `decodeAudioData` 通过；页面无 `window.onerror` / unhandledrejection；
 - 单文件 Legacy 包（1.5.1）实机验证：`version=1.5.1`、`NovaTheme.themes.length=11`、
   RIOT 名称「舞台残响 · RIOT」、正文命中思源黑体、16 条 SFX 请求全部成功；
-- 出包：`NOVA-1.5.1-legacy-single.zip` **2.34 MB** / `NOVA-1.5.1-legacy-full.zip` **3.80 MB**；
+- 出包：`NOVA-1.5.1-legacy-single.zip` **2.34 MB** / `NOVA-1.5.1-legacy-full.zip` **3.81 MB**；
 - SUMMER 开屏同步重做：整张白纸 + 青色制图线 + 黑块 `SUMMER` + 黄块 `夏日轻程`
   + 真实日期/时间/游戏数；退出改为整页淡出（默认的中心圆形裁切会留下 "ER" 残块）；
   切换动画的底部黑条从 34% 降到 14%，只做页脚压条。

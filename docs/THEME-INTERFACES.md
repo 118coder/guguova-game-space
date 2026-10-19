@@ -240,7 +240,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | `nova` | 上下双幕布 + 中央光缝 | 360ms |
 | `aurum` | 左右青铜门 + 竖金缝 + 门环 | 400ms |
 | `endfield` | 蓝图面板横向推进 + 信号条 | 380ms |
-| `zerohour` | 斜切硬边面板下砸 | 340ms |
+| `zerohour` | 斜切漫画面板 + 危险条 + 网点 | 420ms |
 | `codex` | 整页 3D 翻下/翻开 | 430ms |
 | `broadcast` | CRT 开关机（闪白 → 横线） | 360ms |
 | `summer` | 白纸印版扫入 + 黑/黄块压版 | 470ms |
