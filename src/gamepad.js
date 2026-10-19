@@ -16,12 +16,12 @@
   const LAYOUTS = {
     xbox: {
       name: 'Xbox 手柄',
-      glyphs: { a: 'A', b: 'B', x: 'X', y: 'Y', menu: '≡', view: '⊞', lb: 'LB', rb: 'RB', ls: 'LS' },
+      glyphs: { a: 'A', b: 'B', x: 'X', y: 'Y', menu: '≡', view: '⊞', lb: 'LB', rb: 'RB', ls: 'LS', rs: 'RS' },
       face: { a: '#6bd39a', b: '#ff7a7a', x: '#6fa8ff', y: '#ffd166' }
     },
     playstation: {
       name: 'PlayStation 手柄',
-      glyphs: { a: '✕', b: '○', x: '□', y: '△', menu: 'OPT', view: 'SHARE', lb: 'L1', rb: 'R1', ls: 'L3' },
+      glyphs: { a: '✕', b: '○', x: '□', y: '△', menu: 'OPT', view: 'SHARE', lb: 'L1', rb: 'R1', ls: 'L3', rs: 'R3' },
       face: { a: '#7fb2ff', b: '#ff8a8a', x: '#e59bd8', y: '#8ee6c8' }
     }
   };
@@ -91,6 +91,7 @@
       lb: p(4), rb: p(5),
       view: p(8), menu: p(9),
       ls: p(10),
+      rs: p(11),
       up: p(12), down: p(13), left: p(14), right: p(15)
     };
   }
@@ -180,6 +181,7 @@
     if (pressedEdge('menu')) fire('library');
     if (pressedEdge('view')) fire('notifications');
     if (pressedEdge('ls')) fire('appearance');
+    if (pressedEdge('rs')) fire('settings');
   }
 
   window.NovaPad = {
@@ -197,6 +199,7 @@
         library: () => app.library(),
         appearance: () => app.appearance(),
         notifications: () => app.notifications(),
+        settings: () => app.settings(),
         pageUp: () => app.pageUp(),
         pageDown: () => app.pageDown()
       };
@@ -205,6 +208,7 @@
     },
     get connected() { return state.connected; },
     get layout() { return state.layout; },
+    press(action) { fire(action); },
     hints: renderHints
   };
 })();

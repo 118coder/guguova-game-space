@@ -174,6 +174,7 @@ html.calm .scene-stack { transform: none !important; }
 .nav-btn[data-nav="home"]::before { content: "// 01"; }
 .nav-btn[data-nav="library"]::before { content: "// 02"; }
 .nav-btn[data-nav="appearance"]::before { content: "// 03"; }
+.nav-btn[data-nav="settings"]::before { content: "// 04"; }
 
 .nav-btn:hover { color: var(--mn-plum); border-color: var(--mn-plum); background: var(--mn-plum-soft); }
 .nav-btn.is-active { color: var(--mn-panel); font-weight: 800; }

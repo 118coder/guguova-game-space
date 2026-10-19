@@ -1,6 +1,6 @@
 # 冒险者档案 · GRIMOIRE
 
-> 版本 **1.5.2** · 开屏 `seal（归档盖章）` · 进游戏 `grStamp（火漆盖章）`
+> 版本 **1.5.3** · 开屏 `seal（归档盖章）` · 进游戏 `grStamp（火漆盖章）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.10
 

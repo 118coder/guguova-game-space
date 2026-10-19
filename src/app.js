@@ -127,7 +127,7 @@
     editorFraming: { x: 50, y: 45, zoom: 1 },
     dataFolder: '',
     backupsFolder: '',
-    version: '1.5.2'
+    version: '1.5.3'
   };
 
   const notices = [];
@@ -4420,18 +4420,110 @@
     return 'home';
   }
 
+  function padDialogOpen() { return !!document.querySelector('.dialog-overlay.is-open'); }
+  function padPickerOpen() { return !!document.querySelector('.picker-overlay.is-open'); }
+
+  /** The focus surface under the pad: dialog > picker > overlay > current view. */
+  function padSurface() {
+    const dialog = document.querySelector('.dialog-overlay.is-open');
+    if (dialog) return dialog;
+    const picker = document.querySelector('.picker-overlay.is-open');
+    if (picker) return picker;
+    if (state.overlay === 'details') return $('.detail-modal', els.detailsOverlay) || els.detailsOverlay;
+    if (state.overlay === 'editor') return $('.editor-shell', els.editorOverlay) || els.editorOverlay;
+    if (state.overlay === 'scanner') return $('.scanner-shell', els.scannerOverlay) || els.scannerOverlay;
+    if (els.notifPanel.classList.contains('is-open')) return els.notifPanel;
+    if (els.profileMenu.classList.contains('is-open')) return els.profileMenu;
+    if (state.view === 'settings') return $('#settingsView .settings-options') || $('#settingsView');
+    if (state.view === 'appearance') return els.appearanceOptions || els.appearanceOverlay;
+    if (state.view === 'library') return $('.lib-shell', els.libraryOverlay) || els.libraryOverlay;
+    return els.homeView;
+  }
+
+  function padFocusableList() {
+    const surface = padSurface();
+    if (!surface) return [];
+    const selector = 'button:not([disabled]), a[href], select:not([disabled]), input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return Array.from(surface.querySelectorAll(selector)).filter((element) => {
+      if (element.hasAttribute('data-pad-skip')) return false;
+      if (element.closest('[hidden], [aria-hidden="true"]')) return false;
+      const rect = element.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return false;
+      const style = getComputedStyle(element);
+      return style.visibility !== 'hidden' && style.display !== 'none';
+    });
+  }
+
+  let padFocused = null;
+
+  function padSetFocus(element) {
+    if (!element) return;
+    if (padFocused && padFocused !== element) padFocused.classList.remove('is-pad-focus');
+    padFocused = element;
+    element.classList.add('is-pad-focus');
+    if (window.NovaFocus && window.NovaFocus.setModality) window.NovaFocus.setModality('gamepad');
+    try { element.focus({ preventScroll: true }); } catch (error) {}
+    try { element.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (error) {}
+  }
+
+  function padEnsureFocus() {
+    const list = padFocusableList();
+    if (!list.length) { padFocused = null; return null; }
+    const active = document.activeElement;
+    if (active && list.includes(active)) padFocused = active;
+    if (!padFocused || !list.includes(padFocused)) padSetFocus(list[0]);
+    return padFocused;
+  }
+
+  function padMoveFocus(dx, dy) {
+    const list = padFocusableList();
+    if (!list.length) return;
+    const active = padEnsureFocus();
+    if (!active) return;
+    // Linear DOM order: the settings board is two columns, so geometric
+    // navigation skipped whole groups. Reading order guarantees every option
+    // is reachable and matches what the player sees in the tab order.
+    const index = Math.max(0, list.indexOf(active));
+    const dir = (dx + dy) >= 0 ? 1 : -1;
+    const next = list[(index + dir + list.length) % list.length];
+    padSetFocus(next);
+    audio.move(dir);
+  }
+
+  function padActivate() {
+    const element = padEnsureFocus();
+    if (!element) return;
+    if (element.tagName === 'SELECT') {
+      if (element.options.length) {
+        element.selectedIndex = (element.selectedIndex + 1) % element.options.length;
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        audio.select();
+      }
+      return;
+    }
+    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+      try { element.focus(); element.select(); } catch (error) {}
+      toast('手柄模式下请用键盘输入', 'keyboard');
+      return;
+    }
+    element.click();
+  }
+
   function padHintsFor(scope) {
+    if (padDialogOpen()) return [['a', '确认'], ['b', '取消'], ['←→', '选择']];
+    if (padPickerOpen()) return [['a', '选择'], ['b', '取消'], ['↑↓', '移动']];
     const hints = {
-      home: [['a', '启动'], ['y', '详情'], ['x', '收藏'], ['menu', '游戏库'], ['view', '通知'], ['ls', '外观']],
-      details: [['a', '启动'], ['b', '返回'], ['x', '收藏'], ['y', '管理']],
-      library: [['a', '打开'], ['b', '返回'], ['←→', '切换'], ['↑↓', '换行']],
-      appearance: [['b', '返回'], ['←→', '预览'], ['y', '重排字标'], ['a', '切换样式']],
+      home: [['a', '启动'], ['y', '详情'], ['x', '收藏'], ['lb/rb', '换游戏'], ['menu', '游戏库'], ['view', '通知'], ['ls', '外观'], ['rs', '设置']],
+      details: [['a', '选择'], ['b', '返回'], ['x', '收藏'], ['y', '管理'], ['←→↑↓', '移动']],
+      library: [['a', '打开'], ['b', '返回'], ['←→↑↓', '移动']],
+      appearance: [['a', '选择'], ['b', '返回'], ['←→↑↓', '移动'], ['lb/rb', '换游戏'], ['y', '重排字标']],
+      settings: [['a', '选择'], ['b', '返回'], ['←→↑↓', '移动'], ['lb/rb', '翻页']],
       launch: [['b', '返回'], ['a', '完成']],
-      editor: [['b', '关闭']],
-      scanner: [['b', '关闭']],
+      editor: [['a', '选择'], ['b', '关闭'], ['←→↑↓', '移动']],
+      scanner: [['a', '选择'], ['b', '关闭'], ['←→↑↓', '移动']],
       sleep: [['a', '唤醒']],
-      notifications: [['a', '关闭'], ['b', '关闭']],
-      profile: [['a', '关闭'], ['b', '关闭']]
+      notifications: [['a', '选择'], ['b', '关闭'], ['↑↓', '移动']],
+      profile: [['a', '选择'], ['b', '关闭'], ['↑↓', '移动']]
     };
     return hints[scope] || hints.home;
   }
@@ -4440,6 +4532,7 @@
     try {
       if (!window.NovaPad || !window.NovaPad.connected) return;
       window.NovaPad.hints(padHintsFor(padScope()));
+      padEnsureFocus();
     } catch (error) {
       // Controller UI must never interrupt launch or navigation.
     }
@@ -4468,64 +4561,56 @@
     }
   }
 
+  const PAD_FOCUS_SCOPES = new Set(['settings', 'appearance', 'library', 'details', 'editor', 'scanner', 'notifications', 'profile']);
+
   function padVertical(delta) {
     const scope = padScope();
-    if (scope === 'library') {
-      const columns = Math.max(1, getComputedStyle(els.libGrid).gridTemplateColumns.split(' ').filter(Boolean).length);
-      moveLibraryPadFocus(delta * columns);
-      return;
+    if (padDialogOpen() || padPickerOpen() || PAD_FOCUS_SCOPES.has(scope)) {
+      padMoveFocus(0, delta);
     }
+  }
+
+  function padPage(dir) {
+    const scope = padScope();
+    if (scope === 'home') { selectGame(state.index + dir, { sound: true, scroll: true }); return; }
     if (scope === 'appearance') {
-      els.appearanceOptions.scrollBy({ top: delta * 260, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+      selectGame(state.index + dir, { sound: true, animate: true });
       return;
     }
-    if (scope === 'settings') {
-      $('.settings-options')?.scrollBy({ top: delta * 260, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
-      return;
-    }
-    if (scope === 'details') {
-      $('.detail-body', els.detailsOverlay)?.scrollBy({ top: delta * 240, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+    const scroller = document.querySelector('.picker-overlay.is-open .picker-list')
+      || document.querySelector('.dialog-overlay.is-open .dialog-card')
+      || padSurface();
+    if (scroller && scroller.scrollBy) {
+      scroller.scrollBy({ top: dir * 240, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
     }
   }
 
   const padApp = {
     nav(delta) {
       const scope = padScope();
-      if (scope === 'library') { openLibraryCardByIndex(delta); return; }
-      if (scope === 'appearance') { selectGame(state.index + delta, { sound: true, animate: true }); return; }
-      if (scope === 'details') { selectGame(state.index + delta, { sound: true, scroll: true }); return; }
+      if (padDialogOpen() || padPickerOpen() || PAD_FOCUS_SCOPES.has(scope)) { padMoveFocus(delta, 0); return; }
       if (scope === 'home') selectGame(state.index + delta, { sound: true, scroll: true });
     },
     navVertical(delta) {
-      const scope = padScope();
-      if (scope === 'library') { openLibraryCardByIndex(delta * Math.max(1, getComputedStyle(els.libGrid).gridTemplateColumns.split(' ').filter(Boolean).length)); return; }
       padVertical(delta);
     },
     confirm() {
       const scope = padScope();
+      if (padDialogOpen() || padPickerOpen() || PAD_FOCUS_SCOPES.has(scope)) { padActivate(); return; }
       if (scope === 'sleep') { exitSleep(); return; }
       if (scope === 'launch') { if (els.launchOverlay.classList.contains('is-ready')) closeLaunch(); return; }
-      if (scope === 'editor' || scope === 'scanner') return;
-      if (scope === 'appearance') { setStyleMode(state.settings.styleMode === 'adaptive' ? 'system' : 'adaptive'); return; }
-      if (scope === 'notifications' || scope === 'profile') { closePopovers(); return; }
-      if (scope === 'library') {
-        const focused = document.activeElement instanceof Element ? document.activeElement.closest('.lib-card') : null;
-        if (focused) focused.click();
-        else {
-          const card = $$('.lib-card', els.libGrid)[state.libPadIndex];
-          if (card) card.click();
-        }
-        return;
-      }
-      if (scope === 'details') {
-        if (state.manageOpen) { closeManage(); return; }
-        if (state.running.has(currentGame()?.id)) { openManage(); return; }
-        handlePrimary();
-        return;
-      }
       handlePrimary();
     },
     back() {
+      if (padDialogOpen()) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        return;
+      }
+      if (padPickerOpen()) {
+        const close = document.getElementById('pickerClose');
+        if (close) close.click();
+        return;
+      }
       const scope = padScope();
       if (scope === 'sleep') { exitSleep(); return; }
       if (scope === 'launch') { closeLaunch(); return; }
@@ -4568,11 +4653,18 @@
       if (scope === 'home') openPopover('notif');
       else if (scope === 'notifications') closePopovers();
     },
-    pageUp() { padVertical(-1); },
-    pageDown() { padVertical(1); },
+    settings() {
+      if (state.overlay) return;
+      if (state.view === 'settings') closeSettings();
+      else openSettings();
+    },
+    pageUp() { padPage(-1); },
+    pageDown() { padPage(1); },
     padConnected(layout, id) {
       audio.select();
-      toast(`${layout === 'playstation' ? 'PlayStation' : 'Xbox'} 手柄已连接 · 按 ${layout === 'playstation' ? '✕' : 'A'} 启动游戏`, 'gamepad');
+      toast(`${layout === 'playstation' ? 'PlayStation' : 'Xbox'} 手柄已连接 · 方向键移动 / ${layout === 'playstation' ? '✕' : 'A'} 选择`, 'gamepad');
+      if (window.NovaFocus && window.NovaFocus.refresh) window.NovaFocus.refresh();
+      padEnsureFocus();
       refreshPadHints();
     },
     padDisconnected() {
@@ -5011,7 +5103,7 @@
     state.storage = boot.storage || null;
     state.dataFolder = boot.dataFolder || '';
     state.backupsFolder = boot.backupsFolder || '';
-    state.version = boot.version || '1.5.2';
+    state.version = boot.version || '1.5.3';
     if (els.libSort) els.libSort.value = state.settings.librarySort;
     if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
     state.running = new Map();

@@ -1,6 +1,6 @@
 # 神秘管理局 · MNEMO
 
-> 版本 **1.1.3** · 开屏 `mnemo（档案解密）` · 进游戏 `mnUnfold（卷宗展开）`
+> 版本 **1.1.4** · 开屏 `mnemo（档案解密）` · 进游戏 `mnUnfold（卷宗展开）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.11
 
