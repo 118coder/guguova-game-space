@@ -12,7 +12,7 @@
 bash tools/pipeline.sh                 # 审计 + 两个 Legacy 包
 bash tools/pipeline.sh --skip-audit    # 快速打包
 bash tools/pipeline.sh --modern        # 额外产出 Modern 自包含大包
-bash tools/pipeline.sh --version 1.5.1 # bump + 构建 + 打包
+bash tools/pipeline.sh --version 1.5.2 # bump + 构建 + 打包
 ```
 
 产物：

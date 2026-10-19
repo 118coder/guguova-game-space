@@ -301,18 +301,18 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | 主题 | 版本 | features | intro | launch |
 |---|---|---|---|---|
 | nova（内置） | 2.0.0 | — | gilded | nvLaunch |
-| aurum | 1.0.8 | — | aurum | auLaunch |
-| endfield | 1.0.4 | — | endfield | efLaunch |
-| zerohour | 1.0.7 | scanline / bracket | zerohour | zhLaunch |
-| codex | 1.7.1 | starfield / plate / rule / plates-off | codex | cxIris |
-| broadcast | 1.4.1 | film / plate / rule / plates-off | broadcast | bcSweep |
+| aurum | 1.0.9 | — | aurum | auLaunch |
+| endfield | 1.0.5 | — | endfield | efLaunch |
+| zerohour | 1.0.8 | scanline / bracket | zerohour | zhLaunch |
+| codex | 1.7.2 | starfield / plate / rule / plates-off | codex | cxIris |
+| broadcast | 1.4.2 | film / plate / rule / plates-off | broadcast | bcSweep |
 | summer | 1.8.3 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
-| riso | 1.4.1 | riso / plate / rule / plates-off | riso | rsRoll |
+| riso | 1.4.2 | riso / plate / rule / plates-off | riso | rsRoll |
 | riot | 1.5.3 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
-| grimoire | 1.5.1 | parchment / plate / rule / plates-off | seal | grStamp |
-| mnemo | 1.1.2 | map / emboss / folder | mnemo | mnUnfold |
+| grimoire | 1.5.2 | parchment / plate / rule / plates-off | seal | grStamp |
+| mnemo | 1.1.3 | map / emboss / folder | mnemo | mnUnfold |
 
-静态资源版本：`src/index.html` 的 `?v=1.5.1`。
+静态资源版本：`src/index.html` 的 `?v=1.5.2`。
 
 ---
 

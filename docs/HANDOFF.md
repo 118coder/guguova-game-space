@@ -8,6 +8,17 @@
 
 ---
 
+## 0.00d 30 秒交接（2026-10-20 · v1.5.2 设计理念基线）
+
+- 新增 **`docs/DESIGN-PHILOSOPHY.md`**：把六条硬规则、色彩/字体/版式/动效、
+  11 套主题设计卡、设置页、音效、兼容、版本与维护流程整理成一份可长期沿用的手册。
+- 主题版本基线统一：aurum 1.0.9 / endfield 1.0.5 / zerohour 1.0.8 / codex 1.7.2 /
+  broadcast 1.4.2 / riso 1.4.2 / grimoire 1.5.2 / mnemo 1.1.3；summer 1.8.3、riot 1.5.3。
+- 应用版本 **1.5.2**；视觉与交互沿用 1.5.1（零点街区切换 / 深夜广播标题 / 头像点击）。
+- 后续改主题先读 `DESIGN-PHILOSOPHY.md` §9 维护流程与 §11 常见坑。
+
+---
+
 ## 0.00c 30 秒交接（2026-10-19 · v1.5.1）
 
 - 版本 **1.5.1**。本轮四件事：主题切换编舞、思源字体、设置控制台 / 用户卡、音效。
@@ -69,7 +80,7 @@
   坑与下一轮清单）。**它的 §0.00c 是最新状态**，旧表只作历史。
 - 交接文件：本文件 + `docs/HANDOFF-THEMES.md` + `docs/THEME-INTERFACES.md` +
   `docs/themes/`（单主题接口卡）+ `docs/LAUNCHER-FEATURES.md` + `docs/THEME-COVERAGE.md` +
-  `docs/THEMES.md` + `docs/SFX-MAP.md`（按钮/选项音效对照）+ `README.md`。
+  `docs/THEMES.md` + `docs/DESIGN-PHILOSOPHY.md`（设计理念/维护手册）+ `docs/SFX-MAP.md`（音效对照）+ `README.md`。
 
 ---
 
