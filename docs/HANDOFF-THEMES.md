@@ -149,6 +149,16 @@
   （不在 C 盘）；本轮已删掉旧的 `wv2..wv5` profile，并跑过
   `node tools/clear-cache.js` 清浏览器缓存 + 强制重载。
 
+### 交付 / PR
+
+- PR **#2** `feat: 1.4.0 主题精修、极致流畅与主题切换动画` 已合并到 `main`
+  （merge commit `64eaa7c`）。
+- PR **#3** `fix: 概念板渲染脚本自包含并恢复界面` 已合并到 `main`
+  （merge commit `27730f3`）；`tools/render-concepts.js` 现在会自动 stage/clean
+  概念板并渲染后回到 `index.html`。
+- 主题卡预览的最终来源是 `tools/theme-concepts.html` 的 11 张概念板；
+  不要再改成应用截图。
+
 ### 仍需注意
 
 1. **改主题 CSS 后必须**：bump `theme.json` version → sync 到用户目录 → 重启/刷新。
