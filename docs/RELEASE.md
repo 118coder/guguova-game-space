@@ -1,7 +1,7 @@
 # 发布与打包
 
 > 默认发布 **Legacy 单文件版（约 2.34 MB zip）**：一个 `NovaGameSpace-Legacy.exe`，
-> 前端资源与 11 套主题全部内嵌；同时产出 **全主题文件夹版（约 3.80 MB zip）**，
+> 前端资源与 11 套主题全部内嵌；同时产出 **全主题文件夹版（约 3.81 MB zip）**，
 > 方便编辑/替换主题。Modern 自包含包为可选大包。
 
 ---
@@ -20,7 +20,7 @@ bash tools/pipeline.sh --version 1.5.1 # bump + 构建 + 打包
 ```
 dist/
 ├─ NOVA-<version>-legacy-single.zip   # 单文件 EXE，约 2.34 MB
-├─ NOVA-<version>-legacy-full.zip     # EXE + src/ + themes/，约 3.80 MB
+├─ NOVA-<version>-legacy-full.zip     # EXE + src/ + themes/，约 3.81 MB
 ├─ NOVA-<version>-modern.zip          # 可选大包
 └─ release-manifest.json              # SHA-256 + 大小
 ```
@@ -66,7 +66,7 @@ launch.cmd / README.txt
 
 - 程序目录直接包含全部主题源文件，适合编辑/替换/分享主题。
 - 启动时优先使用外部 `src/`/`themes/`，不会重复解压。
-- zip：**3.80 MB**。
+- zip：**3.81 MB**。
 
 ### 2.3 依赖
 

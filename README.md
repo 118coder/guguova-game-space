@@ -343,7 +343,7 @@ bash tools/pipeline.sh --modern        # 额外产出 Modern 自包含大包
 
 - **单文件版**：约 **2.34 MB** zip，只有一个 `NovaGameSpace-Legacy.exe`，
   前端与 11 套主题内嵌；首次运行解压到数据目录。
-- **全主题文件夹版**：约 **3.80 MB** zip，EXE + `src/` + `themes/`，
+- **全主题文件夹版**：约 **3.81 MB** zip，EXE + `src/` + `themes/`，
   主题可直接编辑。
 
 Legacy 包依赖 .NET Framework 4.8 + WebView2（Win10/11 通常已内置；Win7 用 109），

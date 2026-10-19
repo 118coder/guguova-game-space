@@ -375,6 +375,7 @@
     settingsSessionTag: $('#settingsSessionTag'),
     settingsVersion: $('#settingsVersion'),
     settingsAvatar: $('#settingsAvatar'),
+    settingsAvatarButton: $('#settingsAvatarButton'),
     settingsAvatarImg: $('#settingsAvatarImg'),
     settingsChangeAvatar: $('#settingsChangeAvatar'),
     settingsClearAvatar: $('#settingsClearAvatar'),
@@ -592,13 +593,27 @@
   function logoMetrics(element) {
     const style = getComputedStyle(element);
     const padX = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const marginX = (parseFloat(style.marginLeft) || 0) + (parseFloat(style.marginRight) || 0);
     const range = document.createRange();
     range.selectNodeContents(element);
     const rect = range.getBoundingClientRect();
-    const available = element.clientWidth - padX;
+    // The logo is often width:fit-content, so its own clientWidth shrinks with
+    // the font size. Measure the stable text column (the parent) instead;
+    // otherwise every shrink changes "available" too and the fit oscillates.
+    const parent = element.parentElement;
+    let available;
+    if (parent) {
+      const parentStyle = getComputedStyle(parent);
+      available = parent.clientWidth
+        - (parseFloat(parentStyle.paddingLeft) || 0)
+        - (parseFloat(parentStyle.paddingRight) || 0)
+        - marginX;
+    } else {
+      available = element.clientWidth - padX;
+    }
     // A rect is empty for an empty element, so keep the box as a floor.
     const required = Math.max(rect.width, 1);
-    return { available, required };
+    return { available: Math.max(0, available), required };
   }
 
   // Converge synchronously first: the ratio drives font-size, so leaving the
@@ -606,9 +621,9 @@
   // or two on every theme switch and view change. Then keep re-measuring across
   // a few frames, because web fonts, theme CSS and the intro swap all land
   // after the first paint and would invalidate a one-shot measurement.
-  function fitLogo(element) {
+  function fitLogo(element, options = {}) {
     if (!element || !element.isConnected) return;
-    element.style.removeProperty('--logo-fit');
+    if (!options.keep) element.style.removeProperty('--logo-fit');
 
     // Returns true once the title fits the content box. Side bearings and the
     // .985 safety factor make the correction slightly sub-linear, hence two
@@ -703,7 +718,7 @@
     if (previous) clearTimeout(previous);
     pendingFits.set(element, setTimeout(() => {
       pendingFits.delete(element);
-      if (element.isConnected) fitLogo(element);
+      if (element.isConnected) fitLogo(element, { keep: true });
     }, 120));
   }
   function watchLogos() {
@@ -722,12 +737,9 @@
           if (element.classList.contains('stat-value')) { statsDirty = true; return; }
           const { available, required } = logoMetrics(element);
           if (available <= 0 || required <= 1) return;
-          const current = parseFloat(element.style.getPropertyValue('--logo-fit')) || 1;
-          // Shrinking changes the box height, which re-enters this callback once
-          // more; the second pass finds required <= available and stops. Growing
-          // back needs clear slack, otherwise a 1.5% undershoot would oscillate.
+          // Only correct overflow. Growing on every observer callback made
+          // fit-content logos oscillate between 1 and the shrunken size.
           if (required > available * .998) scheduleFit(element);
-          else if (current < 1 && required < available * .9) scheduleFit(element);
         });
         if (statsDirty) refitStats();
       });
@@ -3511,7 +3523,7 @@
   // Each theme owns a different shutter: doors, page turn, CRT, ink blot…
   // The hold time matches the longest cover phase so the style swap stays hidden.
   const CURTAIN_HOLD = {
-    nova: 360, aurum: 400, endfield: 380, zerohour: 340, codex: 430,
+    nova: 360, aurum: 400, endfield: 380, zerohour: 420, codex: 430,
     broadcast: 360, summer: 470, riso: 380, riot: 380, grimoire: 650, mnemo: 360
   };
 
@@ -3647,6 +3659,7 @@
     }
     if (els.settingsTrayRow) els.settingsTrayRow.addEventListener('click', toggleTraySetting);
     if (els.settingsChangeAvatar) els.settingsChangeAvatar.addEventListener('click', chooseAvatar);
+    if (els.settingsAvatarButton) els.settingsAvatarButton.addEventListener('click', chooseAvatar);
     if (els.settingsClearAvatar) els.settingsClearAvatar.addEventListener('click', clearAvatar);
     if (els.settingsAutoBackupRow) els.settingsAutoBackupRow.addEventListener('click', toggleAutoBackup);
     if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));

@@ -30,8 +30,8 @@
   `theme.json` 升到 1.5.3。
 - **音效**：Gavilya 参考集的 Kenney Interface Sounds（CC0）+ Kenney 环境音；
   主题切换有专属 `theme.ogg`。来源/许可见 `src/assets/sfx/LICENSE-SFX.md`。
-- **头像**：设置 → 本机档案卡可「更换头像 / 移除头像」；图片裁成 256×256 PNG 存到
-  `media/avatar/avatar.png`，同时同步顶栏与个人菜单头像。
+- **头像**：设置 → 本机档案卡可「更换头像 / 移除头像」；点击头像本身也会直接打开图片选择。
+  图片裁成 256×256 PNG 存到 `media/avatar/avatar.png`，同时同步顶栏与个人菜单头像。
 - 验收：`export-all.js --views=home,settings --sizes=1439x1124,960x600 --stress`
   → 66 captures / 0 clipping / 0 overflow；30 汉字标题在 1920 与 1366 下均不截断。
 - 主题层细节与下一轮清单见 **`docs/HANDOFF-THEMES.md` §0.00c**。
@@ -150,7 +150,7 @@
 - 默认包是 **Legacy net48 单文件版（zip 约 2.34 MB）**：一个 exe 内嵌
   托管 DLL、WebView2 loader、`src/` 与 `themes/`；首次运行解压到
   `%LOCALAPPDATA%/NOVA Game Space/runtime/<version>/assets`。
-- 另有 **全主题文件夹版（约 3.80 MB zip）**：EXE + `src/` + `themes/`，
+- 另有 **全主题文件夹版（约 3.81 MB zip）**：EXE + `src/` + `themes/`，
   主题可直接编辑。
 - 依赖 .NET Framework 4.8 + WebView2；Win10/11 通常已内置，Win7 用 109。
   `launch.cmd` 会检查依赖。详见 `docs/RELEASE.md`。
