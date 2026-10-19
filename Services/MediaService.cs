@@ -40,6 +40,34 @@ public sealed class MediaService
     }
 
     /// <summary>
+    /// Crops the chosen picture to a square 256px avatar and stores it under
+    /// media/avatar. Returns the relative path used by the web UI, or null.
+    /// </summary>
+    public string? ImportAvatar(string sourcePath)
+    {
+        try
+        {
+            using var source = LoadBitmap(sourcePath, out _);
+            using var square = FrameToRatio(source, 1d, 50, 50);
+            using var avatar = Resize(square, 256, 256);
+            var dir = Path.Combine(MediaDir, "avatar");
+            Directory.CreateDirectory(dir);
+            avatar.Save(Path.Combine(dir, "avatar.png"), ImageFormat.Png);
+            return "avatar/avatar.png";
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public void ClearAvatar()
+    {
+        try { File.Delete(Path.Combine(MediaDir, "avatar", "avatar.png")); }
+        catch { }
+    }
+
+    /// <summary>
     /// Builds hero + cover from a source image. Returns the palette derived
     /// from the crop, or null when the image cannot be read.
     /// </summary>

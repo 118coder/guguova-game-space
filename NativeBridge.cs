@@ -130,6 +130,8 @@ public sealed class NativeBridge
             {
                 "boot" => BuildBootPayload(),
                 "saveSettings" => SaveSettings(args),
+                "setAvatar" => SetAvatar(args),
+                "clearAvatar" => ClearAvatar(),
                 "launch" => LaunchGame(args),
                 "stop" => StopGame(args),
                 "getRunning" => _launcher.Running,
@@ -490,6 +492,27 @@ public sealed class NativeBridge
             if (args.TryGetProperty("developerMode", out var developer) && developer.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.DeveloperMode = developer.GetBoolean();
         }
+        _store.Save();
+        return new { ok = true };
+    }
+
+    private object SetAvatar(JsonElement args)
+    {
+        var path = GetString(args, "path");
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return new { ok = false, error = "找不到头像图片" };
+        var relative = _media.ImportAvatar(path);
+        if (string.IsNullOrWhiteSpace(relative))
+            return new { ok = false, error = "无法读取这张图片" };
+        _store.Library.Settings.AvatarFile = relative;
+        _store.Save();
+        return new { ok = true, avatarFile = relative };
+    }
+
+    private object ClearAvatar()
+    {
+        _store.Library.Settings.AvatarFile = null;
+        _media.ClearAvatar();
         _store.Save();
         return new { ok = true };
     }

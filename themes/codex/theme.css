@@ -41,10 +41,10 @@
   --glow: rgba(226, 199, 142, .24);
   --ease: var(--cx-ease);
 
-  --font-ui: 'Manrope', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
-  --font-display: 'Cormorant Garamond', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源宋体 Medium", "Source Han Serif SC Medium", "Noto Serif SC Medium", "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   --font-serif: var(--font-display);
-  --font-condensed: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  --font-condensed: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 }
 
 /* ------------------------------------------------------------
@@ -2180,7 +2180,7 @@ html[data-theme="codex"][data-fx-hero="plate"] .hero-inner::after {
 
 /* 2. 字体：标题衬线，正文无衬线 */
 html[data-theme="codex"] .hero-inner .hero-logo {
-  font-family: 'Cormorant Garamond', 'Songti SC', 'SimSun', serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-weight: 600 !important;
   letter-spacing: .01em !important;
   color: #dcc08a !important;
@@ -2190,7 +2190,7 @@ html[data-theme="codex"] .hero-inner .hero-logo {
 
 html[data-theme="codex"] .hero-inner :is(.kicker, .tagline, .meta-row, .progress-head, .progress-sub, .cta-row),
 html[data-theme="codex"] .activity-strip {
-  font-family: 'Manrope', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 }
 
 html[data-theme="codex"] .hero-inner .tagline {
@@ -2231,11 +2231,11 @@ html[data-theme="codex"] .activity-strip .activity-title { font-size: 14px !impo
 html[data-theme="codex"] .activity-strip .activity-kicker,
 html[data-theme="codex"] .activity-strip .activity-desc,
 html[data-theme="codex"] .activity-strip .activity-meta { color: rgba(232, 223, 205, .55) !important; }
-html[data-theme="codex"] .activity-strip .activity-pct { font-family: 'Cormorant Garamond', serif !important; font-size: 18px !important; color: #dcc08a !important; }
+html[data-theme="codex"] .activity-strip .activity-pct { font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif; font-size: 18px !important; color: #dcc08a !important; }
 
 /* 4. 按钮：无衬线、字距统一 */
 html[data-theme="codex"] .btn {
-  font-family: 'Manrope', 'Microsoft YaHei UI', sans-serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-size: 12px !important;
   letter-spacing: .1em !important;
 }
@@ -2283,7 +2283,7 @@ html[data-theme="codex"] .clock {
   border: 1px solid rgba(201, 169, 97, .32) !important;
 }
 html[data-theme="codex"] .clock-time {
-  font-family: 'Cormorant Garamond', 'Songti SC', serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-size: 18px !important;
   font-weight: 600 !important;
   line-height: 1 !important;
@@ -2291,7 +2291,7 @@ html[data-theme="codex"] .clock-time {
   color: #eadfc6 !important;
 }
 html[data-theme="codex"] .clock-date {
-  font-family: 'Cormorant Garamond', 'Songti SC', serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-size: 9px !important;
   line-height: 1.1 !important;
   letter-spacing: .08em !important;
@@ -2302,7 +2302,7 @@ html[data-theme="codex"] .clock-date {
 /* 2. 正文回到衬线，颜色按原图：米白正文、金色小标 */
 html[data-theme="codex"] .hero-inner :is(.kicker, .tagline, .meta-row, .progress-head, .progress-sub),
 html[data-theme="codex"] .btn {
-  font-family: 'Cormorant Garamond', 'Songti SC', 'SimSun', serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 }
 
 html[data-theme="codex"] .hero-inner .tagline {
@@ -2374,13 +2374,13 @@ html[data-theme="codex"] .hero-inner .kicker-dim { color: rgba(232, 223, 205, .5
 
 /* 字重：Noto Serif SC 可变字重，正文 600、标题 600 */
 html[data-theme="codex"] .hero-inner .hero-logo {
-  font-family: 'Cormorant Garamond', 'Noto Serif SC', 'Songti SC', serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-weight: 600 !important;
 }
 
 html[data-theme="codex"] .hero-inner :is(.kicker, .tagline, .meta-row, .progress-head, .progress-sub),
 html[data-theme="codex"] .btn {
-  font-family: 'Noto Serif SC', 'Songti SC', serif !important;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-weight: 600 !important;
 }
 

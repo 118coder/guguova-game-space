@@ -29,10 +29,10 @@
   --glow: rgba(26,155,215,.18);
   --ease: var(--t-ease);
 
-  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
-  --font-display: 'Bebas Neue', 'Space Grotesk', sans-serif;
-  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-condensed: 'Bebas Neue', 'Space Grotesk', sans-serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 
   --r-panel: 8px;
   --r-btn: 999px;
@@ -2665,6 +2665,8 @@ html[data-theme="summer"] .hero-inner::before {
      · 文字恢复整幅宽度，面板只留白纸 + 墨线；
      · 线稿（太阳射线 / 地平线 / 帆船 / 伞骨）画成 600×700 的
        `draft.svg`，作为**页面背景**落在面板右侧的空白处；
+     · v6：黑色帆船/伞骨线稿已删除（用户指正太违和），现在只保留
+       青色 `lines.svg` 与网点，不再压黑色线条在角色脸上；
      · 底部那条线稿条删除，面板不再留 108px 空档。
    ============================================================ */
 
@@ -2678,12 +2680,12 @@ html[data-theme="summer"] .hero-inner::before {
   background-image: none !important;
 }
 
-/* 线稿进背景：右侧空白处一整幅制图，不装框、不成卡 */
+/* 线稿进背景：只保留青色制图线，不再叠黑色帆船/遮阳伞线稿 */
 html[data-theme="summer"] .scene-stack::after {
-  background-image: url("assets/draft.svg?v=3"), url("assets/lines.svg?v=3");
-  background-position: 92% 22%, center;
-  background-size: min(450px, 33vw) auto, cover;
-  background-repeat: no-repeat, no-repeat;
+  background-image: url("assets/lines.svg?v=3");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   opacity: 1;
 }
 
@@ -2751,15 +2753,14 @@ html[data-theme="summer"] .scene-stack::before {
   pointer-events: none;
 }
 
-/* 网点只压在照片上：scene-stack::after 的第三层背景 */
+/* 网点 + 页面线稿；黑色帆船/遮阳伞线稿已删除 */
 html[data-theme="summer"] .scene-stack::after {
   background-image:
-    url("assets/draft.svg?v=4"),
     url("assets/dots.svg?v=2"),
     url("assets/lines.svg?v=4");
-  background-position: 92% 22%, 92% 30%, center;
-  background-size: min(450px, 33vw) auto, min(340px, 25vw) auto, cover;
-  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: 92% 30%, center;
+  background-size: min(340px, 25vw) auto, cover;
+  background-repeat: no-repeat, no-repeat;
   opacity: 1;
 }
 

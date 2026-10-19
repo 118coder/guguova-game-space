@@ -122,7 +122,7 @@ Windows 11 与近两年的 Windows 10 通常已预装；若提示缺失，从微
   主/次按钮都是圆角药丸，面板带斜线纹理与硬边高光。启动页是 CRT 信号接入。
 - **神秘管理局 MNEMO**（附赠主题）：月紫神秘档案、雾紫 HUD、靛紫数据线、梅红节点、琥珀路径与块状字标。
   主视觉是近不透明的浅紫档案铭牌；启动页是一段「档案无法读取 → 档案已解密」的扫描演出，最后横向折叠退场。
-- **少女乐队呐喊 RIOT**（附赠主题）：纸面朋克拼贴、黑白与朱红、黑胶唱片、撕裂胶带与硬偏移墨影。
+- **舞台残响 RIOT**（附赠主题）：纸面朋克拼贴、黑白与朱红、黑胶唱片、撕裂胶带与硬偏移墨影。
   主视觉是白纸拼贴板，封面降饱和成黑白；红色只做当前/信号，适合喜欢高对比现场感的玩家。
 - **冒险者档案 GRIMOIRE**（附赠主题）：羊皮纸角色卡、酒红横幅、双线金框、菱形刻度与衬线标题。
   主视觉是羊皮纸档案，封面做旧；适合奇幻、跑团、CRPG 与叙事游戏。
@@ -140,7 +140,7 @@ Windows 11 与近两年的 Windows 10 通常已预装；若提示缺失，从微
 ![神秘管理局 · 首页](docs/screenshot-mnemo-home.jpg)
 ![星轨秘典 · 右键菜单](docs/screenshot-codex-context.jpg)
 ![零点街区 · 右键菜单](docs/screenshot-zerohour-context.jpg)
-![少女乐队呐喊 · 首页](docs/screenshot-riot-home.jpg)
+![舞台残响 · 首页](docs/screenshot-riot-home.jpg)
 ![冒险者档案 · 详情](docs/screenshot-grimoire-detail.jpg)
 ![十一套主题 · 主题面板](docs/screenshot-theme-cards.jpg)
 
@@ -275,7 +275,7 @@ Windows 11 与近两年的 Windows 10 通常已预装；若提示缺失，从微
 
 素材来源：封面图来自用户提供的参考图；界面音效来自
 [Kenney Interface Sounds](https://kenney.nl/assets/interface-sounds)（CC0，可商用），
-授权文本见 `src/assets/sfx/LICENSE-Kenney.txt`。
+授权文本见 `src/assets/sfx/LICENSE-SFX.md`（Kenney Interface Sounds，CC0）。
 
 ---
 
@@ -310,7 +310,7 @@ nova-game-space-desktop/
 │  ├─ fonts.css  自托管字体
 │  └─ assets/    sfx/（CC0 音效）、backdrop.jpg、demo/
 ├─ themes/aurum/             自带主题：鎏金圣所 AURUM
-├─ themes/endfield/          自带主题：终末地 ENDFIELD（含 Saira 字体与 OFL 许可）
+├─ themes/endfield/          自带主题：终末地 ENDFIELD
 ├─ build/icon.ico            主图标（tools/make-icon.py 可复现）
 ├─ docs/INTEGRATION.md       非 Steam 游戏接入规范
 ├─ docs/THEMES.md            主题开发规范
@@ -341,9 +341,9 @@ bash tools/pipeline.sh --skip-audit    # 快速打包
 bash tools/pipeline.sh --modern        # 额外产出 Modern 自包含大包
 ```
 
-- **单文件版**：约 **3.13 MB** zip，只有一个 `NovaGameSpace-Legacy.exe`，
+- **单文件版**：约 **2.34 MB** zip，只有一个 `NovaGameSpace-Legacy.exe`，
   前端与 11 套主题内嵌；首次运行解压到数据目录。
-- **全主题文件夹版**：约 **5.38 MB** zip，EXE + `src/` + `themes/`，
+- **全主题文件夹版**：约 **3.80 MB** zip，EXE + `src/` + `themes/`，
   主题可直接编辑。
 
 Legacy 包依赖 .NET Framework 4.8 + WebView2（Win10/11 通常已内置；Win7 用 109），
@@ -379,5 +379,6 @@ Legacy 包依赖 .NET Framework 4.8 + WebView2（Win10/11 通常已内置；Win7
 
 界面与程序代码为本项目所有。第三方素材：
 
-- 字体：Manrope、Space Grotesk（SIL OFL），Cormorant Garamond、Bebas Neue（SIL OFL）。
+- 字体：思源黑体 / 思源宋体（Source Han Sans / Serif，SIL OFL）。程序不再内置西文字体；
+  未安装时会回退到 Noto Sans SC / Noto Serif SC / 微软雅黑 / 宋体。
 - 音效：Kenney Interface Sounds，CC0 1.0。

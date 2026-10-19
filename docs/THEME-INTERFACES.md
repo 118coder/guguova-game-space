@@ -9,7 +9,7 @@
 ## 1. 分层结构
 
 ```
-src/index.html            静态 DOM：shell / 三个视图 / 浮层 / intro / launch / curtain
+src/index.html            静态 DOM：shell / 四个视图 / 浮层 / intro / launch / curtain
 src/app.js                状态机：视图、选中、主题切换、标题适配、hero 变量
 src/theme-engine.js       扫描 theme.json → 载入 theme.css → 写 data-fx-* 与 tokens
 src/theme-kit.css         可选框架（hero=plate / header=rule / cards=rule / plates=off）
@@ -19,10 +19,10 @@ src/fx-record.js          真实数据 → --nova-* 自定义属性
 src/intro.js / intro.css  开屏 preset 注册表与舞台
 src/motion.css            通用 launch、主题切换幕布、reduce-motion
 src/compat.css            能力档位：full / balanced / safe 的降级覆盖
-src/settings-themes.css   设置页控件（输入框/下拉/统计卡/记录行）的每主题签名
+src/settings-themes.css   设置页控件与用户卡的每主题签名
 themes/<id>/theme.json    主题清单（id / version / features / intro / tokens）
 themes/<id>/theme.css     主题样式（基础层 → 修正层 → 签名层，后写覆盖先写）
-themes/<id>/assets/       预览图 + 专属 SVG/字体
+themes/<id>/assets/       预览图 + 专属 SVG（不再内置字体）
 docs/themes/<id>.md       单主题接口卡
 ```
 
@@ -219,11 +219,49 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 
 - DOM：`#themeCurtain`（两片幕布 + 主题色缝线 + 目标主题名）。
 - JS：`src/app.js` 的 `playThemeCurtain()` / `revealThemeCurtain()`；在换样式表前覆盖，换完后两帧再揭开。
+- 变体：`playThemeCurtain()` 写入 `#themeCurtain.dataset.variant = <themeId>`；
+  `src/motion.css` 的 “PER-THEME SWITCH CHOREOGRAPHY” 段按变体定义覆盖/揭开。
+- 时长：`CURTAIN_HOLD` 按变体给出 340–430ms；必须 ≥ 覆盖动画最长时长。
+- 约定：只动 `transform / clip-path / opacity`，禁止给全屏层加 `filter`/`backdrop-filter`；
+  全屏圆扩散半径用 ≥240%，全屏位移用 101%，确保四角完全遮住。
+- 新增主题必须提供自己的 `data-variant` 视觉；不允许直接复用另一主题的幕布。
+- 降级：`prefers-reduced-motion` 或 `data-tier="safe"` 时直接切换，不播幕布。
 - 缓存：`theme-engine.js` 会按 URL 缓存 CSS；`refresh()` 清空缓存。主题 CSS 改动后必须：
   1. `theme.json` bump `version`；
   2. 同步到 `%LOCALAPPDATA%\NOVA Game Space\themes\<id>`；
   3. 重启（或点「刷新」清缓存）。
-- 排序：使用次数只在启动时排序一次，会话内不再重排；活动主题不在前 6 时**追加**而不是替换最后一张卡。
+- 排序：固定前四 `nova → endfield → zerohour → codex`；其余按使用次数，只在启动时排序一次，
+  会话内不再重排；活动主题不在可见范围时**追加**而不是替换最后一张卡。
+
+### 8.1 切换编舞表
+
+| variant | 动作 | 覆盖 |
+|---|---|---|
+| `nova` | 上下双幕布 + 中央光缝 | 360ms |
+| `aurum` | 左右青铜门 + 竖金缝 + 门环 | 400ms |
+| `endfield` | 蓝图面板横向推进 + 信号条 | 380ms |
+| `zerohour` | 斜切硬边面板下砸 | 340ms |
+| `codex` | 整页 3D 翻下/翻开 | 430ms |
+| `broadcast` | CRT 开关机（闪白 → 横线） | 360ms |
+| `summer` | 白纸印版扫入 + 黑/黄块压版 | 470ms |
+| `riso` | 蓝/纸双印版反向错位 | 380ms |
+| `riot` | 朱红舞台幕布 + 撕胶带缝 | 380ms |
+| `grimoire` | 羊皮纸页上升 + 蜡封落下 | 650ms |
+| `mnemo` | 纵向记忆条带 + 紫色重影 | 360ms |
+
+### 8.2 字体契约
+
+- 全主题统一使用本机 **思源黑体 CN Medium / 思源宋体**；不内置西文字体。
+- 主题必须覆盖以下变量（可在 `:root` 或 `html[data-theme]` 中声明）：
+  - `--font-ui`：正文/控件，思源黑体 Medium；
+  - `--font-display`：标题，按主题配思源黑体 Medium 或思源宋体 Medium；
+  - `--font-serif`：衬线正文，思源宋体；
+  - `--font-condensed`：大号标签，按主题配黑体或宋体。
+- 推荐栈（直接复制，避免 Regular 家族名在 WebView2 中不命中的问题）：
+  `"思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif`
+- 衬线栈：
+  `"思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif`
+- 不再新增 `@font-face` 指向主题目录字体；需要特殊字体时用 `local()` 或随包附带 OFL 字体并登记许可。
 
 ---
 
@@ -234,7 +272,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | 首页 | `#homeView` | 标题 30 字、进度、活动条、dock |
 | 游戏库 | `#libraryOverlay` | 搜索/筛选/卡片/空态 |
 | 外观 | `#appearanceOverlay` | 预览、主题网格、偏好、字标 |
-| 设置 | `#settingsView` | 玩家名、关闭到托盘、自动备份、数据包/CSV、统计；控件样式在 `settings-themes.css` 按主题覆盖 |
+| 设置 | `#settingsView` | 全宽双栏控制台；玩家名、关闭到托盘、自动备份、数据包/CSV、统计；控件与用户卡样式在 `settings-themes.css` 按主题覆盖 |
 | 详情 | `.overlay` + `.detail-modal` | 统计格数值、路径、按钮 |
 | 启动 | `.launch` | 背景、标题、状态、退出 |
 | 开屏 | `.intro` | 舞台、跳过提示、reduce-motion |
@@ -268,13 +306,13 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | zerohour | 1.0.7 | scanline / bracket | zerohour | zhLaunch |
 | codex | 1.7.1 | starfield / plate / rule / plates-off | codex | cxIris |
 | broadcast | 1.4.1 | film / plate / rule / plates-off | broadcast | bcSweep |
-| summer | 1.8.1 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
+| summer | 1.8.3 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
 | riso | 1.4.1 | riso / plate / rule / plates-off | riso | rsRoll |
-| riot | 1.5.2 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
+| riot | 1.5.3 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
 | grimoire | 1.5.1 | parchment / plate / rule / plates-off | seal | grStamp |
 | mnemo | 1.1.2 | map / emboss / folder | mnemo | mnUnfold |
 
-静态资源版本：`src/index.html` 的 `?v=1.5.0`。
+静态资源版本：`src/index.html` 的 `?v=1.5.1`。
 
 ---
 

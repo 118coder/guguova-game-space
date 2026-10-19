@@ -1,7 +1,7 @@
 # 发布与打包
 
-> 默认发布 **Legacy 单文件版（约 3.13 MB zip）**：一个 `NovaGameSpace-Legacy.exe`，
-> 前端资源与 11 套主题全部内嵌；同时产出 **全主题文件夹版（约 5.38 MB zip）**，
+> 默认发布 **Legacy 单文件版（约 2.34 MB zip）**：一个 `NovaGameSpace-Legacy.exe`，
+> 前端资源与 11 套主题全部内嵌；同时产出 **全主题文件夹版（约 3.80 MB zip）**，
 > 方便编辑/替换主题。Modern 自包含包为可选大包。
 
 ---
@@ -19,15 +19,15 @@ bash tools/pipeline.sh --version 1.5.1 # bump + 构建 + 打包
 
 ```
 dist/
-├─ NOVA-<version>-legacy-single.zip   # 单文件 EXE，约 3.13 MB
-├─ NOVA-<version>-legacy-full.zip     # EXE + src/ + themes/，约 5.38 MB
+├─ NOVA-<version>-legacy-single.zip   # 单文件 EXE，约 2.34 MB
+├─ NOVA-<version>-legacy-full.zip     # EXE + src/ + themes/，约 3.80 MB
 ├─ NOVA-<version>-modern.zip          # 可选大包
 └─ release-manifest.json              # SHA-256 + 大小
 ```
 
 流水线步骤：
 
-1. `bump-version.js`（可选）同步 csproj / index.html / version.json。
+1. `bump-version.js`（可选）同步 Modern/Legacy csproj、index.html、version.json。
 2. 截图审计 + `probe-graphics`。
 3. `tools/build-legacy.sh Release`：打包 `src/`+`themes/` 为内嵌 zip，构建 net48 单文件 exe。
 4. 可选 Modern `dotnet publish`。
@@ -40,7 +40,7 @@ dist/
 ### 2.1 单文件版（推荐）
 
 ```
-NovaGameSpace-Legacy.exe     约 3.5 MB，内含
+NovaGameSpace-Legacy.exe     约 2.6 MB，内含
                               · 全部托管依赖（Costura）
                               · WebView2 原生 loader
                               · src/ + themes/ 的压缩资源
@@ -53,7 +53,7 @@ WebView2Runtime/             可选 109 固定运行时
 - 首次运行把内嵌 `src/` 与 `themes/` 解压到
   `%LOCALAPPDATA%\NOVA Game Space\runtime\<version>\assets`。
 - 主题仍会同步到用户主题目录，可在「设置 → 打开主题文件夹」编辑。
-- zip：**3.13 MB**；解压后约 3.6 MB（不含用户数据）。
+- zip：**2.34 MB**；解压后约 2.7 MB（不含用户数据）。
 
 ### 2.2 全主题文件夹版
 
@@ -66,7 +66,7 @@ launch.cmd / README.txt
 
 - 程序目录直接包含全部主题源文件，适合编辑/替换/分享主题。
 - 启动时优先使用外部 `src/`/`themes/`，不会重复解压。
-- zip：**5.38 MB**。
+- zip：**3.80 MB**。
 
 ### 2.3 依赖
 
@@ -95,6 +95,12 @@ launch.cmd / README.txt
 ## 4. 版本与发布检查
 
 - `version.json` 是唯一版本源。
+- 字体与音效前提：
+  - 全主题使用 **思源黑体 CN / 思源宋体**。目标机器未安装时回退到
+    Noto Sans SC / Noto Serif SC / 微软雅黑 / 宋体，不会缺字；
+  - 若比赛机器必须使用思源字形，先安装字体或另做子集化随包方案；
+  - 界面音效为 Kenney Interface Sounds（CC0），来源表在
+    `src/assets/sfx/LICENSE-SFX.md`，发布包必须保留该文件。
 - 发布前：
   ```bash
   dotnet build -c Debug                    # Modern 0 错误

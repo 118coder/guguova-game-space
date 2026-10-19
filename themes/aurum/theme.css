@@ -9,6 +9,8 @@
 
 :root {
   /* ---- palette ---- */
+  --font-display: "思源宋体 Medium", "Source Han Serif SC Medium", "Noto Serif SC Medium", "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   --aurum-ink: #070b0a;
   --aurum-ink-2: #0b100e;
   --aurum-panel: #101613;

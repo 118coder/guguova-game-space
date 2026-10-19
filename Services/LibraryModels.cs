@@ -82,6 +82,8 @@ public sealed class PlayerSettings
     public string Playername { get; set; } = "Yuki";
     /// <summary>False means the display name follows the Windows account.</summary>
     public bool PlayerNameCustom { get; set; }
+    /// <summary>Relative path under the media folder, e.g. avatar/avatar.png.</summary>
+    public string? AvatarFile { get; set; }
     public bool Sound { get; set; } = true;
     public bool ReduceMotion { get; set; }
     public bool Calm { get; set; }

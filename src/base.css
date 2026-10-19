@@ -4,8 +4,8 @@
    ============================================================ */
 
 :root {
-  --font-ui: "Manrope", "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
-  --font-display: "Space Grotesk", "Segoe UI Variable Display", "Segoe UI", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
   --ink: #f5f2ea;
   --muted: rgba(245, 242, 234, .6);
   --faint: rgba(245, 242, 234, .34);
@@ -491,7 +491,7 @@ h1, h2, h3, p { margin: 0; }
 
 .logo-verdant {
   --logo-size-hero: clamp(42px, 7.4vw, 106px);
-  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-style: italic;
   font-weight: 400;
   letter-spacing: -.025em;
@@ -517,7 +517,7 @@ h1, h2, h3, p { margin: 0; }
 
 .logo-paper-moon {
   --logo-size-hero: clamp(40px, 7.1vw, 100px);
-  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-style: italic;
   font-weight: 400;
   letter-spacing: .005em;

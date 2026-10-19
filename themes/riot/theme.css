@@ -1,5 +1,5 @@
 /* ============================================================
-   RIOT · 少女乐队呐喊
+   RIOT · 舞台残响
    White paper punk collage: black vinyl, crimson scribbles, torn tape and hard offset ink.
    ============================================================ */
 
@@ -29,10 +29,10 @@
   --glow: rgba(226,0,26,.22);
   --ease: var(--t-ease);
 
-  --font-ui: 'Space Grotesk', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
-  --font-display: 'Bebas Neue', 'Space Grotesk', sans-serif;
-  --font-serif: 'Cormorant Garamond', 'STSong', 'SimSun', serif;
-  --font-condensed: 'Bebas Neue', 'Space Grotesk', sans-serif;
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 
   --r-panel: 0px;
   --r-btn: 0px;
@@ -1568,17 +1568,9 @@ html[data-theme="riot"] .view-appearance::before {
    reversed lyric block, matching the album cover reference.
    ============================================================ */
 
-@font-face {
-  font-family: 'Riot Saira';
-  src: url("assets/Saira.ttf") format("truetype-variations");
-  font-weight: 100 900;
-  font-stretch: 50% 125%;
-  font-display: swap;
-}
-
 :root {
-  --font-hero: 'Riot Saira', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
-  --font-hand: 'Segoe Script', 'Bradley Hand', 'Ink Free', 'Segoe Print', cursive;
+  --font-hero: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-hand: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
 }
 
 /* Wide, heavy Latin title like ガールズバンドクライ */
