@@ -14,7 +14,13 @@ bash tools/build-legacy.sh Debug       # Debug
 
 `legacy/global.json` 把 SDK 固定为 7.0.401。**不要**从仓库根目录直接
 `dotnet build legacy/NovaGameSpace.Legacy.csproj`（会用 SDK 10 的 WPF 编译器）。
+`build-legacy.sh` 会先把 `src/` + `themes/` 打成内嵌 zip，再构建单文件 exe。
 构建产物：`legacy/bin/<Config>/net48/NovaGameSpace-Legacy.exe`。
+
+发布时 `tools/package-release.py` 产出：
+
+- 单文件版：只有 exe，资源内嵌；首次运行解压到数据目录。
+- 全主题文件夹版：exe + `src/` + `themes/`，主题可直接编辑。
 
 ## 运行
 

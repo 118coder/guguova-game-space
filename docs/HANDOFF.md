@@ -117,8 +117,12 @@
 - 发布：`bash tools/pipeline.sh`（审计 + Legacy 包），`--modern` 额外产出
   self-contained 大包，`--skip-audit` 快速打包。产物在 `dist/`，
   `release-manifest.json` 含大小与 SHA-256。
-- 默认包是 **Legacy net48（zip 约 3.1 MB / 解压 6.9 MB）**，依赖
-  .NET Framework 4.8 + WebView2；Win10/11 通常已内置，Win7 用 109。
+- 默认包是 **Legacy net48 单文件版（zip 约 3.13 MB）**：一个 exe 内嵌
+  托管 DLL、WebView2 loader、`src/` 与 `themes/`；首次运行解压到
+  `%LOCALAPPDATA%/NOVA Game Space/runtime/<version>/assets`。
+- 另有 **全主题文件夹版（约 5.38 MB zip）**：EXE + `src/` + `themes/`，
+  主题可直接编辑。
+- 依赖 .NET Framework 4.8 + WebView2；Win10/11 通常已内置，Win7 用 109。
   `launch.cmd` 会检查依赖。详见 `docs/RELEASE.md`。
 
 ### 注意

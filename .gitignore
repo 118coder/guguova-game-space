@@ -50,3 +50,10 @@ tools/__pycache__/
 
 # ---------- release staging ----------
 dist/
+
+# legacy generated native weaving folder
+legacy/costura64/
+legacy/embedded/
+
+# Fody regenerates this schema on every build
+legacy/FodyWeavers.xsd

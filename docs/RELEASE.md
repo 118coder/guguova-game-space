@@ -1,93 +1,109 @@
 # 发布与打包
 
-> 目标：一条命令产出**最小依赖、最小体积、Win7/10/11 都能打开**的离线包。
-> 默认发布 **Legacy 包（约 3.1 MB zip / 6.9 MB 解压）**；Modern 自包含包作为可选大包。
+> 默认发布 **Legacy 单文件版（约 3.13 MB zip）**：一个 `NovaGameSpace-Legacy.exe`，
+> 前端资源与 11 套主题全部内嵌；同时产出 **全主题文件夹版（约 5.38 MB zip）**，
+> 方便编辑/替换主题。Modern 自包含包为可选大包。
 
 ---
 
 ## 1. 一条命令
 
 ```bash
-bash tools/pipeline.sh                 # 审计 + Legacy 包
-bash tools/pipeline.sh --skip-audit    # 快速打包（跳过截图审计）
+bash tools/pipeline.sh                 # 审计 + 两个 Legacy 包
+bash tools/pipeline.sh --skip-audit    # 快速打包
 bash tools/pipeline.sh --modern        # 额外产出 Modern 自包含大包
-bash tools/pipeline.sh --version 1.5.1 # 先 bump 版本再打包
+bash tools/pipeline.sh --version 1.5.1 # bump + 构建 + 打包
 ```
 
 产物：
 
 ```
 dist/
-├─ NOVA-<version>-legacy/            # 解压即用
-├─ NOVA-<version>-legacy.zip         # 约 3.1 MB
-├─ NOVA-<version>-modern/            # 可选，大包
-├─ NOVA-<version>-modern.zip
-└─ release-manifest.json             # 大小 + SHA-256
+├─ NOVA-<version>-legacy-single.zip   # 单文件 EXE，约 3.13 MB
+├─ NOVA-<version>-legacy-full.zip     # EXE + src/ + themes/，约 5.38 MB
+├─ NOVA-<version>-modern.zip          # 可选大包
+└─ release-manifest.json              # SHA-256 + 大小
 ```
 
 流水线步骤：
 
-1. `tools/bump-version.js`（可选）：同步 csproj / index.html / version.json。
-2. `relaunch.sh` + `export-all.js --views=all` + `probe-graphics.js`（审计）。
-3. `tools/build-legacy.sh Release`（net48，SDK 7）。
-4. 可选 `dotnet publish` Modern（self-contained single-file）。
-5. `tools/package-release.py`：复制运行时、`src/`、`themes/`、启动脚本、README，打 zip 并写 manifest。
+1. `bump-version.js`（可选）同步 csproj / index.html / version.json。
+2. 截图审计 + `probe-graphics`。
+3. `tools/build-legacy.sh Release`：打包 `src/`+`themes/` 为内嵌 zip，构建 net48 单文件 exe。
+4. 可选 Modern `dotnet publish`。
+5. `tools/package-release.py`：生成单文件版/全主题版，zip，写 manifest。
 
 ---
 
-## 2. 包内容
+## 2. 两个 Legacy 包
 
-### Legacy（推荐）
+### 2.1 单文件版（推荐）
 
 ```
-NovaGameSpace-Legacy.exe      net48 宿主
-*.dll / runtimes/             WebView2 + System.Text.Json
-src/                          同一套前端资源
-themes/                       11 套主题与预览
-launch.cmd                    依赖检查 + 启动
-README.txt                    使用说明
-WebView2Runtime/              可选：放入 109 固定运行时
-version.json
+NovaGameSpace-Legacy.exe     约 3.5 MB，内含
+                              · 全部托管依赖（Costura）
+                              · WebView2 原生 loader
+                              · src/ + themes/ 的压缩资源
+launch.cmd                   依赖检查 + 启动
+README.txt
+WebView2Runtime/             可选 109 固定运行时
 ```
 
-- 体积：解压 **6.9 MB**，zip **3.1 MB**。
-- 依赖：**.NET Framework 4.8** + **WebView2 Runtime**。
-  - Win10 1903+ / Win11：通常都已内置。
-  - Win7 SP1 / 8.1：需要安装 .NET 4.8 与 WebView2 **109**；也可把 109 固定运行时解压到 `WebView2Runtime/`（须包含 `msedgewebview2.exe`）。
-- `launch.cmd` 会检查 .NET 4.8 Release ≥ 528040 和 WebView2 注册表；缺失时给出说明，不静默失败。
-- Win7/8.1 自动进入 `safe` 档；Win10/11 在 WebView2 ≥111 时仍是 `full` 效果。
+- **只有一个 exe**（外加启动脚本/说明）；无 DLL 散落。
+- 首次运行把内嵌 `src/` 与 `themes/` 解压到
+  `%LOCALAPPDATA%\NOVA Game Space\runtime\<version>\assets`。
+- 主题仍会同步到用户主题目录，可在「设置 → 打开主题文件夹」编辑。
+- zip：**3.13 MB**；解压后约 3.6 MB（不含用户数据）。
 
-### Modern（可选）
+### 2.2 全主题文件夹版
 
-- 自包含 .NET 10（无需安装 .NET），但体积大（约 60–100 MB zip）。
-- 仍需 WebView2 Runtime；Win7 不支持（.NET 10 限制）。
-- 适用：没有 .NET Framework 4.8 的 Win10/11 机器，或想避免依赖系统 .NET 的用户。
+```
+NovaGameSpace-Legacy.exe
+src/                         前端资源
+themes/                      10 套附赠主题文件夹（内置 NOVA 无需文件夹）
+launch.cmd / README.txt
+```
+
+- 程序目录直接包含全部主题源文件，适合编辑/替换/分享主题。
+- 启动时优先使用外部 `src/`/`themes/`，不会重复解压。
+- zip：**5.38 MB**。
+
+### 2.3 依赖
+
+- **.NET Framework 4.8**：Win10 1903+ / 11 通常已内置；Win7 SP1 / 8.1 需安装。
+- **WebView2 Runtime**：Win10 / 11 通常随 Edge 安装；Win7 / 8.1 用 109。
+- `launch.cmd` 检查 .NET 4.8 Release ≥ 528040 与 WebView2 注册表；缺失时说明，不静默失败。
+- 完全离线：把 109 固定运行时解压到 `WebView2Runtime/`（含 `msedgewebview2.exe`），
+  exe 会直接使用该目录。
+- Win7/8.1 自动 `safe` 档；Win10/11 + WebView2 ≥111 仍为 `full`。
+
+### 2.4 Modern（可选）
+
+- 自包含 .NET 10，无需安装 .NET；但体积约 60–100 MB zip。
+- 仍需 WebView2；Win7 不支持（.NET 10 限制）。
 
 ---
 
-## 3. 开发者测试条目
+## 3. 测试条目隐藏
 
-测试用的“假游戏”（notepad/calc/powershell 等系统目录手动条目）默认**不会出现在正常界面**：
-
-- `GameEntry.DeveloperOnly` 标记；`StoreService.Normalize` 会把系统目录下的 manual 条目自动标记。
-- boot 只返回非测试条目；统计也排除它们。
-- 开发者打开：
-  - 设 `NOVA_DEV=1` 环境变量；或
-  - 在应用内按 **Ctrl+Shift+D**（写入 `settings.developerMode` 并重新载入）。
-- 测试条目仍保留在 `library.json`，不会删除；导出的 `.nova-pack` 也保留标记，在别的电脑上默认隐藏。
+- 系统目录里的 manual 假游戏自动标记 `DeveloperOnly`，boot/统计默认过滤；
+- 开发者用 `NOVA_DEV=1` 或 **Ctrl+Shift+D** 查看；
+- 条目仍在 `library.json` / `.nova-pack` 中，不删除。
 
 ---
 
-## 4. 版本与共同更新
+## 4. 版本与发布检查
 
-- `version.json` 是唯一版本源；`tools/bump-version.js <x.y.z>` 更新 csproj 与所有静态 `?v=`。
-- Modern / Legacy 必须同版本号；都读取同一个 `library.json` 与 `.nova-pack`。
-- 发布前检查：
-  - `dotnet build -c Debug` 0 错误
-  - `bash tools/build-legacy.sh Release` 0 错误
-  - `export-all` 0 告警、`probe-graphics` 全 clear
-  - Win7 SP1 虚拟机 + WebView2 109 跑一遍 §4.3（见 `docs/COMPATIBILITY.md`）
-- 不包含自动更新器；用户自行替换程序目录，数据目录不动。
+- `version.json` 是唯一版本源。
+- 发布前：
+  ```bash
+  dotnet build -c Debug                    # Modern 0 错误
+  bash tools/build-legacy.sh Release      # Legacy 0 错误
+  node tools/export-all.js --views=all --sizes=1439x1124,960x600 --stress
+  node tools/probe-graphics.js
+  ```
+- Win7 SP1 虚拟机 + .NET 4.8 + WebView2 109 跑一遍验收（`docs/COMPATIBILITY.md` §4.3）。
+- 两个 Legacy 包与 Modern 包版本号一致，共用 `library.json` / `.nova-pack`。
 
 ---
 
@@ -98,6 +114,7 @@ version.json
 ├─ library.json
 ├─ media/
 ├─ backups/        # 每日自动备份，保留 5 份
+├─ runtime/        # 单文件版解压的前端/主题/loader
 ├─ webview2/       # 缓存；可用 NOVA_CACHE_ROOT 指向其他盘
 └─ nova.log
 ```

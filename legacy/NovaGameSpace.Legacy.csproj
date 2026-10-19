@@ -24,7 +24,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1774.30" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1774.30" GeneratePathProperty="true" />
+    <PackageReference Include="Fody" Version="6.8.2" PrivateAssets="all" />
+    <PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
   </ItemGroup>
@@ -42,6 +44,19 @@
     <Content Include="..\src\**\*" Link="src\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\themes\**\*" Link="themes\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="embedded\assets.zip" LogicalName="NOVA.Assets.zip" Condition="Exists('embedded\assets.zip')" />
+    <EmbeddedResource Include="$(PkgMicrosoft_Web_WebView2)\runtimes\win-x64\native\WebView2Loader.dll" LogicalName="NOVA.WebView2Loader.dll" />
+  </ItemGroup>
+
+  <Target Name="StageCosturaNative" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(MSBuildProjectDirectory)\costura64" />
+    <Copy SourceFiles="$(PkgMicrosoft_Web_WebView2)\runtimes\win-x64\native\WebView2Loader.dll"
+          DestinationFiles="$(MSBuildProjectDirectory)\costura64\WebView2Loader.dll"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(PkgMicrosoft_Web_WebView2)\runtimes\win-x64\native\WebView2Loader.dll')" />
+  </Target>
 
   <ItemGroup>
     <Reference Include="System.IO.Compression" />

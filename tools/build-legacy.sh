@@ -3,6 +3,8 @@
 # The legacy folder pins .NET SDK 7 via global.json; building from the repo
 # root with SDK 10 would use the wrong WPF markup compiler.
 set -euo pipefail
-cd "$(dirname "$0")/../legacy"
+cd "$(dirname "$0")/.."
+python tools/pack-assets.py
+cd legacy
 CONFIG="${1:-Release}"
 dotnet build -c "$CONFIG"
