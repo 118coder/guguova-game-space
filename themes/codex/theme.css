@@ -2464,3 +2464,7 @@ html[data-theme="codex"] .type-recipe-spec,
 html[data-theme="codex"] .style-choice-desc,
 html[data-theme="codex"] .type-dna span { color: var(--cx-cream-2); }
 html[data-theme="codex"] .type-readout-kicker { color: var(--cx-gold-hi); }
+
+/* 外观说明文字提亮，避免小字在深褐底上过暗 */
+html[data-theme="codex"] .appearance-head p,
+html[data-theme="codex"] .section-head p { color: var(--cx-cream-2); }

@@ -1630,3 +1630,7 @@ html[data-theme="aurum"] .type-seed,
 html[data-theme="aurum"] .type-dna span { color: var(--aurum-text-soft); }
 html[data-theme="aurum"] .type-dna span { border-color: var(--aurum-bronze); }
 html[data-theme="aurum"] .type-readout-kicker { color: var(--aurum-bronze-hi); }
+
+/* 外观说明文字提亮，避免小字在深底上过暗 */
+html[data-theme="aurum"] .appearance-head p,
+html[data-theme="aurum"] .section-head p { color: var(--aurum-text-soft); }
