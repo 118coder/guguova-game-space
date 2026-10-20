@@ -121,7 +121,7 @@ public sealed class ThemeService
 
     public static ThemeInfo BuiltIn() => new(
         BuiltInId,
-        "NOVA 原生",
+        "GUGUOVA 原生",
         "NOVA",
         "2.0.0",
         "电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。",

@@ -11,7 +11,7 @@
 
   const BUILT_IN = {
     id: 'nova',
-    name: 'NOVA 原生',
+    name: 'GUGUOVA 原生',
     author: 'NOVA',
     version: '2.0.0',
     description: '电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。',

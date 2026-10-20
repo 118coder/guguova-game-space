@@ -302,7 +302,7 @@
           <span class="intro-dr-bar"></span>
         </div>
         <div class="intro-dr-compose">
-          <span class="intro-dr-kicker">// NOVA · SUMMER ISSUE</span>
+          <span class="intro-dr-kicker">// GUGUOVA · SUMMER ISSUE</span>
           <div class="intro-dr-title">
             <i class="intro-dr-ghost" aria-hidden="true">SUMMER</i>
             <b class="intro-dr-black">SUMMER</b>
@@ -413,8 +413,8 @@
         <span class="intro-nv-bit b5"></span><span class="intro-nv-bit b6"></span>
         <span class="intro-nv-bit b7"></span><span class="intro-nv-bit b8"></span>
         <div class="intro-nv-main">
-          <span class="intro-nv-kicker">NOVA · CORE ONLINE</span>
-          <b class="intro-nv-word">NOVA</b>
+          <span class="intro-nv-kicker">GUGUOVA · CORE ONLINE</span>
+          <b class="intro-nv-word">GUGUOVA</b>
           <span class="intro-nv-sub">GAME SPACE<i></i><b data-nv="time">--:--</b></span>
         </div>
         <div class="intro-nv-foot">
@@ -639,7 +639,7 @@
           <em>CH.<span data-zh="games">--</span></em>
         </div>
         <div class="intro-zh2-panel">
-          <span class="intro-zh2-kicker">// NOVA BROADCAST · <b data-zh="date">----.--.--</b></span>
+          <span class="intro-zh2-kicker">// GUGUOVA BROADCAST · <b data-zh="date">----.--.--</b></span>
           <div class="intro-zh2-word"><span>ZERO</span><span>HOUR</span></div>
           <span class="intro-zh2-band">零点街区</span>
           <span class="intro-zh2-titles" data-zh="titles">-- TITLES</span>
@@ -689,7 +689,7 @@
             <i>// TITLES</i>
           </div>
         </div>
-        <span class="intro-ef2-spine">// NOVA GAME SPACE</span>
+        <span class="intro-ef2-spine">// GUGUOVA GAME SPACE</span>
         <div class="intro-ef2-foot">
           <span><i>GAMES</i><b data-ef="games">--</b></span>
           <span><i>THEME</i><b>ENDFIELD</b></span>
