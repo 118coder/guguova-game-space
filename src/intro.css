@@ -3588,3 +3588,28 @@ html.reduce-motion .intro-ef2-word::after { display: none; }
 }
 
 html.reduce-motion .intro-ef2-solid i { animation: none !important; opacity: 1 !important; transform: none !important; }
+
+/* The hint belongs in the paper margin under the panel, not over the
+   stamp. The old ENDFIELD preset parked it top-right, which collided
+   with the date/time once the layout moved to a full-height shell. */
+.intro[data-intro="endfield"] .intro-hint {
+  top: auto;
+  right: auto;
+  bottom: clamp(10px, 1.6vh, 18px);
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: rgba(22, 22, 22, .45);
+  letter-spacing: .18em;
+}
+
+.intro[data-intro="endfield"] .intro-hint::before {
+  content: "// ";
+  color: rgba(22, 22, 22, .6);
+}
+
+/* This intro finishes its choreography in 700ms, so the hint can arrive
+   earlier than the shared 1.4s delay and still be read. */
+.intro[data-intro="endfield"] .intro-hint {
+  animation-delay: .95s, 1.75s;
+}
