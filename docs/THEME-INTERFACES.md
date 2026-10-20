@@ -1,5 +1,7 @@
 # NOVA · 主题接口总表（统一文件）
 
+> 适用版本：**1.7.0**
+>
 > 每套主题的分文件在 [`docs/themes/`](themes/README.md)。本文是**跨主题的统一契约**：
 > 清单、变量、选择器、按钮配方、开屏/进游戏接口与版本记录。
 > 改任何主题前先读本文的「硬约束」，再读对应分文件。
@@ -162,6 +164,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | riot | 黑块白字 + 红硬影 | 白底黑框 | 硬偏移 |
 | grimoire | 酒红底米白字 + 金内线 | 羊皮纸金线 | 硬偏移 |
 | mnemo | 梅红/靛紫 | 档案标签 | 切角/小圆角 |
+| dusk | 陶土红压印 | 纸白墨线 | 2px 圆角 + 2px 实底阴影 |
 
 > 按钮不再走统一 `controls=hard`。新增主题请直接在自己的 `theme.css` 写
 > `.btn.primary` / `.btn.ghost`，并在分文件登记。
@@ -192,6 +195,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | riot | `vinyl` | 黑胶升速 + 红圈落定 |
 | grimoire | `seal` | 归档：火漆盖章 + 真实档号 |
 | mnemo | `mnemo` | 解密：档案字段 scramble + CLASSIFIED |
+| dusk | `dusk` | 暮色开工：天空压下 + 太阳升起 + 炼金环描线 + 真实台账 |
 
 ---
 
@@ -212,6 +216,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | riot | `rtDrop` | 唱片落盘 |
 | grimoire | `grStamp` | 火漆盖章 |
 | mnemo | `mnUnfold` | 卷宗展开 |
+| dusk | `dlDusk` | 暮色从画面中心合拢 |
 
 ---
 
@@ -248,6 +253,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | `riot` | 朱红舞台幕布 + 撕胶带缝 | 380ms |
 | `grimoire` | 羊皮纸页上升 + 蜡封落下 | 650ms |
 | `mnemo` | 纵向记忆条带 + 紫色重影 | 360ms |
+| `dusk` | 天空与纸页沿斜缝合拢 + 虚线炼金环 | 460ms |
 
 ### 8.2 字体契约
 
@@ -300,19 +306,20 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 
 | 主题 | 版本 | features | intro | launch |
 |---|---|---|---|---|
-| nova（内置） | 2.0.0 | — | gilded | nvLaunch |
-| aurum | 1.0.10 | — | aurum | auLaunch |
-| endfield | 1.0.6 | — | endfield | efLaunch |
-| zerohour | 1.0.9 | scanline / bracket | zerohour | zhLaunch |
-| codex | 1.7.3 | starfield / plate / rule / plates-off | codex | cxIris |
-| broadcast | 1.4.3 | film / plate / rule / plates-off | broadcast | bcSweep |
-| summer | 1.8.4 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
-| riso | 1.4.3 | riso / plate / rule / plates-off | riso | rsRoll |
-| riot | 1.5.4 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
-| grimoire | 1.5.3 | parchment / plate / rule / plates-off | seal | grStamp |
-| mnemo | 1.1.4 | map / emboss / folder | mnemo | mnUnfold |
+| nova（内置） | 2.0.1 | — | gilded | nvLaunch |
+| aurum | 1.0.14 | — | aurum | auLaunch |
+| endfield | 1.0.10 | — | endfield | efLaunch |
+| zerohour | 1.0.13 | scanline / bracket | zerohour | zhLaunch |
+| codex | 1.7.6 | starfield / plate / rule / plates-off | codex | cxIris |
+| broadcast | 1.4.7 | film / plate / rule / plates-off | broadcast | bcSweep |
+| summer | 1.8.8 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
+| riso | 1.4.6 | riso / plate / rule / plates-off | riso | rsRoll |
+| riot | 1.5.8 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
+| grimoire | 1.5.7 | parchment / plate / rule / plates-off | seal | grStamp |
+| mnemo | 1.1.8 | map / emboss / folder | mnemo | mnUnfold |
+| dusk | 1.0.1 | —（自带版式，不用 theme-kit） | dusk | dlDusk |
 
-静态资源版本：`src/index.html` 的 `?v=1.5.3`。
+静态资源版本：`src/index.html` 的 `?v=1.7.0`。
 
 ---
 

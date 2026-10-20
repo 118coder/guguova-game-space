@@ -129,7 +129,7 @@ public sealed class ThemeService
         new Dictionary<string, string>(),
         "",
         null,
-        "https://nova.site/assets/theme-nova-preview.jpg?v=1.2.9",
+        "https://nova.site/assets/theme-nova-preview.jpg?v=1.7.0",
         "",
         true,
         true,

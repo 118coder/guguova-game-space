@@ -73,6 +73,42 @@
     }
   });
 
+  /* ---------- DUSK ATELIER ----------
+     An atelier opening at the end of the day: the sky settles into dusk,
+     a low sun blooms, the synthesis ring draws itself, then the ledger
+     line prints the real date, clock and library count. */
+  register('dusk', {
+    label: '黄昏之炼 · 暮色开工',
+    duration: 2600,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-dusk');
+      const stage = ensureDuskStage(overlay);
+      const reduce = !!(window.NovaMotion && window.NovaMotion.reduce);
+      const now = new Date();
+      const pad2 = (value) => String(value).padStart(2, '0');
+      const date = `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}`;
+      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+      const dockCount = document.getElementById('dockCount');
+      const countMatch = (dockCount && dockCount.textContent || '').match(/\d+/);
+      const games = pad2(countMatch ? Math.min(99, Number(countMatch[0])) : 0);
+
+      const write = (key, value) => {
+        const node = stage.querySelector(`[data-dk="${key}"]`);
+        if (!node) return;
+        if (reduce) node.textContent = value;
+        else scramble(node, value, 520);
+      };
+
+      write('date', date);
+      write('time', time);
+      write('games', games);
+      write('year', String(now.getFullYear()));
+      runMeter(stage.querySelector('[data-dk="pct"]'), reduce);
+    }
+  });
+
   register('mnemo', {
     label: '神秘管理局',
     duration: 2600,
@@ -581,6 +617,49 @@
     return stage;
   }
 
+  function ensureDuskStage(overlay) {
+    let stage = overlay.querySelector('.intro-dk');
+    if (stage) return stage;
+    stage = document.createElement('div');
+    stage.className = 'intro-dk';
+    stage.setAttribute('aria-hidden', 'true');
+    // The atelier at dusk: a horizon line, a low sun, one synthesis ring,
+    // and a ledger row of real values. No invented telemetry.
+    stage.innerHTML = `
+      <span class="intro-dk-sky" aria-hidden="true"></span>
+      <span class="intro-dk-sun" aria-hidden="true"></span>
+      <span class="intro-dk-horizon" aria-hidden="true"></span>
+      <svg class="intro-dk-ring" viewBox="0 0 520 520" aria-hidden="true">
+        <circle class="dk-ring-track" cx="260" cy="260" r="236"></circle>
+        <circle class="dk-ring-draw" cx="260" cy="260" r="236"></circle>
+        <circle class="dk-ring-inner" cx="260" cy="260" r="176"></circle>
+        <g class="dk-ring-ticks">
+          <path d="M260 12v26M260 482v26M12 260h26M482 260h26"></path>
+          <path d="M436 84l-18 18M84 436l18-18M436 436l-18-18M84 84l18 18"></path>
+        </g>
+        <circle class="dk-ring-bead" cx="260" cy="24" r="5"></circle>
+      </svg>
+      <div class="intro-dk-main">
+        <span class="intro-dk-kicker">DUSK ATELIER · 第 <b data-dk="year">----</b> 年</span>
+        <div class="intro-dk-word">
+          <span class="intro-dk-line"><b>黄昏</b></span>
+          <span class="intro-dk-line"><b>之炼</b></span>
+        </div>
+        <span class="intro-dk-latin">ATELIER OF THE DUSK</span>
+        <div class="intro-dk-ledger">
+          <span>日期 <b data-dk="date">----.--.--</b></span>
+          <span>时刻 <b data-dk="time">--:--</b></span>
+          <span>藏本 <b data-dk="games">--</b> 册</span>
+        </div>
+      </div>
+      <div class="intro-dk-foot">
+        <span class="intro-dk-state"><i></i>点火 · 开炉</span>
+        <span class="intro-dk-pct" data-dk="pct">000%</span>
+      </div>`;
+    overlay.appendChild(stage);
+    return stage;
+  }
+
   function ensureMnemoStage(overlay) {
     let stage = overlay.querySelector('.intro-mn');
     if (stage) return stage;
@@ -762,7 +841,7 @@
     return node;
   }
 
-  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-zh, .intro-zh2, .intro-ef, .intro-ef2, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
+  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-dk, .intro-zh, .intro-zh2, .intro-ef, .intro-ef2, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
 
   function isPlaying() { return state.playing; }
 

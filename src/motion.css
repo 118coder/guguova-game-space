@@ -1225,3 +1225,108 @@ html[data-theme="nova"] .launch.is-open .launch-art {
 html.reduce-motion .theme-curtain[data-variant="zerohour"] .tc-label b {
   animation: none;
 }
+
+/* ============================================================
+   DUSK ATELIER · curtain = 「暮色合拢」
+   Sky and paper close over the swap along a slanted seam; a
+   synthesis ring turns behind the label. Transform only.
+   ============================================================ */
+
+.theme-curtain[data-variant="dusk"] { --tc-bg: #171326; --tc-fg: #f7ead0; }
+
+.theme-curtain[data-variant="dusk"] .tc-half {
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 52%;
+  transform: none;
+  transition: transform .42s cubic-bezier(.2, .8, .3, 1);
+  will-change: transform;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-top {
+  top: 0;
+  bottom: auto;
+  transform: translateY(-102%);
+  clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
+  background:
+    radial-gradient(80% 90% at 70% 88%, rgba(217, 139, 90, .38) 0%, transparent 62%),
+    linear-gradient(180deg, #121120 0%, #221f3a 56%, #4a3a52 86%, #8a5a5c 100%);
+}
+
+.theme-curtain[data-variant="dusk"] .tc-bottom {
+  bottom: 0;
+  top: auto;
+  transform: translateY(102%);
+  clip-path: polygon(0 6%, 100% 0, 100% 100%, 0 100%);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, rgba(96, 70, 42, .07) 27px 28px),
+    linear-gradient(180deg, #c98a62 0%, #e3c79b 26%, #f3e6ca 62%, #e6d3ae 100%);
+  border-top: 1px solid rgba(247, 213, 163, .7);
+}
+
+.theme-curtain[data-variant="dusk"] .tc-rule {
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(247, 213, 163, .2) 12%, #f7d5a3 48%, #f7d5a3 62%, rgba(247, 213, 163, .2) 88%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform .34s cubic-bezier(.2, .8, .3, 1), opacity .2s ease;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-label {
+  gap: 6px;
+  color: #2c2318;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-label::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 50%;
+  width: min(320px, 44vw);
+  height: min(320px, 44vw);
+  margin: calc(min(320px, 44vw) / -2) 0 0 calc(min(320px, 44vw) / -2);
+  border-radius: 50%;
+  border: 1px dashed rgba(169, 80, 58, .38);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 250, 239, .9) 0%, rgba(255, 250, 239, .62) 46%, rgba(255, 250, 239, 0) 68%);
+  transform: rotate(0deg) scale(.86);
+  opacity: 0;
+  transition: opacity .22s ease, transform .5s cubic-bezier(.2, .8, .3, 1);
+}
+
+.theme-curtain[data-variant="dusk"] .tc-kicker {
+  color: #a9503a;
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Microsoft YaHei UI", sans-serif;
+  font-size: 9px;
+  letter-spacing: .3em;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-label b {
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: #2c2318;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-sub {
+  color: rgba(60, 43, 26, .58);
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
+  letter-spacing: .26em;
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-top,
+.theme-curtain[data-variant="dusk"].is-cover .tc-bottom {
+  transform: translateY(0);
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-rule { transform: scaleX(1); opacity: 1; transition-delay: .18s; }
+.theme-curtain[data-variant="dusk"].is-cover .tc-label::before { opacity: 1; transform: rotate(24deg) scale(1); transition-delay: .16s; }
+
+.theme-curtain[data-variant="dusk"].is-reveal .tc-top { transform: translateY(-102%); transition-duration: .38s; }
+.theme-curtain[data-variant="dusk"].is-reveal .tc-bottom { transform: translateY(102%); transition-duration: .38s; transition-delay: .03s; }
+.theme-curtain[data-variant="dusk"].is-reveal .tc-rule { transform: scaleX(0); opacity: 0; transition-duration: .2s; }
+.theme-curtain[data-variant="dusk"].is-reveal .tc-label::before { opacity: 0; transform: rotate(56deg) scale(.9); transition-duration: .2s; }

@@ -380,7 +380,7 @@ zip -r my-theme.zip my-theme/
 
 三张预览在主题卡片里的实际效果：
 
-![十一套主题的统一概念板](screenshot-theme-cards.jpg)
+![十二套主题的统一概念板](screenshot-themes.jpg)
 
 ### 13.2 十一张参考
 

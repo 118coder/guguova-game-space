@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>NOVA · theme concept boards</title>
+<title>GUGUOVA · theme concept boards</title>
 <link rel="stylesheet" href="fonts.css">
 <style>
   @font-face {
@@ -21,6 +21,107 @@
     font-family: 'Manrope', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+
+  /* ============================================================
+     DUSK · 黄昏之炼 (No.12)
+     ============================================================ */
+  .dk {
+    --dk-night: #141428;
+    --dk-ink: #2c2318;
+    --dk-paper: #f4e9d4;
+    --dk-terra: #a9503a;
+    --dk-ember: #d98b5a;
+    --dk-amber: #e8b478;
+    --dk-teal: #4d7a70;
+    color: var(--dk-paper);
+    background:
+      radial-gradient(70% 60% at 76% 30%, rgba(247, 213, 163, .34) 0%, transparent 62%),
+      linear-gradient(180deg, #101026 0%, #232243 40%, #4a3a52 62%, #8a5a5c 76%, #c98a62 88%, #e0a877 100%);
+  }
+  .dk .dk-sun {
+    position: absolute; right: 96px; top: 156px; width: 168px; height: 168px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,236,200,.92) 0%, rgba(247,213,163,.6) 34%, rgba(217,139,90,.18) 66%, transparent 78%);
+  }
+  .dk .dk-horizon {
+    position: absolute; left: 0; right: 0; top: 329px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(247,213,163,.62) 40%, rgba(247,213,163,.8) 60%, transparent);
+  }
+  .dk .dk-top {
+    position: absolute; left: 44px; top: 34px; right: 44px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'Manrope', sans-serif; font-size: 8.5px; font-weight: 800; letter-spacing: .3em;
+    color: rgba(247,234,208,.66);
+  }
+  .dk .dk-badge {
+    padding: 3px 8px; border: 1px solid rgba(247,213,163,.36); border-radius: 1px;
+    color: var(--dk-amber); letter-spacing: .22em;
+  }
+  .dk .dk-word {
+    position: absolute; left: 44px; top: 92px;
+    font-family: 'Noto Serif SC', '思源宋体', serif; font-weight: 700;
+    font-size: 84px; line-height: .96; letter-spacing: .04em; color: #fdf3e0;
+  }
+  .dk .dk-word span { display: block; }
+  .dk .dk-word span:last-child { margin-left: 46px; }
+  .dk .dk-rule { position: absolute; left: 46px; top: 274px; width: 96px; height: 2px; background: var(--dk-ember); }
+  .dk .dk-latin {
+    position: absolute; left: 46px; top: 288px;
+    font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .42em;
+    color: var(--dk-amber);
+  }
+  .dk .dk-sub {
+    position: absolute; left: 46px; top: 312px;
+    font-family: 'Manrope', sans-serif; font-size: 9px; letter-spacing: .2em;
+    color: rgba(247,234,208,.5);
+  }
+  .dk .dk-fields {
+    position: absolute; left: 46px; bottom: 62px;
+    display: flex; gap: 18px;
+    font-family: 'Manrope', sans-serif; font-size: 7.5px; font-weight: 700; letter-spacing: .18em;
+    color: rgba(247,234,208,.42);
+  }
+  .dk .dk-fields b { display: block; margin-top: 3px; color: var(--dk-amber); font-weight: 800; letter-spacing: .1em; }
+  .dk .dk-card {
+    position: absolute; right: 44px; top: 74px; width: 348px; height: 330px;
+    padding: 18px 20px 16px;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 21px, rgba(96,70,42,.06) 21px 22px),
+      linear-gradient(160deg, #f7eeda, #e8d7b8);
+    border: 1px solid rgba(60,43,26,.4);
+    box-shadow: 0 18px 34px -22px rgba(0,0,0,.8), inset 0 0 0 3px rgba(255,255,255,.28);
+    color: var(--dk-ink);
+  }
+  .dk .dk-plate {
+    position: relative; height: 138px; border: 4px solid #fbf3e2; outline: 1px solid rgba(60,43,26,.3);
+    background:
+      radial-gradient(circle at 74% 46%, rgba(247,213,163,.9) 0 26px, rgba(217,139,90,.5) 27px 38px, transparent 39px),
+      linear-gradient(180deg, #232243 0%, #4a3a52 52%, #a9635a 76%, #d99a5b 100%);
+  }
+  .dk .dk-plate::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 26px; height: 1px;
+    background: rgba(247,213,163,.6);
+  }
+  .dk .dk-card .dk-no {
+    display: flex; justify-content: space-between; margin-top: 14px;
+    font-family: 'Manrope', sans-serif; font-size: 7.5px; font-weight: 800; letter-spacing: .24em;
+    color: rgba(60,43,26,.5);
+  }
+  .dk .dk-card .dk-no b { color: var(--dk-terra); }
+  .dk .dk-gauges { margin-top: 12px; display: grid; gap: 8px; }
+  .dk .dk-gauge { display: grid; grid-template-columns: 26px 1fr 26px; align-items: center; gap: 8px;
+    font-family: 'Manrope', sans-serif; font-size: 7px; font-weight: 800; letter-spacing: .16em; color: rgba(60,43,26,.55); }
+  .dk .dk-gauge i { display: block; height: 5px; background: rgba(60,43,26,.14); }
+  .dk .dk-gauge i b { display: block; height: 100%; background: linear-gradient(90deg, var(--dk-teal), var(--dk-ember)); }
+  .dk .dk-command {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 44px;
+    background: rgba(12,11,24,.72);
+    border-top: 1px solid rgba(247,213,163,.22);
+    font-family: 'Manrope', sans-serif; font-size: 7.5px; font-weight: 700; letter-spacing: .22em;
+    color: rgba(247,234,208,.46);
+  }
+  .dk .dk-command b { color: var(--dk-amber); font-weight: 800; }
+
   .board { display: none; position: relative; width: 960px; height: 540px; overflow: hidden; }
   body[data-board="nova"] .board.nova,
   body[data-board="aurum"] .board.aurum,
@@ -30,7 +131,7 @@
   body[data-board="mnemo"] .board.mnemo { display: block; }
 
   /* ============================================================
-     NOVA · cinematic type specimen
+     GUGUOVA · cinematic type specimen
      ============================================================ */
   .nova {
     --ivory: #f6efe2;
@@ -106,9 +207,9 @@
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-style: italic;
     font-weight: 600;
-    font-size: 172px;
-    line-height: .72;
-    letter-spacing: -.035em;
+    font-size: 84px;
+    line-height: 1.02;
+    letter-spacing: -.01em;
     color: transparent;
     background: linear-gradient(160deg, #fffaf0 4%, #ffe2b8 45%, var(--warm) 76%, var(--coral) 100%);
     -webkit-background-clip: text;
@@ -1317,7 +1418,8 @@ body[data-board="riot"] .board.nt-riot,
 body[data-board="grimoire"] .board.nt-grimoire,
 body[data-board="riso"] .board.nt-riso,
 body[data-board="summer"] .board.nt-summer,
-body[data-board="broadcast"] .board.nt-broadcast { display: block; }
+body[data-board="broadcast"] .board.nt-broadcast,
+body[data-board="dusk"] .board.dk { display: block; }
 
 .nt-top {
   position: absolute;
@@ -2065,10 +2167,10 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 <body data-board="endfield">
   <!-- NOVA -->
   <section class="board nova">
-    <div class="eyebrow"><i></i>NOVA GAME SPACE <b>· CONCEPT 01</b></div>
+    <div class="eyebrow"><i></i>GUGUOVA <b>· CONCEPT 01</b></div>
     <div class="ring"></div>
     <div class="giant-no">08</div>
-    <div class="word">NOVA</div>
+    <div class="word">GUGUOVA</div>
     <div class="sub">GAME SPACE</div>
     <div class="lead">电影感主线，封面驱动的按钮与字标。<br>一枚胶囊，八套字标配方，随每一款游戏呼吸。</div>
     <div class="cta">开始游戏</div>
@@ -2087,7 +2189,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
       </div>
     </div>
     <div class="command">
-      <span>// NOVA GAME SPACE · CONCEPT 01</span>
+      <span>// GUGUOVA · CONCEPT 01</span>
       <span><b>ADAPTIVE BUTTON</b> · 08 TYPE RECIPES · 16:9 HERO</span>
     </div>
   </section>
@@ -2096,7 +2198,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
   <section class="board aurum">
     <span class="corner tl"></span><span class="corner tr"></span>
     <span class="corner bl"></span><span class="corner br"></span>
-    <div class="eyebrow">NOVA THEME · AURUM</div>
+    <div class="eyebrow">GUGUOVA THEME · AURUM</div>
     <div class="badge"><i></i>JADE SIGNAL</div>
     <div class="word">AURUM</div>
     <div class="sub">THE GILDED SANCTUM</div>
@@ -2121,7 +2223,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
   <section class="board endfield">
     <div class="tri"></div>
     <div class="head">
-      <span>// NOVA THEME <b>· 02</b> / INDUSTRIAL PAPER</span>
+      <span>// GUGUOVA THEME <b>· 02</b> / INDUSTRIAL PAPER</span>
       <span class="clock">2026.10.19&nbsp;&nbsp;│&nbsp;&nbsp;FIELD NOTE</span>
     </div>
     <div class="word"><span class="solid">END</span><span class="hollow">FIELD</span></div>
@@ -2145,7 +2247,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
   <section class="board codex">
     <span class="corner tl"></span><span class="corner tr"></span>
     <span class="corner bl"></span><span class="corner br"></span>
-    <div class="eyebrow">NOVA THEME · CODEX</div>
+    <div class="eyebrow">GUGUOVA THEME · CODEX</div>
     <div class="badge">COPPERPLATE DOSSIER · No.03</div>
     <div class="word">CODEX</div>
     <div class="sub">星轨秘典</div>
@@ -2168,7 +2270,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 
   <!-- ZERO HOUR -->
   <section class="board zerohour">
-    <div class="eyebrow">NOVA THEME · ZERO HOUR</div>
+    <div class="eyebrow">GUGUOVA THEME · ZERO HOUR</div>
     <div class="badge">ON AIR · 2026</div>
     <div class="word">
       <span class="solid">ZERO</span>
@@ -2202,7 +2304,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 
   <!-- MNEMO -->
   <section class="board mnemo">
-    <div class="eyebrow">NOVA THEME · MNEMO</div>
+    <div class="eyebrow">GUGUOVA THEME · MNEMO</div>
     <div class="badge">ARCHIVE · No.05</div>
     <div class="word">
       <span class="solid">MNEMO</span>
@@ -2232,7 +2334,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 
   <!-- RIOT -->
   <section class="board nt nt-riot">
-    <div class="nt-top"><span>NOVA THEME · RIOT</span><span class="nt-badge">No.06 · PUNK PAPER</span></div>
+    <div class="nt-top"><span>GUGUOVA THEME · RIOT</span><span class="nt-badge">No.06 · PUNK PAPER</span></div>
     <div class="nt-word">RIOT</div>
     <div class="nt-sub">舞台残响</div>
     <div class="nt-mark">现场 · 001</div>
@@ -2256,7 +2358,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 
   <!-- GRIMOIRE -->
   <section class="board nt nt-grimoire">
-    <div class="nt-top"><span>NOVA THEME · GRIMOIRE</span><span class="nt-badge">No.07 · CHARACTER SHEET</span></div>
+    <div class="nt-top"><span>GUGUOVA THEME · GRIMOIRE</span><span class="nt-badge">No.07 · CHARACTER SHEET</span></div>
     <div class="nt-word">GRIMOIRE</div>
     <div class="nt-sub">冒险者档案</div>
     <div class="nt-mark">秩序 · 善</div>
@@ -2281,7 +2383,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 
   <!-- RISO -->
   <section class="board nt nt-riso">
-    <div class="nt-top"><span>NOVA THEME · RISO</span><span class="nt-badge">No.08 · TWO-INK POSTER</span></div>
+    <div class="nt-top"><span>GUGUOVA THEME · RISO</span><span class="nt-badge">No.08 · TWO-INK POSTER</span></div>
     <div class="nt-word">RISO</div>
     <div class="nt-sub">电波海报</div>
     <div class="nt-mark">印刷 · 02</div>
@@ -2305,7 +2407,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 
   <!-- SUMMER -->
   <section class="board nt nt-summer">
-    <div class="nt-top"><span>NOVA THEME · SUMMER</span><span class="nt-badge">No.09 · PRINT LAYOUT</span></div>
+    <div class="nt-top"><span>GUGUOVA THEME · SUMMER</span><span class="nt-badge">No.09 · PRINT LAYOUT</span></div>
     <div class="nt-word">SUMMER</div>
     <div class="nt-sub">夏日轻程</div>
     <div class="nt-mark">时间 · 地点</div>
@@ -2330,7 +2432,7 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
 
   <!-- BROADCAST -->
   <section class="board nt nt-broadcast">
-    <div class="nt-top"><span>NOVA THEME · BROADCAST</span><span class="nt-badge">No.10 · LATE NIGHT</span></div>
+    <div class="nt-top"><span>GUGUOVA THEME · BROADCAST</span><span class="nt-badge">No.10 · LATE NIGHT</span></div>
     <div class="nt-word">BROADCAST</div>
     <div class="nt-sub">深夜广播</div>
     <div class="nt-mark">ON AIR · 24:00</div>
@@ -2356,5 +2458,33 @@ body[data-board="broadcast"] .board.nt-broadcast { display: block; }
     const board = new URLSearchParams(location.search).get('board');
     if (board) document.body.dataset.board = board;
   </script>
+
+  <!-- DUSK -->
+  <section class="board dk">
+    <span class="dk-sun" aria-hidden="true"></span>
+    <span class="dk-horizon" aria-hidden="true"></span>
+    <div class="dk-top"><span>GUGUOVA THEME · DUSK</span><span class="dk-badge">No.12 · ATELIER</span></div>
+    <div class="dk-word"><span>黄昏</span><span>之炼</span></div>
+    <div class="dk-rule"></div>
+    <div class="dk-latin">ATELIER OF THE DUSK</div>
+    <div class="dk-sub">暮色工作台 · 羊皮配方纸 · 四元素刻度</div>
+    <div class="dk-fields">
+      <span>GROUND<b>DUSK SKY</b></span>
+      <span>PAPER<b>#F4E9D4</b></span>
+      <span>ACCENT<b>#D98B5A</b></span>
+      <span>SECOND<b>#4D7A70</b></span>
+    </div>
+    <div class="dk-card">
+      <div class="dk-plate"></div>
+      <div class="dk-no"><span>配方 · No.012</span><b>调和 72%</b></div>
+      <div class="dk-gauges">
+        <span class="dk-gauge">火<i><b style="width:72%"></b></i>72</span>
+        <span class="dk-gauge">水<i><b style="width:54%"></b></i>54</span>
+        <span class="dk-gauge">风<i><b style="width:38%"></b></i>38</span>
+        <span class="dk-gauge">土<i><b style="width:61%"></b></i>61</span>
+      </div>
+    </div>
+    <div class="dk-command"><span>// DUSK · ATELIER LEDGER</span><span><b>暮色天空</b> · 羊皮纸 · 陶土按钮 · 元素刻度</span></div>
+  </section>
 </body>
 </html>

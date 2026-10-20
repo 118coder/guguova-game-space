@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "dusk",
+  "name": "黄昏之炼 · DUSK",
+  "author": "GUGUOVA",
+  "version": "1.0.1",
+  "description": "黄昏工作台：暮色天光、羊皮配方纸、四元素刻度与炼金环。自带「暮色开工」开场。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": true,
+  "intro": "dusk",
+  "tokens": {
+    "--accent": "#d98b5a",
+    "--accent-2": "#4d7a70",
+    "--glow": "rgba(217, 139, 90, .26)"
+  },
+  "sounds": {
+    "bong": "sounds/bong.ogg",
+    "click": "sounds/click.ogg",
+    "nav": "sounds/nav.ogg",
+    "soft": "sounds/soft.ogg",
+    "select": "sounds/select.ogg",
+    "confirm": "sounds/confirm.ogg",
+    "error": "sounds/error.ogg",
+    "tick": "sounds/tick.ogg",
+    "chime": "sounds/chime.ogg",
+    "deep": "sounds/deep.ogg",
+    "launchRise": "sounds/launchRise.ogg",
+    "launchFall": "sounds/launchFall.ogg",
+    "switch": "sounds/switch.ogg",
+    "launch": "sounds/launch.ogg",
+    "exit": "sounds/exit.ogg",
+    "boot": "sounds/boot.ogg"
+  }
+}

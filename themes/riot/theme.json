@@ -3,7 +3,7 @@
   "id": "riot",
   "name": "舞台残响 · RIOT",
   "author": "NOVA",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "纸面唱片封套：黑色黑胶 + 红色刷圈插画、硬偏移标题与墨点。",
   "css": "theme.css",
   "preview": "assets/preview.jpg",

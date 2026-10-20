@@ -641,3 +641,31 @@ html[data-theme="mnemo"] .settings-id-avatar {
 html[data-theme="mnemo"] .settings-id-copy b { color: var(--mn-ink); font-family: var(--mn-mono); letter-spacing: .04em; }
 html[data-theme="mnemo"] .settings-id-copy em { color: var(--mn-ink-2); font-family: var(--mn-mono); }
 html[data-theme="mnemo"] .settings-id-tags i { border-color: var(--mn-hair); border-radius: 2px; color: var(--mn-violet); font-family: var(--mn-mono); }
+
+/* ---------- DUSK · 配方台账 ---------- */
+html[data-theme="dusk"] .settings-id {
+  border: 1px solid var(--dk-line);
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 58%),
+    #f8efdb;
+  box-shadow: inset 4px 0 0 var(--dk-terra), inset 0 0 0 3px rgba(255, 255, 255, .34);
+}
+html[data-theme="dusk"] .settings-id-avatar {
+  border: 1px solid var(--dk-line);
+  border-radius: 50%;
+  background: #fdf6e6;
+  color: var(--dk-terra);
+  font-family: var(--font-serif);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .8);
+}
+html[data-theme="dusk"] .settings-id-copy b { color: var(--dk-ink); font-family: var(--font-serif); letter-spacing: .06em; }
+html[data-theme="dusk"] .settings-id-copy em { color: var(--dk-ink-3); }
+html[data-theme="dusk"] .settings-id-tags i {
+  border: 1px solid var(--dk-line);
+  border-radius: 1px;
+  color: var(--dk-ink-2);
+  background: rgba(255, 251, 241, .66);
+}
+html[data-theme="dusk"] .settings-card { background: rgba(255, 251, 241, .58); }
+html[data-theme="dusk"] .settings-stat b { font-family: var(--font-serif); }
