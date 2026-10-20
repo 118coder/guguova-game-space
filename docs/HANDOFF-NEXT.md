@@ -158,7 +158,31 @@ Steam 客户端之所以像客户端，是因为它有**左侧库栏、密集的
 
 ---
 
+## 7b. 事故记录：1.8.0 演示截图覆盖了用户媒体库（已还原）
+
+1.8.0 截图期间，我把 6 条示例条目的 `media/<id>/hero.jpg|cover.jpg` 直接覆盖成了生成的
+排版封面，还改了 `library.json`（exe 路径、文案、accent）。用户发现后已全部还原：
+数据取自 `backups/NOVA-auto-20261020-214114.nova-pack`（21:41 的每日备份，早于改动），
+`library.json` 与全部 media 一并恢复，我改过的状态留档在 `_shots/demo-rollback-20261021/`。
+
+**定下的规矩（写进流程，不是建议）：**
+
+1. **永远不把用户数据目录（`%LOCALAPPDATA%\NOVA Game Space`）当作截图素材**。
+2. 演示截图必须走隔离方案，二选一：
+   - 做一个 `tools/demo-library.py seed|restore`：先把用户 `library.json` + `media/` 整体备份到
+     `_shots/demo-state/`，再写入演示条目；截完一键还原。P0，下一轮先做这个再动任何截图。
+   - 或者给应用加 `NOVA_DATA_ROOT` 环境变量（改 `AppPaths.Root`），让开发/截图用独立数据目录。
+3. 任何要写用户数据目录的操作，动手前先 `robocopy /E` 备份到 `_shots/`，并在交接文档里登记。
+4. 排版封面只存在于两处：`tools/demo-covers.py` 的输出与仓库 `docs/*.jpg`；不再进入用户数据目录。
+
+---
+
 ## 8. 其它待办（功能侧，按优先级）
+
+### P0 · 演示截图数据隔离（先做）
+
+按 §7b 的规矩落地 `tools/demo-library.py seed|restore`（或 `NOVA_DATA_ROOT`），
+之后所有 README 截图都用演示数据目录拍摄。**先有这个，再碰任何截图。**
 
 ### P0 · Win7 真机
 
@@ -217,6 +241,8 @@ SteamStub 游戏与普通游戏各跑一遍：未登录冷启动、登录后启�
 18. **STEAM 不使用 Valve 素材**；绿色只给主按钮与「就绪」，红色只给缺失/删除；
     不伪造在线人数、下载速度、成就数；
 19. **每套新主题先交静态构图稿，用户确认后再写 CSS**（本轮教训）；
+19b. **用户数据目录神圣不可侵犯**：演示素材只进仓库与 `_shots/`，写入 `%LOCALAPPDATA%`
+     之前必须整体备份并登记（1.8.0 事故教训）；
 20. 示例库与截图里不允许出现真实游戏素材；
 21. 技术标识（程序集、AppData、`NOVA_DEV`/`NOVA_CACHE_ROOT`、主题 id `nova`）不跟随品牌改名。
 
