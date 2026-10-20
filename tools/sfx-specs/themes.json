@@ -1,0 +1,265 @@
+{
+  "out_dir": "themes",
+  "sr": 44100,
+  "normalize": -1.0,
+  "max_loudness": -6.0,
+  "sounds": [
+    {
+      "out": "endfield/switch.wav",
+      "duration": 0.40,
+      "layers": [
+        { "type": "sfx", "kind": "solenoid", "params": { "size": 0.45, "metal": 0.55, "thump": 0.35, "bounce": 0.35 }, "gain": 0.7 },
+        { "type": "sfx", "kind": "solenoid", "params": { "size": 0.4, "metal": 0.5, "thump": 0.3, "bounce": 0.25, "seed": 9 }, "gain": 0.5, "at": 0.09 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 5200 }, { "type": "reverb", "mix": 0.08, "size": 0.2 }],
+      "trim": true
+    },
+    {
+      "out": "endfield/launch.wav",
+      "duration": 0.60,
+      "layers": [
+        { "type": "sfx", "kind": "engine", "params": { "rpm": 90, "dur": 0.55 }, "gain": 0.5 },
+        { "type": "sfx", "kind": "whoosh", "params": { "dur": 0.4, "low": 300, "high": 2200, "direction": "up" }, "gain": 0.35, "at": 0.12 },
+        { "type": "sfx", "kind": "solenoid", "params": { "size": 0.7, "metal": 0.4, "thump": 0.8, "bounce": 0.2 }, "gain": 0.35, "at": 0.04 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 4000 }, { "type": "reverb", "mix": 0.12, "size": 0.35 }],
+      "trim": true
+    },
+    {
+      "out": "endfield/exit.wav",
+      "duration": 0.45,
+      "layers": [
+        { "type": "sfx", "kind": "whoosh", "params": { "dur": 0.35, "low": 200, "high": 2600, "direction": "down" }, "gain": 0.5 },
+        { "type": "sfx", "kind": "solenoid", "params": { "size": 0.5, "metal": 0.35, "thump": 0.7, "bounce": 0.15, "seed": 4 }, "gain": 0.45, "at": 0.16 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 3600 }, { "type": "reverb", "mix": 0.1, "size": 0.3 }],
+      "trim": true
+    },
+    {
+      "out": "endfield/boot.wav",
+      "duration": 1.20,
+      "layers": [
+        { "type": "sfx", "kind": "solenoid", "params": { "size": 0.45, "metal": 0.5, "thump": 0.4, "bounce": 0.2 }, "gain": 0.4, "at": 0.0 },
+        { "type": "sfx", "kind": "solenoid", "params": { "size": 0.45, "metal": 0.55, "thump": 0.4, "bounce": 0.2, "seed": 11 }, "gain": 0.4, "at": 0.22 },
+        { "type": "sfx", "kind": "solenoid", "params": { "size": 0.45, "metal": 0.6, "thump": 0.4, "bounce": 0.2, "seed": 21 }, "gain": 0.4, "at": 0.44 },
+        { "type": "sfx", "kind": "engine", "params": { "rpm": 70, "dur": 0.6 }, "gain": 0.3, "at": 0.55 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 4200 }, { "type": "reverb", "mix": 0.14, "size": 0.4 }],
+      "trim": true
+    },
+
+    {
+      "out": "riot/switch.wav",
+      "duration": 0.50,
+      "layers": [
+        { "type": "sfx", "kind": "whoosh", "params": { "dur": 0.35, "low": 400, "high": 3200, "direction": "up" }, "gain": 0.55 },
+        { "type": "sfx", "kind": "click", "params": { "tone": 1400 }, "gain": 0.3, "at": 0.32 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.2, "size": 0.35 }, { "type": "lowpass", "cutoff": 4500 }],
+      "trim": true
+    },
+    {
+      "out": "riot/launch.wav",
+      "duration": 0.70,
+      "layers": [
+        { "type": "sfx", "kind": "hit", "params": { "dur": 0.25, "tone": 90, "crunch": 0.15 }, "gain": 0.35 },
+        { "type": "synth", "inst": "strings", "notes": "A3", "dur": 0.45, "vel": 0.45, "gain": 0.45, "at": 0.03 },
+        { "type": "synth", "inst": "glass", "notes": "A5", "dur": 0.25, "vel": 0.3, "gain": 0.16, "at": 0.1 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.26, "size": 0.5 }],
+      "trim": true
+    },
+    {
+      "out": "riot/exit.wav",
+      "duration": 0.60,
+      "layers": [
+        { "type": "sfx", "kind": "whoosh", "params": { "dur": 0.4, "low": 250, "high": 2400, "direction": "down" }, "gain": 0.5 },
+        { "type": "sfx", "kind": "click", "params": { "tone": 900 }, "gain": 0.3, "at": 0.36 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.18, "size": 0.35 }, { "type": "lowpass", "cutoff": 3800 }],
+      "trim": true
+    },
+    {
+      "out": "riot/boot.wav",
+      "duration": 1.40,
+      "layers": [
+        { "type": "sfx", "kind": "vinyl", "params": { "dur": 1.3, "crackle": 9, "hiss": 0.22, "seed": 5 }, "gain": 0.3 },
+        { "type": "synth", "inst": "strings", "notes": "A3 E4", "dur": 0.7, "vel": 0.35, "gain": 0.4, "at": 0.32 },
+        { "type": "synth", "inst": "glass", "notes": "C5", "dur": 0.4, "vel": 0.22, "gain": 0.12, "at": 0.5 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.3, "size": 0.55 }],
+      "trim": true
+    },
+
+    {
+      "out": "grimoire/switch.wav",
+      "duration": 0.45,
+      "layers": [
+        { "type": "sfx", "kind": "noise", "params": { "dur": 0.24, "color": "pink", "attack": 0.04 }, "gain": 0.32 },
+        { "type": "sfx", "kind": "typewriter", "params": {}, "gain": 0.22, "at": 0.1 }
+      ],
+      "fx": [{ "type": "bandpass", "center": 1800, "q": 0.8 }, { "type": "lowpass", "cutoff": 4200 }],
+      "trim": true
+    },
+    {
+      "out": "grimoire/launch.wav",
+      "duration": 0.75,
+      "layers": [
+        { "type": "sfx", "kind": "hit", "params": { "dur": 0.2, "tone": 110, "crunch": 0.2 }, "gain": 0.4 },
+        { "type": "seq", "inst": "harp", "steps": "A3:0.1 C4:0.1 E4:0.1 A4:0.3", "vel": 0.5, "gain": 0.6, "at": 0.05 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.3, "size": 0.55 }],
+      "trim": true
+    },
+    {
+      "out": "grimoire/exit.wav",
+      "duration": 0.55,
+      "layers": [
+        { "type": "sfx", "kind": "noise", "params": { "dur": 0.2, "color": "pink", "attack": 0.02 }, "gain": 0.3 },
+        { "type": "sfx", "kind": "door", "params": {}, "gain": 0.45, "at": 0.18 }
+      ],
+      "fx": [{ "type": "bandpass", "center": 1100, "q": 0.7 }, { "type": "lowpass", "cutoff": 2600 }, { "type": "reverb", "mix": 0.2, "size": 0.45 }],
+      "trim": true
+    },
+    {
+      "out": "grimoire/boot.wav",
+      "duration": 1.50,
+      "layers": [
+        { "type": "sfx", "kind": "noise", "params": { "dur": 0.3, "color": "pink", "attack": 0.05 }, "gain": 0.22 },
+        { "type": "synth", "inst": "singing_bowl", "notes": "C3", "dur": 1.0, "vel": 0.4, "gain": 0.55, "at": 0.3 },
+        { "type": "synth", "inst": "harp", "notes": "C5", "dur": 0.5, "vel": 0.25, "gain": 0.16, "at": 0.35 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 3600 }, { "type": "reverb", "mix": 0.34, "size": 0.7 }],
+      "trim": true
+    },
+
+    {
+      "out": "broadcast/switch.wav",
+      "duration": 0.35,
+      "layers": [
+        { "type": "sfx", "kind": "static", "params": { "dur": 0.22, "color": "white" }, "gain": 0.3 },
+        { "type": "sfx", "kind": "click", "params": { "tone": 1600 }, "gain": 0.3, "at": 0.28 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 3200 }],
+      "trim": true
+    },
+    {
+      "out": "broadcast/launch.wav",
+      "duration": 0.65,
+      "layers": [
+        { "type": "sfx", "kind": "tone", "params": { "freq": 50, "dur": 0.5, "wave": "sine" }, "gain": 0.3 },
+        { "type": "sfx", "kind": "static", "params": { "dur": 0.25, "color": "white" }, "gain": 0.18, "at": 0.06 },
+        { "type": "synth", "inst": "soft_lead", "notes": "A4", "dur": 0.35, "vel": 0.4, "gain": 0.5, "at": 0.22 }
+      ],
+      "fx": [{ "type": "tremolo", "rate": 5.5, "depth": 0.18 }, { "type": "lowpass", "cutoff": 3400 }, { "type": "reverb", "mix": 0.16, "size": 0.3 }],
+      "trim": true
+    },
+    {
+      "out": "broadcast/exit.wav",
+      "duration": 0.40,
+      "layers": [
+        { "type": "sfx", "kind": "tone", "params": { "freq": 50, "dur": 0.12, "wave": "sine" }, "gain": 0.3 },
+        { "type": "sfx", "kind": "static", "params": { "dur": 0.16, "color": "white" }, "gain": 0.16, "at": 0.1 }
+      ],
+      "fx": [{ "type": "highpass", "cutoff": 260 }, { "type": "lowpass", "cutoff": 3000 }],
+      "trim": true
+    },
+    {
+      "out": "broadcast/boot.wav",
+      "duration": 1.30,
+      "layers": [
+        { "type": "sfx", "kind": "sweep_up", "params": { "start": 90, "end": 240, "dur": 0.2, "wave": "sine" }, "gain": 0.35 },
+        { "type": "sfx", "kind": "static", "params": { "dur": 0.5, "color": "white" }, "gain": 0.16, "at": 0.2 },
+        { "type": "sfx", "kind": "tone", "params": { "freq": 58, "dur": 0.7, "wave": "sine" }, "gain": 0.22, "at": 0.62 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 2800 }, { "type": "reverb", "mix": 0.14, "size": 0.35 }],
+      "trim": true
+    },
+
+    {
+      "out": "mnemo/switch.wav",
+      "duration": 0.40,
+      "layers": [
+        { "type": "sfx", "kind": "whoosh", "params": { "dur": 0.28, "low": 500, "high": 2600, "direction": "up" }, "gain": 0.35 },
+        { "type": "synth", "inst": "glass", "notes": "E5", "dur": 0.12, "vel": 0.3, "gain": 0.22, "at": 0.1 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 4000 }, { "type": "reverb", "mix": 0.2, "size": 0.35 }],
+      "trim": true
+    },
+    {
+      "out": "mnemo/launch.wav",
+      "duration": 0.65,
+      "layers": [
+        { "type": "synth", "inst": "glass_pad", "notes": "A3", "dur": 0.5, "vel": 0.4, "gain": 0.55 },
+        { "type": "synth", "inst": "glass", "notes": "A4", "dur": 0.3, "vel": 0.28, "gain": 0.2, "at": 0.08 }
+      ],
+      "fx": [{ "type": "chorus", "rate": 0.4, "depth": 2.4, "mix": 0.35 }, { "type": "reverb", "mix": 0.28, "size": 0.5 }],
+      "trim": true
+    },
+    {
+      "out": "mnemo/exit.wav",
+      "duration": 0.45,
+      "layers": [
+        { "type": "synth", "inst": "glass_pad", "notes": "A3", "dur": 0.35, "vel": 0.32, "gain": 0.5 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 2400 }, { "type": "reverb", "mix": 0.24, "size": 0.45 }],
+      "trim": true
+    },
+    {
+      "out": "mnemo/boot.wav",
+      "duration": 1.40,
+      "layers": [
+        { "type": "synth", "inst": "glass", "notes": "A5", "dur": 0.3, "vel": 0.25, "gain": 0.25, "at": 0.0 },
+        { "type": "synth", "inst": "glass", "notes": "C6", "dur": 0.3, "vel": 0.25, "gain": 0.25, "at": 0.2 },
+        { "type": "synth", "inst": "glass", "notes": "E6", "dur": 0.3, "vel": 0.22, "gain": 0.22, "at": 0.4 },
+        { "type": "synth", "inst": "glass", "notes": "A5", "dur": 0.4, "vel": 0.2, "gain": 0.2, "at": 0.6 },
+        { "type": "synth", "inst": "glass_pad", "notes": "A3", "dur": 0.5, "vel": 0.2, "gain": 0.22, "at": 0.25 }
+      ],
+      "fx": [{ "type": "chorus", "rate": 0.3, "depth": 2.0, "mix": 0.3 }, { "type": "reverb", "mix": 0.34, "size": 0.6 }],
+      "trim": true
+    },
+
+    {
+      "out": "summer/switch.wav",
+      "duration": 0.40,
+      "layers": [
+        { "type": "sfx", "kind": "noise", "params": { "dur": 0.16, "color": "white", "attack": 0.01 }, "gain": 0.3 }
+      ],
+      "fx": [{ "type": "bandpass", "center": 3200, "q": 0.6 }, { "type": "lowpass", "cutoff": 6000 }],
+      "trim": true
+    },
+    {
+      "out": "summer/launch.wav",
+      "duration": 0.60,
+      "layers": [
+        { "type": "seq", "inst": "glockenspiel", "steps": "C6:0.1 E6:0.28", "vel": 0.5, "gain": 0.55 },
+        { "type": "synth", "inst": "glass", "notes": "C7", "dur": 0.18, "vel": 0.22, "gain": 0.12, "at": 0.1 },
+        { "type": "synth", "inst": "warm_pad", "notes": "C4", "dur": 0.4, "vel": 0.3, "gain": 0.28 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.26, "size": 0.45 }],
+      "trim": true
+    },
+    {
+      "out": "summer/exit.wav",
+      "duration": 0.45,
+      "layers": [
+        { "type": "seq", "inst": "glockenspiel", "steps": "E6:0.1 C6:0.22", "vel": 0.42, "gain": 0.5 },
+        { "type": "synth", "inst": "warm_pad", "notes": "C4", "dur": 0.3, "vel": 0.24, "gain": 0.22 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 5200 }, { "type": "reverb", "mix": 0.2, "size": 0.4 }],
+      "trim": true
+    },
+    {
+      "out": "summer/boot.wav",
+      "duration": 1.20,
+      "layers": [
+        { "type": "synth", "inst": "glockenspiel", "notes": "G5", "dur": 0.4, "vel": 0.38, "gain": 0.4, "at": 0.0 },
+        { "type": "synth", "inst": "glockenspiel", "notes": "C6", "dur": 0.4, "vel": 0.36, "gain": 0.38, "at": 0.3 },
+        { "type": "synth", "inst": "glockenspiel", "notes": "E6", "dur": 0.5, "vel": 0.34, "gain": 0.36, "at": 0.6 },
+        { "type": "synth", "inst": "warm_pad", "notes": "C4", "dur": 0.9, "vel": 0.22, "gain": 0.2 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.34, "size": 0.6 }],
+      "trim": true
+    }
+  ]
+}

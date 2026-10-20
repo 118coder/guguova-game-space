@@ -1,0 +1,47 @@
+{
+  "out_dir": "ui",
+  "sr": 44100,
+  "normalize": -1.0,
+  "max_loudness": -6.0,
+  "sounds": [
+    {
+      "out": "click.wav",
+      "duration": 0.016,
+      "layers": [
+        { "type": "sfx", "kind": "click", "params": { "tone": 2100 }, "gain": 0.8 },
+        { "type": "sfx", "kind": "pop", "params": { "freq": 620 }, "gain": 0.35 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 3000 }, { "type": "highpass", "cutoff": 420 }],
+      "trim": true
+    },
+    {
+      "out": "nav.wav",
+      "duration": 0.018,
+      "layers": [
+        { "type": "sfx", "kind": "click", "params": { "tone": 2700 }, "gain": 0.7 },
+        { "type": "sfx", "kind": "pop", "params": { "freq": 780 }, "gain": 0.4 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 3400 }, { "type": "highpass", "cutoff": 500 }],
+      "trim": true
+    },
+    {
+      "out": "soft.wav",
+      "duration": 0.018,
+      "layers": [
+        { "type": "sfx", "kind": "click", "params": { "tone": 1800 }, "gain": 0.7 },
+        { "type": "sfx", "kind": "pop", "params": { "freq": 420 }, "gain": 0.35 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 2400 }, { "type": "highpass", "cutoff": 300 }],
+      "trim": true
+    },
+    {
+      "out": "tick.wav",
+      "duration": 0.042,
+      "layers": [
+        { "type": "sfx", "kind": "blip", "params": { "freq": 3100, "dur": 0.03 }, "gain": 0.35 }
+      ],
+      "fx": [{ "type": "highpass", "cutoff": 1800 }, { "type": "lowpass", "cutoff": 4800 }],
+      "trim": true
+    }
+  ]
+}

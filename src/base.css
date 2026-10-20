@@ -1388,7 +1388,10 @@ h1, h2, h3, p { margin: 0; }
   gap: 9px;
 }
 
-.row-main .ic { width: 15px; height: 15px; color: rgba(255, 255, 255, .37); }
+/* Icons inherit the row colour instead of a fixed white: half the themes are
+   light paper, where rgba(255,255,255,.37) is invisible. Each theme can still
+   tint them through --row-icon. */
+.row-main .ic { width: 15px; height: 15px; color: var(--row-icon, currentColor); opacity: .78; }
 
 .row-key {
   font-size: 8px;
@@ -1396,7 +1399,7 @@ h1, h2, h3, p { margin: 0; }
   color: rgba(255, 255, 255, .22);
 }
 
-.row-chevron { width: 13px; height: 13px; color: rgba(255, 255, 255, .18); }
+.row-chevron { width: 13px; height: 13px; color: currentColor; opacity: .45; }
 
 .switch {
   position: relative;

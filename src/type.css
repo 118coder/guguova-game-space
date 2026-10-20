@@ -519,6 +519,12 @@ body {
 .manage-rows { margin-top: 9px; }
 .manage-row { min-height: 42px; font-size: var(--text-meta); color: var(--text-muted); }
 .manage-note { font-size: var(--text-label); color: var(--text-faint); }
+.manage-steam-title { font-size: var(--text-label); color: var(--text-soft); }
+.manage-steam-state { font-size: var(--text-label); color: var(--text-muted); }
+.manage-steam-state[data-on="ok"] { color: rgba(127, 227, 192, .9); }
+.manage-steam-state[data-on="warn"] { color: rgba(255, 172, 96, .92); }
+.manage-steam-note { font-size: var(--text-label); line-height: 1.5; color: var(--text-faint); }
+.steam-mode { font-size: var(--text-label); }
 .manage-actions { margin-top: 13px; }
 .manage-actions .btn { font-size: var(--text-label); }
 
@@ -1321,7 +1327,9 @@ html[data-theme="nova"].is-nova-system .bell-dot {
 }
 
 .pref-label { gap: 10px; }
-.pref-label .ic { width: 16px; height: 16px; color: var(--text-faint); }
+/* Same trap as the profile menu: --text-faint is a light-theme value, so a
+   fixed tint disappears on paper themes. Follow the label instead. */
+.pref-label .ic { width: 16px; height: 16px; color: var(--row-icon, var(--faint)); opacity: .85; }
 .pref-note { font-size: var(--text-micro); color: var(--text-faint); }
 
 .appearance-footer {

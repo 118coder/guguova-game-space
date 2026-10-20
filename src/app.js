@@ -57,6 +57,10 @@
         onSessionEnded(message.payload);
         return;
       }
+      if (message.type === 'session-failed') {
+        onSessionFailed(message.payload);
+        return;
+      }
       if (message.type === 'window-state') {
         syncMaxButton(!!message.payload?.maximized);
         return;
@@ -89,6 +93,7 @@
       calm: false,
       closeToTray: false,
       autoBackup: true,
+      unifiedSfx: false,
       librarySort: 'recent'
     },
     userName: '',
@@ -105,6 +110,8 @@
     lastFocus: null,
     toastTimer: null,
     launchTimers: [],
+    // Set while the Steam client owns a launch and no process has appeared yet.
+    launchPendingId: null,
     manageOpen: false,
     manageConfirming: false,
     manageConfirmTimer: null,
@@ -225,6 +232,10 @@
     managePanel: $('#managePanel'),
     manageClose: $('#manageClose'),
     manageStats: $('#manageStats'),
+    manageSteam: $('#manageSteam'),
+    manageSteamState: $('#manageSteamState'),
+    manageSteamNote: $('#manageSteamNote'),
+    manageSteamModes: $('#manageSteamModes'),
     editRow: $('#editRow'),
     resetArtRow: $('#resetArtRow'),
     removeGameBtn: $('#removeGameBtn'),
@@ -358,6 +369,8 @@
     settingsTraySwitch: $('#settingsTraySwitch'),
     settingsAutoBackupRow: $('#settingsAutoBackupRow'),
     settingsAutoBackupSwitch: $('#settingsAutoBackupSwitch'),
+    settingsUnifiedSfxRow: $('#settingsUnifiedSfxRow'),
+    settingsUnifiedSfxSwitch: $('#settingsUnifiedSfxSwitch'),
     settingsFullscreenRow: $('#settingsFullscreenRow'),
     settingsExport: $('#settingsExport'),
     settingsImport: $('#settingsImport'),
@@ -856,14 +869,12 @@
      ============================================================ */
 
   const SFX = {
-    move: 'assets/sfx/move.ogg',
+    // One file per distinct sound; call sites pick a semantic method below.
+    bong: 'assets/sfx/bong.ogg',      // directional selection (rail, lists)
+    click: 'assets/sfx/click.ogg',    // ordinary button
+    nav: 'assets/sfx/nav.ogg',        // opening a full page
+    soft: 'assets/sfx/soft.ogg',      // close / back / mode switch
     select: 'assets/sfx/select.ogg',
-    click: 'assets/sfx/click.ogg',
-    back: 'assets/sfx/back.ogg',
-    open: 'assets/sfx/open.ogg',
-    close: 'assets/sfx/close.ogg',
-    toggle: 'assets/sfx/toggle.ogg',
-    switch: 'assets/sfx/switch.ogg',
     theme: 'assets/sfx/theme.ogg',
     confirm: 'assets/sfx/confirm.ogg',
     error: 'assets/sfx/error.ogg',
@@ -878,6 +889,54 @@
     ctx: null,
     pools: new Map(),
     volume: 0.5,
+    // Cue name → decoded buffer for the theme currently installed. Filled by
+    // warmTheme(); an absent entry simply falls through to the shared cue, so
+    // a theme that ships no sounds behaves exactly like before.
+    themePools: new Map(),
+    themeId: null,
+    // Long, tracked cues (the theme's intro sequence) that must be cut short
+    // when the player skips the animation.
+    longSources: new Map(),
+
+    /** Whether a themed cue is both loaded and allowed right now. */
+    hasThemeCue(name) {
+      return !state.settings.unifiedSfx && this.themePools.has(name);
+    },
+
+    /** Resolve what a cue should actually play: the active theme's version
+        when it has one and the player has not asked for the unified set,
+        otherwise the shared interface sound. */
+    bufferFor(name) {
+      if (state.settings.unifiedSfx) return this.pools.get(name) || null;
+      return this.themePools.get(name) || this.pools.get(name) || null;
+    },
+
+    /** Load a theme's declared cues. A no-op when the player chose the
+        unified set, which is also what makes the setting take effect at once. */
+    async warmTheme(themeId, sounds) {
+      this.themePools.clear();
+      this.themeId = themeId;
+      if (state.settings.unifiedSfx) return;
+      if (!state.settings.sound || !sounds) return;
+      const ctx = this.ensure();
+      if (!ctx) return;
+      await Promise.all(Object.entries(sounds).map(async ([cue, url]) => {
+        try {
+          // Theme folder cues already carry ?v=<theme version>; the built-in
+          // NOVA set is a plain asset path, so stamp it with the app version.
+          const stamped = url.includes('?')
+            ? url
+            : `${url}?v=${encodeURIComponent(state.version || '1')}`;
+          const response = await fetch(stamped);
+          if (!response.ok) return;
+          const data = await response.arrayBuffer();
+          this.themePools.set(cue, await ctx.decodeAudioData(data));
+        } catch (error) {
+          // A missing or unreadable theme sound is not an error: the shared
+          // cue already covers the same moment.
+        }
+      }));
+    },
 
     /** Preload one decoded buffer per cue; misses fall back to the synth. */
     async warm() {
@@ -909,11 +968,13 @@
       return this.ctx;
     },
 
-    /** Plays a bundled sample; `gain` trims it to sit under the interface. */
+    /** Plays a bundled sample; `gain` trims it to sit under the interface.
+        With `track`, the source is remembered so a long cue (the intro
+        sequence) can be faded out when the animation is skipped. */
     play(name, options = {}) {
       const ctx = this.ensure();
       if (!ctx) return false;
-      const buffer = this.pools.get(name);
+      const buffer = options.buffer || this.bufferFor(name);
       if (!buffer) return false;
       const source = ctx.createBufferSource();
       const gain = ctx.createGain();
@@ -922,6 +983,13 @@
       source.buffer = buffer;
       gain.gain.value = this.volume * trim;
       source.connect(gain).connect(ctx.destination);
+      if (options.track) {
+        this.longSources.set(name, { source, gain });
+        source.onended = () => {
+          const entry = this.longSources.get(name);
+          if (entry && entry.source === source) this.longSources.delete(name);
+        };
+      }
       source.start(ctx.currentTime + (options.delay || 0), offset);
       return true;
     },
@@ -943,47 +1011,99 @@
       osc.stop(t + dur + .035);
     },
 
+    /** Fade out a tracked cue in <fade> seconds, then stop it. */
+    stopLong(name, fade = 0.16) {
+      const entry = this.longSources.get(name);
+      if (!entry) return;
+      this.longSources.delete(name);
+      const ctx = this.ctx;
+      if (!ctx) return;
+      try {
+        const now = ctx.currentTime;
+        entry.gain.gain.cancelScheduledValues(now);
+        entry.gain.gain.setValueAtTime(entry.gain.gain.value, now);
+        entry.gain.gain.linearRampToValueAtTime(0.0001, now + fade);
+        entry.source.stop(now + fade + 0.02);
+      } catch (error) {
+        try { entry.source.stop(); } catch (stopError) { /* already ended */ }
+      }
+    },
+
+    /** Directional step: keyboard ←/→ and gamepad d-pad between games. */
     move(dir = 1) {
-      if (!this.play('move', { gain: .32 })) {
+      if (!this.play('bong', { gain: .34 })) {
         this.tone(dir > 0 ? 700 : 540, { dur: .065, gain: .0075 });
       }
     },
     hover() {
       if (!this.play('tick', { gain: .18 })) this.tone(880, { dur: .04, gain: .004 });
     },
+    /** Ordinary buttons: details, manage, edit, save, sort, export, folders. */
     select() {
-      if (!this.play('select', { gain: .5 })) {
+      if (!this.play('click', { gain: .5 })) {
         this.tone(520, { dur: .12, gain: .009, type: 'triangle' });
         this.tone(780, { dur: .18, gain: .0055, delay: .05 });
       }
     },
-    back() {
-      if (!this.play('back', { gain: .42 })) this.tone(400, { dur: .1, gain: .006 });
+    /** Opening 游戏库 / 外观 / 设置. */
+    page() {
+      this.play('nav', { gain: .46 });
     },
+    /** Close / back / return to 首页 — one sound for every retreat. */
+    back() {
+      this.play('soft', { gain: .44 });
+    },
+    /** Generic dialog, file picker and theme-folder opening. */
     open() {
-      if (!this.play('open', { gain: .38 })) this.select();
+      this.play('soft', { gain: .44 });
     },
     close() {
-      if (!this.play('close', { gain: .36 })) this.back();
+      this.play('soft', { gain: .42 });
     },
+    /** Filter chips, appearance language, reduce-motion, calm, framing. */
     toggle() {
-      if (!this.play('toggle', { gain: .38 })) this.tone(640, { dur: .07, gain: .006 });
+      this.play('soft', { gain: .4 });
     },
     confirm() {
       if (!this.play('confirm', { gain: .5 })) this.select();
     },
+    /**
+     * A theme owns four moments: switching to it, starting a game, ending a
+     * game, and the launcher opening with it active. Each looks for a themed
+     * cue first (themePools) and falls back to the shared one, so themes ship
+     * sound only when they want to.
+     */
+    themeEvent(cue, fallback, gain = .5) {
+      if (this.hasThemeCue(cue)) {
+        this.play(cue, { gain });
+        return;
+      }
+      if (fallback) fallback.call(this);
+    },
     theme() {
+      // A theme that owns the switch moment replaces the shared sweep
+      // outright; playing both reads as two separate transitions.
+      if (this.hasThemeCue('switch')) {
+        this.play('switch', { gain: .48 });
+        return;
+      }
       if (!this.play('theme', { gain: .42 })) {
         this.tone(520, { dur: .22, gain: .008, type: 'sine' });
         this.tone(780, { dur: .3, gain: .006, delay: .05 });
       }
     },
     error() {
-      if (!this.play('error', { gain: .45 })) {
+      if (!this.play('error', { gain: .5 })) {
         this.tone(220, { dur: .16, gain: .01, type: 'triangle' });
       }
     },
     launch() {
+      // A themed launch cue replaces the shared rise entirely: playing both
+      // would read as two separate events.
+      if (this.hasThemeCue('launch')) {
+        this.play('launch', { gain: .55 });
+        return;
+      }
       const played = this.play('launchRise', { gain: .55 });
       if (!played) {
         [392, 523.25, 659.25].forEach((freq, i) => this.tone(freq, { dur: .5, gain: .012, delay: i * .055 }));
@@ -997,10 +1117,41 @@
       this.play('chime', { gain: .4 });
     },
     exitGame() {
+      if (this.hasThemeCue('exit')) {
+        this.play('exit', { gain: .48 });
+        return;
+      }
       if (!this.play('launchFall', { gain: .45 })) this.back();
     },
     sleep() {
       if (!this.play('deep', { gain: .34, offset: .05 })) this.tone(196, { dur: .75, gain: .0045 });
+    },
+    /** Play a theme's intro sequence without adopting that theme. Used by the
+        theme card's context menu, where a preview must not disturb the cue
+        set that the rest of the interface is already using. */
+    async playPreviewBoot(sounds) {
+      const url = sounds && sounds.boot;
+      if (!url) return false;
+      const ctx = this.ensure();
+      if (!ctx) return false;
+      try {
+        const stamped = url.includes('?') ? url : `${url}?v=${encodeURIComponent(state.version || '1')}`;
+        const response = await fetch(stamped);
+        if (!response.ok) return false;
+        const buffer = await ctx.decodeAudioData(await response.arrayBuffer());
+        return this.play('boot', { gain: .5, track: true, buffer });
+      } catch (error) {
+        return false;
+      }
+    },
+
+    /** The launcher opening. The theme's boot file is authored as a sequence
+        whose hits sit on that theme's intro keyframes, so starting it together
+        with the animation is what puts the sound on the beat. */
+    boot() {
+      if (!this.hasThemeCue('boot')) return false;
+      this.bootCount = (this.bootCount || 0) + 1;
+      return this.play('boot', { gain: .5, track: true });
     }
   };
 
@@ -1178,6 +1329,7 @@
         layout: state.layout,
         closeToTray: state.settings.closeToTray,
         autoBackup: state.settings.autoBackup,
+        unifiedSfx: !!state.settings.unifiedSfx,
         librarySort: state.settings.librarySort
       });
     }, 180);
@@ -1560,7 +1712,7 @@
 
     if (wrapped === previous) {
       if (options.scroll) centerTile(wrapped);
-      if (options.sound) audio.select();
+      if (options.sound) audio.move(1);
       if (state.view === 'appearance') renderAppearance();
       return;
     }
@@ -1715,7 +1867,7 @@
 
     if (previous !== name) {
       if (name === 'home') audio.back();
-      else audio.open();
+      else audio.page();
     }
   }
 
@@ -2045,15 +2197,64 @@
   function fillManage() {
     const game = currentGame();
     if (!game) return;
+    const modeLabel = game.launchMode === 'steam' ? '走 Steam 客户端'
+      : game.launchMode === 'direct' ? '直接启动'
+      : '自动';
     els.manageStats.innerHTML = [
       ['运行时程序', game.exePath ? (game.exePath.length > 34 ? `…${game.exePath.slice(-33)}` : game.exePath) : '未设置'],
+      ['启动方式', game.launchModeResolved === 'steam' ? `${modeLabel} · steam://` : `${modeLabel} · 进程`],
       ['启动参数', game.args || '无'],
       ['工作目录', game.workDir || '与程序相同'],
       ['版本 / 来源', game.source === 'steam' ? `Steam · App ${game.steamAppId || '—'}` : '手动添加']
     ].map(([label, value]) => `<div class="manage-stat"><span>${esc(label)}</span><b title="${esc(value)}">${esc(value)}</b></div>`).join('');
 
+    fillSteamPanel(game);
     els.resetArtRow.hidden = !game.exists;
     resetRemoveConfirm();
+  }
+
+  /**
+   * Whether an entry can start without the client is a property of the exe,
+   * not of how it was imported, so the panel reports the probed dependency
+   * instead of assuming every Steam entry needs Steam.
+   */
+  function fillSteamPanel(game) {
+    const panel = els.manageSteam;
+    if (!panel) return;
+    const show = game.source === 'steam' || !!game.steamAppId || game.launchMode !== 'auto';
+    panel.hidden = !show;
+    if (!show) return;
+
+    const state = game.steamRunning
+      ? (game.steamSignedIn ? 'Steam 运行中 · 已登录' : 'Steam 运行中 · 未登录')
+      : 'Steam 未运行';
+
+    els.manageSteamState.textContent = state;
+    els.manageSteamState.dataset.on = game.steamRunning && game.steamSignedIn ? 'ok' : 'warn';
+    els.manageSteamNote.textContent = game.steamNote || '';
+
+    const active = game.launchMode || 'auto';
+    for (const button of els.manageSteamModes.querySelectorAll('.steam-mode')) {
+      const on = button.dataset.mode === active;
+      button.classList.toggle('is-active', on);
+      button.setAttribute('aria-pressed', String(on));
+      // "走 Steam" is meaningless without an app id to hand over.
+      button.disabled = button.dataset.mode === 'steam' && !game.steamAppId;
+    }
+  }
+
+  async function setLaunchMode(mode) {
+    const game = currentGame();
+    if (!game || !mode || mode === game.launchMode) return;
+    const result = await call('updateGame', { id: game.id, launchMode: mode });
+    if (!result || !result.ok) {
+      toast(result?.error || '无法切换启动方式', 'alert');
+      audio.error();
+      return;
+    }
+    Object.assign(game, result.game);
+    fillManage();
+    audio.select();
   }
 
   function openManage() {
@@ -2214,7 +2415,7 @@
     state.settings.styleMode = mode;
     saveSettings();
     applyStyleModeUI();
-    audio.select();
+    if (options.sound !== false) audio.toggle();
     if (!options.silent) toast(mode === 'adaptive' ? '外观语言 · 跟随封面' : '外观语言 · NOVA 编辑系统', 'spark');
   }
 
@@ -2441,6 +2642,7 @@
     state.settings.closeToTray = !state.settings.closeToTray;
     setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
     saveSettings();
+    audio.toggle();
     toast(state.settings.closeToTray ? '关闭窗口时最小化到托盘' : '关闭窗口时每次询问', 'moon');
   }
 
@@ -2501,7 +2703,7 @@
     state.settings.avatarFile = result.avatarFile;
     state.avatarStamp = Date.now();
     syncAvatarImages();
-    audio.confirm();
+    audio.select();
     toast('头像已更新', 'check');
   }
 
@@ -2523,6 +2725,7 @@
     state.settings.autoBackup = state.settings.autoBackup === false;
     setPrefSwitch(els.settingsAutoBackupRow, els.settingsAutoBackupSwitch, state.settings.autoBackup);
     saveSettings();
+    audio.toggle();
     toast(state.settings.autoBackup ? '每天自动备份已开启' : '每天自动备份已关闭', 'check');
   }
 
@@ -2542,6 +2745,7 @@
 
   async function exportPack() {
     if (!els.settingsExport || els.settingsExport.disabled) return;
+    audio.select();
     els.settingsExport.disabled = true;
     const label = els.settingsExport.querySelector('span');
     if (label) label.textContent = '正在导出…';
@@ -2559,6 +2763,7 @@
   }
 
   async function exportRecords() {
+    audio.select();
     const result = await call('exportRecords');
     if (!result || !result.ok) {
       toast(result?.error || '导出失败', 'alert');
@@ -2639,6 +2844,23 @@
     if (els.appearanceSoundRow) els.appearanceSoundRow.setAttribute('aria-checked', String(on));
     const appearanceUse = els.appearanceSoundRow ? $('use', els.appearanceSoundRow) : null;
     if (appearanceUse) appearanceUse.setAttribute('href', on ? '#i-sound-on' : '#i-sound-off');
+    const unified = !!state.settings.unifiedSfx;
+    setPrefSwitch(els.settingsUnifiedSfxRow, els.settingsUnifiedSfxSwitch, unified);
+  }
+
+  /** Re-apply which sound set is audible without waiting for a theme switch. */
+  async function setUnifiedSfx(on) {
+    state.settings.unifiedSfx = on;
+    saveSettings();
+    syncSoundUI();
+    if (on) {
+      audio.themePools.clear();
+    } else {
+      const theme = window.NovaTheme ? window.NovaTheme.find(state.theme) : null;
+      await audio.warmTheme(state.theme, theme && theme.sounds);
+    }
+    audio.toggle();
+    toast(on ? '音效 · 使用默认统一音效' : '音效 · 跟随当前主题', 'sound-on');
   }
 
   function setSound(on, announce = true) {
@@ -2673,19 +2895,24 @@
     state.settings.calm = on;
     saveSettings();
     syncMotionUI();
-    if (on && state.settings.reduceMotion) setReduceMotion(false, false);
+    // Turning calm on clears reduce-motion as a side effect; that must not
+    // add a second cue on top of the one for this click.
+    if (on && state.settings.reduceMotion) setReduceMotion(false, false, { silent: true });
     syncSoundUI();
+    // The cue follows the click, not the toast: the appearance page toggles
+    // the same switch without a toast and still needs to sound.
+    audio.toggle();
     if (announce) {
-      audio.toggle();
       toast(on ? '沉稳模式已开启 · 更少动画，更多留白' : '沉稳模式已关闭', 'moon');
     }
   }
 
-  function setReduceMotion(on, announce = true) {
+  function setReduceMotion(on, announce = true, options = {}) {
     state.settings.reduceMotion = on;
     saveSettings();
     syncMotionUI();
-    if (announce) { audio.toggle(); toast(on ? '已开启减少动效' : '已关闭减少动效', 'spark'); }
+    if (options.silent !== true) audio.toggle();
+    if (announce) toast(on ? '已开启减少动效' : '已关闭减少动效', 'spark');
   }
 
   function syncFullscreenLabels() {
@@ -2942,12 +3169,37 @@
     const startedAt = performance.now();
     const result = await call('launch', { id: game.id });
     const ok = result && result.ok;
+    const pending = ok && result.pending;
 
     // Step 2 — the process exists; give the surface a beat to hand over.
     const minimum = state.settings.calm ? 1000 : 1600;
     const elapsed = performance.now() - startedAt;
     const wait = Math.max(0, minimum - elapsed);
     await new Promise((resolve) => setTimeout(resolve, wait));
+
+    if (ok && pending) {
+      // Steam owns the launch now. The session appears when the game process
+      // shows up, which can be minutes away when the client must log in, so
+      // the overlay waits on that event instead of claiming it is running.
+      game.launchCount = (game.launchCount || 0) + 1;
+      game.lastPlayedUtc = new Date().toISOString();
+      setLaunchProgress(70);
+      els.launchStatus.textContent = '等待 Steam…';
+      els.launchSystem.textContent = '交给 Steam';
+      els.launchFootMeta.textContent = result.hint || 'Steam 正在启动这款游戏';
+      setLaunchStep(2);
+      state.launchPendingId = game.id;
+      state.launchTimers.push(setTimeout(() => {
+        setLaunchProgress(100);
+        setLaunchStep(3);
+        els.launchOverlay.classList.add('is-ready');
+        audio.launchReady();
+      }, state.settings.calm ? 220 : 520));
+      if (state.overlay === 'details') populateDetails(game);
+      updateRail();
+      refreshLive();
+      return;
+    }
 
     if (ok) {
       game.launchCount = (game.launchCount || 0) + 1;
@@ -3014,6 +3266,18 @@
       game.launchCount = Math.max(game.launchCount || 0, 1);
       game.lastPlayedUtc = new Date().toISOString();
     }
+    // A Steam launch waits here: the overlay was already "ready" and now the
+    // real process exists, so it can close the way a direct launch would.
+    if (state.launchPendingId === payload.gameId) {
+      state.launchPendingId = null;
+      if (state.overlay === 'launch') {
+        els.launchProgress && setLaunchProgress(100);
+        els.launchStatus.textContent = '运行中';
+        els.launchSystem.textContent = '运行中';
+        els.launchOverlay.classList.add('is-ready');
+        setTimeout(() => { if (state.overlay === 'launch') closeLaunch({ quiet: true }); }, 900);
+      }
+    }
     pushNotice({
       icon: 'play',
       color: game?.accent || '#ffb45e',
@@ -3024,6 +3288,32 @@
     refreshLive();
     if (state.overlay === 'details') populateDetails(currentGame());
     updateRail();
+  }
+
+  /** The client accepted the request but the game never appeared — normally a
+      login screen or a pending update. Say so instead of blaming the path. */
+  function onSessionFailed(payload) {
+    if (!payload) return;
+    const game = findGame(payload.gameId);
+    if (state.launchPendingId === payload.gameId) {
+      state.launchPendingId = null;
+      if (state.overlay === 'launch') {
+        setLaunchProgress(100);
+        els.launchStatus.textContent = payload.error || 'Steam 没有启动游戏';
+        els.launchSystem.textContent = '未启动';
+        els.launchFootMeta.textContent = '可以在「管理」里改用直接启动';
+        els.launchOverlay.classList.add('is-ready', 'is-error');
+        setLaunchStep(-1);
+      }
+    }
+    pushNotice({
+      icon: 'alert',
+      color: game?.accent || '#ff9d7a',
+      title: `${payload.gameName || '游戏'} 没有启动`,
+      sub: payload.error || 'Steam 没有返回游戏进程',
+      gameId: payload.gameId
+    });
+    toast(payload.error || 'Steam 没有启动游戏', 'alert');
   }
 
   function onSessionEnded(payload) {
@@ -3138,6 +3428,7 @@
       framing.y = clampNumber(framing.y, 0, 100);
       framing.zoom = clampNumber(framing.zoom, 1, 2.4);
       syncEditorFraming();
+      audio.toggle();
       event.stopPropagation();
     });
 
@@ -3577,6 +3868,9 @@
       !(state.system && state.system.tier === 'safe');
     if (animate) {
       themeSwitching = true;
+      // Load the incoming theme's sounds before the curtain closes: the switch
+      // cue belongs to the theme being entered, not the one being left.
+      await audio.warmTheme(id, theme.sounds);
       audio.theme();
       await playThemeCurtain(theme);
     }
@@ -3595,6 +3889,9 @@
     }
 
     state.theme = result.theme.id;
+    // Silent switches (restoring the saved theme at boot, or a fallback after
+    // a broken theme) still need that theme's launch cues from now on.
+    if (!animate) await audio.warmTheme(state.theme, result.theme.sounds);
     if (!options.silent && before !== state.theme) recordThemeUse(state.theme);
     renderThemes();
     if (before !== state.theme) {
@@ -3619,6 +3916,24 @@
     }
   }
 
+  /** Replay a theme's opening animation (and its beat-matched sequence)
+      without switching to that theme. */
+  async function previewThemeIntro(id) {
+    if (!window.NovaIntro || !window.NovaTheme) return;
+    if (state.overlay === 'launch' || state.overlay === 'sleep') return;
+    if (window.NovaIntro.active) return;
+    const theme = window.NovaTheme.find(id);
+    if (!theme || theme.ok === false) return;
+
+    audio.select();
+    closeContextMenu();
+    closePopovers();
+    // Decode first so the first hit lands with the first frame, not 80ms late.
+    await audio.playPreviewBoot(theme.sounds);
+    const played = window.NovaIntro.play({ intro: theme.intro || 'gilded' });
+    played.then(() => audio.stopLong('boot', 0.3));
+  }
+
   async function startThemes() {
     if (!window.NovaTheme || !hasBridge) return;
     await window.NovaTheme.start({ call, styleMode: state.settings.styleMode });
@@ -3633,6 +3948,11 @@
       : 'nova';
     await window.NovaTheme.activate(preferred, { silent: true });
     state.theme = window.NovaTheme.activeId;
+    // This path bypasses applyTheme, so the restored theme's cues have to be
+    // loaded here too — otherwise boot and the first game launch are silent
+    // for however long the user waits before opening 外观.
+    const restored = window.NovaTheme.find(state.theme);
+    await audio.warmTheme(state.theme, restored && restored.sounds);
     renderThemes();
     applyStyleModeUI();
     applyAccent(currentGame());
@@ -3662,13 +3982,14 @@
     if (els.settingsAvatarButton) els.settingsAvatarButton.addEventListener('click', chooseAvatar);
     if (els.settingsClearAvatar) els.settingsClearAvatar.addEventListener('click', clearAvatar);
     if (els.settingsAutoBackupRow) els.settingsAutoBackupRow.addEventListener('click', toggleAutoBackup);
+    if (els.settingsUnifiedSfxRow) els.settingsUnifiedSfxRow.addEventListener('click', () => setUnifiedSfx(!state.settings.unifiedSfx));
     if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));
     if (els.settingsTier) els.settingsTier.addEventListener('change', changeCompatibilityTier);
     if (els.settingsExport) els.settingsExport.addEventListener('click', exportPack);
     if (els.settingsImport) els.settingsImport.addEventListener('click', importPack);
     if (els.settingsCsv) els.settingsCsv.addEventListener('click', exportRecords);
-    if (els.settingsOpenData) els.settingsOpenData.addEventListener('click', () => call('openDataFolder'));
-    if (els.settingsOpenBackups) els.settingsOpenBackups.addEventListener('click', () => call('openBackupsFolder'));
+    if (els.settingsOpenData) els.settingsOpenData.addEventListener('click', () => { audio.select(); call('openDataFolder'); });
+    if (els.settingsOpenBackups) els.settingsOpenBackups.addEventListener('click', () => { audio.select(); call('openBackupsFolder'); });
     if (els.libSort) {
       els.libSort.addEventListener('change', () => {
         state.settings.librarySort = els.libSort.value;
@@ -3725,8 +4046,7 @@
       const result = await call('openThemesFolder');
       audio.open();
       if (result && result.folder) toast('已打开主题文件夹', 'folder');
-    });
-  }
+    });  }
 
   /* ============================================================
      CONTEXT MENU
@@ -3748,6 +4068,11 @@
     const scope = padScope();
     const items = [];
 
+    // Right-clicking a theme card adds its preview to the normal menu instead
+    // of replacing it: the page-level actions still apply there.
+    const themeCard = target.closest('.theme-card[data-theme]');
+    const themeId = themeCard ? themeCard.dataset.theme : null;
+
     if (scope === 'editor') {
       const field = target.closest('input, textarea');
       if (field && !field.readOnly) {
@@ -3765,6 +4090,21 @@
     items.push({ label: theme ? `界面主题 · ${theme.name}` : '界面主题', icon: 'spark', action: openAppearance });
     items.push({ label: '游戏详情', icon: 'info', action: openDetails, disabled: !currentGame() });
     items.push({ label: '在资源管理器中显示', icon: 'folder', action: () => currentGame() && call('revealGame', { id: currentGame().id }), disabled: !currentGame()?.exists });
+    if (themeId && window.NovaTheme) {
+      const card = window.NovaTheme.find(themeId);
+      const active = window.NovaTheme.activeId === themeId;
+      items.push({
+        label: `播放「${card.name}」启动动画`,
+        icon: 'play',
+        action: () => previewThemeIntro(themeId)
+      });
+      items.push({
+        label: active ? '正在使用这套主题' : '使用这套主题',
+        icon: 'check',
+        disabled: active,
+        action: () => applyTheme(themeId)
+      });
+    }
     items.push({ separator: true });
     items.push({ label: state.fullscreen ? '退出全屏' : '全屏', key: 'F', icon: 'fullscreen', action: () => toggleFullscreen() });
     items.push({ label: '睡眠模式', icon: 'moon', action: enterSleep });
@@ -4543,6 +4883,7 @@
     if (!cards.length) return;
     state.libPadIndex = (state.libPadIndex + delta + cards.length) % cards.length;
     const card = cards[state.libPadIndex];
+    audio.move(delta);
     try {
       card.focus({ preventScroll: false });
       card.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -4781,6 +5122,13 @@
       openEditor(game);
     });
     els.resetArtRow.addEventListener('click', resetArtwork);
+    if (els.manageSteamModes) {
+      els.manageSteamModes.addEventListener('click', (event) => {
+        const button = event.target.closest('.steam-mode');
+        if (!button || button.disabled) return;
+        setLaunchMode(button.dataset.mode);
+      });
+    }
     els.revealBtn.addEventListener('click', () => {
       const game = currentGame();
       if (game) call('revealGame', { id: game.id });
@@ -4905,10 +5253,11 @@
       });
       if (quit) call('quitNow');
     });
-    els.dataFolderBtn.addEventListener('click', () => call('openDataFolder'));
+    els.dataFolderBtn.addEventListener('click', () => { audio.select(); call('openDataFolder'); });
     els.dataFolderBtn.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
+        audio.select();
         call('openDataFolder');
       }
     });
@@ -4923,7 +5272,6 @@
       const button = event.target.closest('.style-choice');
       if (!button) return;
       setStyleMode(button.dataset.style, { silent: true });
-      audio.toggle();
     });
     els.typeShuffleBtn.addEventListener('click', shuffleTypeDirection);
     els.appearanceOptions.addEventListener('scroll', updateAppearanceScrollState, { passive: true });
@@ -4945,7 +5293,7 @@
       document.documentElement.classList.remove('idle');
       scheduleFullscreenIdle();
     }, { passive: true });
-    els.openDataRow.addEventListener('click', () => call('openDataFolder'));
+    els.openDataRow.addEventListener('click', () => { audio.select(); call('openDataFolder'); });
 
     /* editor */
     els.editorClose.addEventListener('click', () => closeEditor());
@@ -5090,6 +5438,7 @@
       layout: boot.settings?.layout === 'rail' ? 'rail' : 'row',
       closeToTray: boot.settings?.closeToTray === true,
       autoBackup: boot.settings?.autoBackup !== false,
+      unifiedSfx: boot.settings?.unifiedSfx === true,
       librarySort: boot.settings?.librarySort || 'recent',
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
       developerMode: boot.settings?.developerMode === true
@@ -5209,7 +5558,13 @@
         document.body.classList.add('is-booted');
         return;
       }
-      return window.NovaIntro.play({ intro: preset }).then(() => {
+      // The theme's boot file is a sequence authored on its intro keyframes:
+      // firing it as the animation starts is what lands the hits on the beats.
+      themesReady.then(() => audio.boot()).catch(() => {});
+      const played = window.NovaIntro.play({ intro: preset });
+      played.then(() => {
+        // Skip or natural end: fade whatever is left of the sequence.
+        audio.stopLong('boot', 0.3);
         ensureActiveTileVisible();
         refitLogos();
         if (!hasBridge) {
@@ -5218,6 +5573,7 @@
           setTimeout(() => toast('游戏库是空的 · 按 A 或点击 + 添加游戏', 'spark'), 500);
         }
       });
+      return played;
     });
 
     let resizeTimer = null;
@@ -5311,6 +5667,9 @@
       updateAppearanceScrollState?.();
       return 'ok';
     },
+    // Audio internals are exposed for the capture/QA harness: verifying which
+    // cue set is live otherwise means guessing from decoded durations.
+    audio,
     state
   };
 

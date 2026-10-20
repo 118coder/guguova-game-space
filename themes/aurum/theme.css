@@ -1634,3 +1634,60 @@ html[data-theme="aurum"] .type-readout-kicker { color: var(--aurum-bronze-hi); }
 /* 外观说明文字提亮，避免小字在深底上过暗 */
 html[data-theme="aurum"] .appearance-head p,
 html[data-theme="aurum"] .section-head p { color: var(--aurum-text-soft); }
+
+/* ------------------------------------------------------------
+   nav selection — a double gold rule, not a parchment blob.
+   AURUM's language is thin gold lines and sharp corners; a filled
+   rounded plaque read as a foreign element on the dark sanctum.
+   ------------------------------------------------------------ */
+
+html[data-theme="aurum"] .nav-btn {
+  padding: 8px 24px;
+  clip-path: none;
+  border-radius: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+html[data-theme="aurum"] .nav-btn.is-active {
+  color: var(--aurum-bronze-hi);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+html[data-theme="aurum"] .nav-btn.is-active::after {
+  height: 0;
+  background: none;
+}
+
+html[data-theme="aurum"] .nav-glide {
+  border-radius: 0;
+  clip-path: none;
+  background: transparent;
+  /* outer hairline + 3px gap + inner hairline, all inside the box */
+  box-shadow:
+    inset 0 0 0 1px rgba(232, 201, 138, .62),
+    inset 0 0 0 3px rgba(7, 11, 10, .92),
+    inset 0 0 0 4px rgba(232, 201, 138, .26),
+    0 0 26px -14px rgba(232, 201, 138, .55);
+}
+
+/* A tiny jade point marks the current tab, the same accent used elsewhere. */
+html[data-theme="aurum"] .nav-glide::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  transform: rotate(45deg);
+  background: var(--aurum-cyan);
+  box-shadow: 0 0 10px rgba(95, 214, 198, .7);
+}
+
+html[data-theme="aurum"] .nav-glide {
+  position: absolute;
+}

@@ -641,6 +641,14 @@
   color: var(--accent);
 }
 
+/* The idle accent is also the hover background in several themes (endfield's
+   yellow, summer's sky, zero hour's lime), which erases this text. Hand the
+   colour back to the row on hover so each theme's own contrast pair applies. */
+.menu-row:hover .row-value,
+.menu-row:focus-visible .row-value {
+  color: inherit;
+}
+
 .profile-menu {
   max-height: calc(100svh - 96px);
   overflow-y: auto;

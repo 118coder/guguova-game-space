@@ -24,7 +24,26 @@
     error: null,
     tokens: {},
     icons: {},
-    features: {}
+    features: {},
+    // NOVA has no folder on disk; its cue set ships beside the shared sounds.
+    sounds: {
+      bong: 'assets/sfx/nova/bong.ogg',
+      click: 'assets/sfx/nova/click.ogg',
+      nav: 'assets/sfx/nova/nav.ogg',
+      soft: 'assets/sfx/nova/soft.ogg',
+      select: 'assets/sfx/nova/select.ogg',
+      confirm: 'assets/sfx/nova/confirm.ogg',
+      error: 'assets/sfx/nova/error.ogg',
+      tick: 'assets/sfx/nova/tick.ogg',
+      chime: 'assets/sfx/nova/chime.ogg',
+      deep: 'assets/sfx/nova/deep.ogg',
+      launchRise: 'assets/sfx/nova/launchRise.ogg',
+      launchFall: 'assets/sfx/nova/launchFall.ogg',
+      switch: 'assets/sfx/nova/switch.ogg',
+      launch: 'assets/sfx/nova/launch.ogg',
+      exit: 'assets/sfx/nova/exit.ogg',
+      boot: 'assets/sfx/nova/boot.ogg'
+    }
   };
 
   const state = {

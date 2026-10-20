@@ -1,0 +1,139 @@
+{
+  "out_dir": "ui",
+  "sr": 44100,
+  "normalize": -1.0,
+  "max_loudness": -6.0,
+  "sounds": [
+    {
+      "out": "bong.wav",
+      "duration": 0.13,
+      "layers": [
+        { "type": "synth", "inst": "marimba", "notes": "C4", "dur": 0.09, "vel": 0.55, "gain": 0.9 },
+        { "type": "synth", "inst": "handpan", "notes": "C3", "dur": 0.1, "vel": 0.4, "gain": 0.35 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.12, "size": 0.25 }],
+      "trim": true
+    },
+    {
+      "out": "click.wav",
+      "duration": 0.016,
+      "layers": [
+        { "type": "sfx", "kind": "click", "params": { "tone": 2600 }, "gain": 0.85 },
+        { "type": "sfx", "kind": "blip", "params": { "freq": 1900, "dur": 0.008 }, "gain": 0.25 }
+      ],
+      "fx": [{ "type": "highpass", "cutoff": 700 }],
+      "trim": true
+    },
+    {
+      "out": "nav.wav",
+      "duration": 0.018,
+      "layers": [
+        { "type": "sfx", "kind": "click", "params": { "tone": 3300 }, "gain": 0.75 },
+        { "type": "sfx", "kind": "blip", "params": { "freq": 2400, "dur": 0.01 }, "gain": 0.3 }
+      ],
+      "fx": [{ "type": "highpass", "cutoff": 800 }],
+      "trim": true
+    },
+    {
+      "out": "soft.wav",
+      "duration": 0.018,
+      "layers": [
+        { "type": "sfx", "kind": "click", "params": { "tone": 2000 }, "gain": 0.7 },
+        { "type": "sfx", "kind": "pop", "params": { "freq": 360 }, "gain": 0.3 }
+      ],
+      "fx": [{ "type": "highpass", "cutoff": 500 }],
+      "trim": true
+    },
+    {
+      "out": "select.wav",
+      "duration": 0.30,
+      "layers": [
+        { "type": "seq", "inst": "celesta", "steps": "A4:0.1 C5:0.18", "vel": 0.6, "gain": 0.8 },
+        { "type": "synth", "inst": "glass", "notes": "A5", "dur": 0.14, "vel": 0.35, "gain": 0.18, "at": 0.05 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.22, "size": 0.35 }],
+      "trim": true
+    },
+    {
+      "out": "confirm.wav",
+      "duration": 0.55,
+      "layers": [
+        { "type": "seq", "inst": "celesta", "steps": "A4:0.09 C5:0.09 E5:0.30", "vel": 0.62, "gain": 0.8 },
+        { "type": "synth", "inst": "glass", "notes": "E6", "dur": 0.2, "vel": 0.3, "gain": 0.14, "at": 0.18 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.26, "size": 0.45 }],
+      "trim": true
+    },
+    {
+      "out": "error.wav",
+      "duration": 0.17,
+      "layers": [
+        { "type": "seq", "inst": "felt_piano", "steps": "C4:0.07 Bb3:0.09", "vel": 0.5, "gain": 0.85 },
+        { "type": "synth", "inst": "sub", "notes": "C2", "dur": 0.1, "vel": 0.4, "gain": 0.25 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 2200 }, { "type": "reverb", "mix": 0.1, "size": 0.2 }],
+      "trim": true
+    },
+    {
+      "out": "tick.wav",
+      "duration": 0.042,
+      "layers": [
+        { "type": "sfx", "kind": "blip", "params": { "freq": 5200, "dur": 0.03 }, "gain": 0.4 }
+      ],
+      "fx": [{ "type": "highpass", "cutoff": 3500 }, { "type": "lowpass", "cutoff": 7000 }],
+      "trim": true
+    },
+    {
+      "out": "chime.wav",
+      "duration": 0.28,
+      "layers": [
+        { "type": "synth", "inst": "bell", "notes": "C6", "dur": 0.16, "vel": 0.5, "gain": 0.8, "params": { "ratio": 3.5 } },
+        { "type": "synth", "inst": "glass", "notes": "G6", "dur": 0.22, "vel": 0.28, "gain": 0.2 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.3, "size": 0.4 }],
+      "trim": true
+    },
+    {
+      "out": "deep.wav",
+      "duration": 0.20,
+      "layers": [
+        { "type": "sfx", "kind": "sweep_down", "params": { "start": 240, "end": 105, "dur": 0.18, "wave": "sine" }, "gain": 0.75 }
+      ],
+      "fx": [{ "type": "lowpass", "cutoff": 900 }, { "type": "lowpass", "cutoff": 1400 }],
+      "trim": true
+    },
+    {
+      "out": "launch-rise.wav",
+      "duration": 0.26,
+      "layers": [
+        { "type": "synth", "inst": "warm_pad", "notes": "A3", "dur": 0.2, "vel": 0.5, "gain": 0.55 },
+        { "type": "sfx", "kind": "sweep_up", "params": { "start": 220, "end": 660, "dur": 0.2, "wave": "sine" }, "gain": 0.5 },
+        { "type": "synth", "inst": "sub", "notes": "A1", "dur": 0.14, "vel": 0.45, "gain": 0.3 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.18, "size": 0.35 }],
+      "trim": true
+    },
+    {
+      "out": "launch-fall.wav",
+      "duration": 0.26,
+      "layers": [
+        { "type": "synth", "inst": "warm_pad", "notes": "A3", "dur": 0.2, "vel": 0.45, "gain": 0.5 },
+        { "type": "sfx", "kind": "sweep_down", "params": { "start": 620, "end": 200, "dur": 0.2, "wave": "sine" }, "gain": 0.45 },
+        { "type": "synth", "inst": "sub", "notes": "A1", "dur": 0.12, "vel": 0.35, "gain": 0.25 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.2, "size": 0.4 }],
+      "trim": true
+    },
+    {
+      "out": "boot.wav",
+      "duration": 1.4,
+      "layers": [
+        { "type": "synth", "inst": "warm_pad", "notes": "A2", "dur": 1.2, "vel": 0.35, "gain": 0.4 },
+        { "type": "seq", "inst": "celesta", "steps": "-:0.15 A3:0.12 -:0.02 C4:0.12 -:0.02 E4:0.5", "vel": 0.45, "gain": 0.55, "at": 0.0 },
+        { "type": "synth", "inst": "glass", "notes": "E5", "dur": 0.6, "vel": 0.25, "gain": 0.12, "at": 0.62 }
+      ],
+      "fx": [{ "type": "reverb", "mix": 0.35, "size": 0.6 }],
+      "trim": true
+    }
+  ]
+}

@@ -76,6 +76,15 @@ public sealed class NativeBridge
             seconds,
             playtimeSeconds = _store.Find(info.GameId)?.PlaytimeSeconds ?? 0
         });
+        // The client accepted the request but never spawned the game: usually
+        // a login screen or an update, so the message says that instead of
+        // blaming the executable path.
+        _launcher.GameFailed += (gameId, message) => Notify("session-failed", new
+        {
+            gameId,
+            gameName = _store.Find(gameId)?.Name ?? "",
+            error = message
+        });
     }
 
     public void Notify(string type, object payload)
@@ -133,6 +142,7 @@ public sealed class NativeBridge
                 "setAvatar" => SetAvatar(args),
                 "clearAvatar" => ClearAvatar(),
                 "launch" => LaunchGame(args),
+                "steamStatus" => SteamStatus(args),
                 "stop" => StopGame(args),
                 "getRunning" => _launcher.Running,
                 "scanLibrary" => ScanLibrary(),
@@ -222,7 +232,8 @@ public sealed class NativeBridge
                     error = t.Error,
                     tokens = t.Tokens,
                     icons = t.Icons,
-                    features = t.Features
+                    features = t.Features,
+                    sounds = t.Sounds
                 }).ToList()
             };
         }
@@ -366,6 +377,10 @@ public sealed class NativeBridge
 
     private GamePayload ToPayload(GameEntry game)
     {
+        var mode = SteamService.ModeFor(game);
+        // Only a Steam-launched entry depends on the client, so the client
+        // probe is skipped for everything else and costs nothing at boot.
+        SteamService.State? steam = mode == "steam" ? SteamService.Detect() : null;
         var exists = !string.IsNullOrWhiteSpace(game.ExePath) && File.Exists(game.ExePath);
         return new GamePayload(
             game.Id,
@@ -402,7 +417,12 @@ public sealed class NativeBridge
             game.WorkDir,
             !string.IsNullOrWhiteSpace(game.CustomLogo),
             game.TypeRecipe,
-            game.Dna);
+            game.Dna,
+            game.LaunchMode,
+            mode,
+            steam?.Running ?? false,
+            steam?.SignedIn ?? false,
+            SteamService.Inspect(game).Note);
     }
 
     private static string DisplayName(GameEntry game)
@@ -477,6 +497,8 @@ public sealed class NativeBridge
                 settings.CloseToTray = tray.GetBoolean();
             if (args.TryGetProperty("autoBackup", out var backup) && backup.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.AutoBackup = backup.GetBoolean();
+            if (args.TryGetProperty("unifiedSfx", out var unified) && unified.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.UnifiedSfx = unified.GetBoolean();
             if (args.TryGetProperty("librarySort", out var sort) && sort.ValueKind == JsonValueKind.String)
             {
                 var value = sort.GetString() ?? "recent";
@@ -522,6 +544,45 @@ public sealed class NativeBridge
         var game = ResolveGame(args);
         if (game == null) return new LaunchResult(false, "找不到这款游戏", null, null);
         return _launcher.Launch(game);
+    }
+
+    /// <summary>Client state plus what this executable actually needs. Used by
+    /// the manage panel so a "打不开" entry can be explained instead of guessed.</summary>
+    private object SteamStatus(JsonElement args)
+    {
+        try
+        {
+            var state = SteamService.Detect(true);
+            var game = ResolveGame(args);
+            if (game == null)
+                return new { ok = true, installed = state.Installed, running = state.Running,
+                    signedIn = state.SignedIn, root = state.Root };
+
+            var dependency = SteamService.Inspect(game);
+            return new
+            {
+                ok = true,
+                installed = state.Installed,
+                running = state.Running,
+                signedIn = state.SignedIn,
+                root = state.Root,
+                appId = game.SteamAppId,
+                launchMode = game.LaunchMode,
+                launchModeResolved = SteamService.ModeFor(game),
+                usesSteamApi = dependency.UsesSteamApi,
+                steamStub = dependency.SteamStub,
+                hasAppIdFile = dependency.HasAppIdFile,
+                note = dependency.Note,
+                // A SteamStub exe cannot start without the client, and an
+                // app that imports steam_api stalls at initialisation.
+                requiresClient = dependency.SteamStub || dependency.UsesSteamApi
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("steam status", ex);
+            return new { ok = false, error = ex.Message };
+        }
     }
 
     private object StopGame(JsonElement args)
@@ -887,6 +948,13 @@ public sealed class NativeBridge
             if (TryGetString(args, "mode", out var mode)) game.Mode = mode ?? "单人";
             if (TryGetString(args, "args", out var launchArgs)) game.Args = launchArgs ?? "";
             if (TryGetString(args, "workDir", out var workDir)) game.WorkDir = workDir ?? game.WorkDir;
+            if (TryGetString(args, "launchMode", out var launchMode))
+            {
+                var normalized = (launchMode ?? "").Trim().ToLowerInvariant();
+                if (normalized == "steam" && string.IsNullOrWhiteSpace(game.SteamAppId))
+                    return new { ok = false, error = "没有 AppID，无法使用 Steam 启动方式" };
+                game.LaunchMode = normalized == "steam" || normalized == "direct" ? normalized : "auto";
+            }
             if (TryGetString(args, "logoText", out var logoText))
                 game.CustomLogo = string.IsNullOrWhiteSpace(logoText) ? null : logoText.Trim();
             if (TryGetString(args, "typeRecipe", out var typeRecipe))

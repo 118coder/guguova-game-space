@@ -2864,3 +2864,727 @@ html.reduce-motion .intro-dr-lines :is(path, circle) {
 
 /* 主题的 body::after 顶条（z 300）不能压过开屏；幕布仍在 640 */
 .intro { z-index: 500; }
+
+/* ============================================================
+   ZERO HOUR · v2 · CRT 信号 → 漫画分页
+   与终末地的「终端日志」区分：这里先是一块会亮起来的 CRT，
+   噪点与彩条持续约 0.6s，然后分镜以斜切方式压入，标题带酸柠错位硬影，
+   字幕带与速度线收在分镜内部。
+   ============================================================ */
+
+.intro-zh2 {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 4.5vh 4.5vw 3.5vh;
+  color: #f1efe7;
+  font-family: var(--font-ui);
+}
+
+.intro-zh2-screen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(201, 247, 58, .42);
+  background: #07080b;
+  box-shadow: inset 0 0 90px rgba(0, 0, 0, .92), 0 0 0 1px rgba(0, 0, 0, .6);
+  animation: zh2Power 640ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes zh2Power {
+  0%   { transform: scaleY(.004); filter: brightness(3.2); }
+  35%  { transform: scaleY(.018); filter: brightness(2.1); }
+  70%  { transform: scaleY(.9); filter: brightness(1.2); }
+  100% { transform: scaleY(1); filter: none; }
+}
+
+.intro-zh2-glass {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(80% 70% at 50% 45%, rgba(201, 247, 58, .06), transparent 72%),
+    radial-gradient(120% 60% at 50% 110%, rgba(89, 227, 255, .08), transparent 70%);
+  pointer-events: none;
+}
+
+.intro-zh2-scan {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .38) 0 1px, transparent 1px 3px);
+  animation: zh2Scan 5.5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes zh2Scan { to { background-position: 0 240px; } }
+
+.intro-zh2-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-image:
+    repeating-radial-gradient(circle at 30% 20%, rgba(255, 255, 255, .10) 0 1px, transparent 1px 4px),
+    repeating-radial-gradient(circle at 70% 60%, rgba(255, 255, 255, .07) 0 1px, transparent 1px 5px);
+  animation: zh2Noise 1.15s steps(7) .1s both;
+  pointer-events: none;
+}
+
+@keyframes zh2Noise {
+  0%   { opacity: .9; }
+  35%  { opacity: .35; }
+  65%  { opacity: .62; }
+  100% { opacity: 0; }
+}
+
+.intro-zh2-signal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  animation: zh2SignalOut 680ms ease 600ms both;
+}
+
+@keyframes zh2SignalOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+.intro-zh2-bars {
+  display: flex;
+  gap: 3px;
+  height: clamp(16px, 3.6vh, 32px);
+}
+
+.intro-zh2-bars i { width: clamp(13px, 2.3vw, 26px); }
+.intro-zh2-bars i:nth-child(1) { background: #f1efe7; }
+.intro-zh2-bars i:nth-child(2) { background: #ffe600; }
+.intro-zh2-bars i:nth-child(3) { background: #59e3ff; }
+.intro-zh2-bars i:nth-child(4) { background: #c9f73a; }
+.intro-zh2-bars i:nth-child(5) { background: #ff4d9d; }
+.intro-zh2-bars i:nth-child(6) { background: #ff5a3c; }
+
+.intro-zh2-signal b {
+  font-size: clamp(16px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: .22em;
+  color: #f1efe7;
+}
+
+.intro-zh2-signal em {
+  font-style: normal;
+  font-size: clamp(10px, 1.1vw, 13px);
+  letter-spacing: .3em;
+  color: #59e3ff;
+}
+
+.intro-zh2-panel {
+  position: absolute;
+  inset: 7% 4% 7% 24%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 4.5% 5.5%;
+  background: #0a0b0f;
+  border: 2px solid #c9f73a;
+  clip-path: polygon(0 0, 100% 0, 100% 82%, 90% 100%, 0 100%);
+  animation: zh2Panel 520ms cubic-bezier(.16, 1, .3, 1) 380ms both;
+}
+
+@keyframes zh2Panel {
+  0%   { opacity: 0; transform: translate(16%, 22%) rotate(2.5deg) scale(1.04); }
+  100% { opacity: 1; transform: none; }
+}
+
+.intro-zh2-kicker {
+  font-size: clamp(10px, 1.05vw, 13px);
+  letter-spacing: .24em;
+  color: #59e3ff;
+}
+
+.intro-zh2-kicker b { color: #f1efe7; font-weight: 600; }
+
+.intro-zh2-word {
+  display: flex;
+  flex-direction: column;
+  line-height: .84;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  font-size: clamp(38px, 8.6vw, 112px);
+  color: #f1efe7;
+  text-shadow: 4px 4px 0 #c9f73a;
+  animation: zh2Word 420ms cubic-bezier(.16, 1, .3, 1) 500ms both;
+}
+
+.intro-zh2-word span:nth-child(2) { color: #c9f73a; text-shadow: 4px 4px 0 #f1efe7; }
+
+@keyframes zh2Word {
+  0%   { opacity: 0; transform: translateY(28px) scale(1.06); }
+  100% { opacity: 1; transform: none; }
+}
+
+.intro-zh2-band {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 12px;
+  background: #c9f73a;
+  color: #07080b;
+  font-size: clamp(11px, 1.25vw, 15px);
+  font-weight: 800;
+  letter-spacing: .22em;
+  animation: zh2Band 380ms cubic-bezier(.16, 1, .3, 1) 620ms both;
+}
+
+@keyframes zh2Band {
+  0%   { opacity: 0; transform: scaleX(.2); transform-origin: left center; }
+  100% { opacity: 1; transform: none; }
+}
+
+.intro-zh2-titles {
+  font-size: clamp(10px, 1.05vw, 13px);
+  letter-spacing: .26em;
+  color: rgba(241, 239, 231, .62);
+  animation: zh2Fade 400ms ease 780ms both;
+}
+
+.intro-zh2-speed {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(201, 247, 58, .20) 9px 10px);
+  opacity: 0;
+  animation: zh2Speed 900ms ease 440ms both;
+  pointer-events: none;
+}
+
+@keyframes zh2Speed {
+  0%   { opacity: 0; transform: translateX(-6%); }
+  35%  { opacity: .9; }
+  100% { opacity: 0; transform: translateX(4%); }
+}
+
+.intro-zh2-lime {
+  position: absolute;
+  bottom: 9%;
+  width: 2px;
+  height: 30%;
+  background: #c9f73a;
+  opacity: .85;
+  animation: zh2Fade 480ms ease 640ms both;
+}
+
+.intro-zh2-lime.left { left: 2.4%; }
+.intro-zh2-lime.right { right: 2.4%; }
+
+.intro-zh2-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  font-size: clamp(10px, 1vw, 12px);
+  letter-spacing: .26em;
+  color: rgba(241, 239, 231, .58);
+  animation: zh2Fade 520ms ease 900ms both;
+}
+
+.intro-zh2-onair i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  background: #c9f73a;
+  animation: zh2Blink 1s steps(2, end) infinite;
+}
+
+@keyframes zh2Blink { 50% { opacity: .25; } }
+
+@keyframes zh2Fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+html.reduce-motion .intro-zh2-screen,
+html.reduce-motion .intro-zh2-signal,
+html.reduce-motion .intro-zh2-panel,
+html.reduce-motion .intro-zh2-word,
+html.reduce-motion .intro-zh2-band,
+html.reduce-motion .intro-zh2-titles,
+html.reduce-motion .intro-zh2-speed,
+html.reduce-motion .intro-zh2-lime,
+html.reduce-motion .intro-zh2-foot,
+html.reduce-motion .intro-zh2-noise {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+html.reduce-motion .intro-zh2-signal { display: none; }
+
+/* ============================================================
+   ENDFIELD · v2 · 工业纸面控制台
+   按 endfield-ui 的六条法则重做：
+   - 纸白底、墨字，酸黄只做「当前状态」的填充块；
+   - 直角块 + 1px 细线分区，没有投影/发光/渐变；
+   - 宽体大写眉标在上，粗体中文在下；
+   - 只排真实数字（日期 / 时间 / 游戏数）；
+   - 入场全部在 700ms 内完成：擦入、落下、38ms 错开，不弹跳。
+   ============================================================ */
+
+.intro[data-intro="endfield"] {
+  background: #f4f4f2;
+}
+
+.intro[data-intro="endfield"]::before,
+.intro[data-intro="endfield"]::after {
+  display: none;
+}
+
+.intro[data-intro="endfield"] .intro-grain,
+.intro[data-intro="endfield"] .intro-corners,
+.intro[data-intro="endfield"] .intro-stage,
+.intro[data-intro="endfield"] .intro-hint {
+  color: #161616;
+}
+
+.intro[data-intro="endfield"] .intro-hint { opacity: .55; }
+
+.intro-ef2 {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 5vh 5vw;
+  color: #161616;
+  font-family: var(--font-ui);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(22, 22, 22, .06) 0 1px, transparent 1px 88px),
+    repeating-linear-gradient(90deg, rgba(22, 22, 22, .06) 0 1px, transparent 1px 88px);
+}
+
+/* 3px magenta / acid / mint band: the screen starts here. */
+.intro-ef2-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    #ff00f0 0 33.33%,
+    #fffa00 33.33% 66.66%,
+    #00ffa2 66.66% 100%);
+  transform-origin: left center;
+  animation: ef2Band 320ms cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+@keyframes ef2Band {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.intro-ef2-shell {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #ffffff;
+  border: 1px solid #161616;
+  animation: ef2Wipe 360ms cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+@keyframes ef2Wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* The wipe travels with a 1px ink edge: a machined reveal, not a fade. */
+.intro-ef2-shell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: #161616;
+  z-index: 2;
+  animation: ef2Edge 360ms cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+@keyframes ef2Edge {
+  0%   { transform: translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(100vw); opacity: 0; }
+}
+
+html.reduce-motion .intro-ef2-shell::before { display: none; }
+
+.intro-ef2-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #161616;
+  animation: ef2Rise 180ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
+}
+
+.intro-ef2-kicker {
+  font-size: clamp(10px, 1.1vw, 13px);
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #161616;
+}
+
+.intro-ef2-stamp {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: clamp(10px, 1vw, 12px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .08em;
+  color: #5c5c5c;
+}
+
+.intro-ef2-stamp i { font-style: normal; color: #d9d9d6; }
+
+.intro-ef2-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 3vh 20px;
+}
+
+.intro-ef2-word {
+  display: flex;
+  flex-direction: column;
+  line-height: .84;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  font-size: clamp(56px, 12vw, 168px);
+  animation: ef2Drop 260ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+.intro-ef2-solid { color: #161616; }
+
+/* Hollow rank: outline only, achieved with a stroke, no gradient. */
+.intro-ef2-hollow {
+  color: transparent;
+  -webkit-text-stroke: 1.5px #161616;
+  paint-order: stroke fill;
+}
+
+@keyframes ef2Drop {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.intro-ef2-cn {
+  font-size: clamp(15px, 1.6vw, 20px);
+  font-weight: 700;
+  letter-spacing: .08em;
+  animation: ef2Rise 160ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+}
+
+.intro-ef2-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  animation: ef2Rise 180ms cubic-bezier(0.16, 1, 0.3, 1) 380ms both;
+}
+
+/* The only yellow on screen: a filled block marking the current state. */
+.intro-ef2-chip {
+  padding: 4px 10px;
+  background: #fffa00;
+  color: #161616;
+  font-size: clamp(10px, 1.05vw, 12px);
+  font-weight: 800;
+  letter-spacing: .18em;
+  transform-origin: left center;
+  animation: ef2Fill 220ms cubic-bezier(0.7, 0, 0.2, 1) 420ms both;
+}
+
+@keyframes ef2Fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.intro-ef2-state-label {
+  font-size: clamp(10px, 1vw, 12px);
+  letter-spacing: .14em;
+  color: #5c5c5c;
+}
+
+.intro-ef2-foot {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid #161616;
+}
+
+.intro-ef2-foot > span {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 20px;
+  border-right: 1px solid #d9d9d6;
+  animation: ef2Rise 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.intro-ef2-foot > span:last-child { border-right: 0; }
+
+/* 38ms is one of the three allowed stagger steps. */
+.intro-ef2-foot > span:nth-child(1) { animation-delay: 460ms; }
+.intro-ef2-foot > span:nth-child(2) { animation-delay: 498ms; }
+.intro-ef2-foot > span:nth-child(3) { animation-delay: 536ms; }
+
+.intro-ef2-foot i {
+  font-style: normal;
+  font-size: clamp(9px, .95vw, 11px);
+  letter-spacing: .16em;
+  color: #5c5c5c;
+}
+
+.intro-ef2-foot b {
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #161616;
+}
+
+@keyframes ef2Rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Reduced motion: everything present, nothing moving. */
+html.reduce-motion .intro-ef2-band,
+html.reduce-motion .intro-ef2-shell,
+html.reduce-motion .intro-ef2-head,
+html.reduce-motion .intro-ef2-word,
+html.reduce-motion .intro-ef2-cn,
+html.reduce-motion .intro-ef2-state,
+html.reduce-motion .intro-ef2-chip,
+html.reduce-motion .intro-ef2-foot > span {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  clip-path: none !important;
+}
+
+/* A real number as decoration: the library size, set hollow on the right. */
+.intro-ef2-count {
+  position: absolute;
+  right: 4%;
+  bottom: 6%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  animation: ef2Rise 200ms cubic-bezier(0.16, 1, 0.3, 1) 560ms both;
+}
+
+.intro-ef2-count b {
+  font-size: clamp(84px, 16vw, 220px);
+  font-weight: 800;
+  line-height: .8;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(22, 22, 22, .28);
+  paint-order: stroke fill;
+}
+
+.intro-ef2-count i {
+  font-style: normal;
+  font-size: clamp(10px, 1vw, 12px);
+  letter-spacing: .16em;
+  color: #5c5c5c;
+}
+
+html.reduce-motion .intro-ef2-count { animation: none !important; opacity: 1 !important; }
+
+/* ------------------------------------------------------------
+   ENDFIELD typography — wide geometric Latin (Saira, OFL 1.1),
+   bold Chinese below. The generic UI sans made the wordmark and
+   the fields read like any other screen; Endfield's voice is in
+   the width of the Latin and the hard tabular numbers.
+   ------------------------------------------------------------ */
+
+@font-face {
+  font-family: "Saira EF";
+  src: url("assets/fonts/Saira.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-stretch: 50% 125%;
+  font-display: block;
+}
+
+.intro-ef2 {
+  --ef2-latin: "Saira EF", var(--font-ui);
+}
+
+.intro-ef2-kicker,
+.intro-ef2-stamp,
+.intro-ef2-word,
+.intro-ef2-chip,
+.intro-ef2-state-label,
+.intro-ef2-count b,
+.intro-ef2-count i,
+.intro-ef2-foot i,
+.intro-ef2-foot b {
+  font-family: var(--ef2-latin);
+  font-stretch: 112%;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Small labels and the wordmark carry the full 125% width. */
+.intro-ef2-kicker {
+  font-stretch: 125%;
+  letter-spacing: .18em;
+  font-weight: 700;
+}
+
+.intro-ef2-stamp { font-stretch: 112%; letter-spacing: .06em; }
+
+.intro-ef2-word {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -.012em;
+}
+
+.intro-ef2-chip {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.intro-ef2-foot i { font-stretch: 125%; letter-spacing: .18em; }
+.intro-ef2-foot b { font-stretch: 112%; letter-spacing: .04em; }
+.intro-ef2-count b { font-stretch: 112%; }
+.intro-ef2-count i { font-stretch: 125%; letter-spacing: .18em; }
+
+/* ------------------------------------------------------------
+   ENDFIELD poster texture — contour plates in two corners and a
+   hatched spine. The skill allows contours once, at 9% ink, and
+   hatching as a hard poster device; both stay behind the type.
+   ------------------------------------------------------------ */
+
+.intro-ef2 > * { position: relative; z-index: 1; }
+
+.intro-ef2::before,
+.intro-ef2::after {
+  content: "";
+  position: absolute;
+  width: min(52vw, 620px);
+  aspect-ratio: 1 / 1;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .09;
+  background: url("assets/contours/contour-a.svg") center / contain no-repeat;
+  animation: ef2Contour 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes ef2Contour {
+  from { opacity: 0; transform: scale(.985); }
+  to   { opacity: .09; transform: none; }
+}
+
+html.reduce-motion .intro-ef2::before,
+html.reduce-motion .intro-ef2::after { animation: none !important; opacity: .09 !important; }
+
+.intro-ef2::before {
+  left: -8%;
+  top: -16%;
+}
+
+.intro-ef2::after {
+  right: -10%;
+  bottom: -20%;
+  background-image: url("assets/contours/contour-b.svg");
+  transform: rotate(180deg);
+}
+
+/* No shadow on the wordmark: on paper it read as a printing mistake, not
+   as depth. Contrast and spacing carry it instead. */
+.intro-ef2-word {
+  position: relative;
+}
+
+/* A print-head bar crosses the wordmark once as it lands. */
+.intro-ef2-word::after {
+  content: "";
+  position: absolute;
+  top: -4%;
+  bottom: -4%;
+  left: 0;
+  width: 2px;
+  background: rgba(22, 22, 22, .5);
+  animation: ef2Head 340ms cubic-bezier(0.7, 0, 0.2, 1) 260ms both;
+}
+
+@keyframes ef2Head {
+  0%   { transform: translateX(0); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(calc(100% + 34vw)); opacity: 0; }
+}
+
+/* 45° hatch spine: a hard poster device, not a background wash. */
+.intro-ef2-spine {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 34px;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--ef2-latin);
+  font-stretch: 125%;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .34em;
+  color: rgba(22, 22, 22, .42);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(22, 22, 22, .10) 0 1px,
+    transparent 1px 7px
+  );
+  border-left: 1px solid #d9d9d6;
+  padding: 10px 0;
+}
+
+.intro-ef2-main { padding-right: 52px; }
+
+html.reduce-motion .intro-ef2-word::after { display: none; }
+
+/* Letters land one by one at the allowed 38ms step. */
+.intro-ef2-solid { display: inline-flex; }
+
+.intro-ef2-solid i {
+  font-style: normal;
+  display: inline-block;
+  animation: ef2Letter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.intro-ef2-solid i:nth-child(1) { animation-delay: 120ms; }
+.intro-ef2-solid i:nth-child(2) { animation-delay: 158ms; }
+.intro-ef2-solid i:nth-child(3) { animation-delay: 196ms; }
+.intro-ef2-solid i:nth-child(4) { animation-delay: 234ms; }
+
+@keyframes ef2Letter {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+html.reduce-motion .intro-ef2-solid i { animation: none !important; opacity: 1 !important; transform: none !important; }

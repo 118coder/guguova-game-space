@@ -37,6 +37,12 @@ public sealed class GameEntry
     public string AddedUtc { get; set; } = DateTime.UtcNow.ToString("o");
     public string Source { get; set; } = "manual"; // manual | steam | demo
     public string? SteamAppId { get; set; }
+
+    /// <summary>"auto" (default), "steam" or "direct". A Steam-owned entry goes
+    /// through the client so the ownership check and overlay still apply;
+    /// "direct" is the escape hatch for games that start fine on their own.</summary>
+    public string LaunchMode { get; set; } = "auto";
+
     public int LaunchCount { get; set; }
     public string? CustomLogo { get; set; }
 
@@ -85,6 +91,12 @@ public sealed class PlayerSettings
     /// <summary>Relative path under the media folder, e.g. avatar/avatar.png.</summary>
     public string? AvatarFile { get; set; }
     public bool Sound { get; set; } = true;
+
+    /// <summary>True keeps the single shared cue set for every theme; false lets
+    /// each theme play its own sounds. Off by default: the themed sets are the
+    /// point of the feature, and the switch is the way back to consistency.</summary>
+    public bool UnifiedSfx { get; set; }
+
     public bool ReduceMotion { get; set; }
     public bool Calm { get; set; }
     public string Layout { get; set; } = "row";
@@ -101,8 +113,17 @@ public sealed class PlayerSettings
     public string CompatibilityTier { get; set; } = "auto";
 }
 
-/// <summary>Payload returned to the UI after a launch is started.</summary>
-public sealed record LaunchResult(bool Ok, string? Error, string? SessionId, string? GameId);
+/// <summary>Payload returned to the UI after a launch is started. <c>Pending</c>
+/// means the Steam client was asked to start the game and the session will
+/// appear later, so the UI waits for session-started instead of assuming the
+/// process exists already.</summary>
+public sealed record LaunchResult(
+    bool Ok,
+    string? Error,
+    string? SessionId,
+    string? GameId,
+    bool Pending = false,
+    string? Hint = null);
 
 public sealed record RunningSessionInfo(
     string SessionId,
@@ -147,7 +168,12 @@ public sealed record GamePayload(
     string WorkDir,
     bool CustomLogo,
     string TypeRecipe,
-    CoverDna Dna);
+    CoverDna Dna,
+    string LaunchMode,
+    string LaunchModeResolved,
+    bool SteamRunning,
+    bool SteamSignedIn,
+    string SteamNote);
 
 public sealed record SteamCandidate(
     string AppId,

@@ -427,13 +427,25 @@ padMoveFocus / padActivate`（焦点导航）、`src/focus.js`（强制焦点留
 
 ## 7. 音效设计
 
-- 全部为**离线本地音效**，来源与许可见 `src/assets/sfx/LICENSE-SFX.md`；
-- 当前使用 Kenney Interface Sounds（CC0）+ Kenney 环境音；
-- 主题切换使用专属 `theme.ogg`；
-- 触发映射见 `docs/SFX-MAP.md`：`move / select / open / back / close / toggle /
-  confirm / error / theme / launch-rise / launch-fall / chime / deep`；
-- 新音效按同名 OGG 覆盖即可；建议单声道 44.1kHz、峰值 ≤ -1dB、时长 < 1.5s；
+- 全部为**离线本地合成音效**（genny 生成，无第三方采样），来源与复现方式见
+  `src/assets/sfx/LICENSE-SFX.md` 与 `tools/sfx-specs/`；
+- **每套主题有自己的一套 16 个 cue**，放在 `themes/<id>/sounds/`；
+  内置 NOVA 放在 `src/assets/sfx/nova/`。材料必须对应该主题的设计理念：
+  终末地是继电器/打字机，零点街区是 CRT/街机，冒险者档案是纸页/蜡封，etc.
+- 主题音效**完全替代**统一音效，不叠加；缺文件时自动回落到 `src/assets/sfx/`；
+- 开屏音效 `boot` 是按该主题开屏关键帧排好的序列，与动画同时启动；
+- 设置页可切换 **使用默认统一音效**（`unifiedSfx`），立刻生效；
+- 触发映射见 `docs/SFX-MAP.md`；
+- 生成规格：`tools/sfx-specs/build-themes.py` → `genny render` → ffmpeg 转 OGG；
+- 建议单声道 44.1kHz、峰值 ≤ -1dB、时长 < 1.5s（开屏序列除外）；
+- 生成后必须跑 `genny info`：`sharp ≤ 2.0`、`above5k ≤ 3%`（噪声类转场略高可接受）；
+- **雪花噪/白噪声要慎用**：只允许出现在「切换主题 / 失败 / 开屏底噪」这类转场，
+  且必须低通（≤3.6kHz）并压高频；点击、悬停、确认一律不要宽带噪声——
+  它们是最高频的音效，噪声会立刻变成刺耳。
+- 每套主题最多保留 1–2 个带噪声的 cue，其余用该主题的实体材料（纸、木、金属、玻璃）。
 - 不要把音效做成持续循环；不要联网加载。
+- 终末地开屏使用随包字体 **Saira**（OFL 1.1，`src/assets/fonts/Saira.ttf`，
+  许可证同目录）；其他主题不得依赖该字体，缺失时必须回落到思源黑体。
 
 ---
 
