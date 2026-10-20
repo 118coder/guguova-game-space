@@ -38,7 +38,9 @@
   实心 `NOVA` 与空心 `SPACE` 双层字标、粗体中文在下；酸黄只用于 `READY` 状态块；
   右侧空心真实计数（游戏数）；底部 GAMES / THEME / YEAR 三个真实字段。
   入场全部在 700ms 内（擦入 360ms、字标 260ms、字段 38ms 错开），无投影/发光/渐变。
-  舞台类 `.intro-ef2` 与关键帧在 `src/intro.css`。
+  舞台类 `.intro-ef2` 与关键帧在 `src/intro.css`；共享的星盘舞台
+  （`.intro-stage` / `.intro-corners` / `.intro-grain`）在本预设下必须 `display:none`，
+  只改颜色会漏出默认时钟。
 - 字体：拉丁用 **Saira**（可变字体，SIL OFL 1.1，`src/assets/fonts/Saira.ttf`），
   字标与小标签拉宽到 125%，字段 112%，数字 tabular；中文保持思源黑体粗体。
   字体只用于本开屏，不进入全局 UI。

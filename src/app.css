@@ -866,3 +866,20 @@ html[data-input="gamepad"] .steam-mode.is-pad-focus {
 
 /* Steam imports store one name; avoid rendering it twice. */
 .lib-name.is-solo { flex: 1 1 auto; }
+
+/* Themed tooltip for theme cards: same material as the context menu,
+   never a stock host tooltip. */
+.context-menu.theme-tip {
+  min-width: 0;
+  max-width: 320px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  letter-spacing: .01em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  transform: translateY(-4px);
+}
+
+.context-menu.theme-tip.is-open { transform: none; }
