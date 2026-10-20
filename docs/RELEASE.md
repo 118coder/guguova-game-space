@@ -1,7 +1,7 @@
 # 发布与打包
 
-> 默认发布 **Legacy 单文件版（约 2.34 MB zip）**：一个 `NovaGameSpace-Legacy.exe`，
-> 前端资源与 11 套主题全部内嵌；同时产出 **全主题文件夹版（约 3.81 MB zip）**，
+> 默认发布 **Legacy 单文件版（1.7.0 约 3.71 MB zip）**：一个 `NovaGameSpace-Legacy.exe`，
+> 前端资源与 12 套主题全部内嵌；同时产出 **全主题文件夹版（1.7.0 约 6.55 MB zip）**，
 > 方便编辑/替换主题。Modern 自包含包为可选大包。
 
 ---
@@ -19,9 +19,9 @@ bash tools/pipeline.sh --version 1.5.3 # bump + 构建 + 打包
 
 ```
 dist/
-├─ NOVA-<version>-legacy-single.zip   # 单文件 EXE，约 2.34 MB
-├─ NOVA-<version>-legacy-full.zip     # EXE + src/ + themes/，约 3.81 MB
-├─ NOVA-<version>-modern.zip          # 可选大包
+├─ GUGUOVA-<version>-legacy-single.zip   # 单文件 EXE（1.7.0 约 3.71 MB）
+├─ GUGUOVA-<version>-legacy-full.zip     # EXE + src/ + themes/（1.7.0 约 6.55 MB）
+├─ GUGUOVA-<version>-modern.zip          # 可选大包
 └─ release-manifest.json              # SHA-256 + 大小
 ```
 
@@ -53,20 +53,20 @@ WebView2Runtime/             可选 109 固定运行时
 - 首次运行把内嵌 `src/` 与 `themes/` 解压到
   `%LOCALAPPDATA%\NOVA Game Space\runtime\<version>\assets`。
 - 主题仍会同步到用户主题目录，可在「设置 → 打开主题文件夹」编辑。
-- zip：**2.34 MB**；解压后约 2.7 MB（不含用户数据）。
+- zip：1.7.0 为 **3.71 MB**（12 套主题与音效都封在里面）。
 
 ### 2.2 全主题文件夹版
 
 ```
 NovaGameSpace-Legacy.exe
 src/                         前端资源
-themes/                      10 套附赠主题文件夹（内置 NOVA 无需文件夹）
+themes/                      11 套附赠主题文件夹（内置 GUGUOVA 无需文件夹）
 launch.cmd / README.txt
 ```
 
 - 程序目录直接包含全部主题源文件，适合编辑/替换/分享主题。
 - 启动时优先使用外部 `src/`/`themes/`，不会重复解压。
-- zip：**3.81 MB**。
+- zip：1.7.0 为 **6.55 MB**。
 
 ### 2.3 依赖
 
