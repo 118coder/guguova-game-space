@@ -107,6 +107,9 @@
 | grimoire | 羊皮档案、蜡封 | 纸页 + 粉噪 | 竖琴 / 玻璃 | 颂钵 + 120/280/1500ms |
 | riot | 唱片封套 | 木质钢珠 + pop | 马林巴 / 弦乐 | 黑胶 + 80/600/1200ms |
 | summer | 白纸杂志 | 纸页 + blip | 钟琴 / 玻璃 | 暖垫 + 0/180/760ms |
+| dusk | 暮色工房、委托信 | 木扣 + 纸噪 | 马林巴 + 玻璃 | 低音提琴 + 风 + 手碟 |
+| steam | 客厅大屏、主机 | 电磁阀 + 控制台 | 钟 + 玻璃 | 低频 + 电磁阀 + 钟 |
+| nightflight | 夜航登机牌 | 翻牌 + 木鱼 | 机场双音铃 + 玻璃 | 风 + 翻牌 + PA 人声 |
 
 > 同一套主题里的点击、页面、关闭共用一种材料的不同力度，因此听起来是"同一个世界"，
 > 而不是三个无关的音效。
@@ -134,3 +137,24 @@
 - 终末地预览：开屏预设 `endfield`、`boot` 时长 2.40s、当前主题保持不变；
 - 统一音效开关：`bufferFor('click')` 在主题池与统一池之间正确切换（0.017s / 0.016s）；
 - 全部 176 个生成文件 `sharp ≤ 1.91`、`above5k ≤ 14.7%`（噪声类自然偏高，已低通）。
+
+
+---
+
+## 4. 2.2 三套新主题的 genny 配方
+
+`themes/dusk`、`themes/steam`、`themes/nightflight` 的 16 个 cue 由
+[genny](https://github.com/ogomez92/genny) 重新合成：
+
+- 规格：`tools/sfx-specs/themes-2.2-genny.json`
+- 生成 + 检查 + 转 OGG：`python tools/sfx-specs/make-themes-2.2.py`
+- 输出：`themes/<id>/sounds/<cue>.ogg`（mono / 44.1kHz / Vorbis q5 / peak -1dB）
+
+| 主题 | click | nav | select / confirm | boot |
+| --- | --- | --- | --- | --- |
+| dusk | click 1500 + pop 380，低通 3.2k | 木鱼 + 760Hz blip | 马林巴 A4/C5/E5 + 玻璃 | 低音提琴 C2 + 风 + 纸 + 玻璃 + 手碟 |
+| steam | solenoid size .14 + click 2.4k | solenoid .22 + swoosh + 880Hz | 钟 E5 / C5-E5-G5 + 玻璃 | 低频 A1 + 电磁阀两步 + 钟 G5 |
+| nightflight | solenoid .12 + click 2k | 木鱼 + 1.28kHz blip | 钟 A5 / A5-C#6-E6 + 玻璃 | 风 + 翻牌三连 + 机场双音铃 + PA「boarding」 |
+
+门槛：全部 `sharp ≤ 1.6`、`above5k ≤ 3%`（checked with `genny info`）；夜航 `launchRise` / `switch`
+与 Steam `switch` 额外加了 4.5–5k 低通，避免风声刺耳。

@@ -3,17 +3,17 @@
   "id": "steam",
   "name": "Steam 经典 · STEAM CLASSIC",
   "author": "GUGUOVA",
-  "version": "1.0.2",
-  "description": "经典客户端：深蓝窗口、绿色主按钮、蓝色链接与库列表。自带「客户端启动」开场。",
+  "version": "2.0.8",
+  "description": "大屏幕模式：全幅封面、炭黑控制台、绿色继续按钮与手柄按键条。自带「大屏启动」开场。",
   "css": "theme.css",
   "preview": "assets/preview.jpg",
   "base": "system",
   "dark": true,
   "intro": "steam",
   "tokens": {
-    "--accent": "#66c0f4",
-    "--accent-2": "#a4d007",
-    "--glow": "rgba(102, 192, 244, .22)"
+    "--accent": "#1a9fff",
+    "--accent-2": "#8fbc1c",
+    "--glow": "rgba(26, 159, 255, .24)"
   },
   "sounds": {
     "bong": "sounds/bong.ogg",

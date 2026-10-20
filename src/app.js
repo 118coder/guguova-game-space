@@ -3817,7 +3817,7 @@
   const CURTAIN_HOLD = {
     nova: 360, aurum: 400, endfield: 380, zerohour: 420, codex: 430,
     broadcast: 360, summer: 470, riso: 380, riot: 380, grimoire: 650, mnemo: 360,
-    dusk: 460, steam: 440
+    dusk: 460, steam: 440, nightflight: 440
   };
 
   function curtainThemeName(theme) {

@@ -1,0 +1,1445 @@
+/* ============================================================
+   NIGHT FLIGHT · 夜航  (id: nightflight, v1.0.0)
+   ------------------------------------------------------------
+   构图：一张夜间航班的登机牌，放在离港大厅的航班表前。
+     背景   深夜蓝、经纬网、虚线航路、星点、地平线微光
+     主区   米白登机牌：左文案 / 右舷窗 / 虚线撕口 / 条码
+     底带   离港航班表：编号、封面、航班状态、时长
+     游戏库 机场信息屏（FIDS）式的行列表
+   语言：等宽字、荧光黄绿、硬边、虚线、票根。
+   不用发光魔法阵、不用柔光玻璃、不用大圆角。
+   ============================================================ */
+
+html[data-theme="nightflight"] {
+  --nf-void: #04070d;
+  --nf-navy: #07101c;
+  --nf-panel: #0b1724;
+  --nf-panel-2: #101f30;
+  --nf-panel-3: #16293c;
+  --nf-line: #1c3348;
+  --nf-line-hi: #2f5474;
+  --nf-lime: #d9ff45;
+  --nf-lime-dim: #a6c532;
+  --nf-cream: #f4f0e0;
+  --nf-cream-2: #e7e1cd;
+  --nf-ink: #0a0f14;
+  --nf-ink-2: #3b4652;
+  --nf-text: #e9edf2;
+  --nf-muted: #93a6b8;
+  --nf-dim: #5d7184;
+  --nf-coral: #ff6b4a;
+  --nf-blue: #6fa8ff;
+
+  --ink: var(--nf-text);
+  --muted: var(--nf-muted);
+  --faint: var(--nf-dim);
+  --hair: var(--nf-line);
+  --accent: var(--nf-lime);
+  --accent-2: var(--nf-cream);
+  --glow: rgba(217, 255, 69, .24);
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --ease-soft: cubic-bezier(.4, 0, .2, 1);
+
+  --font-ui: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-display: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-serif: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-condensed: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", "SFMono-Regular", "Microsoft YaHei UI", monospace;
+}
+
+/* ------------------------------------------------------------
+   1 · 夜航图：星点、经纬网、虚线航路
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] body {
+  background-color: var(--nf-void);
+  color: var(--nf-text);
+  font-family: var(--font-ui);
+}
+
+html[data-theme="nightflight"] .app { background: transparent; }
+
+html[data-theme="nightflight"] .scene > img {
+  filter: grayscale(.35) sepia(.18) hue-rotate(172deg) saturate(.9) brightness(.28) !important;
+}
+
+html[data-theme="nightflight"] .scene.is-active > img {
+  filter: grayscale(.3) sepia(.16) hue-rotate(172deg) saturate(1) brightness(.34) !important;
+}
+
+html[data-theme="nightflight"] .app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000'%3E%3Cg stroke='%236fa8ff' stroke-width='1' opacity='.055'%3E%3Cpath d='M0 160h1600M0 320h1600M0 480h1600M0 640h1600M0 800h1600M0 960h1600'/%3E%3Cpath d='M160 0v1000M320 0v1000M480 0v1000M640 0v1000M800 0v1000M960 0v1000M1120 0v1000M1280 0v1000M1440 0v1000'/%3E%3C/g%3E%3Cpath d='M-40 820 C 300 742 520 512 760 410 S 1240 218 1660 128' stroke='%23d9ff45' stroke-width='1.5' stroke-dasharray='2 11' fill='none' opacity='.42'/%3E%3Cg fill='%23f4f0e0'%3E%3Ccircle cx='120' cy='148' r='1.4' opacity='.62'/%3E%3Ccircle cx='236' cy='72' r='1' opacity='.48'/%3E%3Ccircle cx='318' cy='196' r='1.6' opacity='.7'/%3E%3Ccircle cx='404' cy='110' r='1.1' opacity='.5'/%3E%3Ccircle cx='488' cy='58' r='1.3' opacity='.6'/%3E%3Ccircle cx='566' cy='168' r='1' opacity='.42'/%3E%3Ccircle cx='642' cy='96' r='1.5' opacity='.66'/%3E%3Ccircle cx='728' cy='42' r='1.1' opacity='.5'/%3E%3Ccircle cx='812' cy='132' r='1.3' opacity='.58'/%3E%3Ccircle cx='896' cy='76' r='1' opacity='.44'/%3E%3Ccircle cx='978' cy='184' r='1.4' opacity='.62'/%3E%3Ccircle cx='1064' cy='102' r='1.2' opacity='.52'/%3E%3Ccircle cx='1148' cy='48' r='1.5' opacity='.66'/%3E%3Ccircle cx='1234' cy='156' r='1' opacity='.42'/%3E%3Ccircle cx='1320' cy='88' r='1.3' opacity='.56'/%3E%3Ccircle cx='1406' cy='192' r='1.1' opacity='.48'/%3E%3Ccircle cx='1488' cy='64' r='1.4' opacity='.6'/%3E%3Ccircle cx='196' cy='318' r='1' opacity='.4'/%3E%3Ccircle cx='512' cy='286' r='1.2' opacity='.46'/%3E%3Ccircle cx='884' cy='334' r='1' opacity='.38'/%3E%3Ccircle cx='1204' cy='296' r='1.2' opacity='.46'/%3E%3Ccircle cx='1432' cy='348' r='1' opacity='.36'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
+    radial-gradient(64% 48% at 78% 10%, rgba(111, 168, 255, .14), transparent 64%),
+    radial-gradient(40% 30% at 18% 88%, rgba(217, 255, 69, .06), transparent 72%),
+    linear-gradient(180deg,
+      rgba(4, 7, 13, .94) 0%,
+      rgba(7, 16, 28, .8) 34%,
+      rgba(7, 16, 28, .64) 58%,
+      rgba(4, 7, 13, .9) 86%,
+      rgba(4, 7, 13, .97) 100%);
+}
+
+html[data-theme="nightflight"] .atmosphere {
+  background: radial-gradient(140% 100% at 76% 34%, transparent 32%, rgba(4, 7, 13, .58) 100%);
+}
+
+html[data-theme="nightflight"] .atmosphere::before {
+  background: linear-gradient(90deg,
+    rgba(4, 7, 13, .9) 0%,
+    rgba(4, 7, 13, .56) 30%,
+    rgba(4, 7, 13, .12) 58%,
+    transparent 76%);
+}
+
+html[data-theme="nightflight"] .atmosphere::after {
+  background: radial-gradient(46% 38% at 16% 70%, rgba(111, 168, 255, .1) 0%, transparent 74%);
+  opacity: .8;
+  mix-blend-mode: screen;
+}
+
+html[data-theme="nightflight"] .grain { opacity: .05; mix-blend-mode: overlay; }
+
+html[data-theme="nightflight"] .app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(4, 7, 13, .22), transparent 22%);
+}
+
+/* ------------------------------------------------------------
+   2 · 顶栏：航班信息条
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] .topbar {
+  height: clamp(58px, 6.6vh, 70px);
+  gap: clamp(14px, 2vw, 28px);
+  padding: 0 clamp(22px, 3.2vw, 48px);
+  background: linear-gradient(180deg, rgba(4, 7, 13, .78) 0%, rgba(4, 7, 13, .34) 70%, transparent 100%);
+  border-bottom: 1px solid rgba(217, 255, 69, .3);
+}
+
+html[data-theme="nightflight"] .brand { gap: 10px; }
+
+html[data-theme="nightflight"] .brand-mark {
+  width: 22px;
+  height: 22px;
+  color: var(--nf-lime);
+  filter: drop-shadow(0 0 10px rgba(217, 255, 69, .4));
+}
+
+html[data-theme="nightflight"] .brand-word {
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .28em;
+}
+
+html[data-theme="nightflight"] .nav {
+  counter-reset: nf-nav;
+  gap: 0;
+}
+
+html[data-theme="nightflight"] .nav-glide { display: none; }
+
+html[data-theme="nightflight"] .nav-btn {
+  counter-increment: nf-nav;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--nf-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+html[data-theme="nightflight"] .nav-btn::before {
+  content: "0" counter(nf-nav);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: .04em;
+  color: var(--nf-dim);
+  transition: color .25s ease;
+}
+
+html[data-theme="nightflight"] .nav-btn:hover { color: #ffffff; background: transparent; }
+html[data-theme="nightflight"] .nav-btn:hover::before { color: var(--nf-muted); }
+
+html[data-theme="nightflight"] .nav-btn.is-active {
+  color: var(--nf-lime);
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="nightflight"] .nav-btn.is-active::before { color: var(--nf-lime); }
+
+html[data-theme="nightflight"] .nav-btn.is-active::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 1px;
+  height: 2px;
+  background: var(--nf-lime);
+  box-shadow: 0 0 12px rgba(217, 255, 69, .6);
+}
+
+html[data-theme="nightflight"] .clock { min-width: 78px; }
+
+html[data-theme="nightflight"] .clock-time {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+html[data-theme="nightflight"] .clock-date {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  color: var(--nf-dim);
+}
+
+html[data-theme="nightflight"] .icon-btn { color: var(--nf-muted); border-radius: 1px; }
+html[data-theme="nightflight"] .icon-btn:hover { color: var(--nf-lime); background: rgba(217, 255, 69, .08); }
+
+html[data-theme="nightflight"] .avatar {
+  border-radius: 2px;
+  background: linear-gradient(160deg, #1d3a54, #0a1724);
+  box-shadow: inset 0 0 0 1px rgba(217, 255, 69, .45), 0 0 0 2px var(--nf-void);
+  color: var(--nf-lime);
+  font-family: var(--font-mono);
+}
+
+html[data-theme="nightflight"] .online-dot {
+  border-radius: 0;
+  background: var(--nf-lime);
+  border-color: var(--nf-void);
+  box-shadow: 0 0 8px rgba(217, 255, 69, .7);
+}
+
+html[data-theme="nightflight"] .win-btn { border-radius: 1px; color: var(--nf-muted); }
+html[data-theme="nightflight"] .win-btn:hover { background: rgba(217, 255, 69, .1); color: #fff; }
+html[data-theme="nightflight"] .win-btn.close:hover { background: var(--nf-coral); }
+
+/* ------------------------------------------------------------
+   3 · 主区：登机牌
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] .stage {
+  align-items: center;
+  padding: 0 clamp(24px, 4.2vw, 62px) 6px;
+}
+
+html[data-theme="nightflight"] .hero {
+  position: relative;
+  width: min(1140px, 100%);
+  margin: 0 auto;
+  padding-left: 34px;
+}
+
+/* 票根左侧的荧光色带 */
+html[data-theme="nightflight"] .hero::before {
+  content: "NIGHT FLIGHT · 夜航 · GUGUOVA AIR";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  background: var(--nf-lime);
+  color: var(--nf-ink);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .28em;
+  z-index: 4;
+  box-shadow: inset -1px 0 0 rgba(10, 15, 20, .5);
+}
+
+/* 右缘竖排票面字 */
+html[data-theme="nightflight"] .hero::after {
+  content: "BOARDING PASS · 登机牌 · NO.001";
+  position: absolute;
+  right: 10px;
+  top: 24px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .24em;
+  color: rgba(10, 15, 20, .45);
+  z-index: 5;
+  pointer-events: none;
+}
+
+html[data-theme="nightflight"] .hero-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: clamp(380px, 48vh, 476px);
+  padding: clamp(28px, 3.6vh, 42px) 33% clamp(26px, 3.4vh, 38px) clamp(30px, 3.2vw, 46px);
+  border-top: 7px solid var(--nf-lime);
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(90deg, rgba(10, 15, 20, .92) 0 2px, transparent 2px 4px, rgba(10, 15, 20, .92) 4px 5px, transparent 5px 9px) right 5.4% bottom 26px / 132px 34px no-repeat,
+    radial-gradient(120% 90% at 20% 0%, #fdfaf0 0%, transparent 56%),
+    linear-gradient(155deg, #faf7ec 0%, #f1ecda 58%, #e6dfc8 100%);
+  color: var(--nf-ink);
+  box-shadow:
+    0 44px 90px -46px #000,
+    0 0 0 1px rgba(10, 15, 20, .18);
+  overflow: visible;
+}
+
+/* 撕口 + 上下票根缺口 */
+html[data-theme="nightflight"] .hero-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 9px at 67.4% 0, var(--nf-void) 96%, transparent 100%),
+    radial-gradient(circle 9px at 67.4% 100%, var(--nf-void) 96%, transparent 100%),
+    repeating-linear-gradient(180deg, rgba(10, 15, 20, .3) 0 6px, transparent 6px 14px) 67.4% 0 / 1px 100% no-repeat;
+}
+
+/* 舷窗：当前游戏 */
+html[data-theme="nightflight"] .hero-inner::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  right: clamp(18px, 4.6%, 62px);
+  top: 50%;
+  width: clamp(190px, 26vw, 292px);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  border: 9px solid var(--nf-cream);
+  background:
+    linear-gradient(180deg, rgba(10, 15, 20, .06) 0%, rgba(10, 15, 20, .34) 100%),
+    var(--nova-hero, linear-gradient(150deg, #1d3a54, #0a1724)) center / cover no-repeat;
+  box-shadow:
+    0 0 0 1px rgba(10, 15, 20, .75),
+    inset 0 0 0 1px rgba(10, 15, 20, .6),
+    inset 0 0 40px rgba(4, 7, 13, .45),
+    0 22px 46px -24px rgba(4, 7, 13, .85);
+}
+
+html[data-theme="nightflight"] .hero-inner > * {
+  position: relative;
+  z-index: 3;
+  width: calc(100% - 4%);
+  max-width: 660px;
+}
+
+html[data-theme="nightflight"] .hero-inner > .activity-strip { display: none; }
+
+/* 眉标：航班状态 */
+html[data-theme="nightflight"] .kicker {
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--nf-ink-2);
+}
+
+html[data-theme="nightflight"] .kicker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 0;
+  background: var(--nf-lime);
+  box-shadow: 0 0 0 1px rgba(10, 15, 20, .65);
+  animation: none;
+}
+
+html[data-theme="nightflight"] .kicker-sep { width: 1px; height: 9px; border-radius: 0; background: rgba(10, 15, 20, .3); }
+html[data-theme="nightflight"] .kicker-dim { color: var(--nf-ink-2); font-size: 10px; letter-spacing: .1em; }
+
+html[data-theme="nightflight"] .hero-logo {
+  margin: clamp(12px, 1.8vh, 18px) 0 0;
+  font-family: var(--font-display);
+  font-size: calc(clamp(36px, 4.4vw, 60px) * var(--logo-fit, 1));
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -.035em;
+  color: var(--nf-ink);
+  text-wrap: balance;
+}
+
+html[data-theme="nightflight"] .hero-logo::after {
+  content: "";
+  display: block;
+  width: 54px;
+  height: 4px;
+  margin-top: 13px;
+  background: var(--nf-lime);
+}
+
+html[data-theme="nightflight"] .hero-logo.is-long-title {
+  font-size: calc(clamp(27px, 3.2vw, 46px) * var(--logo-fit, 1));
+  line-height: 1.12;
+}
+
+html[data-theme="nightflight"] .tagline {
+  max-width: 580px;
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  letter-spacing: .01em;
+  color: var(--nf-ink-2);
+}
+
+html[data-theme="nightflight"] .meta-row {
+  gap: 9px;
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  color: var(--nf-muted);
+}
+
+html[data-theme="nightflight"] .meta-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
+  background: var(--nf-muted);
+  opacity: .45;
+}
+
+html[data-theme="nightflight"] .age-badge {
+  padding: 2px 6px 3px;
+  border: 1px solid rgba(233, 237, 242, .45);
+  border-radius: 0;
+  color: var(--nf-text-2);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+html[data-theme="nightflight"] .update-badge { color: var(--nf-lime); font-family: var(--font-mono); }
+html[data-theme="nightflight"] .update-badge::before { background: var(--nf-lime); box-shadow: none; }
+
+/* 登机牌内：属性行回到墨色 */
+html[data-theme="nightflight"] .hero-inner .meta-row { color: var(--nf-ink-2); }
+html[data-theme="nightflight"] .hero-inner .meta-dot { background: var(--nf-ink); opacity: .35; }
+html[data-theme="nightflight"] .hero-inner .age-badge {
+  border-color: rgba(10, 15, 20, .6);
+  color: var(--nf-ink);
+}
+html[data-theme="nightflight"] .hero-inner .update-badge { color: var(--nf-ink-2); }
+
+html[data-theme="nightflight"] .cta-row {
+  gap: 10px;
+  margin-top: clamp(17px, 2.4vh, 23px);
+}
+
+html[data-theme="nightflight"] .btn {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+html[data-theme="nightflight"] .btn.primary {
+  color: var(--nf-ink);
+  background: var(--nf-lime);
+  border: 1px solid var(--nf-ink);
+  box-shadow: 4px 4px 0 var(--nf-ink);
+  text-shadow: none;
+}
+
+html[data-theme="nightflight"] .btn.primary:hover {
+  transform: translate(-1px, -1px);
+  background: #e4ff6b;
+  box-shadow: 6px 6px 0 var(--nf-ink);
+}
+
+html[data-theme="nightflight"] .btn.primary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--nf-ink); }
+
+html[data-theme="nightflight"] .btn.ghost {
+  color: var(--nf-cream);
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid var(--nf-line-hi);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-theme="nightflight"] .btn.ghost:hover {
+  color: var(--nf-lime);
+  background: rgba(217, 255, 69, .08);
+  border-color: var(--nf-lime);
+  transform: none;
+}
+
+/* 登机牌是浅底：牌面上的次按钮必须回到墨色 */
+html[data-theme="nightflight"] .hero-inner .btn.ghost {
+  color: var(--nf-ink);
+  background: transparent;
+  border-color: var(--nf-ink);
+}
+
+html[data-theme="nightflight"] .hero-inner .btn.ghost:hover {
+  color: var(--nf-lime);
+  background: var(--nf-ink);
+  border-color: var(--nf-ink);
+}
+
+html[data-theme="nightflight"] .progress-block {
+  width: min(430px, 100%) !important;
+  margin-top: clamp(16px, 2.2vh, 22px);
+}
+
+html[data-theme="nightflight"] .progress-head {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: .16em;
+  color: var(--nf-ink-2);
+}
+
+html[data-theme="nightflight"] .progress-pct {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--nf-ink);
+}
+
+html[data-theme="nightflight"] .progress-track {
+  height: 9px;
+  margin-top: 7px;
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(244, 240, 224, .7) 0 9px, transparent 9px 17px) center / 100% 1px no-repeat,
+    var(--nf-ink);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+html[data-theme="nightflight"] .progress-track i {
+  border-radius: 0;
+  background: var(--nf-lime);
+  box-shadow: none;
+}
+
+html[data-theme="nightflight"] .progress-track i::after {
+  display: block;
+  right: -2px;
+  width: 0;
+  height: 0;
+  border-radius: 0;
+  background: none;
+  border-left: 7px solid var(--nf-ink);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  box-shadow: none;
+  transform: translateY(-50%);
+}
+
+html[data-theme="nightflight"] .progress-sub {
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  color: var(--nf-ink-2);
+}
+
+/* ------------------------------------------------------------
+   4 · 底带：离港航班表
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] .dock {
+  position: relative;
+  padding: clamp(14px, 2.2vh, 22px) clamp(24px, 4.2vw, 62px) clamp(10px, 1.6vh, 16px);
+  background: linear-gradient(180deg, rgba(4, 10, 18, 0) 0%, rgba(4, 10, 18, .9) 16%, #040a12 100%);
+}
+
+html[data-theme="nightflight"] .dock::before {
+  content: "";
+  position: absolute;
+  left: clamp(24px, 4.2vw, 62px);
+  right: clamp(24px, 4.2vw, 62px);
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(217, 255, 69, .5) 12%, rgba(217, 255, 69, .5) 88%, transparent);
+}
+
+html[data-theme="nightflight"] .dock-head { margin-bottom: 12px; }
+
+html[data-theme="nightflight"] .dock-title {
+  gap: 10px;
+  min-height: 28px;
+  align-items: center;
+  font-size: 0;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: .2em;
+  color: var(--nf-muted);
+}
+
+html[data-theme="nightflight"] .dock-title > span:first-child { display: none; }
+
+html[data-theme="nightflight"] .dock-title::before {
+  content: "DEPARTURES";
+  order: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(16px, 1.5vw, 21px);
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: #ffffff;
+}
+
+html[data-theme="nightflight"] .dock-title::after {
+  content: none;
+  order: 1;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .16em;
+  color: var(--nf-lime);
+}
+
+html[data-theme="nightflight"] .dock-count {
+  order: 2;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: .08em;
+  color: var(--nf-dim);
+}
+
+html[data-theme="nightflight"] .all-btn { font-family: var(--font-mono); font-size: 10px; letter-spacing: .1em; color: var(--nf-muted); }
+html[data-theme="nightflight"] .all-btn:hover { color: var(--nf-lime); }
+
+html[data-theme="nightflight"] .lib-add {
+  color: var(--nf-lime);
+  border: 1px solid rgba(217, 255, 69, .45);
+  background: rgba(217, 255, 69, .06);
+  border-radius: 0;
+}
+
+html[data-theme="nightflight"] .lib-add:hover {
+  color: #ffffff;
+  border-color: var(--nf-lime);
+  background: rgba(217, 255, 69, .14);
+}
+
+html[data-theme="nightflight"] .rail {
+  counter-reset: nf-tile;
+  gap: clamp(12px, 1.1vw, 18px);
+  padding: 10px 4px 6px;
+  margin: -10px -4px -6px;
+}
+
+html[data-theme="nightflight"] .tile {
+  counter-increment: nf-tile;
+  width: clamp(178px, 15vw, 258px);
+  padding: 7px 7px 0;
+  border: 1px solid var(--nf-line);
+  border-top: 3px solid var(--nf-line-hi);
+  border-radius: 1px;
+  background: linear-gradient(180deg, var(--nf-panel) 0%, #060f19 100%);
+  box-shadow: 0 18px 34px -26px #000;
+  transition: transform .5s var(--ease), border-color .3s ease, box-shadow .45s ease, background .3s ease;
+}
+
+html[data-theme="nightflight"] .tile-art {
+  border-radius: 0;
+  border: 1px solid rgba(111, 168, 255, .12);
+  background: #07101c;
+  box-shadow: none;
+}
+
+html[data-theme="nightflight"] .tile-art::after {
+  background: linear-gradient(180deg, rgba(4, 7, 13, .02) 0%, transparent 50%, rgba(4, 7, 13, .5) 100%);
+}
+
+html[data-theme="nightflight"] .tile:not(.is-active) .tile-art { filter: grayscale(.25) brightness(.6) saturate(.8); }
+
+html[data-theme="nightflight"] .tile:hover:not(.is-active) {
+  transform: translateY(-3px);
+  border-color: var(--nf-line-hi);
+  background: linear-gradient(180deg, var(--nf-panel-2) 0%, #07111c 100%);
+}
+
+html[data-theme="nightflight"] .tile:hover:not(.is-active) .tile-art { filter: grayscale(.1) brightness(.85) saturate(.95); }
+
+html[data-theme="nightflight"] .tile.is-active {
+  transform: translateY(-6px);
+  border-color: var(--nf-lime);
+  border-top-color: var(--nf-lime);
+  background: linear-gradient(180deg, #12222f 0%, #07121d 100%);
+  box-shadow:
+    0 0 0 1px rgba(217, 255, 69, .35),
+    0 0 30px -12px rgba(217, 255, 69, .6),
+    0 28px 50px -26px #000;
+}
+
+html[data-theme="nightflight"] .tile.is-active .tile-art { filter: none; }
+
+html[data-theme="nightflight"] .tile-label {
+  padding: 8px 2px 7px;
+  font-size: 11.5px;
+  color: var(--nf-muted);
+  overflow: hidden;
+}
+
+html[data-theme="nightflight"] .tile-label::before {
+  content: "NF " counter(nf-tile, decimal-leading-zero);
+  flex: none;
+  margin-right: 8px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: .06em;
+  color: var(--nf-dim);
+}
+
+html[data-theme="nightflight"] .tile-name { flex: 1 1 auto; min-width: 0; white-space: nowrap; font-weight: 600; color: #ffffff; }
+html[data-theme="nightflight"] .tile-sub { flex: none; font-family: var(--font-mono); font-size: 9px; color: var(--nf-dim); }
+html[data-theme="nightflight"] .tile.is-active .tile-label::before { color: var(--nf-lime); }
+html[data-theme="nightflight"] .tile.is-active .tile-sub { color: var(--nf-lime); }
+
+html[data-theme="nightflight"] .tile-progress { left: 8px; right: 8px; bottom: 5px; height: 3px; border-radius: 0; background: rgba(217, 255, 69, .16); }
+html[data-theme="nightflight"] .tile-progress i { border-radius: 0; background: var(--nf-lime); box-shadow: none; }
+html[data-theme="nightflight"] .tile-badge { border-radius: 0; border-color: rgba(217, 255, 69, .3); background: rgba(4, 7, 13, .8); color: var(--nf-lime); font-family: var(--font-mono); }
+
+html[data-theme="nightflight"] .dock-foot {
+  margin-top: 9px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .06em;
+  color: var(--nf-dim);
+}
+
+html[data-theme="nightflight"] .key {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 0;
+  border: 1px solid var(--nf-line-hi);
+  background: #07121d;
+  color: var(--nf-cream);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  box-shadow: none;
+}
+
+html[data-theme="nightflight"] .runtime { color: var(--nf-dim); }
+html[data-theme="nightflight"] .runtime::before {
+  content: "NIGHT OPS";
+  margin-right: 4px;
+  padding: 1px 7px;
+  border: 1px solid rgba(217, 255, 69, .35);
+  font-size: 8px;
+  letter-spacing: .14em;
+  color: var(--nf-lime);
+}
+html[data-theme="nightflight"] .runtime-sep { background: var(--nf-line); }
+
+/* ------------------------------------------------------------
+   5 · 游戏库：离港信息屏（FIDS）
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] .view-library {
+  padding: clamp(16px, 2.4vh, 26px) clamp(18px, 2.8vw, 36px);
+  background:
+    radial-gradient(70% 50% at 82% 0%, rgba(111, 168, 255, .1), transparent 62%),
+    linear-gradient(180deg, #040a12 0%, #04070d 100%);
+}
+
+html[data-theme="nightflight"] .view-library .lib-shell {
+  width: min(1480px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  padding: clamp(18px, 2.8vh, 28px) clamp(18px, 2.4vw, 32px);
+  border-top: 2px solid var(--nf-lime);
+  background: linear-gradient(180deg, rgba(11, 23, 36, .88), rgba(4, 10, 18, .94));
+  box-shadow: 0 40px 80px -46px #000;
+}
+
+html[data-theme="nightflight"] .view-library .lib-shell::after {
+  content: "NIGHT FLIGHT";
+  position: absolute;
+  right: 26px;
+  bottom: 12px;
+  z-index: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(58px, 9.6vw, 148px);
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: rgba(217, 255, 69, .045);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+html[data-theme="nightflight"] .lib-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: .24em;
+  color: var(--nf-lime);
+}
+
+html[data-theme="nightflight"] .lib-title h2 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #ffffff;
+}
+
+html[data-theme="nightflight"] .lib-back {
+  border-radius: 0;
+  border-color: var(--nf-line);
+  background: var(--nf-panel);
+  color: var(--nf-muted);
+}
+html[data-theme="nightflight"] .lib-back:hover { border-color: var(--nf-lime); color: var(--nf-lime); }
+
+html[data-theme="nightflight"] .lib-search {
+  border-radius: 0;
+  border-color: var(--nf-line);
+  background: var(--nf-panel);
+  color: var(--nf-muted);
+}
+html[data-theme="nightflight"] .lib-search:focus-within { border-color: var(--nf-lime); box-shadow: 0 0 0 1px rgba(217, 255, 69, .25); }
+html[data-theme="nightflight"] .lib-search input { color: #ffffff; font-family: var(--font-mono); font-size: 11px; }
+html[data-theme="nightflight"] .lib-search input::placeholder { color: var(--nf-dim); }
+html[data-theme="nightflight"] .lib-search .keycap { border-radius: 0; border-color: var(--nf-line); color: var(--nf-dim); }
+
+html[data-theme="nightflight"] .lib-meta { border-bottom: 1px solid var(--nf-line); }
+html[data-theme="nightflight"] .lib-stats { font-family: var(--font-mono); color: var(--nf-muted); }
+html[data-theme="nightflight"] .lib-stats b { color: var(--nf-lime); }
+html[data-theme="nightflight"] .lib-sep { background: var(--nf-line-hi); }
+
+html[data-theme="nightflight"] .filter {
+  height: 28px;
+  border-radius: 0;
+  border: 1px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--nf-muted);
+}
+html[data-theme="nightflight"] .filter:hover { color: #ffffff; background: rgba(217, 255, 69, .07); border-color: var(--nf-line); }
+html[data-theme="nightflight"] .filter.is-active { color: var(--nf-ink); background: var(--nf-lime); font-weight: 700; }
+
+html[data-theme="nightflight"] .lib-sort span { color: var(--nf-dim); font-family: var(--font-mono); }
+html[data-theme="nightflight"] .lib-sort select {
+  border-radius: 0;
+  border-color: var(--nf-line);
+  background: var(--nf-panel);
+  color: var(--nf-text);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+html[data-theme="nightflight"] .lib-grid {
+  counter-reset: nf-row;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(22px, 3.2vh, 30px) clamp(14px, 1.4vw, 20px);
+  margin-top: clamp(20px, 3vh, 28px);
+}
+
+html[data-theme="nightflight"] .lib-grid::after {
+  content: "END OF MANIFEST  ·  本机游戏";
+  grid-column: 1 / -1;
+  display: block;
+  padding: 16px 4px 10px;
+  border-bottom: 1px solid var(--nf-line);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: .18em;
+  color: var(--nf-dim);
+}
+
+html[data-theme="nightflight"] .lib-card {
+  counter-increment: nf-row;
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: none;
+}
+
+html[data-theme="nightflight"] .lib-card::before {
+  content: "NF " counter(nf-row, decimal-leading-zero);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  padding: 2px 6px;
+  border: 1px solid rgba(217, 255, 69, .35);
+  background: rgba(4, 7, 13, .78);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: .06em;
+  color: var(--nf-lime);
+}
+
+html[data-theme="nightflight"] .lib-card::after { content: none; }
+
+html[data-theme="nightflight"] .lib-card:hover { background: transparent; box-shadow: none; }
+
+html[data-theme="nightflight"] .lib-art {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
+  border: 1px solid var(--nf-line);
+  border-top: 3px solid var(--nf-line-hi);
+  background: #07101c;
+  box-shadow: 0 16px 34px -26px #000;
+  transition: transform .4s var(--ease), border-color .25s ease, box-shadow .35s ease;
+}
+
+html[data-theme="nightflight"] .lib-card:hover .lib-art {
+  transform: translateY(-3px);
+  border-color: var(--nf-lime);
+  border-top-color: var(--nf-lime);
+  box-shadow: 0 0 26px -12px rgba(217, 255, 69, .55), 0 22px 40px -26px #000;
+}
+
+html[data-theme="nightflight"] .lib-info { padding: 10px 2px 0; min-width: 0; }
+html[data-theme="nightflight"] .lib-name-row { min-width: 0; }
+html[data-theme="nightflight"] .lib-name { font-size: 13px; font-weight: 600; color: #ffffff; }
+html[data-theme="nightflight"] .lib-en { font-family: var(--font-mono); font-size: 9px; letter-spacing: .06em; color: var(--nf-lime); }
+html[data-theme="nightflight"] .lib-sub { margin-top: 5px; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .04em; color: var(--nf-dim); }
+html[data-theme="nightflight"] .lib-fav { color: var(--nf-lime); fill: var(--nf-lime); }
+html[data-theme="nightflight"] .lib-progress { display: none; }
+html[data-theme="nightflight"] .lib-open { border-radius: 0; border-color: var(--nf-lime); background: var(--nf-void); color: var(--nf-lime); }
+html[data-theme="nightflight"] .lib-empty h3 { color: #ffffff; font-family: var(--font-mono); }
+html[data-theme="nightflight"] .lib-empty p { color: var(--nf-muted); }
+
+/* ------------------------------------------------------------
+   6 · 外观 / 设置
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] .view-appearance,
+html[data-theme="nightflight"] .view-settings {
+  background:
+    radial-gradient(70% 50% at 82% 0%, rgba(111, 168, 255, .1), transparent 62%),
+    linear-gradient(180deg, #040a12 0%, #04070d 100%);
+}
+
+html[data-theme="nightflight"] .appearance-shell {
+  border-radius: 2px;
+  border: 1px solid var(--nf-line);
+  background: var(--nf-navy);
+  box-shadow: 0 40px 90px -50px #000;
+}
+
+html[data-theme="nightflight"] .appearance-preview {
+  border: 1px solid var(--nf-line);
+  border-radius: 0;
+}
+
+html[data-theme="nightflight"] .appearance-preview-shade {
+  background: linear-gradient(180deg, rgba(4, 7, 13, .04) 0%, rgba(4, 7, 13, .46) 56%, rgba(4, 7, 13, .88) 100%);
+}
+
+html[data-theme="nightflight"] .appearance-preview-copy {
+  padding: 22px 28px 26px;
+  background: linear-gradient(180deg, rgba(4, 10, 18, 0) 0%, rgba(4, 10, 18, .9) 22%, #040a12 100%);
+  border-top: 1px solid rgba(217, 255, 69, .3);
+}
+
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-eyebrow { color: var(--nf-lime); }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress {
+  background: rgba(217, 255, 69, .14);
+}
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress i {
+  background: linear-gradient(90deg, var(--nf-lime), #9fbf24);
+}
+
+/* 右键菜单：离港屏 */
+html[data-theme="nightflight"] .context-menu { backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-theme="nightflight"] .appearance-eyebrow { font-family: var(--font-mono); color: var(--nf-lime); }
+html[data-theme="nightflight"] .appearance-tagline { color: var(--nf-cream); }
+
+html[data-theme="nightflight"] .appearance-options {
+  border-radius: 0;
+  background: linear-gradient(180deg, #0b1724 0%, #060f19 100%);
+}
+
+html[data-theme="nightflight"] .appearance-kicker { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: .22em; color: var(--nf-lime); }
+html[data-theme="nightflight"] .appearance-head h2 { color: #ffffff; }
+html[data-theme="nightflight"] .appearance-head p { color: var(--nf-muted); }
+html[data-theme="nightflight"] .appearance-section { border-top: 1px solid var(--nf-line); }
+html[data-theme="nightflight"] .section-head h3 { color: #ffffff; }
+html[data-theme="nightflight"] .section-head p { color: var(--nf-dim); }
+html[data-theme="nightflight"] .section-tag {
+  border: 1px solid rgba(217, 255, 69, .35);
+  border-radius: 0;
+  background: rgba(217, 255, 69, .06);
+  color: var(--nf-lime);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+}
+
+html[data-theme="nightflight"] .theme-card { border-radius: 0; border-color: var(--nf-line); background: var(--nf-panel); }
+html[data-theme="nightflight"] .theme-card:hover { border-color: var(--nf-line-hi); background: var(--nf-panel-2); }
+html[data-theme="nightflight"] .theme-card.is-active {
+  border-color: var(--nf-lime);
+  box-shadow: 0 0 0 1px rgba(217, 255, 69, .4), 0 0 24px -10px rgba(217, 255, 69, .5);
+}
+html[data-theme="nightflight"] .theme-name { color: #ffffff; }
+html[data-theme="nightflight"] .theme-sub { color: var(--nf-dim); }
+
+html[data-theme="nightflight"] .style-choice { border-radius: 0; border-color: var(--nf-line); background: var(--nf-panel); }
+html[data-theme="nightflight"] .style-choice.is-active { border-color: var(--nf-lime); background: rgba(217, 255, 69, .06); }
+html[data-theme="nightflight"] .style-choice-head { color: #ffffff; }
+html[data-theme="nightflight"] .style-choice-head em { color: var(--nf-dim); }
+
+html[data-theme="nightflight"] .pref-row { border-radius: 0; color: var(--nf-text); }
+html[data-theme="nightflight"] .pref-row:hover { background: rgba(217, 255, 69, .06); }
+html[data-theme="nightflight"] .pref-label .ic { color: var(--nf-lime); }
+html[data-theme="nightflight"] .pref-note { color: var(--nf-dim); }
+
+html[data-theme="nightflight"] .switch { background: #1d3346; border-radius: 0; }
+html[data-theme="nightflight"] .switch::after { border-radius: 0; background: #7e93a5; }
+html[data-theme="nightflight"] .switch.on { background: var(--nf-lime); }
+html[data-theme="nightflight"] .switch.on::after { background: var(--nf-ink); }
+
+html[data-theme="nightflight"] .appearance-footer { border-top-color: var(--nf-line); }
+html[data-theme="nightflight"] .autosave { color: var(--nf-dim); }
+
+html[data-theme="nightflight"] .view-settings .appearance-options {
+  border: 1px solid var(--nf-line);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #0a1624 0%, #060f19 100%);
+}
+
+html[data-theme="nightflight"] .settings-hero { border-bottom-color: var(--nf-line); }
+html[data-theme="nightflight"] .settings-id {
+  border-radius: 0;
+  border-color: var(--nf-line);
+  background: linear-gradient(120deg, rgba(217, 255, 69, .1), transparent 62%);
+}
+html[data-theme="nightflight"] .settings-id-avatar {
+  border-radius: 0;
+  border-color: rgba(217, 255, 69, .5);
+  background: #0d2031;
+  color: var(--nf-lime);
+  font-family: var(--font-mono);
+}
+html[data-theme="nightflight"] .settings-id-copy b { color: #ffffff; }
+html[data-theme="nightflight"] .settings-id-copy em { color: var(--nf-muted); }
+html[data-theme="nightflight"] .settings-id-tags i { border-radius: 0; border-color: var(--nf-line); color: var(--nf-muted); font-family: var(--font-mono); }
+
+html[data-theme="nightflight"] .settings-card {
+  border-radius: 0;
+  border-color: var(--nf-line);
+  background: linear-gradient(180deg, rgba(16, 31, 48, .7), rgba(7, 16, 28, .86));
+}
+html[data-theme="nightflight"] .settings-card:focus-within { border-color: var(--nf-lime); }
+html[data-theme="nightflight"] .settings-card h3 { color: #ffffff; }
+html[data-theme="nightflight"] .settings-card p { color: var(--nf-muted); }
+html[data-theme="nightflight"] .settings-field label { color: var(--nf-lime); font-family: var(--font-mono); letter-spacing: .1em; }
+html[data-theme="nightflight"] .settings-field input,
+html[data-theme="nightflight"] .settings-field select {
+  border-radius: 0;
+  border-color: var(--nf-line);
+  background: #040d16;
+  color: #ffffff;
+  font-family: var(--font-mono);
+}
+html[data-theme="nightflight"] .settings-field input:focus,
+html[data-theme="nightflight"] .settings-field select:focus { border-color: var(--nf-lime); box-shadow: 0 0 0 1px rgba(217, 255, 69, .25); }
+
+html[data-theme="nightflight"] .settings-note,
+html[data-theme="nightflight"] .settings-about p { color: var(--nf-muted); }
+html[data-theme="nightflight"] .settings-note b { color: #ffffff; }
+html[data-theme="nightflight"] .settings-about code { border-color: var(--nf-line); color: var(--nf-lime); }
+html[data-theme="nightflight"] .settings-stat { border-radius: 0; border-color: var(--nf-line); background: #07121d; }
+html[data-theme="nightflight"] .settings-stat span { color: var(--nf-dim); font-family: var(--font-mono); letter-spacing: .12em; }
+html[data-theme="nightflight"] .settings-stat b { color: #ffffff; font-family: var(--font-mono); }
+html[data-theme="nightflight"] .settings-stat em { color: var(--nf-muted); }
+html[data-theme="nightflight"] .session-row { border-color: var(--nf-line); }
+html[data-theme="nightflight"] .session-row b { color: #ffffff; }
+html[data-theme="nightflight"] .session-row span { color: var(--nf-dim); }
+html[data-theme="nightflight"] .session-row em { color: var(--nf-lime); }
+html[data-theme="nightflight"] .settings-foot { border-color: var(--nf-line); color: var(--nf-dim); }
+
+/* ------------------------------------------------------------
+   7 · 浮层 / 详情 / 对话框
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] .overlay { background: rgba(2, 5, 9, .82); }
+
+html[data-theme="nightflight"] .detail-modal,
+html[data-theme="nightflight"] .editor-shell,
+html[data-theme="nightflight"] .scanner-shell,
+html[data-theme="nightflight"] .dialog {
+  border-radius: 2px;
+  border: 1px solid var(--nf-line);
+  border-top: 2px solid var(--nf-lime);
+  background: linear-gradient(180deg, #0b1724 0%, #060f19 100%);
+  box-shadow: 0 50px 110px -50px #000;
+}
+
+html[data-theme="nightflight"] .detail-art { border-bottom: 1px solid var(--nf-line); }
+html[data-theme="nightflight"] .detail-kicker { color: var(--nf-lime); font-family: var(--font-mono); }
+html[data-theme="nightflight"] .detail-body h2 { color: #ffffff; }
+html[data-theme="nightflight"] .detail-tagline { color: var(--nf-lime); }
+html[data-theme="nightflight"] .detail-desc { color: var(--nf-muted); }
+html[data-theme="nightflight"] .detail-meta { color: var(--nf-muted); }
+html[data-theme="nightflight"] .detail-progress .dp-head { color: var(--nf-dim); font-family: var(--font-mono); }
+html[data-theme="nightflight"] .detail-progress .dp-head b { color: #ffffff; }
+html[data-theme="nightflight"] .dp-track { background: rgba(217, 255, 69, .12); }
+html[data-theme="nightflight"] .dp-track i { background: var(--nf-lime); }
+html[data-theme="nightflight"] .dp-sub { color: var(--nf-dim); }
+html[data-theme="nightflight"] .detail-stats .stat-cell,
+html[data-theme="nightflight"] .detail-stats > div { border-color: var(--nf-line); background: #07121d; }
+html[data-theme="nightflight"] .detail-sync { border-color: var(--nf-line); color: var(--nf-dim); }
+html[data-theme="nightflight"] .detail-sync .text-btn { color: var(--nf-lime); }
+html[data-theme="nightflight"] .manage-panel { border-radius: 0; border-color: var(--nf-line); background: #07121d; }
+html[data-theme="nightflight"] .manage-row { border-color: var(--nf-line); color: var(--nf-text); }
+html[data-theme="nightflight"] .manage-row:hover { background: rgba(217, 255, 69, .06); }
+html[data-theme="nightflight"] .manage-steam { border-color: var(--nf-line); background: #040d16; }
+html[data-theme="nightflight"] .steam-mode { border-radius: 0; border-color: var(--nf-line); background: #0a1724; color: var(--nf-muted); }
+html[data-theme="nightflight"] .steam-mode.is-active { border-color: var(--nf-lime); background: rgba(217, 255, 69, .1); color: var(--nf-lime); }
+html[data-theme="nightflight"] .modal-close {
+  border-radius: 0;
+  border: 1px solid var(--nf-line);
+  background: rgba(4, 7, 13, .8);
+  color: var(--nf-muted);
+}
+
+html[data-theme="nightflight"] .editor-preview { border-radius: 0; }
+html[data-theme="nightflight"] .editor-shell h2 { color: #ffffff; }
+html[data-theme="nightflight"] .editor-kicker { color: var(--nf-lime); font-family: var(--font-mono); }
+html[data-theme="nightflight"] .editor-field label { color: var(--nf-lime); font-family: var(--font-mono); }
+html[data-theme="nightflight"] .editor-field input,
+html[data-theme="nightflight"] .editor-field select,
+html[data-theme="nightflight"] .editor-field textarea {
+  border-radius: 0;
+  border-color: var(--nf-line);
+  background: #040d16;
+  color: #ffffff;
+  font-family: var(--font-mono);
+}
+
+html[data-theme="nightflight"] .context-menu,
+html[data-theme="nightflight"] .notif-panel,
+html[data-theme="nightflight"] .profile-menu {
+  border-radius: 0;
+  border: 1px solid var(--nf-line);
+  border-top: 2px solid var(--nf-lime);
+  background: #0b1724;
+  color: var(--nf-text);
+  box-shadow: 0 30px 70px -40px #000;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-theme="nightflight"] .context-item {
+  border-radius: 0;
+  color: var(--nf-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+html[data-theme="nightflight"] .context-item:hover,
+html[data-theme="nightflight"] .context-item:focus-visible {
+  background: rgba(217, 255, 69, .08);
+  color: var(--nf-lime);
+}
+html[data-theme="nightflight"] .context-item .ic { color: var(--nf-lime); opacity: 1; }
+html[data-theme="nightflight"] .menu-label { color: inherit; }
+html[data-theme="nightflight"] .menu-key { color: var(--nf-dim); }
+html[data-theme="nightflight"] .menu-separator { background: var(--nf-line); }
+html[data-theme="nightflight"] .menu-row { border-radius: 0; color: var(--nf-text); }
+html[data-theme="nightflight"] .menu-row:hover { background: rgba(217, 255, 69, .08); color: var(--nf-lime); }
+html[data-theme="nightflight"] .menu-row .ic { color: var(--nf-lime); }
+
+html[data-theme="nightflight"] .toast { border-radius: 0; border: 1px solid var(--nf-line); border-left: 3px solid var(--nf-lime); background: #0b1724; color: #ffffff; }
+html[data-theme="nightflight"] .sleep { background: #030609; }
+html[data-theme="nightflight"] .sleep-time { color: #ffffff; font-family: var(--font-mono); }
+
+/* ------------------------------------------------------------
+   8 · 进游戏：跑道灯加速
+   ------------------------------------------------------------ */
+
+html[data-theme="nightflight"] .launch { background: #030609; }
+
+html[data-theme="nightflight"] .launch-art {
+  filter: grayscale(.2) saturate(.8) brightness(.38);
+}
+
+html[data-theme="nightflight"] .launch.is-open .launch-art {
+  animation: nfLaunch 600ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+html[data-theme="nightflight"] .launch-copy .launch-kicker { color: var(--nf-lime); font-family: var(--font-mono); letter-spacing: .24em; }
+html[data-theme="nightflight"] .launch-copy .launch-logo { color: #ffffff; }
+html[data-theme="nightflight"] .launch-copy .launch-zh { color: var(--nf-muted); }
+html[data-theme="nightflight"] .launch-status { color: var(--nf-lime); }
+html[data-theme="nightflight"] .launch-bar { background: rgba(217, 255, 69, .16); }
+html[data-theme="nightflight"] .launch-bar i { background: var(--nf-lime); }
+
+@keyframes nfLaunch {
+  0% {
+    opacity: .3;
+    transform: scale(.94);
+    clip-path: inset(46% 46% 46% 46%);
+    filter: grayscale(.2) brightness(.3);
+  }
+  55% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.02);
+    filter: grayscale(.12) brightness(.5);
+  }
+}
+
+/* ------------------------------------------------------------
+   9 · 响应式
+   ------------------------------------------------------------ */
+
+@media (max-width: 1180px) {
+  html[data-theme="nightflight"] .hero-inner { padding-right: 34%; }
+  html[data-theme="nightflight"] .hero-logo { font-size: calc(clamp(32px, 3.8vw, 48px) * var(--logo-fit, 1)); }
+  html[data-theme="nightflight"] .hero-inner::after { width: clamp(180px, 24vw, 250px); }
+}
+
+@media (max-height: 700px) {
+  html[data-theme="nightflight"] .stage { padding-left: 20px; padding-right: 20px; }
+  html[data-theme="nightflight"] .hero { padding-left: 28px; }
+  html[data-theme="nightflight"] .hero::before { width: 28px; font-size: 7.5px; content: "NIGHT FLIGHT"; }
+  html[data-theme="nightflight"] .hero::after { display: none; }
+
+  html[data-theme="nightflight"] .hero-inner {
+    min-height: 0;
+    padding: 14px 30% 14px 22px;
+    border-top-width: 5px;
+  }
+
+  html[data-theme="nightflight"] .hero-inner::before { background-position: 66% 0, 66% 100%, 66% 0; }
+  html[data-theme="nightflight"] .hero-inner::after { width: clamp(140px, 20vw, 178px); border-width: 6px; }
+
+  html[data-theme="nightflight"] .kicker { font-size: 9px; }
+  html[data-theme="nightflight"] .hero-logo { margin-top: 7px; font-size: calc(clamp(25px, 3.4vw, 34px) * var(--logo-fit, 1)); }
+  html[data-theme="nightflight"] .hero-logo::after { margin-top: 7px; width: 38px; height: 3px; }
+  html[data-theme="nightflight"] .tagline { margin-top: 6px; font-size: 11px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  html[data-theme="nightflight"] .meta-row { margin-top: 7px; font-size: 9.5px; }
+  html[data-theme="nightflight"] .cta-row { margin-top: 8px; gap: 7px; }
+  html[data-theme="nightflight"] .btn { height: 36px; padding: 0 15px; font-size: 11.5px; box-shadow: 3px 3px 0 var(--nf-ink); }
+  html[data-theme="nightflight"] .progress-block { margin-top: 7px; width: min(330px, 100%) !important; }
+  html[data-theme="nightflight"] .progress-track { height: 7px; }
+  html[data-theme="nightflight"] .progress-sub { display: none; }
+
+  html[data-theme="nightflight"] .dock { padding: 11px 20px 5px; }
+  html[data-theme="nightflight"] .dock::before { left: 20px; right: 20px; }
+  html[data-theme="nightflight"] .dock-head { margin-bottom: 18px; }
+  html[data-theme="nightflight"] .dock-title::before { font-size: 15px; }
+  html[data-theme="nightflight"] .tile { width: clamp(142px, 17vw, 176px); padding: 5px 5px 0; }
+  html[data-theme="nightflight"] .tile-label { padding: 6px 1px 5px; font-size: 10px; }
+  html[data-theme="nightflight"] .tile-label::before { font-size: 8px; }
+  html[data-theme="nightflight"] .dock-foot { margin-top: 4px; }
+
+  html[data-theme="nightflight"] .lib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html[data-theme="nightflight"] .lib-name { font-size: 12.5px; }
+}
+
+@media (max-height: 620px) {
+  html[data-theme="nightflight"] .hero-inner { padding-top: 10px; padding-bottom: 10px; }
+  html[data-theme="nightflight"] .hero-logo { font-size: calc(clamp(22px, 3vw, 28px) * var(--logo-fit, 1)); }
+  html[data-theme="nightflight"] .tagline { display: none; }
+  html[data-theme="nightflight"] .meta-row { margin-top: 5px; }
+  html[data-theme="nightflight"] .cta-row { margin-top: 7px; }
+  html[data-theme="nightflight"] .progress-block { margin-top: 6px; }
+  html[data-theme="nightflight"] .dock-head { margin-bottom: 14px; }
+  html[data-theme="nightflight"] .dock-foot { display: none; }
+}
+
+@media (max-width: 760px) {
+  html[data-theme="nightflight"] .hero { padding-left: 0; }
+  html[data-theme="nightflight"] .hero::before { display: none; }
+  html[data-theme="nightflight"] .hero-inner { padding: 14px 18px; }
+  html[data-theme="nightflight"] .hero-inner::before { display: none; }
+  html[data-theme="nightflight"] .hero-inner::after {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    width: 120px;
+    margin: 14px 0 0;
+  }
+  html[data-theme="nightflight"] .hero-inner > * { width: 100%; }
+  html[data-theme="nightflight"] .tagline { display: none; }
+  html[data-theme="nightflight"] .lib-card { grid-template-columns: 96px minmax(0, 1fr); }
+  html[data-theme="nightflight"] .lib-card::before { display: none; }
+  html[data-theme="nightflight"] .lib-art { width: 96px; }
+}
+
+/* 字标卡片在深色面板上必须回到米白 */
+html[data-theme="nightflight"] .style-choice .choice-logo {
+  color: var(--nf-cream) !important;
+  -webkit-text-fill-color: var(--nf-cream) !important;
+  background: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+html[data-theme="nightflight"] .style-choice.is-active .choice-logo {
+  color: var(--nf-lime) !important;
+  -webkit-text-fill-color: var(--nf-lime) !important;
+}
+
+html[data-theme="nightflight"] :is(.tile-badge, .lib-current, .lib-open, .live-pill, .modal-close, .detail-status, .editor-framing, .activity-strip, .toast, .context-menu) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html[data-theme="nightflight"] .tile-badge,
+html[data-theme="nightflight"] .lib-current,
+html[data-theme="nightflight"] .lib-open,
+html[data-theme="nightflight"] .live-pill,
+html[data-theme="nightflight"] .modal-close,
+html[data-theme="nightflight"] .detail-status,
+html[data-theme="nightflight"] .editor-framing { background: #0a1624; }
+
+/* 禁止模糊：外观预览与详情头图改用清晰的夜空底 */
+html[data-theme="nightflight"] .appearance-bg { display: none !important; }
+html[data-theme="nightflight"] .appearance-preview {
+  background:
+    radial-gradient(60% 46% at 78% 10%, rgba(111, 168, 255, .16), transparent 64%),
+    linear-gradient(180deg, #07101c 0%, #04070d 100%);
+}
+html[data-theme="nightflight"] .detail-art::before { display: none !important; }
+html[data-theme="nightflight"] .detail-art { background: linear-gradient(160deg, #0d2031, #04070d); }
+
+/* NO-BLUR · 三套主题不允许任何毛玻璃 / 模糊层 */
+html[data-theme="nightflight"] *,
+html[data-theme="nightflight"] *::before,
+html[data-theme="nightflight"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html[data-theme="nightflight"] .appearance-bg,
+html[data-theme="nightflight"] .launch-bg { display: none !important; }
+html[data-theme="nightflight"] .launch-logo { filter: none !important; }
+html[data-theme="nightflight"] .launch.is-leaving .launch-art {
+  filter: brightness(.4) saturate(.95) !important;
+}
+html[data-theme="nightflight"] .hero-inner { animation: none !important; }
+html[data-theme="nightflight"] :is(.detail-modal, .lib-shell, .appearance-shell, .editor-shell, .scanner-shell) {
+  filter: none !important;
+}
+html[data-theme="nightflight"] .sleep::before { filter: none !important; }
+html[data-theme="nightflight"] .choice-logo { animation: none !important; filter: none !important; }
+
+/* 2.5 · 外观预览：与其他主题一致的全幅封面 */
+html[data-theme="nightflight"] .appearance-preview {
+  border: 1px solid var(--nf-line);
+  background: #04070d;
+}
+html[data-theme="nightflight"] .appearance-bg { display: none !important; }
+html[data-theme="nightflight"] .appearance-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+}
+html[data-theme="nightflight"] .appearance-preview-shade {
+  background:
+    linear-gradient(180deg, rgba(4, 7, 13, 0) 0%, rgba(4, 7, 13, .04) 34%, rgba(4, 7, 13, .52) 66%, rgba(4, 7, 13, .95) 100%),
+    radial-gradient(56% 42% at 78% 30%, rgba(111, 168, 255, .18), transparent 72%);
+}
+html[data-theme="nightflight"] .appearance-preview-copy {
+  left: clamp(22px, 2.6vw, 34px);
+  right: 28px;
+  bottom: 82px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #e9edf2;
+}
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-eyebrow { color: #d9ff45; }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-logo { color: #ffffff; }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-tagline { color: rgba(233, 237, 242, .78); }
+html[data-theme="nightflight"] .appearance-preview-copy .preview-cta-note { color: rgba(233, 237, 242, .48); }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress { background: rgba(217, 255, 69, .16); }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress span { color: rgba(233, 237, 242, .72); }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress i { background: linear-gradient(90deg, #d9ff45, #9fbf24); }
+
+
+/* 2.6 · 参考其他主题：外观预览只留标题，不要 CTA 与时长 */
+.preview-cta-row,
+.appearance-progress { display: none; }
+
+/* 2.7 · 外观预览标题框（与其他主题一致） */
+html[data-theme="nightflight"] .appearance-preview-copy {
+  right: auto;
+  bottom: 92px;
+  left: 18px;
+  width: min(80%, 520px);
+  max-width: 520px;
+  padding: 12px 16px 14px;
+  border-radius: 10px;
+  background: rgba(8, 18, 29, .95);
+  border: 1px solid rgba(217, 255, 69, .42);
+  outline: 1px dashed rgba(217, 255, 69, .22);
+  outline-offset: -6px;
+  box-shadow: 0 20px 40px -28px rgba(0, 0, 0, .9);
+  color: #e9edf2;
+}
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-eyebrow { color: #d9ff45; }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-logo { color: #ffffff; }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-tagline { color: rgba(233, 237, 242, .76); }
+
+/* 2.8 · 外观底部游戏切换条（与其他主题一致） */
+html[data-theme="nightflight"] .appearance-switcher {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 6;
+  padding: 8px 14px 9px;
+  gap: 7px;
+  background: #04070d;
+  border-top: 1px solid var(--nf-line);
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+html[data-theme="nightflight"] .appearance-switcher .game-chip {
+  border-radius: 0;
+  border-color: rgba(28, 51, 72, .95);
+  opacity: .58;
+}
+html[data-theme="nightflight"] .appearance-switcher .game-chip:hover { opacity: .9; border-color: var(--nf-line-hi); }
+html[data-theme="nightflight"] .appearance-switcher .game-chip.is-active {
+  opacity: 1;
+  border-color: var(--nf-lime);
+  box-shadow: 0 0 0 1px rgba(217, 255, 69, .45);
+}
