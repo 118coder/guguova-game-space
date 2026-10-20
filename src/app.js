@@ -399,6 +399,7 @@
     settingsFootPath: $('#settingsFootPath'),
     settingsBackupNote: $('#settingsBackupNote'),
     contextMenu: $('#contextMenu'),
+    themeTip: $('#themeTip'),
     homeView: $('#homeView'),
     layoutBtn: $('#layoutBtn')
   };
@@ -3788,7 +3789,7 @@
                 data-theme="${esc(theme.id)}" type="button"
                 aria-pressed="${active ? 'true' : 'false'}"
                 ${broken ? 'disabled' : ''}
-                title="${esc(broken ? theme.error : theme.description || theme.name)}">
+                data-tip="${esc(broken ? theme.error : theme.description || theme.name)}">
           <span class="theme-preview">${preview}</span>
           <span class="theme-meta">
             <span class="theme-name">${esc(theme.name)}</span>
@@ -4006,6 +4007,35 @@
     }
   }
 
+  /**
+   * Theme cards used to carry a `title`, which the host renders as a stock
+   * dark tooltip — the one surface that ignored the active theme entirely.
+   * This is the themed replacement; it reuses the context menu's material.
+   */
+  function showThemeTip(card) {
+    const tip = els.themeTip;
+    const text = card && card.dataset.tip;
+    if (!tip || !text) return;
+    tip.textContent = text;
+    tip.classList.add('is-open');
+    tip.setAttribute('aria-hidden', 'false');
+    const r = card.getBoundingClientRect();
+    const t = tip.getBoundingClientRect();
+    const gap = 10;
+    let x = r.x + r.width / 2 - t.width / 2;
+    x = Math.max(8, Math.min(x, window.innerWidth - t.width - 8));
+    let y = r.y - t.height - gap;
+    if (y < 8) y = Math.min(r.bottom + gap, window.innerHeight - t.height - 8);
+    tip.style.left = `${Math.round(x)}px`;
+    tip.style.top = `${Math.round(y)}px`;
+  }
+
+  function hideThemeTip() {
+    if (!els.themeTip) return;
+    els.themeTip.classList.remove('is-open');
+    els.themeTip.setAttribute('aria-hidden', 'true');
+  }
+
   function bindThemePanel() {
     if (els.themeToggle) {
       els.themeToggle.addEventListener('click', () => {
@@ -4028,6 +4058,21 @@
     };
     els.themeGrid.addEventListener('pointerover', warmCard, { passive: true });
     els.themeGrid.addEventListener('focusin', warmCard);
+
+    els.themeGrid.addEventListener('pointerover', (event) => {
+      const card = event.target.closest('.theme-card[data-tip]');
+      if (card) showThemeTip(card);
+    });
+    els.themeGrid.addEventListener('pointerout', (event) => {
+      const to = event.relatedTarget instanceof Element ? event.relatedTarget : null;
+      if (!to || !to.closest('.theme-card')) hideThemeTip();
+    });
+    els.themeGrid.addEventListener('focusin', (event) => {
+      const card = event.target.closest('.theme-card[data-tip]');
+      if (card) showThemeTip(card);
+    });
+    els.themeGrid.addEventListener('focusout', () => hideThemeTip());
+    window.addEventListener('scroll', () => hideThemeTip(), true);
 
     els.themeRefresh.addEventListener('click', async () => {
       if (!window.NovaTheme) return;

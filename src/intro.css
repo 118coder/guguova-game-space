@@ -3613,3 +3613,12 @@ html.reduce-motion .intro-ef2-solid i { animation: none !important; opacity: 1 !
 .intro[data-intro="endfield"] .intro-hint {
   animation-delay: .95s, 1.75s;
 }
+
+/* ENDFIELD v2 owns the whole stage: the shared astrolabe must not show
+   through. Hiding it here, not just recolouring it. */
+.intro[data-intro="endfield"] .intro-stage,
+.intro[data-intro="endfield"] .intro-corners,
+.intro[data-intro="endfield"] .intro-grain,
+.intro[data-intro="endfield"] .intro-meter {
+  display: none;
+}
