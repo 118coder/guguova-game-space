@@ -1,5 +1,7 @@
 # Steam 经典 · STEAM CLASSIC
 
+> **状态：设计未通过，待重做。** 见 `docs/HANDOFF-NEXT.md` §4–§7。
+
 > 版本 **1.0.2** · 开屏 `steam（客户端启动）` · 进游戏 `stMax（窗口最大化）` · 切换 `客户端窗口推开`
 
 > 完整设计规范：`themes/steam/DESIGN.md`（色板、构图、控件、动画、音效、禁忌）
