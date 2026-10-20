@@ -8,11 +8,11 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>NovaGameSpace</AssemblyName>
+    <AssemblyName>GUGUOVA</AssemblyName>
     <RootNamespace>NovaGameSpace</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>build\icon.ico</ApplicationIcon>
-    <Version>1.9.0</Version>
+    <Version>1.12.0</Version>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <DebugType>none</DebugType>
@@ -131,6 +131,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="themes\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Bundled GPLv3 upscaler (separate process). Fetch with
+         tools/fetch-magpie.py; the build still works without it. -->
+    <Content Include="third_party\magpie\**\*" Condition="Exists('third_party\magpie\Magpie.exe')">
+      <Link>engine\magpie\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

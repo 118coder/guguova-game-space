@@ -43,6 +43,11 @@ public sealed class GameEntry
     /// "direct" is the escape hatch for games that start fine on their own.</summary>
     public string LaunchMode { get; set; } = "auto";
 
+    /// <summary>Per-game borderless fullscreen / upscale preference.
+    /// Null follows the launcher: on in immersive (fullscreen) mode, off in a
+    /// windowed session. A real value is the player's explicit choice.</summary>
+    public bool? FullscreenScale { get; set; }
+
     public int LaunchCount { get; set; }
     public string? CustomLogo { get; set; }
 
@@ -111,6 +116,33 @@ public sealed class PlayerSettings
     public string LibrarySort { get; set; } = "recent";
     /// <summary>auto | full | balanced | safe. Auto is the recommended default.</summary>
     public string CompatibilityTier { get; set; } = "auto";
+
+    /// <summary>Hide the launcher when a game process is attached, then bring
+    /// it back on exit. On by default: the game window, not the overlay, should
+    /// be what the player sees after a launch.</summary>
+    public bool MinimizeOnLaunch { get; set; } = true;
+
+    /// <summary>"auto" (Magpie when it is already running, otherwise native
+    /// borderless), "native" (borderless stretch only) or "off".</summary>
+    public string ScalingEngine { get; set; } = "auto";
+
+    /// <summary>Optional Magpie.exe override for portable copies that live
+    /// outside the usual install locations.</summary>
+    public string? MagpiePath { get; set; }
+
+    /// <summary>Global scaling hotkey in Magpie's packed form:
+    /// key | win&lt;&lt;8 | ctrl&lt;&lt;9 | alt&lt;&lt;10 | shift&lt;&lt;11.
+    /// Default 3137 = Alt+Shift+A, which is also Magpie's own default.</summary>
+    public int ScalingHotkey { get; set; } = 3137;
+
+    /// <summary>When the app is started by Windows, open straight into the
+    /// borderless immersive shell instead of the windowed one.</summary>
+    public bool StartupFullscreen { get; set; }
+
+    /// <summary>Start the bundled scaling engine when a launch asks for
+    /// fullscreen scaling. It is never started at boot and never started for a
+    /// game whose switch is off: the switch is the player's opt-in.</summary>
+    public bool AutoStartEngine { get; set; } = true;
 }
 
 /// <summary>Payload returned to the UI after a launch is started. <c>Pending</c>
@@ -173,7 +205,8 @@ public sealed record GamePayload(
     string LaunchModeResolved,
     bool SteamRunning,
     bool SteamSignedIn,
-    string SteamNote);
+    string SteamNote,
+    bool? FullscreenScale);
 
 public sealed record SteamCandidate(
     string AppId,

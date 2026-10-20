@@ -57,3 +57,9 @@ legacy/embedded/
 
 # Fody regenerates this schema on every build
 legacy/FodyWeavers.xsd
+
+# ---------- bundled Magpie engine (binaries fetched, notices tracked) ----------
+third_party/magpie/*.exe
+third_party/magpie/*.dll
+third_party/magpie/*.pri
+third_party/magpie/effects/

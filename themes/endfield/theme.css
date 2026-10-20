@@ -1599,6 +1599,15 @@ html[data-theme="endfield"] .detail-art-copy .detail-logo {
   background: var(--ef-paper);
 }
 
+/* The card surface is paper, so its labels must be ink. The base rules use
+   light-theme white tints, which vanished on this white card. */
+.manage-stat span { color: var(--ef-ink-2); font-weight: 600; }
+.manage-stat b { color: var(--ef-ink); font-weight: 800; }
+.manage-stats { border-color: var(--ef-rule); background: var(--ef-rule); }
+.manage-panel { color: var(--ef-ink); }
+.manage-steam-title { color: var(--ef-ink); }
+.manage-row { color: var(--ef-ink); }
+
 .dp-head { color: var(--ef-ink-2); font-weight: 600; }
 .dp-head b { color: var(--ef-ink); font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; }
 .dp-sub,

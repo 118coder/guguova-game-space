@@ -27,9 +27,9 @@ public static class BackupService
     };
 
     public static string DefaultExportDirectory =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NOVA Backups");
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "GUGUOVA Backups");
 
-    public static ExportResult Export(StoreService store, string? directory = null, string prefix = "NOVA")
+    public static ExportResult Export(StoreService store, string? directory = null, string prefix = "GUGUOVA")
     {
         var temp = Path.Combine(Path.GetTempPath(), "nova-pack-" + Guid.NewGuid().ToString("N"));
         try
@@ -65,7 +65,7 @@ public static class BackupService
             var manifest = new
             {
                 schema = 1,
-                app = "NOVA Game Space",
+                app = "GUGUOVA",
                 version = typeof(BackupService).Assembly.GetName().Version?.ToString(3) ?? "1.5.0",
                 exportedUtc = DateTime.UtcNow.ToString("o"),
                 gameCount = store.Library.Games.Count,
@@ -106,10 +106,10 @@ public static class BackupService
                 DateTimeOffset.UtcNow - last.ToUniversalTime() < TimeSpan.FromHours(24))
                 return;
 
-            var result = Export(store, AppPaths.Backups, "NOVA-auto");
+            var result = Export(store, AppPaths.Backups, "GUGUOVA-auto");
             if (!result.Ok) return;
 
-            var files = Directory.EnumerateFiles(AppPaths.Backups, "NOVA-auto-*.nova-pack")
+            var files = Directory.EnumerateFiles(AppPaths.Backups, "GUGUOVA-auto-*.nova-pack")
                 .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
                 .ToList();
             foreach (var old in files.Skip(5)) TryDeleteFile(old);
@@ -214,7 +214,7 @@ public static class BackupService
     {
         var directory = DefaultExportDirectory;
         Directory.CreateDirectory(directory);
-        var path = Path.Combine(directory, $"NOVA-playtime-{DateTime.Now:yyyyMMdd-HHmmss}.csv");
+        var path = Path.Combine(directory, $"GUGUOVA-playtime-{DateTime.Now:yyyyMMdd-HHmmss}.csv");
 
         var lines = new List<string> { "game,startedUtc,endedUtc,seconds,minutes,crashed" };
         foreach (var game in store.Library.Games)

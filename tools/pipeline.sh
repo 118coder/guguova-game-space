@@ -42,6 +42,15 @@ else
   echo "-- audit skipped"
 fi
 
+if [ ! -f third_party/magpie/Magpie.exe ]; then
+  echo "-- bundled engine missing; fetching Magpie (GPLv3)"
+  # The default bundled engine is the lite effect set. Set MAGPIE_FULL=1 when
+  # you intentionally want the 26 MB full-effects engine in the package.
+  MAGPIE_ARGS="--lite"
+  if [ "${MAGPIE_FULL:-0}" = "1" ]; then MAGPIE_ARGS=""; fi
+  python tools/fetch-magpie.py $MAGPIE_ARGS || echo "warning: building without the bundled engine"
+fi
+
 echo "-- build legacy (net48)"
 bash tools/build-legacy.sh "$CONFIG"
 

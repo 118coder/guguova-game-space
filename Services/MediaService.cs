@@ -30,6 +30,14 @@ public sealed class MediaService
     public const int CoverWidth = 800;
     public const int CoverHeight = 450;
 
+    /// <summary>Steam heroes are 1920×620, not 16:9. Cropping them to 16:9
+    /// discards the sides and then upscales the 1102×620 remainder to
+    /// 1920×1080, which is exactly why imported Steam art looked soft. Every
+    /// surface renders the hero with object-fit: cover, so the native aspect
+    /// ratio can be kept as long as the long edge is sharp.</summary>
+    public const int HeroLongEdge = 1920;
+    public const int HeroMinLongEdge = 640;
+
     public string MediaDir => AppPaths.Media;
 
     public string GameMediaDir(string gameId)
@@ -68,28 +76,31 @@ public sealed class MediaService
     }
 
     /// <summary>
-    /// Builds hero + cover from a source image. Returns the palette derived
-    /// from the crop, or null when the image cannot be read.
+    /// Builds hero + cover from a source image. The hero keeps the source's
+    /// aspect ratio (Steam's 1920×620 art loses its sides when forced to 16:9)
+    /// and is only ever downscaled, never upscaled; the cover stays 16:9 for
+    /// the grid. Returns the palette derived from the crop, or null when the
+    /// image cannot be read.
     /// </summary>
     public CoverAnalysis? ImportImage(string gameId, string sourcePath)
     {
         try
         {
             using var source = LoadBitmap(sourcePath, out var disposeSource);
-            using var framed = FrameToRatio(source, 16d / 9d, 50, 45);
             var dir = GameMediaDir(gameId);
 
             var heroPath = Path.Combine(dir, "hero.jpg");
             var coverPath = Path.Combine(dir, "cover.jpg");
-            using (var hero = Resize(framed, HeroWidth, HeroHeight))
+            using (var hero = FitHero(source))
             {
-                SaveJpeg(hero, heroPath, 88);
+                SaveJpeg(hero, heroPath, 92);
             }
-            using (var cover = Resize(framed, CoverWidth, CoverHeight))
+            using var framedCover = FrameToRatio(source, 16d / 9d, 50, 45);
+            using (var cover = Resize(framedCover, CoverWidth, CoverHeight))
             {
                 SaveJpeg(cover, coverPath, 86);
             }
-            using var thumbnail = Resize(framed, 220, 124);
+            using var thumbnail = Resize(framedCover, 220, 124);
             var palette = CoverAnalyzer.Analyze(thumbnail);
             if (disposeSource) source.Dispose();
             return palette;
@@ -99,6 +110,24 @@ public sealed class MediaService
             Log.Error("import image", ex);
             return null;
         }
+    }
+
+    /// <summary>Keeps the source aspect ratio. A large source is scaled down so
+    /// its long edge is <see cref="HeroLongEdge"/>; anything already sharp is
+    /// stored untouched instead of being resampled twice.</summary>
+    private static Bitmap FitHero(Image source)
+    {
+        var longEdge = Math.Max(source.Width, source.Height);
+        if (longEdge <= HeroLongEdge)
+        {
+            // Already at or below the storage budget: keep the pixels we have.
+            return new Bitmap(source);
+        }
+
+        var scale = (double)HeroLongEdge / longEdge;
+        var width = Math.Max(1, (int)Math.Round(source.Width * scale));
+        var height = Math.Max(1, (int)Math.Round(source.Height * scale));
+        return Resize(source, width, height);
     }
 
     /// <summary>Extracts the best executable icon and wraps it into palette-branded art.</summary>

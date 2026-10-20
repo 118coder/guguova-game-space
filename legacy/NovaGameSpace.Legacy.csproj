@@ -10,11 +10,11 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>NovaGameSpace-Legacy</AssemblyName>
+    <AssemblyName>GUGUOVA</AssemblyName>
     <RootNamespace>NovaGameSpace</RootNamespace>
     <ApplicationManifest>..\app.manifest</ApplicationManifest>
     <ApplicationIcon>..\build\icon.ico</ApplicationIcon>
-    <Version>1.9.0</Version>
+    <Version>1.12.0</Version>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <Product>GUGUOVA (Legacy)</Product>
@@ -43,6 +43,8 @@
   <ItemGroup>
     <Content Include="..\src\**\*" Link="src\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\themes\**\*" Link="themes\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Bundled GPLv3 upscaler; optional, fetched with tools/fetch-magpie.py. -->
+    <Content Include="..\third_party\magpie\**\*" Condition="Exists('..\third_party\magpie\Magpie.exe')" Link="engine\magpie\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

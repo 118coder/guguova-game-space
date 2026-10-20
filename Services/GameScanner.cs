@@ -23,6 +23,17 @@ public static class GameScanner
         return new ScanResult(steam, local, steamRoot);
     }
 
+    /// <summary>Returns the best cached hero for one app id, for refreshing
+    /// existing library entries without a full scan.</summary>
+    public static string? FindSteamHero(string appId)
+    {
+        if (string.IsNullOrWhiteSpace(appId)) return null;
+        var steamRoot = FindSteamRoot();
+        if (string.IsNullOrEmpty(steamRoot)) return null;
+        var folders = LibraryFolders(steamRoot);
+        return FindSteamCachedImage(appId, "hero", folders);
+    }
+
     public static string? FindSteamRoot()
     {
         try
@@ -104,8 +115,12 @@ public static class GameScanner
                     var exe = FindMainExecutable(gameDir, name);
                     if (exe == null) continue;
 
-                    var header = FindSteamCachedImage(appId, "header.jpg", allFolders);
-                    var hero = FindSteamCachedImage(appId, "library_hero.jpg", allFolders) ?? header;
+                    // Pick by resolution, not by file name. Steam keeps art in
+                    // per-hash subfolders next to the legacy flat files, and a
+                    // folder may also hold a 32×32 icon; the old "any *.jpg"
+                    // fallback grabbed that icon and the launcher upscaled it.
+                    var header = FindSteamCachedImage(appId, "header", allFolders);
+                    var hero = FindSteamCachedImage(appId, "hero", allFolders) ?? header;
                     results.Add(new SteamCandidate(
                         appId,
                         CleanName(name),
@@ -132,29 +147,44 @@ public static class GameScanner
 
     /// <summary>The artwork cache lives next to the client that owns the app;
     /// with several libraries we must look in every Steam root, not just the
-    /// default one, otherwise some steam:// artwork renders as a broken image.</summary>
-    private static string? FindSteamCachedImage(string appId, string fileName, List<string> steamRoots)
+    /// default one, otherwise some steam:// artwork renders as a broken image.
+    ///
+    /// <paramref name="kind"/> is "hero" or "header". Files are matched by name
+    /// anywhere under the app's cache folder (Steam stores them in per-hash
+    /// subfolders, with localized variants such as
+    /// <c>library_hero_schinese.jpg</c>), then the largest candidate wins, so a
+    /// 32×32 icon or a 192×62 blur placeholder can never be picked over the
+    /// 1920-wide original.</summary>
+    private static string? FindSteamCachedImage(string appId, string kind, List<string> steamRoots)
     {
+        // hero → library_hero.jpg / library_hero_<lang>.jpg, never the blur strip.
+        // header → library_header*.jpg / header.jpg.
+        var heroPattern = kind == "hero" ? "library_hero" : "library_header";
+        var best = (Path: (string?)null, Pixels: 0L);
+
         foreach (var root in steamRoots)
         {
             try
             {
-                var candidates = new[]
+                var baseDir = Path.Combine(root, "appcache", "librarycache", appId);
+                if (!Directory.Exists(baseDir)) continue;
+
+                var files = Directory.EnumerateFiles(baseDir, "*.jpg", SearchOption.AllDirectories)
+                    .Concat(Directory.EnumerateFiles(baseDir, "*.png", SearchOption.AllDirectories))
+                    .Where(path => MatchesArtKind(path, heroPattern));
+
+                foreach (var path in files)
                 {
-                    Path.Combine(root, "appcache", "librarycache", appId, fileName),
-                    Path.Combine(root, "appcache", "librarycache", appId, fileName.Replace("_hero", "")),
-                    Path.Combine(root, "appcache", "librarycache", $"{appId}_{fileName}")
-                };
-                foreach (var path in candidates)
-                {
-                    if (File.Exists(path)) return path;
+                    var pixels = SafePixelCount(path);
+                    if (pixels > best.Pixels) best = (path, pixels);
                 }
 
-                var dir = Path.Combine(root, "appcache", "librarycache", appId);
-                if (Directory.Exists(dir))
+                // Legacy flat layout: <appid>_hero.jpg etc.
+                foreach (var suffix in kind == "hero" ? new[] { "hero", "library_hero" } : new[] { "header", "library_header" })
                 {
-                    var any = Directory.EnumerateFiles(dir, "*.jpg").FirstOrDefault();
-                    if (any != null) return any;
+                    var flat = Path.Combine(root, "appcache", "librarycache", $"{appId}_{suffix}.jpg");
+                    var pixels = SafePixelCount(flat);
+                    if (pixels > best.Pixels) best = (flat, pixels);
                 }
             }
             catch
@@ -162,7 +192,33 @@ public static class GameScanner
                 // try the next root
             }
         }
-        return null;
+
+        // A 192×62 blur strip is not a usable hero; treat that as "not found".
+        return best.Pixels >= 64 * 64 ? best.Path : null;
+    }
+
+    private static bool MatchesArtKind(string path, string prefix)
+    {
+        var name = Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
+        if (!name.StartsWith(prefix)) return false;
+        // Steam ships a deliberately blurred variant for the library backdrop.
+        return !name.Contains("blur") && !name.Contains("logo");
+    }
+
+    private static long SafePixelCount(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return 0;
+            // Header-only read: no decode of the full image.
+            using var stream = File.OpenRead(path);
+            using var image = System.Drawing.Image.FromStream(stream, false, false);
+            return (long)image.Width * image.Height;
+        }
+        catch
+        {
+            return 0;
+        }
     }
 
     private static string MatchValue(string text, string key)

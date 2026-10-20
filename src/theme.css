@@ -634,19 +634,25 @@
    PROFILE / NAV ADDITIONS
    ============================================================ */
 
+/* Rule 1: this is text, so it may not borrow the accent. Several themes use
+   the accent as a light surface (summer sky, endfield yellow), which turned
+   the label into yellow-on-white. A translucent ink chip keeps the pair that
+   the theme already guarantees readable. */
 .row-value {
   flex: none;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
   font-size: 8.5px;
   letter-spacing: .03em;
-  color: var(--accent);
+  color: inherit;
+  opacity: .78;
 }
 
-/* The idle accent is also the hover background in several themes (endfield's
-   yellow, summer's sky, zero hour's lime), which erases this text. Hand the
-   colour back to the row on hover so each theme's own contrast pair applies. */
 .menu-row:hover .row-value,
 .menu-row:focus-visible .row-value {
-  color: inherit;
+  opacity: 1;
 }
 
 .profile-menu {

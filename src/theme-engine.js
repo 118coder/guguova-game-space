@@ -12,7 +12,7 @@
   const BUILT_IN = {
     id: 'nova',
     name: 'GUGUOVA 原生',
-    author: 'NOVA',
+    author: 'GUGUOVA',
     version: '2.0.0',
     description: '电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。',
     intro: 'gilded',
@@ -25,7 +25,7 @@
     tokens: {},
     icons: {},
     features: {},
-    // NOVA has no folder on disk; its cue set ships beside the shared sounds.
+    // The built-in theme has no folder on disk; its cue set ships beside the shared sounds.
     sounds: {
       bong: 'assets/sfx/nova/bong.ogg',
       click: 'assets/sfx/nova/click.ogg',

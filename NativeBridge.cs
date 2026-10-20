@@ -66,16 +66,30 @@ public sealed class NativeBridge
             Log.Error("host mapping", ex);
         }
 
-        _launcher.GameStarted += info => Notify("session-started", info);
-        _launcher.GameExited += (info, crashed, seconds) => Notify("session-ended", new
+        _launcher.GameStarted += info =>
         {
-            sessionId = info.SessionId,
-            gameId = info.GameId,
-            gameName = info.GameName,
-            crashed,
-            seconds,
-            playtimeSeconds = _store.Find(info.GameId)?.PlaytimeSeconds ?? 0
-        });
+            Notify("session-started", info);
+            PresentGameWindow(info, _launcher.TakeLaunchOptions(info.GameId), _store.Library.Settings);
+        };
+        _launcher.GameExited += (info, crashed, seconds) =>
+        {
+            Notify("session-ended", new
+            {
+                sessionId = info.SessionId,
+                gameId = info.GameId,
+                gameName = info.GameName,
+                crashed,
+                seconds,
+                playtimeSeconds = _store.Find(info.GameId)?.PlaytimeSeconds ?? 0
+            });
+            if (_launcher.Running.Count == 0)
+            {
+                DoWindow(window => window.EndGameSession());
+                // The engine is opt-in per launch, so it should not linger.
+                Task.Run(() => ScalingEngine.ReleaseIfAutoStarted());
+            }
+            GameDisplay.ForgetProcess(info.ProcessId);
+        };
         // The client accepted the request but never spawned the game: usually
         // a login screen or an update, so the message says that instead of
         // blaming the executable path.
@@ -143,9 +157,22 @@ public sealed class NativeBridge
                 "clearAvatar" => ClearAvatar(),
                 "launch" => LaunchGame(args),
                 "steamStatus" => SteamStatus(args),
+                "startupState" => StartupState(),
+                "setStartup" => SetStartup(args),
+                "steamPrivilege" => SteamPrivilege.Diagnose(),
+                "fixSteamPrivilege" => FixSteamPrivilege(args),
+                "magpieStatus" => MagpieStatus(args),
+                "startMagpie" => StartMagpie(),
+                "applyScalingHotkey" => ApplyScalingHotkey(args),
+                "restartScalingEngine" => RestartScalingEngine(),
+                "stopScalingEngine" => StopScalingEngine(),
+                "engineOptions" => EngineOptions(),
+                "saveEngineOptions" => SaveEngineOptions(args),
+                "openMagpie" => OpenMagpie(),
                 "stop" => StopGame(args),
                 "getRunning" => _launcher.Running,
                 "scanLibrary" => ScanLibrary(),
+                "refreshArtwork" => RefreshArtwork(args),
                 "importCandidates" => ImportCandidates(args),
                 "readManifest" => ReadManifest(args),
                 "scanManifests" => ScanManifests(),
@@ -371,7 +398,9 @@ public sealed class NativeBridge
             stats = _store.BuildStats(developerMode),
             storage = _store.BuildStorage(),
             system = SystemProfile.Detect(library.Settings.CompatibilityTier),
-            steamRoot = GameScanner.FindSteamRoot()
+            steamRoot = GameScanner.FindSteamRoot(),
+            startedByWindows = Environment.GetCommandLineArgs()
+                .Any(arg => arg.StartsWith("--startup", StringComparison.OrdinalIgnoreCase))
         };
     }
 
@@ -422,7 +451,8 @@ public sealed class NativeBridge
             mode,
             steam?.Running ?? false,
             steam?.SignedIn ?? false,
-            SteamService.Inspect(game).Note);
+            SteamService.Inspect(game).Note,
+            game.FullscreenScale);
     }
 
     private static string DisplayName(GameEntry game)
@@ -497,6 +527,25 @@ public sealed class NativeBridge
                 settings.CloseToTray = tray.GetBoolean();
             if (args.TryGetProperty("autoBackup", out var backup) && backup.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.AutoBackup = backup.GetBoolean();
+            if (args.TryGetProperty("startupFullscreen", out var startupFullscreen) && startupFullscreen.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.StartupFullscreen = startupFullscreen.GetBoolean();
+            if (args.TryGetProperty("minimizeOnLaunch", out var minimize) && minimize.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.MinimizeOnLaunch = minimize.GetBoolean();
+            if (args.TryGetProperty("scalingEngine", out var scaling) && scaling.ValueKind == JsonValueKind.String)
+            {
+                var value = scaling.GetString() ?? "auto";
+                settings.ScalingEngine = value is "auto" or "native" or "off" ? value : "auto";
+                DoWindow(window => window.ApplyScalingHotkey(settings.ScalingHotkey));
+            }
+            if (args.TryGetProperty("autoStartEngine", out var autoStart) && autoStart.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.AutoStartEngine = autoStart.GetBoolean();
+            if (args.TryGetProperty("scalingHotkey", out var hotkey) && hotkey.TryGetInt32(out var hotkeyCode) && hotkeyCode > 0)
+            {
+                settings.ScalingHotkey = hotkeyCode;
+                DoWindow(window => window.ApplyScalingHotkey(hotkeyCode));
+            }
+            if (TryGetString(args, "magpiePath", out var magpie))
+                settings.MagpiePath = string.IsNullOrWhiteSpace(magpie) ? null : magpie!.Trim();
             if (args.TryGetProperty("unifiedSfx", out var unified) && unified.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.UnifiedSfx = unified.GetBoolean();
             if (args.TryGetProperty("librarySort", out var sort) && sort.ValueKind == JsonValueKind.String)
@@ -543,11 +592,368 @@ public sealed class NativeBridge
     {
         var game = ResolveGame(args);
         if (game == null) return new LaunchResult(false, "找不到这款游戏", null, null);
-        return _launcher.Launch(game);
+
+        // The details view can pass the live checkbox state before it is
+        // persisted; otherwise the per-game choice wins, and an unset choice
+        // follows the immersive (fullscreen) shell.
+        bool? requested = null;
+        if (args.ValueKind == JsonValueKind.Object && args.TryGetProperty("fullscreenScale", out var scale) &&
+            scale.ValueKind is JsonValueKind.True or JsonValueKind.False)
+        {
+            requested = scale.GetBoolean();
+        }
+
+        var immersive = System.Windows.Application.Current?.MainWindow is MainWindow window && window.IsFullscreen;
+        var fullscreen = requested ?? game.FullscreenScale ?? immersive;
+        if (string.Equals(_store.Library.Settings.ScalingEngine, "off", StringComparison.OrdinalIgnoreCase))
+            fullscreen = false;
+
+        return _launcher.Launch(game, new LaunchOptions(fullscreen));
     }
+
+    /// <summary>Runs off the UI thread: the game may take many seconds to create
+    /// its window, and the launcher must never wait for it.</summary>
+    private void PresentGameWindow(RunningSessionInfo info, LaunchOptions options, PlayerSettings settings)
+    {
+        var minimize = settings.MinimizeOnLaunch;
+        try
+        {
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                if (Application.Current.MainWindow is MainWindow window) window.BeginGameSession();
+            });
+        }
+        catch (Exception ex)
+        {
+            Log.Error("begin game session", ex);
+        }
+
+        var engine = settings.ScalingEngine;
+        var scale = options.FullscreenScale && !string.Equals(engine, "off", StringComparison.OrdinalIgnoreCase);
+
+        // The launcher still owns the foreground here, so the game window can
+        // be brought forward as soon as it exists.
+        GameDisplay.AllowForeground(info.ProcessId);
+
+        Task.Run(() =>
+        {
+            try
+            {
+                var result = GameDisplay.Present(info.ProcessId, scale, engine, settings, 15000);
+
+                // Only step aside once the hand-off had its chance. Minimizing
+                // first would drop the foreground permission before the window
+                // exists, which is exactly what left the game behind us.
+                if (minimize)
+                {
+                    try
+                    {
+                        Application.Current?.Dispatcher.Invoke(() =>
+                        {
+                            if (Application.Current.MainWindow is MainWindow window) window.MinimizeForGame();
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("minimize for game", ex);
+                    }
+                }
+
+                Notify("session-presented", new
+                {
+                    gameId = info.GameId,
+                    gameName = info.GameName,
+                    sessionId = info.SessionId,
+                    requested = scale,
+                    windowFound = result.WindowFound,
+                    scaled = result.Scaled,
+                    foreground = result.Foreground,
+                    engine = result.Engine,
+                    error = result.Error
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Error("present game window", ex);
+                Notify("session-presented", new
+                {
+                    gameId = info.GameId,
+                    gameName = info.GameName,
+                    sessionId = info.SessionId,
+                    requested = scale,
+                    windowFound = false,
+                    scaled = false,
+                    foreground = false,
+                    engine = "none",
+                    error = ex.Message
+                });
+            }
+        });
+    }
+
+    /// <summary>Removes the elevation flag first (fast, synchronous), then asks
+    /// the client to restart on a background thread and reports back through
+    /// <c>steam-privilege</c>.</summary>
+    private object FixSteamPrivilege(JsonElement args)
+    {
+        var restart = args.ValueKind == JsonValueKind.Object &&
+                      args.TryGetProperty("restart", out var flag) && flag.ValueKind == JsonValueKind.True;
+
+        var repair = SteamPrivilege.RemoveAdminLayer();
+        if (!repair.Ok)
+            return new { ok = false, error = repair.Error, removed = false };
+
+        if (!restart)
+            return new { ok = true, removed = repair.Removed, backup = repair.Backup, restarting = false };
+
+        Task.Run(() =>
+        {
+            var result = SteamPrivilege.RestartClient();
+            Notify("steam-privilege", new
+            {
+                restarted = result.Ok,
+                stopped = result.Stopped,
+                started = result.Started,
+                message = result.Message
+            });
+        });
+
+        return new { ok = true, removed = repair.Removed, backup = repair.Backup, restarting = true };
+    }
+
+    private object MagpieStatus(JsonElement args)
+    {
+        try
+        {
+            var status = ScalingEngine.Inspect(_store.Library.Settings);
+            return new
+            {
+                ok = true,
+                available = status.Available,
+                exePath = status.ExePath,
+                running = status.Running,
+                bundled = status.Bundled,
+                hotkey = status.Hotkey,
+                hotkeyLabel = ScalingEngine.Label(status.Hotkey),
+                supported = status.Supported,
+                autoStart = _store.Library.Settings.AutoStartEngine,
+                note = status.Note
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("magpie status", ex);
+            return new { ok = false, error = ex.Message };
+        }
+    }
+
+    private object StartMagpie()
+    {
+        var settings = _store.Library.Settings;
+        Task.Run(() =>
+        {
+            var ok = ScalingEngine.EnsureRunning(settings, true, out var status);
+            Notify("magpie-status", new
+            {
+                ok,
+                error = ok ? null : status.Note,
+                running = status.Running,
+                bundled = status.Bundled,
+                hotkey = status.Hotkey
+            });
+        });
+        return new { ok = true, starting = true };
+    }
+
+    /// <summary>Writes the hotkey to the engine config and, when needed,
+    /// restarts the engine so it registers the new key immediately.</summary>
+    private object ApplyScalingHotkey(JsonElement args)
+    {
+        var settings = _store.Library.Settings;
+        var code = settings.ScalingHotkey;
+        if (args.ValueKind == JsonValueKind.Object && args.TryGetProperty("code", out var value) &&
+            value.TryGetInt32(out var requested) && requested > 0)
+        {
+            code = requested;
+            settings.ScalingHotkey = requested;
+            _store.Save();
+        }
+
+        // Native mode: the launcher itself owns the key, nothing to write to
+        // an external engine.
+        if (string.Equals(settings.ScalingEngine, "native", StringComparison.OrdinalIgnoreCase))
+        {
+            DoWindow(window => window.ApplyScalingHotkey(code));
+            return new { ok = true, message = "快捷键已保存 · 由启动器处理", running = false, restarted = false };
+        }
+
+        var wasRunning = ScalingEngine.IsRunning();
+        if (!ScalingEngine.WriteHotkey(code, out var message))
+        {
+            // The engine may never have run, so it has no config yet. The
+            // setting is still saved; EnsureRunning applies it on first start.
+            return new
+            {
+                ok = true,
+                message = "快捷键已保存；第一次启动缩放引擎时生效",
+                warning = message,
+                running = wasRunning,
+                restarted = false
+            };
+        }
+
+        if (!wasRunning)
+            return new { ok = true, message = "快捷键已保存；下次启动引擎时生效", running = false, restarted = false };
+
+        var restart = args.ValueKind == JsonValueKind.Object &&
+                      args.TryGetProperty("restart", out var flag) && flag.ValueKind == JsonValueKind.True;
+        if (!restart)
+            return new { ok = true, message = "快捷键已写入；重启引擎后生效", running = true, restarted = false };
+
+        Task.Run(() =>
+        {
+            var ok = ScalingEngine.Restart(settings, out var restartMessage);
+            Notify("scaling-engine", new { ok, message = restartMessage });
+        });
+        return new { ok = true, message = "正在重启缩放引擎以应用快捷键…", running = true, restarted = true };
+    }
+
+    private object RestartScalingEngine()
+    {
+        var settings = _store.Library.Settings;
+        Task.Run(() =>
+        {
+            var ok = ScalingEngine.Restart(settings, out var message);
+            Notify("scaling-engine", new { ok, message });
+        });
+        return new { ok = true, starting = true };
+    }
+
+    private object StopScalingEngine()
+    {
+        Task.Run(() =>
+        {
+            var ok = ScalingEngine.Quit();
+            Notify("scaling-engine", new { ok, message = ok ? "缩放引擎已关闭" : "缩放引擎没有退出" });
+        });
+        return new { ok = true, stopping = true };
+    }
+
+    private object EngineOptions()
+    {
+        try
+        {
+            var options = ScalingEngine.ReadOptions(_store.Library.Settings);
+            return new
+            {
+                ok = options.Ok,
+                error = options.Error,
+                configPath = options.ConfigPath,
+                bundled = options.Bundled,
+                running = options.Running,
+                modes = options.Modes.Select(mode => new
+                {
+                    mode.Index,
+                    mode.Name,
+                    mode.Available,
+                    mode.Missing,
+                    mode.Note
+                }),
+                scalingMode = options.ScalingMode,
+                captureMethod = options.CaptureMethod,
+                cursorScaling = options.CursorScaling,
+                maxFrameRate = options.MaxFrameRate,
+                gameMode3d = options.GameMode3d,
+                autoStart = _store.Library.Settings.AutoStartEngine
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("engine options", ex);
+            return new { ok = false, error = ex.Message };
+        }
+    }
+
+    private object SaveEngineOptions(JsonElement args)
+    {
+        var settings = _store.Library.Settings;
+        var scalingMode = IntArg(args, "scalingMode", 0);
+        var captureMethod = IntArg(args, "captureMethod", 0);
+        var cursorScaling = IntArg(args, "cursorScaling", 2);
+        var maxFrameRate = NumberArg(args, "maxFrameRate", 60);
+        var gameMode3d = BoolArg(args, "gameMode3d", false);
+        if (args.ValueKind == JsonValueKind.Object && args.TryGetProperty("autoStartEngine", out var autoStart) &&
+            autoStart.ValueKind is JsonValueKind.True or JsonValueKind.False)
+        {
+            settings.AutoStartEngine = autoStart.GetBoolean();
+            _store.Save();
+        }
+
+        if (!ScalingEngine.SaveOptions(scalingMode, captureMethod, cursorScaling, maxFrameRate, gameMode3d, out var message))
+            return new { ok = false, error = message };
+
+        Task.Run(() =>
+        {
+            var ok = ScalingEngine.Restart(settings, out var restartMessage);
+            Notify("scaling-engine", new { ok, message = restartMessage });
+        });
+        return new { ok = true, message = "设置已保存，正在重启缩放引擎…" };
+    }
+
+    private object OpenMagpie()
+    {
+        var ok = ScalingEngine.Show(_store.Library.Settings, out var message);
+        return new { ok, message };
+    }
+
+    private static int IntArg(JsonElement args, string name, int fallback) =>
+        args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out var value) &&
+        value.TryGetInt32(out var number) ? number : fallback;
+
+    private static double NumberArg(JsonElement args, string name, double fallback) =>
+        args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out var value) &&
+        value.TryGetDouble(out var number) ? number : fallback;
+
+    private static bool BoolArg(JsonElement args, string name, bool fallback) =>
+        args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out var value) &&
+        value.ValueKind is JsonValueKind.True or JsonValueKind.False ? value.GetBoolean() : fallback;
 
     /// <summary>Client state plus what this executable actually needs. Used by
     /// the manage panel so a "打不开" entry can be explained instead of guessed.</summary>
+    private object StartupState()
+    {
+        var state = StartupService.Inspect();
+        return new
+        {
+            ok = true,
+            enabled = state.Enabled,
+            pointsHere = state.PointsHere,
+            command = state.Command,
+            exePath = state.ExePath
+        };
+    }
+
+    private object SetStartup(JsonElement args)
+    {
+        var enable = args.ValueKind == JsonValueKind.Object &&
+                     args.TryGetProperty("enabled", out var flag) && flag.ValueKind == JsonValueKind.True;
+        var ok = enable ? StartupService.Enable(out var startupError) : StartupService.Disable(out startupError);
+        if (!ok) return new { ok = false, error = startupError };
+
+        var state = StartupService.Inspect();
+        return new
+        {
+            ok = true,
+            state = new
+            {
+                enabled = state.Enabled,
+                pointsHere = state.PointsHere,
+                command = state.Command,
+                exePath = state.ExePath
+            }
+        };
+    }
+
     private object SteamStatus(JsonElement args)
     {
         try
@@ -559,6 +965,7 @@ public sealed class NativeBridge
                     signedIn = state.SignedIn, root = state.Root };
 
             var dependency = SteamService.Inspect(game);
+            var privilege = SteamPrivilege.Diagnose();
             return new
             {
                 ok = true,
@@ -573,6 +980,11 @@ public sealed class NativeBridge
                 steamStub = dependency.SteamStub,
                 hasAppIdFile = dependency.HasAppIdFile,
                 note = dependency.Note,
+                adminLayer = privilege.AdminLayer,
+                steamElevated = privilege.SteamElevated,
+                launcherElevated = privilege.LauncherElevated,
+                needsPrivilegeFix = privilege.NeedsFix,
+                privilegeNote = privilege.Note,
                 // A SteamStub exe cannot start without the client, and an
                 // app that imports steam_api stalls at initialisation.
                 requiresClient = dependency.SteamStub || dependency.UsesSteamApi
@@ -601,6 +1013,57 @@ public sealed class NativeBridge
         if (args.TryGetProperty("steamAppId", out var steam) && steam.ValueKind == JsonValueKind.String)
             return _store.FindBySteam(steam.GetString() ?? "");
         return null;
+    }
+
+    /// <summary>Re-imports Steam artwork for existing entries. Older builds
+    /// picked whatever JPEG the cache folder happened to contain (sometimes a
+    /// 32×32 icon), so a rescan is the only way those entries get the real
+    /// 1920-wide hero. Only entries imported from Steam are touched.</summary>
+    private object RefreshArtwork(JsonElement args)
+    {
+        var onlyId = ResolveGame(args)?.Id;
+        var updated = 0;
+        var skipped = 0;
+        try
+        {
+            foreach (var game in _store.Library.Games.ToList())
+            {
+                if (onlyId != null && game.Id != onlyId) continue;
+                if (string.IsNullOrWhiteSpace(game.SteamAppId))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                var hero = GameScanner.FindSteamHero(game.SteamAppId!);
+                if (string.IsNullOrWhiteSpace(hero) || !File.Exists(hero))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                var analysis = _media.ImportImage(game.Id, hero!);
+                if (analysis == null)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                game.HeroPath = Path.Combine(_media.GameMediaDir(game.Id), "hero.jpg");
+                game.CoverPath = Path.Combine(_media.GameMediaDir(game.Id), "cover.jpg");
+                ApplyAnalysis(game, analysis);
+                updated++;
+            }
+
+            if (updated > 0) _store.Save();
+            Log.Write($"refresh artwork updated={updated} skipped={skipped}");
+            return new { ok = true, updated, skipped };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("refresh artwork", ex);
+            return new { ok = false, error = ex.Message, updated, skipped };
+        }
     }
 
     private object ScanLibrary()
@@ -954,6 +1417,14 @@ public sealed class NativeBridge
                 if (normalized == "steam" && string.IsNullOrWhiteSpace(game.SteamAppId))
                     return new { ok = false, error = "没有 AppID，无法使用 Steam 启动方式" };
                 game.LaunchMode = normalized == "steam" || normalized == "direct" ? normalized : "auto";
+            }
+            if (args.TryGetProperty("fullscreenScale", out var fullscreenScale))
+            {
+                // null returns the game to the immersive default; a real value
+                // is the player's explicit per-game choice.
+                if (fullscreenScale.ValueKind == JsonValueKind.Null) game.FullscreenScale = null;
+                else if (fullscreenScale.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                    game.FullscreenScale = fullscreenScale.GetBoolean();
             }
             if (TryGetString(args, "logoText", out var logoText))
                 game.CustomLogo = string.IsNullOrWhiteSpace(logoText) ? null : logoText.Trim();

@@ -20,6 +20,12 @@ DIST = ROOT / "dist"
 META = json.loads((ROOT / "version.json").read_text(encoding="utf-8"))
 VERSION = META["version"]
 
+# Keep in sync with tools/fetch-magpie.py's --lite set.
+LITE_EFFECTS = {
+    "Lanczos", "Nearest", "Bilinear", "Bicubic", "Jinc",
+    "Deband", "ImageAdjustment", "FSR", "FSRCNNX", "CAS", "Sharpen",
+}
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -85,17 +91,50 @@ def readme_common(title: str, extra: str) -> str:
 
 
 def write_single_readme(stage: Path):
-    extra = """单文件版
-  只有一个 NovaGameSpace-Legacy.exe（外加 launch.cmd）。首次运行会把内嵌的
-  前端资源与 11 套主题解压到数据目录；主题可在设置里打开主题文件夹编辑。"""
+    extra = """单文件主程序 + 轻量引擎
+  主程序是 GUGUOVA.exe（外加 launch.cmd）。首次运行会把内嵌的
+  前端资源与 14 套主题解压到数据目录；主题可在设置里打开主题文件夹编辑。
+  engine\\magpie\\ 是随包分发的 Magpie 0.12.1 轻量版缩放引擎（GPLv3，独立进程）：
+  保留 Lanczos / FSR / FSRCNNX / CAS / Sharpen 等常用算法，去掉 Anime4K / CRT /
+  CuNNy 等大型效果，降低启动扫描与占用。需要完整效果时，在设置里指定本机完整
+  Magpie.exe，或运行 python tools/fetch-magpie.py 重新拉取完整效果。
+  不想要内置引擎时，删除 engine 目录即可退回无边框全屏。"""
     (stage / "README.txt").write_text(readme_common("Legacy 单文件版", extra), encoding="utf-8")
 
 
 def write_full_readme(stage: Path):
     extra = """全主题文件夹版
-  程序目录包含 src\\ 与 themes\\，全部 11 套主题可直接查看、编辑或替换。
-  首次运行仍会把它们同步到用户主题目录。"""
+  程序目录包含 src\\ 与 themes\\，全部 14 套主题可直接查看、编辑或替换。
+  首次运行仍会把它们同步到用户主题目录。
+  engine\\magpie\\ 是随包分发的 Magpie 0.12.1 轻量版缩放引擎（GPLv3，独立进程）；
+  保留常用算法，去掉大型 neural/CRT 效果。完整效果请指定本机完整 Magpie。
+  许可与源码说明见 engine\\magpie\\NOTICE.md 与 SOURCE-OFFER.txt。"""
     (stage / "README.txt").write_text(readme_common("Legacy 全主题文件夹版", extra), encoding="utf-8")
+
+
+def trim_engine(stage: Path) -> bool:
+    """Drop the heavy neural/CRT effects for the lite package."""
+    effects = stage / "engine" / "magpie" / "effects"
+    if not effects.exists():
+        return False
+    for item in list(effects.iterdir()):
+        key = item.stem if item.is_file() else item.name
+        if key in LITE_EFFECTS:
+            continue
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+    return True
+
+
+def write_lite_readme(stage: Path):
+    extra = """轻量引擎版
+  主程序是 GUGUOVA.exe（外加 launch.cmd）。engine\magpie\ 只保留
+  Lanczos / Nearest / Bilinear / Bicubic / Jinc / Deband / ImageAdjustment / FSR /
+  FSRCNNX / CAS / Sharpen，去掉 Anime4K / CuNNy / RAVU / NNEDI3 / CRT / xBRZ 等大型效果。
+  引擎设置里缺效果文件的算法会自动置灰；想要完整效果，用非 lite 包或指定系统 Magpie。"""
+    (stage / "README.txt").write_text(readme_common("Legacy 单文件轻量引擎版", extra), encoding="utf-8")
 
 
 def make_zip(stage: Path, output: Path):
@@ -113,6 +152,16 @@ def stage_common(source: Path, stage: Path):
     if stage.exists():
         shutil.rmtree(stage)
     copy_tree(source, stage, skip_names={"src", "themes", "runtimes"})
+
+    # Build outputs keep files that were deleted from the source; replace the
+    # engine wholesale so a lite build can never ship stale full effects.
+    engine = ROOT / "third_party" / "magpie"
+    if engine.exists():
+        target = stage / "engine" / "magpie"
+        if target.exists():
+            shutil.rmtree(target)
+        copy_tree(engine, target)
+
     shutil.copy2(ROOT / "tools" / "launch-legacy.cmd", stage / "launch.cmd")
     shutil.copy2(ROOT / "version.json", stage / "version.json")
     fixed = stage / "WebView2Runtime"
@@ -145,7 +194,7 @@ def package_modern(modern_dir: Path):
         shutil.rmtree(stage)
     copy_tree(modern_dir, stage, skip_names={"docs"})
     (stage / "launch.cmd").write_text(
-        "@echo off\r\nchcp 65001 >nul\r\ncd /d \"%~dp0\"\r\nstart \"\" NovaGameSpace.exe\r\n",
+        "@echo off\r\nchcp 65001 >nul\r\ncd /d \"%~dp0\"\r\nstart \"\" GUGUOVA.exe\r\n",
         encoding="utf-8")
     shutil.copy2(ROOT / "version.json", stage / "version.json")
     (stage / "README.txt").write_text(
@@ -170,13 +219,6 @@ def main():
         packages.append(make_zip(full, DIST / f"{full.name}.zip"))
     else:
         packages.extend([single, full])
-
-    if args.modern_dir:
-        modern = package_modern(Path(args.modern_dir))
-        if not args.no_zip:
-            packages.append(make_zip(modern, DIST / f"{modern.name}.zip"))
-        else:
-            packages.append(modern)
 
     manifest = {
         "version": VERSION,

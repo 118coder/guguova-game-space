@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -98,21 +99,47 @@ public static class SteamService
 
     /// <summary>Hands the app id to the client. Works whether Steam is already
     /// running or needs to start and log in first; the client owns the launch
-    /// arguments, the overlay, cloud saves and the ownership check.</summary>
+    /// arguments, the overlay, cloud saves and the ownership check.
+    ///
+    /// The client executable is started directly instead of through the
+    /// steam:// protocol. That skips the shell/protocol handler — which is
+    /// where Windows applies the "run as administrator" compatibility flag and
+    /// shows an UAC prompt — and a flag that is still set now fails with
+    /// ERROR_ELEVATION_REQUIRED (740) instead of silently prompting.</summary>
     public static (bool Ok, string? Error) RunGame(string appId)
     {
-        var state = Detect();
+        var state = Detect(true);
         if (!state.Installed) return (false, "本机没有安装 Steam 客户端");
         if (string.IsNullOrWhiteSpace(appId)) return (false, "缺少 Steam AppID");
 
+        var id = appId.Trim();
         try
         {
+            var exe = !string.IsNullOrWhiteSpace(state.Root) ? Path.Combine(state.Root, "steam.exe") : null;
+            if (!string.IsNullOrEmpty(exe) && File.Exists(exe))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = exe,
+                    Arguments = "-applaunch " + id,
+                    WorkingDirectory = state.Root,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+                return (true, null);
+            }
+
             Process.Start(new ProcessStartInfo
             {
-                FileName = "steam://rungameid/" + appId.Trim(),
+                FileName = "steam://rungameid/" + id,
                 UseShellExecute = true
             });
             return (true, null);
+        }
+        catch (Win32Exception ex) when (ex.NativeErrorCode == 740)
+        {
+            Log.Write($"steam launch refused: elevation required (appid={id})");
+            return (false, "Steam 被设置为「以管理员身份运行」，系统拒绝了普通权限的启动请求。请先修复 Steam 提权设置。");
         }
         catch (Exception ex)
         {

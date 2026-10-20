@@ -37,7 +37,7 @@
     },
     pack: {
       kicker: 'SELECT · DATA PACK',
-      title: '选择 NOVA 数据包',
+      title: '选择 GUGUOVA 数据包',
       note: '选择 .nova-pack 或 .zip；导入前会自动备份本机库'
     },
     any: {

@@ -1,8 +1,10 @@
 # 发布与打包
 
-> 默认发布 **Legacy 单文件版（1.7.0 约 3.71 MB zip）**：一个 `NovaGameSpace-Legacy.exe`，
-> 前端资源与 12 套主题全部内嵌；同时产出 **全主题文件夹版（1.7.0 约 6.55 MB zip）**，
-> 方便编辑/替换主题。Modern 自包含包为可选大包。
+> 默认发布 **Legacy 单文件版（1.12.0 约 8.89 MB zip）**：一个 `GUGUOVA.exe`，
+> 前端资源与 14 套主题全部内嵌，旁边是 `engine/magpie/` 轻量缩放引擎；
+> 同时产出 **全主题文件夹版（约 12.19 MB）**。内置引擎是轻量版（常用算法，
+> 约 14 MB 原始素材）；完整效果需 `tools/fetch-magpie.py` 重新拉取。
+> Modern 自包含包为可选大包。
 
 ---
 
@@ -19,8 +21,8 @@ bash tools/pipeline.sh --version 1.5.3 # bump + 构建 + 打包
 
 ```
 dist/
-├─ GUGUOVA-<version>-legacy-single.zip   # 单文件 EXE（1.7.0 约 3.71 MB）
-├─ GUGUOVA-<version>-legacy-full.zip     # EXE + src/ + themes/（1.7.0 约 6.55 MB）
+├─ GUGUOVA-<version>-legacy-single.zip   # EXE + 轻量 engine/magpie（1.12.0 约 8.89 MB）
+├─ GUGUOVA-<version>-legacy-full.zip     # EXE + 轻量引擎 + src/ + themes/（1.12.0 约 12.19 MB）
 ├─ GUGUOVA-<version>-modern.zip          # 可选大包
 └─ release-manifest.json              # SHA-256 + 大小
 ```
@@ -40,7 +42,7 @@ dist/
 ### 2.1 单文件版（推荐）
 
 ```
-NovaGameSpace-Legacy.exe     约 2.6 MB，内含
+GUGUOVA.exe     约 2.6 MB，内含
                               · 全部托管依赖（Costura）
                               · WebView2 原生 loader
                               · src/ + themes/ 的压缩资源
@@ -53,12 +55,17 @@ WebView2Runtime/             可选 109 固定运行时
 - 首次运行把内嵌 `src/` 与 `themes/` 解压到
   `%LOCALAPPDATA%\NOVA Game Space\runtime\<version>\assets`。
 - 主题仍会同步到用户主题目录，可在「设置 → 打开主题文件夹」编辑。
-- zip：1.7.0 为 **3.71 MB**（12 套主题与音效都封在里面）。
+- zip：1.12.0 为 **8.89 MB**（14 套主题与音效 + 内置缩放引擎都封在里面）。
+- `engine\magpie\` 是 GPLv3 的独立 Magpie 0.12.1 发行版，许可与源码说明随包；
+  不想要内置引擎时删除该目录即可。干净构建先跑 `python tools/fetch-magpie.py`
+  （`--lite` 为只保留常用效果的版本）。
+  Anime4K / CuNNy / RAVU / NNEDI3 / CRT / xBRZ 等大型 effects；引擎设置里
+  缺效果文件的算法会自动置灰，默认的 Lanczos / FSR / Nearest 仍可用。
 
 ### 2.2 全主题文件夹版
 
 ```
-NovaGameSpace-Legacy.exe
+GUGUOVA.exe
 src/                         前端资源
 themes/                      11 套附赠主题文件夹（内置 GUGUOVA 无需文件夹）
 launch.cmd / README.txt
