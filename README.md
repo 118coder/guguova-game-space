@@ -300,7 +300,8 @@ bash tools/pipeline.sh --version 1.10.1    # 审计 + 打包
 ```
 
 产物在 `dist\`，附带 `release-manifest.json`（SHA-256 和体积）。
-开发细节在 [docs/HANDOFF-NEXT.md](docs/HANDOFF-NEXT.md)。
+开发细节在 [docs/HANDOFF-NEXT.md](docs/HANDOFF-NEXT.md)，
+启动链路见 [docs/GAME-DISPLAY.md](docs/GAME-DISPLAY.md) 与 [docs/STEAM-LAUNCH.md](docs/STEAM-LAUNCH.md)。
 
 ---
 
