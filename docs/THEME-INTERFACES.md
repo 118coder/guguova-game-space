@@ -95,6 +95,9 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | `--cx-*` | codex | `--cx-gold`、`--cx-maroon` |
 | `--gs-*` | grimoire | `--gs-gold`、`--gs-maroon` |
 | `--su-*` | summer | `--su-ink`、`--su-lime` |
+| `--dk-*` | dusk | `--dk-paper`、`--dk-ink`、`--dk-gold` |
+| `--st-*` | steam | `--st-void`、`--st-blue`、`--st-green` |
+| `--nf-*` | nightflight | `--nf-lime`、`--nf-cream`、`--nf-ink` |
 | `--kit-*` | 使用 theme-kit 的主题 | `--kit-paper`、`--kit-art`、`--kit-art-url` |
 
 ---
@@ -164,8 +167,9 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | riot | 黑块白字 + 红硬影 | 白底黑框 | 硬偏移 |
 | grimoire | 酒红底米白字 + 金内线 | 羊皮纸金线 | 硬偏移 |
 | mnemo | 梅红/靛紫 | 档案标签 | 切角/小圆角 |
-| dusk | 陶土红压印 | 纸白墨线 | 2px 圆角 + 2px 实底阴影 |
-| steam | 绿色渐变 | 蓝色描边 | 2px 圆角 + 内高光 |
+| dusk | 陶土红压印 | 纸白墨线 | 2px 圆角 + 金边内线 |
+| steam | 绿色渐变 | 白/蓝细描边 | 3px 圆角 + 内高光；牌外用蓝边 |
+| nightflight | 荧光黄绿平涂 + 墨硬影 | 墨线（牌面）/ 荧光边（牌外） | 零圆角 + 4px 偏移 |
 
 > 按钮不再走统一 `controls=hard`。新增主题请直接在自己的 `theme.css` 写
 > `.btn.primary` / `.btn.ghost`，并在分文件登记。
@@ -196,8 +200,9 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | riot | `vinyl` | 黑胶升速 + 红圈落定 |
 | grimoire | `seal` | 归档：火漆盖章 + 真实档号 |
 | mnemo | `mnemo` | 解密：档案字段 scramble + CLASSIFIED |
-| dusk | `dusk` | 暮色开工：天空压下 + 太阳升起 + 炼金环描线 + 真实台账 |
-| steam | `steam` | 客户端启动：窗口升起 + 进度条 + 三个真实步骤 |
+| dusk | `dusk` | 暮色开工：天幕压下 + 太阳升起 + 远山 + 炼金环描线 + 羊皮纸展开 + 火漆印 |
+| steam | `steam` | 大屏启动：字标升起 + 蓝色进度 + 封面滑入 + 焦点环落定 |
+| nightflight | `nightflight` | 离港：星图 + 跑道中线 + `NIGHT FLIGHT` 分瓣字 + 航班行 |
 
 ---
 
@@ -218,8 +223,9 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | riot | `rtDrop` | 唱片落盘 |
 | grimoire | `grStamp` | 火漆盖章 |
 | mnemo | `mnUnfold` | 卷宗展开 |
-| dusk | `dlDusk` | 暮色从画面中心合拢 |
-| steam | `stMax` | 窗口最大化 |
+| dusk | `dlDusk` | 炼金环从画面中心张开 |
+| steam | `stMax` | 窗口撑满全屏 |
+| nightflight | `nfLaunch` | 跑道灯加速 / 方形缝隙张开 |
 
 ---
 
@@ -256,8 +262,9 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | `riot` | 朱红舞台幕布 + 撕胶带缝 | 380ms |
 | `grimoire` | 羊皮纸页上升 + 蜡封落下 | 650ms |
 | `mnemo` | 纵向记忆条带 + 紫色重影 | 360ms |
-| `dusk` | 天空与纸页沿斜缝合拢 + 虚线炼金环 | 460ms |
-| `steam` | 非对称双面板横向合拢 + 竖蓝缝 | 440ms |
+| `dusk` | 信封拆开：信纸升起 + 三角封盖折回 + 红绳收紧 | 460ms |
+| `steam` | 游戏 tile 从中心放大到全屏 + 焦点环 + 蓝线 | 440ms |
+| `nightflight` | 登机牌对撕：上下票根 + 虚线撕口 + 荧光扫描线 | 440ms |
 
 ### 8.2 字体契约
 
@@ -306,7 +313,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 
 ---
 
-## 11. 版本表（2026-10-19）
+## 11. 版本表（2026-10-21 / 1.9.0）
 
 | 主题 | 版本 | features | intro | launch |
 |---|---|---|---|---|
@@ -321,10 +328,11 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | riot | 1.5.8 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
 | grimoire | 1.5.7 | parchment / plate / rule / plates-off | seal | grStamp |
 | mnemo | 1.1.8 | map / emboss / folder | mnemo | mnUnfold |
-| dusk | 1.0.1 | —（自带版式，不用 theme-kit） | dusk | dlDusk |
-| steam | 1.0.2 | —（自带版式，不用 theme-kit） | steam | stMax |
+| dusk | 2.0.8 | —（自带版式，不用 theme-kit） | dusk | dlDusk |
+| steam | 2.0.8 | —（自带版式，不用 theme-kit） | steam | stMax |
+| nightflight | 1.0.8 | —（自带版式，不用 theme-kit） | nightflight | nfLaunch |
 
-静态资源版本：`src/index.html` 的 `?v=1.8.0`。
+静态资源版本：`src/index.html` 的 `?v=1.9.0`。主题版本：dusk / steam **2.0.8**，nightflight **1.0.8**。
 
 ---
 
@@ -339,4 +347,9 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 7. **调试彩色层**：交接前搜 `DEBUG-PROBE`，必须删干净。
 8. **不要用柔光/玻璃模糊/大发光**（项目铁律）；`backdrop-filter` 只允许小面积，禁止全屏视图。
 9. **主题切换排序**：只允许启动时按使用次数排序；会话内必须稳定。
-10. **预览图**：16:9，必须来自 `tools/theme-concepts.html` 的**设计概念板**（默认 NOVA 为版式基准），不能直接截应用图；用 `render-concepts.js` 渲染后缩到 960×540。
+10. **禁止模糊（DUSK / STEAM / NIGHTFLIGHT）**：外观预览、详情头图、launch 底、
+    所有 overlay / 弹层一律不得出现 `filter: blur()` 或 `backdrop-filter`；
+    预览底图改为主题实色/渐变，overlay 用实色遮罩。
+11. **预览图**：16:9。常规流程来自 `tools/theme-concepts.html` 的**设计概念板**，
+    用 `render-concepts.js` 渲染后缩到 960×540；本轮 dusk / steam / nightflight 三套
+    因整体重做，预览图暂由实机首页裁成 16:9（960×540），下一轮再补概念板版本。

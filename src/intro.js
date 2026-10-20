@@ -110,10 +110,14 @@
       write('games', games);
       runMeter(stage.querySelector('[data-st="pct"]'), reduce);
 
-      const win = stage.querySelector('.intro-st-win');
-      const done = () => win && win.classList.add('is-ready');
+      const win = stage.querySelector('.intro-st2');
+      const status = stage.querySelector('[data-st="status"]');
+      const done = () => {
+        if (win) win.classList.add('is-ready');
+        if (status && !reduce) status.textContent = '游戏库已就绪';
+      };
       if (reduce) done();
-      else setTimeout(done, 1750);
+      else setTimeout(done, 1680);
     }
   });
 
@@ -146,6 +150,42 @@
       write('games', games);
       write('year', String(now.getFullYear()));
       runMeter(stage.querySelector('[data-dk="pct"]'), reduce);
+    }
+  });
+
+  /* ---------- NIGHT FLIGHT ----------
+     A departure board at night: the split-flap board resolves to NIGHT
+     FLIGHT, the runway lights run, and real date / clock / library count
+     print on the board. No invented flight data beyond the theme's own
+     decorative flight number. */
+  register('nightflight', {
+    label: '夜航 · 离港',
+    duration: 2500,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-nightflight');
+      const stage = ensureNightStage(overlay);
+      const reduce = !!(window.NovaMotion && window.NovaMotion.reduce);
+      const now = new Date();
+      const pad2 = (value) => String(value).padStart(2, '0');
+      const date = `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}`;
+      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+      const dockCount = document.getElementById('dockCount');
+      const countMatch = (dockCount && dockCount.textContent || '').match(/\d+/);
+      const games = pad2(countMatch ? Math.min(99, Number(countMatch[0])) : 0);
+
+      const write = (key, value) => {
+        const node = stage.querySelector(`[data-nf="${key}"]`);
+        if (!node) return;
+        if (reduce) node.textContent = value;
+        else scramble(node, value, 520);
+      };
+
+      write('date', date);
+      write('time', time);
+      write('games', games);
+      runMeter(stage.querySelector('[data-nf="pct"]'), reduce);
     }
   });
 
@@ -658,78 +698,121 @@
   }
 
   function ensureSteamStage(overlay) {
-    let stage = overlay.querySelector('.intro-st');
+    let stage = overlay.querySelector('.intro-st2');
     if (stage) return stage;
     stage = document.createElement('div');
-    stage.className = 'intro-st';
+    stage.className = 'intro-st2';
     stage.setAttribute('aria-hidden', 'true');
     stage.innerHTML = `
-      <div class="intro-st-win">
-        <div class="intro-st-bar">
-          <span>GUGUOVA · 客户端</span>
-          <span>离线模式</span>
+      <span class="intro-st2-glow" aria-hidden="true"></span>
+      <div class="intro-st2-top">
+        <span>GUGUOVA</span>
+        <span>BIG PICTURE · OFFLINE</span>
+        <span data-st="date">----.--.--</span>
+      </div>
+      <div class="intro-st2-mid">
+        <div class="intro-st2-mark">GUGUOVA</div>
+        <div class="intro-st2-sub">游戏空间 · 正在准备你的客厅</div>
+        <div class="intro-st2-track"><i></i></div>
+        <div class="intro-st2-state">
+          <span data-st="status">正在载入游戏库</span>
+          <b><i data-st="games">--</i> 款</b>
         </div>
-        <div class="intro-st-body">
-          <div class="intro-st-brand">GUGUOVA</div>
-          <div class="intro-st-line"><i></i></div>
-          <div class="intro-st-row">
-            <span class="intro-st-state"><b>正在加载库</b><i>库已就绪</i></span>
-            <b><i data-st="games">--</i> 项</b>
-          </div>
-          <ul class="intro-st-steps">
-            <li>读取本机库</li>
-            <li>检查封面缓存</li>
-            <li>准备界面</li>
-          </ul>
-          <div class="intro-st-foot">
-            <span data-st="date">----.--.--</span>
-            <span data-st="time">--:--</span>
-            <span class="intro-st-pct" data-st="pct">000%</span>
-          </div>
-        </div>
+      </div>
+      <div class="intro-st2-shelf" aria-hidden="true">
+        <i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i>
+      </div>
+      <div class="intro-st2-foot">
+        <span data-st="time">--:--</span>
+        <span class="intro-st2-pct" data-st="pct">000%</span>
       </div>`;
     overlay.appendChild(stage);
     return stage;
   }
 
   function ensureDuskStage(overlay) {
-    let stage = overlay.querySelector('.intro-dk');
+    let stage = overlay.querySelector('.intro-dk2');
     if (stage) return stage;
     stage = document.createElement('div');
-    stage.className = 'intro-dk';
+    stage.className = 'intro-dk2';
     stage.setAttribute('aria-hidden', 'true');
-    // The atelier at dusk: a horizon line, a low sun, one synthesis ring,
-    // and a ledger row of real values. No invented telemetry.
+    // The atelier at dusk: sky settles, the low sun blooms, the synthesis
+    // ring draws itself, then a parchment page unfolds with real values.
     stage.innerHTML = `
-      <span class="intro-dk-sky" aria-hidden="true"></span>
-      <span class="intro-dk-sun" aria-hidden="true"></span>
-      <span class="intro-dk-horizon" aria-hidden="true"></span>
-      <svg class="intro-dk-ring" viewBox="0 0 520 520" aria-hidden="true">
-        <circle class="dk-ring-track" cx="260" cy="260" r="236"></circle>
-        <circle class="dk-ring-draw" cx="260" cy="260" r="236"></circle>
-        <circle class="dk-ring-inner" cx="260" cy="260" r="176"></circle>
-        <g class="dk-ring-ticks">
-          <path d="M260 12v26M260 482v26M12 260h26M482 260h26"></path>
-          <path d="M436 84l-18 18M84 436l18-18M436 436l-18-18M84 84l18 18"></path>
-        </g>
-        <circle class="dk-ring-bead" cx="260" cy="24" r="5"></circle>
+      <span class="intro-dk2-sky" aria-hidden="true"></span>
+      <span class="intro-dk2-sun" aria-hidden="true"></span>
+      <span class="intro-dk2-hills" aria-hidden="true"></span>
+      <span class="intro-dk2-birds" aria-hidden="true"></span>
+      <span class="intro-dk2-motes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <svg class="intro-dk2-ring" viewBox="0 0 600 600" aria-hidden="true">
+        <circle class="dk2-track" cx="300" cy="300" r="276"></circle>
+        <circle class="dk2-draw" cx="300" cy="300" r="276"></circle>
+        <circle class="dk2-inner" cx="300" cy="300" r="212"></circle>
+        <circle class="dk2-dash" cx="300" cy="300" r="142"></circle>
+        <path class="dk2-star" d="M300 24 576 300 300 576 24 300Z"></path>
+        <path class="dk2-ticks" d="M300 8v28M300 564v28M8 300h28M564 300h28"></path>
       </svg>
-      <div class="intro-dk-main">
-        <span class="intro-dk-kicker">DUSK ATELIER · 第 <b data-dk="year">----</b> 年</span>
-        <div class="intro-dk-word">
-          <span class="intro-dk-line"><b>黄昏</b></span>
-          <span class="intro-dk-line"><b>之炼</b></span>
-        </div>
-        <span class="intro-dk-latin">ATELIER OF THE DUSK</span>
-        <div class="intro-dk-ledger">
+      <div class="intro-dk2-page">
+        <span class="intro-dk2-spine" aria-hidden="true">DUSK ATELIER</span>
+        <span class="intro-dk2-ribbon" aria-hidden="true"></span>
+        <span class="intro-dk2-seal" aria-hidden="true">DUSK</span>
+        <span class="intro-dk2-kicker">DUSK ATELIER <i></i> 暮色开工</span>
+        <div class="intro-dk2-word"><b>黄昏</b><b>之炼</b></div>
+        <span class="intro-dk2-latin">ATELIER OF THE DUSK</span>
+        <span class="intro-dk2-rule" aria-hidden="true"></span>
+        <div class="intro-dk2-ledger">
           <span>日期 <b data-dk="date">----.--.--</b></span>
           <span>时刻 <b data-dk="time">--:--</b></span>
           <span>藏本 <b data-dk="games">--</b> 册</span>
         </div>
       </div>
-      <div class="intro-dk-foot">
-        <span class="intro-dk-state"><i></i>点火 · 开炉</span>
-        <span class="intro-dk-pct" data-dk="pct">000%</span>
+      <div class="intro-dk2-foot">
+        <span class="intro-dk2-state"><i></i>点火 · 开炉</span>
+        <span class="intro-dk2-pct" data-dk="pct">000%</span>
+      </div>`;
+    overlay.appendChild(stage);
+    return stage;
+  }
+
+  function ensureNightStage(overlay) {
+    let stage = overlay.querySelector('.intro-nf');
+    if (stage) return stage;
+    stage = document.createElement('div');
+    stage.className = 'intro-nf';
+    stage.setAttribute('aria-hidden', 'true');
+    // A departure board at night: the board flips to NIGHT FLIGHT, runway
+    // lights run, and the real clock / library count print below.
+    stage.innerHTML = `
+      <span class="intro-nf-sky" aria-hidden="true"></span>
+      <span class="intro-nf-horizon" aria-hidden="true"></span>
+      <span class="intro-nf-runway" aria-hidden="true"><i></i></span>
+      <svg class="intro-nf-plane" viewBox="0 0 160 48" aria-hidden="true">
+        <path d="M4 30 44 22 58 6l8 1-6 17 38 2 22-12 6 1-12 14 22 3-2 4-24-1-36 6-4 6-6-1 2-7-38-1-14 4-4-3 8-6Z"/>
+      </svg>
+      <div class="intro-nf-top">
+        <span>GUGUOVA AIR</span>
+        <span>NIGHT FLIGHT · NF 001</span>
+        <span data-nf="date">----.--.--</span>
+      </div>
+      <div class="intro-nf-board">
+        <span class="intro-nf-kicker"><i></i>NOW BOARDING · 正在登机</span>
+        <div class="intro-nf-word" aria-label="NIGHT FLIGHT">
+          <span class="intro-nf-line"><i>N</i><i>I</i><i>G</i><i>H</i><i>T</i></span>
+          <span class="intro-nf-line"><i>F</i><i>L</i><i>I</i><i>G</i><i>H</i><i>T</i></span>
+        </div>
+        <div class="intro-nf-rows">
+          <span><b>DESTINATION</b><i>GUGUOVA GAME SPACE</i></span>
+          <span><b>GATE</b><i>01</i></span>
+          <span><b>STATUS</b><i class="intro-nf-status">BOARDING</i></span>
+        </div>
+        <div class="intro-nf-meta">
+          <span data-nf="time">--:--</span>
+          <span><b data-nf="games">--</b> TITLES</span>
+        </div>
+      </div>
+      <div class="intro-nf-foot">
+        <span>NIGHT OPS</span>
+        <span class="intro-nf-pct" data-nf="pct">000%</span>
       </div>`;
     overlay.appendChild(stage);
     return stage;
@@ -916,7 +999,7 @@
     return node;
   }
 
-  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-dk, .intro-st, .intro-zh, .intro-zh2, .intro-ef, .intro-ef2, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
+  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-dk, .intro-dk2, .intro-st, .intro-st2, .intro-nf, .intro-zh, .intro-zh2, .intro-ef, .intro-ef2, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
 
   function isPlaying() { return state.playing; }
 
@@ -1019,7 +1102,7 @@
         'is-done', 'intro-nova', 'intro-aurum-v2', 'intro-codex-v2', 'intro-riso',
         'intro-aurum', 'intro-mnemo', 'intro-endfield', 'intro-zerohour',
         'intro-seal', 'intro-sun', 'intro-codex', 'intro-vinyl', 'intro-draft',
-        'intro-broadcast'
+        'intro-broadcast', 'intro-dusk', 'intro-steam', 'intro-nightflight'
       );
     }
 

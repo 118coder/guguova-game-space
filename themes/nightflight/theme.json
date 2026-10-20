@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "nightflight",
+  "name": "夜航 · NIGHT FLIGHT",
+  "author": "GUGUOVA",
+  "version": "1.0.8",
+  "description": "夜间航班：深夜蓝、荧光航线、登机牌主视觉与离港航班表。自带「离港」开场。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": true,
+  "intro": "nightflight",
+  "tokens": {
+    "--accent": "#d9ff45",
+    "--accent-2": "#f4f0e0",
+    "--glow": "rgba(217, 255, 69, .24)"
+  },
+  "sounds": {
+    "bong": "sounds/bong.ogg",
+    "click": "sounds/click.ogg",
+    "nav": "sounds/nav.ogg",
+    "soft": "sounds/soft.ogg",
+    "select": "sounds/select.ogg",
+    "confirm": "sounds/confirm.ogg",
+    "error": "sounds/error.ogg",
+    "tick": "sounds/tick.ogg",
+    "chime": "sounds/chime.ogg",
+    "deep": "sounds/deep.ogg",
+    "launchRise": "sounds/launchRise.ogg",
+    "launchFall": "sounds/launchFall.ogg",
+    "switch": "sounds/switch.ogg",
+    "launch": "sounds/launch.ogg",
+    "exit": "sounds/exit.ogg",
+    "boot": "sounds/boot.ogg"
+  }
+}

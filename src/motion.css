@@ -1436,3 +1436,652 @@ html.reduce-motion .theme-curtain[data-variant="zerohour"] .tc-label b {
 .theme-curtain[data-variant="steam"].is-reveal .tc-bottom { transform: translateX(102%); transition-duration: .34s; transition-delay: .03s; }
 .theme-curtain[data-variant="steam"].is-reveal .tc-rule { transform: scaleY(0); opacity: 0; transition-duration: .18s; }
 .theme-curtain[data-variant="steam"].is-reveal .tc-label::before { transform: scaleX(0); transition-duration: .18s; }
+
+/* ============================================================
+   STEAM 2.0 · BIG PICTURE SHELF
+   An asymmetric pair of panels: the left menu shelf and the right
+   content pane close over the interface, a blue seam between them.
+   ============================================================ */
+
+.theme-curtain[data-variant="steam"] {
+  --tc-bg: #0b0c0f;
+  --tc-fg: #f3f4f6;
+  --tc-accent: #1a9fff;
+  --tc-accent-2: #1a9fff;
+  --tc-label-left: 8vw;
+}
+
+.theme-curtain[data-variant="steam"] .tc-half {
+  top: 0;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  width: 66%;
+  height: 100%;
+  background: linear-gradient(180deg, #111317 0%, #08090c 100%);
+  clip-path: none;
+  transform: translateX(-101%);
+  transition: transform .42s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="steam"] .tc-top { left: 0; right: auto; transform: translateX(-101%); }
+.theme-curtain[data-variant="steam"] .tc-bottom { left: 34%; right: auto; transform: translateX(101%); }
+
+.theme-curtain[data-variant="steam"].is-cover .tc-top { transform: translateX(0); }
+.theme-curtain[data-variant="steam"].is-cover .tc-bottom { transform: translateX(0); }
+
+.theme-curtain[data-variant="steam"].is-reveal .tc-top { transform: translateX(-101%); transition-duration: .36s; }
+.theme-curtain[data-variant="steam"].is-reveal .tc-bottom { transform: translateX(101%); transition-duration: .36s; }
+
+.theme-curtain[data-variant="steam"] .tc-rule {
+  top: 0;
+  bottom: 0;
+  left: 34%;
+  right: auto;
+  width: 2px;
+  height: 100%;
+  margin: 0 0 0 -1px;
+  background: linear-gradient(180deg, transparent 0%, #1a9fff 12%, #1a9fff 88%, transparent 100%);
+  transform: scaleY(0);
+  transform-origin: center top;
+  transition: transform .42s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="steam"].is-cover .tc-rule { transform: scaleY(1); opacity: 1; }
+.theme-curtain[data-variant="steam"].is-reveal .tc-rule { transform: scaleY(0); opacity: 0; }
+
+.theme-curtain[data-variant="steam"] .tc-label {
+  left: 0;
+  right: 0;
+  align-items: flex-start;
+  justify-content: center;
+  padding-left: var(--tc-label-left);
+  text-align: left;
+}
+
+.theme-curtain[data-variant="steam"] .tc-label::before {
+  content: "";
+  position: static;
+  top: auto;
+  left: auto;
+  width: 46px;
+  height: 3px;
+  margin: 0 0 8px;
+  background: #1a9fff;
+  box-shadow: 0 0 16px rgba(26, 159, 255, .6);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .36s cubic-bezier(.16, 1, .3, 1) .12s;
+}
+
+.theme-curtain[data-variant="steam"].is-cover .tc-label::before { transform: scaleX(1); }
+.theme-curtain[data-variant="steam"].is-reveal .tc-label::before { transform: scaleX(0); transition-delay: 0s; }
+
+.theme-curtain[data-variant="steam"] .tc-kicker {
+  color: #1a9fff;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 8.5px;
+  letter-spacing: .24em;
+}
+
+.theme-curtain[data-variant="steam"] .tc-label b {
+  color: #ffffff;
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Microsoft YaHei UI", sans-serif;
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.theme-curtain[data-variant="steam"] .tc-sub {
+  color: rgba(243, 244, 246, .52);
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 8.5px;
+  letter-spacing: .2em;
+}
+
+/* ============================================================
+   DUSK 2.0 · PARCHMENT FOLD
+   Two parchment leaves close on a slight diagonal; a gold seam and
+   a wax seal hold the fold.
+   ============================================================ */
+
+.theme-curtain[data-variant="dusk"] {
+  --tc-bg: #f2e4c9;
+  --tc-fg: #30251a;
+  --tc-accent: #b58a4b;
+  --tc-accent-2: #a9503a;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-half {
+  height: 50.6%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E"),
+    linear-gradient(158deg, #faf2e0 0%, #f0e1c4 58%, #e5d1ad 100%);
+  clip-path: none;
+  transform: scaleY(0);
+  transition: transform .42s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="dusk"] .tc-top {
+  top: 0;
+  bottom: auto;
+  clip-path: none;
+  transform-origin: top center;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-bottom {
+  top: auto;
+  bottom: 0;
+  clip-path: none;
+  transform-origin: bottom center;
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-top,
+.theme-curtain[data-variant="dusk"].is-cover .tc-bottom { transform: scaleY(1); }
+
+.theme-curtain[data-variant="dusk"].is-reveal .tc-top,
+.theme-curtain[data-variant="dusk"].is-reveal .tc-bottom { transform: scaleY(0); transition-duration: .36s; }
+
+.theme-curtain[data-variant="dusk"] .tc-rule {
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(90deg, transparent 0%, #b58a4b 14%, #d9b57c 50%, #b58a4b 86%, transparent 100%);
+  box-shadow: 0 0 18px rgba(217, 181, 124, .45);
+  transform: rotate(-1.3deg) scaleX(0);
+  transition: transform .42s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-rule { transform: rotate(-1.3deg) scaleX(1); opacity: 1; }
+.theme-curtain[data-variant="dusk"].is-reveal .tc-rule { transform: rotate(-1.3deg) scaleX(0); opacity: 0; }
+
+.theme-curtain[data-variant="dusk"] .tc-label { gap: 8px; }
+
+.theme-curtain[data-variant="dusk"] .tc-kicker,
+.theme-curtain[data-variant="dusk"] .tc-sub,
+.theme-curtain[data-variant="dusk"] .tc-label b {
+  background: transparent;
+  padding: 0;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-label::before {
+  content: "DUSK";
+  position: relative;
+  left: auto;
+  top: auto;
+  z-index: auto;
+  margin: 0 0 4px;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #c4654b 0%, #a34a35 36%, #7f2f24 70%, #5d2019 100%);
+  box-shadow: inset 0 0 0 3px rgba(255, 221, 180, .18), 0 10px 20px -10px rgba(40, 18, 10, .8);
+  color: rgba(255, 228, 190, .9);
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 8px;
+  letter-spacing: .16em;
+  opacity: 0;
+  transform: rotate(-12deg) scale(.5);
+  transition: opacity .28s ease .14s, transform .36s cubic-bezier(.2, 1.3, .4, 1) .14s;
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-label::before { opacity: 1; transform: rotate(-12deg) scale(1); }
+.theme-curtain[data-variant="dusk"].is-reveal .tc-label::before { opacity: 0; transform: rotate(-12deg) scale(.7); transition-delay: 0s; }
+
+.theme-curtain[data-variant="dusk"] .tc-kicker {
+  color: #8a6a43;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+  font-size: 9px;
+  letter-spacing: .3em;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-label b {
+  color: #30251a;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+  font-size: clamp(24px, 3.2vw, 38px);
+  letter-spacing: .1em;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-sub {
+  color: #6a5740;
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+  font-size: 9px;
+  letter-spacing: .2em;
+}
+
+/* ============================================================
+   NIGHT FLIGHT · SPLIT-FLAP BOARD
+   The interface closes like a departure board: two dark panels fold
+   shut, a lime line runs across, and the theme name flips in a tile.
+   ============================================================ */
+
+.theme-curtain[data-variant="nightflight"] {
+  --tc-bg: #04070d;
+  --tc-fg: #d9ff45;
+  --tc-accent: #d9ff45;
+  --tc-accent-2: #f4f0e0;
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-half {
+  height: 50.6%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='1000'%3E%3Cg stroke='%236fa8ff' stroke-width='1' opacity='.05'%3E%3Cpath d='M0 160h1600M0 320h1600M0 480h1600M0 640h1600M0 800h1600M0 960h1600M160 0v1000M320 0v1000M480 0v1000M640 0v1000M800 0v1000M960 0v1000M1120 0v1000M1280 0v1000M1440 0v1000'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
+    linear-gradient(180deg, #07101c 0%, #04070d 100%);
+  clip-path: none;
+  transform: translateY(-101%);
+  transition: transform .42s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-top {
+  top: 0;
+  bottom: auto;
+  clip-path: none;
+  transform: translateY(-101%);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-bottom {
+  top: auto;
+  bottom: 0;
+  clip-path: none;
+  transform: translateY(101%);
+}
+
+.theme-curtain[data-variant="nightflight"].is-cover .tc-top,
+.theme-curtain[data-variant="nightflight"].is-cover .tc-bottom { transform: translateY(0); }
+
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-top { transform: translateY(-101%); transition-duration: .36s; }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-bottom { transform: translateY(101%); transition-duration: .36s; }
+
+.theme-curtain[data-variant="nightflight"] .tc-rule {
+  height: 3px;
+  margin-top: -1.5px;
+  background: linear-gradient(90deg, transparent 0%, #d9ff45 12%, #d9ff45 88%, transparent 100%);
+  box-shadow: 0 0 22px rgba(217, 255, 69, .5);
+  transform: scaleX(0);
+  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="nightflight"].is-cover .tc-rule { transform: scaleX(1); opacity: 1; }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-rule { transform: scaleX(0); opacity: 0; }
+
+.theme-curtain[data-variant="nightflight"] .tc-label { gap: 8px; }
+
+.theme-curtain[data-variant="nightflight"] .tc-label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: #d9ff45;
+  box-shadow: 0 0 12px rgba(217, 255, 69, .8);
+  animation: tcNfBlink .7s steps(2, end) infinite;
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-kicker {
+  color: #d9ff45;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 8.5px;
+  letter-spacing: .26em;
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-label b {
+  padding: 8px 20px 9px;
+  border: 1px solid #d9ff45;
+  background: #0a0f14;
+  color: #d9ff45;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: clamp(20px, 2.8vw, 32px);
+  font-weight: 700;
+  letter-spacing: .1em;
+  box-shadow: 4px 4px 0 rgba(217, 255, 69, .12);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-sub {
+  color: rgba(233, 237, 242, .55);
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 8.5px;
+  letter-spacing: .22em;
+}
+
+@keyframes tcNfBlink { 50% { opacity: .2; } }
+
+html.reduce-motion .theme-curtain[data-variant="nightflight"] .tc-label::before { animation: none; }
+
+/* ============================================================
+   2.1 · 三套切换彻底分化
+   DUSK   一整页羊皮纸绕左缘翻开（书页）
+   STEAM  一张游戏 tile 从中心放大到全屏（焦点环）
+   NIGHT  上下两张票根对撕（登机牌撕口 + 扫描线）
+   ============================================================ */
+
+/* ---------- DUSK · PAGE TURN ---------- */
+.theme-curtain[data-variant="dusk"] { perspective: 1800px; }
+
+.theme-curtain[data-variant="dusk"] .tc-half {
+  top: 0;
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: none;
+  transform-origin: left center;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 80% 60% at 24% 0%, rgba(255, 252, 240, .6), transparent 62%),
+    linear-gradient(158deg, #faf2e0 0%, #f0e1c4 58%, #e5d1ad 100%);
+  box-shadow: inset -1px 0 0 rgba(181, 138, 75, .55);
+  transition: transform .46s cubic-bezier(.2, .8, .3, 1);
+}
+
+.theme-curtain[data-variant="dusk"] .tc-top {
+  transform: rotateY(-96deg);
+  z-index: 2;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-bottom { display: none; }
+
+.theme-curtain[data-variant="dusk"] .tc-top::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 46px;
+  background: linear-gradient(90deg, transparent, rgba(70, 42, 20, .22));
+  pointer-events: none;
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-top {
+  transform: rotateY(0deg);
+  transition: transform .46s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="dusk"].is-reveal .tc-top {
+  transform: rotateY(96deg);
+  transition: transform .42s cubic-bezier(.7, 0, .2, 1);
+}
+
+.theme-curtain[data-variant="dusk"] .tc-rule {
+  top: 0;
+  left: 0;
+  right: auto;
+  width: 4px;
+  height: 100%;
+  margin: 0;
+  background: linear-gradient(180deg, transparent 0%, #b58a4b 8%, #d9b57c 50%, #b58a4b 92%, transparent 100%);
+  transform: scaleY(0);
+  transform-origin: center top;
+  transition: transform .46s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-rule { transform: scaleY(1); opacity: 1; }
+.theme-curtain[data-variant="dusk"].is-reveal .tc-rule { transform: scaleY(0); opacity: 0; }
+
+/* ---------- STEAM · TILE MAXIMIZE ---------- */
+.theme-curtain[data-variant="steam"] .tc-half { display: none; }
+
+.theme-curtain[data-variant="steam"] .tc-top {
+  display: block;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: inset(44% 44% round 8px);
+  background:
+    radial-gradient(60% 60% at 50% 40%, rgba(26, 159, 255, .14), transparent 64%),
+    linear-gradient(180deg, #111317 0%, #08090c 100%);
+  box-shadow: none;
+  transition: clip-path .44s cubic-bezier(.16, 1, .3, 1);
+  z-index: 2;
+}
+
+.theme-curtain[data-variant="steam"] .tc-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, .92);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 4px rgba(26, 159, 255, .3);
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+
+.theme-curtain[data-variant="steam"] .tc-top::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  width: 34%;
+  height: 10px;
+  transform: translateX(-50%);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .16) 0 30px, transparent 30px 38px);
+  opacity: .9;
+  transition: opacity .2s ease;
+}
+
+.theme-curtain[data-variant="steam"] .tc-bottom { display: none; }
+
+.theme-curtain[data-variant="steam"].is-cover .tc-top { clip-path: inset(0 0 round 0); }
+.theme-curtain[data-variant="steam"].is-cover .tc-top::before { opacity: 0; }
+.theme-curtain[data-variant="steam"].is-cover .tc-top::after { opacity: 0; }
+
+.theme-curtain[data-variant="steam"].is-reveal .tc-top {
+  clip-path: inset(44% 44% round 8px);
+  transition: clip-path .4s cubic-bezier(.7, 0, .2, 1);
+}
+
+.theme-curtain[data-variant="steam"] .tc-rule {
+  top: auto;
+  bottom: 18%;
+  left: 50%;
+  right: auto;
+  width: 30%;
+  height: 2px;
+  margin: 0;
+  transform: translateX(-50%) scaleX(0);
+  background: #1a9fff;
+  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="steam"].is-cover .tc-rule { transform: translateX(-50%) scaleX(1); opacity: 1; }
+.theme-curtain[data-variant="steam"].is-reveal .tc-rule { transform: translateX(-50%) scaleX(0); opacity: 0; }
+
+/* ---------- NIGHT FLIGHT · TICKET TEAR ---------- */
+.theme-curtain[data-variant="nightflight"] { perspective: none; }
+
+.theme-curtain[data-variant="nightflight"] .tc-half {
+  width: 100%;
+  left: 0;
+  right: 0;
+  clip-path: none;
+  transition: transform .44s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-top {
+  top: 0;
+  bottom: auto;
+  height: 64%;
+  transform: translateY(-101%);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"),
+    linear-gradient(155deg, #faf7ec 0%, #f1ecda 58%, #e6dfc8 100%);
+  box-shadow: inset 0 -1px 0 rgba(10, 15, 20, .22);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-bottom {
+  top: auto;
+  bottom: 0;
+  height: 36%;
+  transform: translateY(101%);
+  background:
+    linear-gradient(180deg, #07101c 0%, #04070d 100%);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-top::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  bottom: 22px;
+  width: 150px;
+  height: 36px;
+  background: repeating-linear-gradient(90deg, #0a0f14 0 2px, transparent 2px 4px, #0a0f14 4px 5px, transparent 5px 9px);
+  opacity: .55;
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-top::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: #d9ff45;
+  box-shadow: 0 0 22px rgba(217, 255, 69, .6);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="nightflight"].is-cover .tc-top,
+.theme-curtain[data-variant="nightflight"].is-cover .tc-bottom { transform: translateY(0); }
+.theme-curtain[data-variant="nightflight"].is-cover .tc-top::before { transform: scaleX(1); }
+
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-top { transform: translateY(-101%); transition-duration: .38s; }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-bottom { transform: translateY(101%); transition-duration: .38s; }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-top::before { transform: scaleX(0); }
+
+.theme-curtain[data-variant="nightflight"] .tc-rule {
+  top: 64%;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 2px;
+  margin: -1px 0 0;
+  transform: scaleX(0);
+  background: repeating-linear-gradient(90deg, #d9ff45 0 12px, transparent 12px 24px);
+  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="nightflight"].is-cover .tc-rule { transform: scaleX(1); opacity: 1; }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-rule { transform: scaleX(0); opacity: 0; }
+
+.theme-curtain[data-variant="nightflight"] .tc-label {
+  justify-content: center;
+  padding-top: 0;
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-label b {
+  color: var(--nf-ink, #0a0f14);
+  background: #d9ff45;
+  border-color: #0a0f14;
+  box-shadow: 4px 4px 0 rgba(10, 15, 20, .9);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-label::before { background: #0a0f14; box-shadow: none; }
+.theme-curtain[data-variant="nightflight"] .tc-kicker { color: #0a0f14; background: transparent; padding: 0; }
+.theme-curtain[data-variant="nightflight"] .tc-sub { color: rgba(10, 15, 20, .62); background: transparent; padding: 0; }
+
+html.reduce-motion .theme-curtain[data-variant="nightflight"] .tc-top::before,
+html.reduce-motion .theme-curtain[data-variant="steam"] .tc-top { transition: none; }
+
+/* ---------- DUSK 2.2 · ENVELOPE OPEN ---------- */
+.theme-curtain[data-variant="dusk"] { perspective: 1500px; }
+
+.theme-curtain[data-variant="dusk"] .tc-half {
+  top: 0;
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 80% 60% at 24% 0%, rgba(255, 252, 240, .55), transparent 62%),
+    linear-gradient(158deg, #faf2e0 0%, #f0e1c4 58%, #e5d1ad 100%);
+  transition: transform .44s cubic-bezier(.16, 1, .3, 1);
+  box-shadow: inset -1px 0 0 rgba(181, 138, 75, .4);
+}
+
+/* 信封主体：从下方升起 */
+.theme-curtain[data-variant="dusk"] .tc-top {
+  transform: translateY(101%);
+  transform-origin: center top;
+  z-index: 1;
+}
+
+/* 信封三角盖：从打开状态折回封口 */
+.theme-curtain[data-variant="dusk"] .tc-bottom {
+  display: block;
+  top: 0;
+  bottom: auto;
+  height: 62%;
+  transform: rotateX(-180deg);
+  transform-origin: top center;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L50 100 L100 0' fill='none' stroke='%23a9824a' stroke-width='.9' opacity='.9'/%3E%3Cpath d='M0 0 L50 100 L100 0' fill='none' stroke='%23fff6e4' stroke-width='.25' opacity='.7' transform='translate(0 .5)'/%3E%3C/svg%3E") center / 100% 100% no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E"),
+    linear-gradient(160deg, #f0dfbf 0%, #e6d0a9 58%, #d9bd91 100%);
+  box-shadow: inset 0 -3px 0 rgba(181, 138, 75, .55);
+  z-index: 2;
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-top {
+  transform: translateY(0);
+  transition: transform .44s cubic-bezier(.16, 1, .3, 1) .04s;
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-bottom {
+  transform: rotateX(0deg);
+  transition: transform .46s cubic-bezier(.16, 1, .3, 1) .06s;
+}
+
+/* 拆开：先翻盖，再抽走信纸 */
+.theme-curtain[data-variant="dusk"].is-reveal .tc-bottom {
+  transform: rotateX(-180deg);
+  transition: transform .4s cubic-bezier(.7, 0, .2, 1);
+}
+
+.theme-curtain[data-variant="dusk"].is-reveal .tc-top {
+  transform: translateY(101%);
+  transition: transform .42s cubic-bezier(.7, 0, .2, 1) .14s;
+}
+
+/* 封口的红绳 */
+.theme-curtain[data-variant="dusk"] .tc-rule {
+  top: 62%;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 2px;
+  margin: -1px 0 0;
+  background: linear-gradient(90deg, transparent 0%, #a9503a 14%, #7c3526 50%, #a9503a 86%, transparent 100%);
+  box-shadow: 0 0 16px rgba(169, 80, 58, .35);
+  transform: scaleX(0);
+  transition: transform .42s cubic-bezier(.16, 1, .3, 1);
+}
+
+.theme-curtain[data-variant="dusk"].is-cover .tc-rule { transform: scaleX(1); opacity: 1; }
+.theme-curtain[data-variant="dusk"].is-reveal .tc-rule { transform: scaleX(0); opacity: 0; transition-duration: .22s; }
+
+.theme-curtain[data-variant="dusk"] .tc-label::before {
+  content: "DUSK";
+  width: 64px;
+  height: 64px;
+  background: radial-gradient(circle at 34% 28%, #c4654b 0%, #a34a35 36%, #7f2f24 70%, #5d2019 100%);
+  box-shadow: inset 0 0 0 3px rgba(255, 221, 180, .22), inset 0 0 0 6px rgba(80, 20, 12, .28), 0 12px 22px -12px rgba(40, 18, 10, .8);
+}
+
+.theme-curtain[data-variant="dusk"] .tc-label b {
+  font-family: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+  font-size: clamp(24px, 3.2vw, 38px);
+  letter-spacing: .1em;
+}
+
+.theme-curtain[data-variant="dusk"] .tc-sub::after {
+  content: " · 拆开信封";
+  color: #a9503a;
+}
