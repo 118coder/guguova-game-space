@@ -15,8 +15,8 @@
 
 | 包 | 适合谁 | 里面有什么 |
 |---|---|---|
-| `GUGUOVA-1.7.0-legacy-single.zip` | 大多数人 | 一个 exe，界面和 12 套主题都封在里面 |
-| `GUGUOVA-1.7.0-legacy-full.zip` | 想改主题的人 | exe + `src/` + `themes/`，主题是能直接编辑的文件夹 |
+| `GUGUOVA-1.8.0-legacy-single.zip` | 大多数人 | 一个 exe，界面和 13 套主题都封在里面 |
+| `GUGUOVA-1.8.0-legacy-full.zip` | 想改主题的人 | exe + `src/` + `themes/`，主题是能直接编辑的文件夹 |
 
 步骤：
 
@@ -97,12 +97,12 @@
 
 ---
 
-## 十二套界面主题
+## 十三套界面主题
 
 主题不是换一层颜色。每套主题有自己的版式、按钮形状、开场动画、进游戏动画和切换动画，
 音效也各是一套（16 个）。在「外观 → 界面主题」里切，切换过程本身就是一段动画。
 
-![十二套主题](docs/screenshot-themes.jpg)
+![十三套主题](docs/screenshot-themes.jpg)
 
 | 主题 | 一句话 |
 |---|---|
@@ -118,6 +118,7 @@
 | **夏日轻程 SUMMER** | 白纸、青色制图线、黑块白字，杂志式的排版页。 |
 | **深夜广播 BROADCAST** | 灰阶旧报纸、黑胶、波形，深夜电台的味道。 |
 | **黄昏之炼 DUSK** | 暮色天光下的炼金工作台：羊皮配方纸、封面取样、四元素刻度。 |
+| **Steam 经典 STEAM CLASSIC** | 深蓝客户端窗口、通栏头图、绿色主按钮、蓝色链接、一条库列表。 |
 
 ### 黄昏之炼
 
@@ -133,12 +134,22 @@
 ![黄昏之炼 · 开屏](docs/screenshot-intro.jpg)
 ![黄昏之炼 · 睡眠](docs/screenshot-sleep.jpg)
 
+### Steam 经典
+
+一个开在桌面上的客户端窗口：标题栏写着「库 · 本机游戏 · 离线模式」，下面是当前游戏的 16:9 头图，
+再下面是名称、一句话、属性、绿色「继续游戏」和一条下载条样式的进度。右栏是库的快捷入口。
+按钮是深绿渐变的方角块，链接和选中是蓝色，红色只在「程序缺失」时出现。
+开屏是客户端启动：窗口升起、进度条走完、三个步骤依次点亮，最后一行变绿显示「库已就绪」。
+
+设计规范见 [themes/steam/DESIGN.md](themes/steam/DESIGN.md)。
+
 其它主题的样子：
 
 ![GUGUOVA 原生](docs/screenshot-nova.jpg)
 ![终末地](docs/screenshot-endfield.jpg)
 ![零点街区](docs/screenshot-zerohour.jpg)
 ![星轨秘典](docs/screenshot-codex.jpg)
+![Steam 经典](docs/screenshot-steam.jpg)
 
 ---
 

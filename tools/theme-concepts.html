@@ -122,6 +122,106 @@
   }
   .dk .dk-command b { color: var(--dk-amber); font-weight: 800; }
 
+
+  /* ============================================================
+     STEAM CLASSIC · Steam 经典 (No.13)
+     ============================================================ */
+  .sc {
+    --sc-base: #171a21;
+    --sc-panel: #1b2838;
+    --sc-line: #2a475e;
+    --sc-text: #c6d4df;
+    --sc-mute: #8f98a0;
+    --sc-blue: #66c0f4;
+    --sc-green: #a4d007;
+    background:
+      radial-gradient(70% 60% at 76% 24%, rgba(102, 192, 244, .12) 0%, transparent 62%),
+      linear-gradient(180deg, #171a21 0%, #1b2838 62%, #14202c 100%);
+    color: var(--sc-text);
+  }
+  .sc .sc-top {
+    position: absolute; left: 44px; right: 44px; top: 34px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'Manrope', sans-serif; font-size: 8.5px; font-weight: 800; letter-spacing: .28em;
+    color: var(--sc-mute); text-transform: uppercase;
+  }
+  .sc .sc-badge {
+    padding: 3px 8px; border: 1px solid var(--sc-line); border-radius: 2px;
+    color: var(--sc-blue); letter-spacing: .2em;
+  }
+  .sc .sc-word {
+    position: absolute; left: 44px; top: 96px;
+    font-family: 'Manrope', sans-serif; font-weight: 800;
+    font-size: 74px; line-height: .92; letter-spacing: .02em; color: #ffffff;
+  }
+  .sc .sc-word span { display: block; }
+  .sc .sc-word span:last-child {
+    font-size: 46px; letter-spacing: .18em; color: transparent;
+    -webkit-text-stroke: 1px rgba(198, 212, 223, .7); margin-top: 8px;
+  }
+  .sc .sc-sub {
+    position: absolute; left: 46px; top: 268px;
+    font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .3em;
+    color: var(--sc-blue);
+  }
+  .sc .sc-fields {
+    position: absolute; left: 46px; bottom: 60px;
+    display: flex; gap: 16px;
+    font-family: 'Manrope', sans-serif; font-size: 7px; font-weight: 700; letter-spacing: .16em;
+    color: rgba(198, 212, 223, .4);
+  }
+  .sc .sc-fields b { display: block; margin-top: 3px; color: var(--sc-text); font-weight: 800; letter-spacing: .08em; }
+  .sc .sc-win {
+    position: absolute; right: 44px; top: 74px; width: 424px; height: 348px;
+    background: linear-gradient(180deg, #1b2838, #16202d);
+    border: 1px solid var(--sc-line); border-radius: 3px;
+    box-shadow: 0 18px 36px -22px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .05);
+    overflow: hidden;
+  }
+  .sc .sc-bar {
+    height: 26px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 11px; background: linear-gradient(180deg, #1f2d3d, #101822);
+    border-bottom: 1px solid #0b0f14; box-shadow: inset 0 1px 0 rgba(102, 192, 244, .22);
+    font-family: 'Manrope', sans-serif; font-size: 6.5px; font-weight: 800; letter-spacing: .18em;
+    color: var(--sc-mute); text-transform: uppercase;
+  }
+  .sc .sc-capsule {
+    height: 108px; margin: 0; border-bottom: 1px solid var(--sc-line);
+    background:
+      linear-gradient(180deg, rgba(16, 24, 34, 0) 40%, rgba(22, 32, 45, .9) 100%),
+      radial-gradient(circle at 72% 34%, rgba(102, 192, 244, .5) 0 22px, rgba(42, 71, 94, .6) 23px 46px, transparent 47px),
+      linear-gradient(150deg, #24405c 0%, #16202d 100%);
+  }
+  .sc .sc-body { padding: 12px 14px 0; }
+  .sc .sc-title { font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; color: #fff; letter-spacing: .02em; }
+  .sc .sc-desc { margin-top: 4px; font-size: 7.5px; letter-spacing: .06em; color: var(--sc-mute); }
+  .sc .sc-bar2 { height: 4px; margin-top: 10px; background: #0e141b; border: 1px solid #223243; }
+  .sc .sc-bar2 i { display: block; width: 72%; height: 100%; background: linear-gradient(90deg, #417a9b, var(--sc-blue)); }
+  .sc .sc-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-top: 11px; width: 112px; height: 26px; border-radius: 2px;
+    background: linear-gradient(180deg, #8ed629, #5c7e10); border: 1px solid #4c6b22;
+    font-family: 'Manrope', sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .12em; color: #fff;
+  }
+  .sc .sc-rows { margin-top: 12px; border-top: 1px solid var(--sc-line); }
+  .sc .sc-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid var(--sc-line);
+    font-size: 7.5px; letter-spacing: .08em; color: var(--sc-mute);
+  }
+  .sc .sc-row b { color: var(--sc-text); font-weight: 700; }
+  .sc .sc-row.on { color: var(--sc-blue); }
+  .sc .sc-row.on b { color: #fff; }
+  .sc .sc-command {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 44px;
+    background: rgba(11, 16, 23, .86);
+    border-top: 1px solid var(--sc-line);
+    font-family: 'Manrope', sans-serif; font-size: 7.5px; font-weight: 700; letter-spacing: .2em;
+    color: rgba(198, 212, 223, .45);
+  }
+  .sc .sc-command b { color: var(--sc-blue); font-weight: 800; }
+
   .board { display: none; position: relative; width: 960px; height: 540px; overflow: hidden; }
   body[data-board="nova"] .board.nova,
   body[data-board="aurum"] .board.aurum,
@@ -1419,7 +1519,8 @@ body[data-board="grimoire"] .board.nt-grimoire,
 body[data-board="riso"] .board.nt-riso,
 body[data-board="summer"] .board.nt-summer,
 body[data-board="broadcast"] .board.nt-broadcast,
-body[data-board="dusk"] .board.dk { display: block; }
+body[data-board="dusk"] .board.dk,
+body[data-board="steam"] .board.sc { display: block; }
 
 .nt-top {
   position: absolute;
@@ -2485,6 +2586,35 @@ body[data-board="dusk"] .board.dk { display: block; }
       </div>
     </div>
     <div class="dk-command"><span>// DUSK · ATELIER LEDGER</span><span><b>暮色天空</b> · 羊皮纸 · 陶土按钮 · 元素刻度</span></div>
+  </section>
+
+  <!-- STEAM CLASSIC -->
+  <section class="board sc">
+    <div class="sc-top"><span>GUGUOVA THEME · STEAM CLASSIC</span><span class="sc-badge">No.13 · CLIENT</span></div>
+    <div class="sc-word"><span>STEAM</span><span>CLASSIC</span></div>
+    <div class="sc-sub">Steam 经典</div>
+    <div class="sc-fields">
+      <span>BASE<b>#171A21</b></span>
+      <span>PANEL<b>#1B2838</b></span>
+      <span>LINK<b>#66C0F4</b></span>
+      <span>ACTION<b>#A4D007</b></span>
+    </div>
+    <div class="sc-win">
+      <div class="sc-bar"><span>库 · 本机游戏</span><span>离线模式</span></div>
+      <div class="sc-capsule"></div>
+      <div class="sc-body">
+        <div class="sc-title">当前游戏</div>
+        <div class="sc-desc">深蓝客户端 · 绿色主按钮 · 蓝色链接</div>
+        <div class="sc-bar2"><i></i></div>
+        <div class="sc-btn">开始游戏</div>
+        <div class="sc-rows">
+          <div class="sc-row on"><span>游戏库</span><b>6 项</b></div>
+          <div class="sc-row"><span>最近游玩</span><b>本机记录</b></div>
+          <div class="sc-row"><span>离线模式</span><b>开启</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="sc-command"><span>// STEAM CLASSIC · CLIENT WINDOW</span><span><b>深蓝窗口</b> · 绿色主按钮 · 蓝色链接 · 库列表</span></div>
   </section>
 </body>
 </html>

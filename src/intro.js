@@ -77,6 +77,46 @@
      An atelier opening at the end of the day: the sky settles into dusk,
      a low sun blooms, the synthesis ring draws itself, then the ledger
      line prints the real date, clock and library count. */
+
+  /* ---------- STEAM CLASSIC ----------
+     A client boot: the window rises, the library counter resolves, three
+     real steps tick over, then the panel is ready. No invented telemetry. */
+  register('steam', {
+    label: 'Steam 经典 · 客户端启动',
+    duration: 2500,
+    hint: '点击或按任意键跳过',
+    setup(overlay) {
+      overlay.classList.add('intro-steam');
+      const stage = ensureSteamStage(overlay);
+      const reduce = !!(window.NovaMotion && window.NovaMotion.reduce);
+      const now = new Date();
+      const pad2 = (value) => String(value).padStart(2, '0');
+      const date = `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}`;
+      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+      const dockCount = document.getElementById('dockCount');
+      const countMatch = (dockCount && dockCount.textContent || '').match(/\d+/);
+      const games = String(countMatch ? Math.min(999, Number(countMatch[0])) : 0);
+
+      const write = (key, value) => {
+        const node = stage.querySelector(`[data-st="${key}"]`);
+        if (!node) return;
+        if (reduce) node.textContent = value;
+        else scramble(node, value, 480);
+      };
+
+      write('date', date);
+      write('time', time);
+      write('games', games);
+      runMeter(stage.querySelector('[data-st="pct"]'), reduce);
+
+      const win = stage.querySelector('.intro-st-win');
+      const done = () => win && win.classList.add('is-ready');
+      if (reduce) done();
+      else setTimeout(done, 1750);
+    }
+  });
+
   register('dusk', {
     label: '黄昏之炼 · 暮色开工',
     duration: 2600,
@@ -617,6 +657,41 @@
     return stage;
   }
 
+  function ensureSteamStage(overlay) {
+    let stage = overlay.querySelector('.intro-st');
+    if (stage) return stage;
+    stage = document.createElement('div');
+    stage.className = 'intro-st';
+    stage.setAttribute('aria-hidden', 'true');
+    stage.innerHTML = `
+      <div class="intro-st-win">
+        <div class="intro-st-bar">
+          <span>GUGUOVA · 客户端</span>
+          <span>离线模式</span>
+        </div>
+        <div class="intro-st-body">
+          <div class="intro-st-brand">GUGUOVA</div>
+          <div class="intro-st-line"><i></i></div>
+          <div class="intro-st-row">
+            <span class="intro-st-state"><b>正在加载库</b><i>库已就绪</i></span>
+            <b><i data-st="games">--</i> 项</b>
+          </div>
+          <ul class="intro-st-steps">
+            <li>读取本机库</li>
+            <li>检查封面缓存</li>
+            <li>准备界面</li>
+          </ul>
+          <div class="intro-st-foot">
+            <span data-st="date">----.--.--</span>
+            <span data-st="time">--:--</span>
+            <span class="intro-st-pct" data-st="pct">000%</span>
+          </div>
+        </div>
+      </div>`;
+    overlay.appendChild(stage);
+    return stage;
+  }
+
   function ensureDuskStage(overlay) {
     let stage = overlay.querySelector('.intro-dk');
     if (stage) return stage;
@@ -841,7 +916,7 @@
     return node;
   }
 
-  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-dk, .intro-zh, .intro-zh2, .intro-ef, .intro-ef2, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
+  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-dk, .intro-st, .intro-zh, .intro-zh2, .intro-ef, .intro-ef2, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
 
   function isPlaying() { return state.playing; }
 

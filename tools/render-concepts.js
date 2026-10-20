@@ -9,7 +9,7 @@ const PORT = Number(process.env.NOVA_CDP_PORT || 9223);
 const outDir = process.argv[2] || '_shots';
 const onlyArg = process.argv.find((arg) => arg.startsWith('--only='));
 const only = onlyArg ? onlyArg.split('=')[1] : '';
-const boards = ["nova", "aurum", "endfield", "codex", "zerohour", "mnemo", "riot", "grimoire", "riso", "summer", "broadcast", "dusk"]
+const boards = ["nova", "aurum", "endfield", "codex", "zerohour", "mnemo", "riot", "grimoire", "riso", "summer", "broadcast", "dusk", "steam"]
   .filter((id) => !only || id === only);
 
 // The boards are served from the app's virtual host (nova.site → WebRoot),

@@ -1,9 +1,9 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.7.0**
+> 交接版本：**1.8.0**
 > 交接时间：2026-10-20
-> 本轮内容：新增第 12 套主题「黄昏之炼」、重做全部主题缩略图与仓库截图、README 重写为玩家向
-> 产物：`GUGUOVA-1.7.0-legacy-single.zip` / `-full.zip`，已发布为 GitHub Release **v1.7.0**
+> 本轮内容：新增第 12 套「黄昏之炼」与第 13 套「Steam 经典」、重做全部缩略图与仓库截图、README 重写为玩家向
+> 产物：`GUGUOVA-1.8.0-legacy-single.zip` / `-full.zip`，发布为 GitHub Release **v1.8.0**
 
 ---
 
@@ -45,7 +45,8 @@
 | riot | 1.5.8 | `vinyl` | 16 | 舞台幕布 |
 | grimoire | 1.5.7 | `seal` | 16 | 羊皮纸 + 蜡封 |
 | mnemo | 1.1.8 | `mnemo` | 16 | 记忆条带 |
-| **dusk（新增）** | **1.0.1** | `dusk` | 16 | 暮色合拢 |
+| dusk | 1.0.2 | `dusk` | 16 | 暮色合拢 |
+| **steam（新增）** | **1.0.2** | `steam` | 16 | 窗口推开 |
 
 主题 id、程序集名、AppData 目录仍是 `nova` / `NovaGameSpace` —— 兼容标识，只有用户可见文案是 GUGUOVA。
 
@@ -66,6 +67,17 @@
 - **音效 16 个**：陶铃、木、纸、玻璃瓶、低音弦，脚本合成（`tools/sfx-specs/make-dusk-sfx.py`），
   只有 `switch` 用一层低通到 2.6kHz 的风声；实测 >5kHz 能量比满量程低 15–23dB。
 - **设置页身份卡**：配方台账卡，左侧 4px 陶土书脊条、双层白线内框、圆形陶土印章头像。
+
+### 4.1b Steam 经典（第二套新主题）
+
+- 参考 2010 年代 Steam 桌面客户端的视觉体系（不是 Big Picture / Steam Deck），不使用 Valve 素材。
+- **构图**：客户端窗口。36px 标题栏写「库 · 本机游戏 · 离线模式」，通栏 16:9 头图，
+  下面是名称 / 一句话 / 属性 / 绿色主按钮 / 下载条式进度，右栏是「库快捷入口」。
+- **开屏 `steam`（2500ms）**：窗口升起 → 进度条 → 三个真实步骤点亮 → 状态变「库已就绪」。
+- **进游戏 `stMax`**：窗口最大化（94% → 100% + 亮度恢复）。
+- **切换幕布**：非对称双面板（26.5% 侧栏 + 74% 主面板）横向合拢，竖蓝缝 + 绿色标签条。
+- **音效 16 个**：塑料键、滚轮格、低频嗡鸣、短数字提示；`switch` 用低通风声。
+- 完整规范：`themes/steam/DESIGN.md`；接口卡：`docs/themes/steam.md`。
 
 ### 4.2 缩略图与品牌收口
 
@@ -109,7 +121,7 @@
 
 - `dotnet build -c Debug`：0 错误。
 - `export-all.js --themes=dusk --views=all --sizes=1439x1124,960x600 --stress`：32 张全部 ok，
-  无 `overflow-x` / `clipped` / `logo-text-over`。
+  无 `overflow-x` / `clipped` / `logo-text-over`；`--themes=steam` 同样 32 张全部 ok。
 - `export-all.js --themes=<12 套> --views=home,library,appearance,settings,detail`：60 张全部 ok。
 - 开屏：`shot-intro.js` 三个时间点确认天空、太阳、炼金环、真实台账都到位，2.6s 后正常退场。
 - 音效：16 个 OGG 全部可解码；高频占比检查通过。
@@ -184,8 +196,10 @@ Xbox 与 DualSense 各接一次；验证焦点环、方向键/摇杆重复、A/B
 19. 终末地开屏遵循 `endfield-ui`：纸白底、单一酸黄填充、直角、细线、真实数字、无投影/渐变；
 20. **DUSK 纸面正文一律墨色**，金色/琥珀只能做线与数值；封面取样与纸胶带不得进入文字列；
 21. **DUSK 不用发光魔法阵、粒子、霓虹**；炼金环只能是一条细线；
-22. **示例库与截图里不允许出现真实游戏素材**；封面只用 `tools/demo-covers.py` 生成；
-23. 技术标识（程序集、AppData、`NOVA_DEV`/`NOVA_CACHE_ROOT`、主题 id `nova`）不要跟随品牌改名。
+22. **STEAM 不使用 Valve 素材**（Logo、商店图、成就图标）；绿色只给主按钮与「就绪」，
+    红色只给缺失/删除；不要伪造在线人数、下载速度、成就数；
+23. **示例库与截图里不允许出现真实游戏素材**；封面只用 `tools/demo-covers.py` 生成；
+24. 技术标识（程序集、AppData、`NOVA_DEV`/`NOVA_CACHE_ROOT`、主题 id `nova`）不要跟随品牌改名。
 
 ---
 
@@ -220,10 +234,10 @@ python tools/sfx-specs/make-dusk-sfx.py /tmp/dusk-wav
 ffmpeg -i /tmp/dusk-wav/<cue>.wav -c:a libvorbis -q:a 5 -ac 1 themes/dusk/sounds/<cue>.ogg
 
 # 打包
-bash tools/pipeline.sh --version 1.7.0
+bash tools/pipeline.sh --version 1.8.0
 
 # 版本号（唯一源）
-node tools/bump-version.js 1.7.1
+node tools/bump-version.js 1.8.1
 ```
 
 > 改主题 CSS：bump `theme.json` patch → `relaunch.sh`（同步）→ 重启。

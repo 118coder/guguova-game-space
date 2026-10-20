@@ -1,6 +1,6 @@
 # NOVA · 主题接口总表（统一文件）
 
-> 适用版本：**1.7.0**
+> 适用版本：**1.8.0**
 >
 > 每套主题的分文件在 [`docs/themes/`](themes/README.md)。本文是**跨主题的统一契约**：
 > 清单、变量、选择器、按钮配方、开屏/进游戏接口与版本记录。
@@ -165,6 +165,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | grimoire | 酒红底米白字 + 金内线 | 羊皮纸金线 | 硬偏移 |
 | mnemo | 梅红/靛紫 | 档案标签 | 切角/小圆角 |
 | dusk | 陶土红压印 | 纸白墨线 | 2px 圆角 + 2px 实底阴影 |
+| steam | 绿色渐变 | 蓝色描边 | 2px 圆角 + 内高光 |
 
 > 按钮不再走统一 `controls=hard`。新增主题请直接在自己的 `theme.css` 写
 > `.btn.primary` / `.btn.ghost`，并在分文件登记。
@@ -196,6 +197,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | grimoire | `seal` | 归档：火漆盖章 + 真实档号 |
 | mnemo | `mnemo` | 解密：档案字段 scramble + CLASSIFIED |
 | dusk | `dusk` | 暮色开工：天空压下 + 太阳升起 + 炼金环描线 + 真实台账 |
+| steam | `steam` | 客户端启动：窗口升起 + 进度条 + 三个真实步骤 |
 
 ---
 
@@ -217,6 +219,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | grimoire | `grStamp` | 火漆盖章 |
 | mnemo | `mnUnfold` | 卷宗展开 |
 | dusk | `dlDusk` | 暮色从画面中心合拢 |
+| steam | `stMax` | 窗口最大化 |
 
 ---
 
@@ -254,6 +257,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | `grimoire` | 羊皮纸页上升 + 蜡封落下 | 650ms |
 | `mnemo` | 纵向记忆条带 + 紫色重影 | 360ms |
 | `dusk` | 天空与纸页沿斜缝合拢 + 虚线炼金环 | 460ms |
+| `steam` | 非对称双面板横向合拢 + 竖蓝缝 | 440ms |
 
 ### 8.2 字体契约
 
@@ -318,8 +322,9 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | grimoire | 1.5.7 | parchment / plate / rule / plates-off | seal | grStamp |
 | mnemo | 1.1.8 | map / emboss / folder | mnemo | mnUnfold |
 | dusk | 1.0.1 | —（自带版式，不用 theme-kit） | dusk | dlDusk |
+| steam | 1.0.2 | —（自带版式，不用 theme-kit） | steam | stMax |
 
-静态资源版本：`src/index.html` 的 `?v=1.7.0`。
+静态资源版本：`src/index.html` 的 `?v=1.8.0`。
 
 ---
 

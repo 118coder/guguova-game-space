@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "steam",
+  "name": "Steam 经典 · STEAM CLASSIC",
+  "author": "GUGUOVA",
+  "version": "1.0.2",
+  "description": "经典客户端：深蓝窗口、绿色主按钮、蓝色链接与库列表。自带「客户端启动」开场。",
+  "css": "theme.css",
+  "preview": "assets/preview.jpg",
+  "base": "system",
+  "dark": true,
+  "intro": "steam",
+  "tokens": {
+    "--accent": "#66c0f4",
+    "--accent-2": "#a4d007",
+    "--glow": "rgba(102, 192, 244, .22)"
+  },
+  "sounds": {
+    "bong": "sounds/bong.ogg",
+    "click": "sounds/click.ogg",
+    "nav": "sounds/nav.ogg",
+    "soft": "sounds/soft.ogg",
+    "select": "sounds/select.ogg",
+    "confirm": "sounds/confirm.ogg",
+    "error": "sounds/error.ogg",
+    "tick": "sounds/tick.ogg",
+    "chime": "sounds/chime.ogg",
+    "deep": "sounds/deep.ogg",
+    "launchRise": "sounds/launchRise.ogg",
+    "launchFall": "sounds/launchFall.ogg",
+    "switch": "sounds/switch.ogg",
+    "launch": "sounds/launch.ogg",
+    "exit": "sounds/exit.ogg",
+    "boot": "sounds/boot.ogg"
+  }
+}

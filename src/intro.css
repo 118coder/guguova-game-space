@@ -3941,3 +3941,213 @@ html.reduce-motion .intro-dk-foot {
   opacity: 1 !important;
   stroke-dashoffset: 0 !important;
 }
+
+/* ============================================================
+   STEAM CLASSIC · 客户端启动
+   A client window rises, the library counter resolves, three
+   real steps tick over, then the bar turns green and it is ready.
+   ============================================================ */
+
+.intro[data-intro="steam"] {
+  --intro-bg: #0b1017;
+  --intro-bg-2: #16202d;
+  --intro-mark: #66c0f4;
+  --intro-mark-2: #a4d007;
+  --intro-accent: #a4d007;
+  --intro-text: #c6d4df;
+  --intro-dim: rgba(198, 212, 223, .5);
+  --intro-line: rgba(42, 71, 94, .8);
+  background:
+    radial-gradient(70% 60% at 50% 42%, rgba(27, 40, 56, .9) 0%, rgba(11, 16, 23, .98) 68%),
+    #0b1017;
+}
+
+.intro[data-intro="steam"] .intro-stage,
+.intro[data-intro="steam"] .intro-emblem,
+.intro[data-intro="steam"] .intro-word,
+.intro[data-intro="steam"] .intro-sub,
+.intro[data-intro="steam"] .intro-meter,
+.intro[data-intro="steam"] .intro-cap,
+.intro[data-intro="steam"] .intro-corners,
+.intro[data-intro="steam"] .intro-grain { display: none; }
+
+.intro-st {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  font-family: var(--font-ui);
+  color: var(--intro-text);
+}
+
+.intro-st-win {
+  width: min(560px, 82vw);
+  background: linear-gradient(180deg, #1b2838 0%, #16202d 100%);
+  border: 1px solid #2a475e;
+  border-radius: 3px;
+  box-shadow:
+    0 40px 90px -40px #000,
+    inset 0 1px 0 rgba(255, 255, 255, .05);
+  overflow: hidden;
+  animation: stWindow 520ms cubic-bezier(.2, .8, .3, 1) both;
+}
+
+.intro-st-bar {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: linear-gradient(180deg, #1f2d3d 0%, #101822 100%);
+  border-bottom: 1px solid #0b0f14;
+  box-shadow: inset 0 1px 0 rgba(102, 192, 244, .22);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: #8f98a0;
+  text-transform: uppercase;
+}
+
+.intro-st-body { padding: 26px clamp(20px, 4vw, 30px) 20px; }
+
+.intro-st-brand {
+  font-size: clamp(20px, 3.2vw, 26px);
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: #ffffff;
+  opacity: 0;
+  animation: stFadeUp 420ms 120ms cubic-bezier(.2, .8, .3, 1) both;
+}
+
+.intro-st-line {
+  position: relative;
+  height: 6px;
+  margin: 20px 0 9px;
+  background: #0e141b;
+  border: 1px solid #223243;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .7);
+}
+
+.intro-st-line i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #417a9b 0%, #66c0f4 100%);
+}
+
+.intro-st-win.is-ready .intro-st-line i,
+.intro[data-intro="steam"]:not(.is-playing) .intro-st-line i { width: 100%; }
+
+.intro-st-line i { animation: stFill 1250ms 240ms cubic-bezier(.2, .8, .3, 1) forwards; }
+
+.intro-st-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  color: #8f98a0;
+}
+
+.intro-st-row b {
+  font-weight: 700;
+  color: #c6d4df;
+  letter-spacing: .04em;
+}
+
+.intro-st-row b i {
+  font-style: normal;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro-st-state i { display: none; font-style: normal; color: #a4d007; font-weight: 700; }
+.intro-st-win.is-ready .intro-st-state b { display: none; }
+.intro-st-win.is-ready .intro-st-state i { display: inline; }
+
+.intro-st-steps {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+}
+
+.intro-st-steps li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  color: #55616c;
+}
+
+.intro-st-steps li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #2a475e;
+}
+
+.intro-st-steps li:nth-child(1) { animation: stStep 240ms 300ms both; }
+.intro-st-steps li:nth-child(2) { animation: stStep 240ms 780ms both; }
+.intro-st-steps li:nth-child(3) { animation: stStep 240ms 1260ms both; }
+
+.intro-st-win.is-ready .intro-st-steps li { color: #c6d4df; }
+.intro-st-win.is-ready .intro-st-steps li::before { background: #a4d007; border-color: #a4d007; }
+
+.intro-st-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid #2a475e;
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  color: #66727d;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro-st-pct {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: #66c0f4;
+}
+
+@keyframes stWindow {
+  from { opacity: 0; transform: translateY(16px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes stFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes stFill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes stStep {
+  from { color: #55616c; }
+  to { color: #c6d4df; }
+}
+
+html.reduce-motion .intro-st-win,
+html.reduce-motion .intro-st-brand,
+html.reduce-motion .intro-st-steps li,
+html.reduce-motion .intro-st-line i {
+  animation: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+html.reduce-motion .intro-st-line i { width: 100% !important; }

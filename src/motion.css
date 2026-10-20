@@ -1330,3 +1330,109 @@ html.reduce-motion .theme-curtain[data-variant="zerohour"] .tc-label b {
 .theme-curtain[data-variant="dusk"].is-reveal .tc-bottom { transform: translateY(102%); transition-duration: .38s; transition-delay: .03s; }
 .theme-curtain[data-variant="dusk"].is-reveal .tc-rule { transform: scaleX(0); opacity: 0; transition-duration: .2s; }
 .theme-curtain[data-variant="dusk"].is-reveal .tc-label::before { opacity: 0; transform: rotate(56deg) scale(.9); transition-duration: .2s; }
+
+/* ============================================================
+   STEAM CLASSIC · curtain = 「客户端窗口推开」
+   An asymmetric pair of panels (sidebar 26% + main 74%) slides in
+   from opposite sides and meets on a vertical blue seam. The main
+   panel carries a green tab above the label. Transform only.
+   ============================================================ */
+
+.theme-curtain[data-variant="steam"] { --tc-bg: #1b2838; --tc-fg: #c6d4df; }
+
+.theme-curtain[data-variant="steam"] .tc-half {
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  transition: transform .4s cubic-bezier(.2, .8, .3, 1);
+  will-change: transform;
+}
+
+.theme-curtain[data-variant="steam"] .tc-top {
+  left: 0;
+  right: auto;
+  width: 26.5%;
+  transform: translateX(-102%);
+  background:
+    linear-gradient(180deg, #1f2d3d 0%, #16202d 62%, #101822 100%);
+  border-right: 1px solid #0b0f14;
+  box-shadow: inset 0 2px 0 #2a475e;
+}
+
+.theme-curtain[data-variant="steam"] .tc-bottom {
+  left: auto;
+  right: 0;
+  width: 74%;
+  transform: translateX(102%);
+  background:
+    radial-gradient(80% 70% at 78% 12%, rgba(102, 192, 244, .12), transparent 62%),
+    linear-gradient(180deg, #1b2838 0%, #16202d 100%);
+  box-shadow: inset 0 2px 0 #66c0f4;
+}
+
+.theme-curtain[data-variant="steam"] .tc-rule {
+  top: 0;
+  bottom: 0;
+  left: 26.5%;
+  right: auto;
+  width: 1px;
+  height: auto;
+  margin: 0;
+  background: linear-gradient(180deg, transparent 0%, #66c0f4 16%, #66c0f4 84%, transparent 100%);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform .3s cubic-bezier(.2, .8, .3, 1), opacity .2s ease;
+}
+
+.theme-curtain[data-variant="steam"] .tc-label {
+  left: 26.5%;
+  padding-left: 0;
+  gap: 6px;
+  color: #c6d4df;
+}
+
+.theme-curtain[data-variant="steam"] .tc-label::before {
+  content: "";
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  width: 46px;
+  height: 3px;
+  margin-left: -23px;
+  background: #a4d007;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .3s cubic-bezier(.2, .8, .3, 1) .1s;
+}
+
+.theme-curtain[data-variant="steam"] .tc-kicker {
+  color: #8f98a0;
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Microsoft YaHei UI", sans-serif;
+  font-size: 9px;
+  letter-spacing: .26em;
+}
+
+.theme-curtain[data-variant="steam"] .tc-label b {
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Microsoft YaHei UI", sans-serif;
+  font-size: clamp(20px, 2.6vw, 30px);
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: #ffffff;
+}
+
+.theme-curtain[data-variant="steam"] .tc-sub {
+  color: #66727d;
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Microsoft YaHei UI", sans-serif;
+  font-size: 9px;
+  letter-spacing: .22em;
+}
+
+.theme-curtain[data-variant="steam"].is-cover .tc-top,
+.theme-curtain[data-variant="steam"].is-cover .tc-bottom { transform: translateX(0); }
+.theme-curtain[data-variant="steam"].is-cover .tc-rule { transform: scaleY(1); opacity: 1; transition-delay: .14s; }
+.theme-curtain[data-variant="steam"].is-cover .tc-label::before { transform: scaleX(1); transition-delay: .18s; }
+
+.theme-curtain[data-variant="steam"].is-reveal .tc-top { transform: translateX(-102%); transition-duration: .34s; }
+.theme-curtain[data-variant="steam"].is-reveal .tc-bottom { transform: translateX(102%); transition-duration: .34s; transition-delay: .03s; }
+.theme-curtain[data-variant="steam"].is-reveal .tc-rule { transform: scaleY(0); opacity: 0; transition-duration: .18s; }
+.theme-curtain[data-variant="steam"].is-reveal .tc-label::before { transform: scaleX(0); transition-duration: .18s; }
