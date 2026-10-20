@@ -44,6 +44,9 @@ public partial class MainWindow : Window
 
     private WinForms.NotifyIcon? _tray;
     private bool _reallyClosing;
+    private HwndSource? _hwndSource;
+    private bool _hotkeyRegistered;
+    private const int ScalingHotkeyId = 0x4E56;
     private StoreService Store { get; } = new();
     private MediaService Media { get; } = new();
     private LauncherService? Launcher { get; set; }
@@ -56,6 +59,17 @@ public partial class MainWindow : Window
             Store.Load();
             Launcher = new LauncherService(Store);
             Bridge = new NativeBridge(Store, Media, Launcher);
+
+            // Native-mode shortcut: the bundled Magpie owns its own hotkey,
+            // but the built-in borderless path needs one registered here.
+            var handle = new WindowInteropHelper(this).Handle;
+            _hwndSource = HwndSource.FromHwnd(handle);
+            _hwndSource?.AddHook(WndProc);
+            ApplyScalingHotkey(Store.Library.Settings.ScalingHotkey);
+
+            // A moved install would otherwise keep pointing the Run key at the
+            // old path; only an already enabled entry is touched.
+            _ = Task.Run(() => StartupService.RefreshIfEnabled());
 
             // Offline daily backup: one pack per day, keep five. Runs after the
             // library is loaded and never blocks the window.
@@ -89,6 +103,7 @@ public partial class MainWindow : Window
             var env = await CoreWebView2Environment.CreateAsync(browserFolder, CacheRoot(), options);
             await Web.EnsureCoreWebView2Async(env);
             Bridge.Attach(Web);
+            ApplyStartupFullscreen();
             Web.CoreWebView2.ProcessFailed += (_, args) =>
             {
                 Log.Write($"webview failed: {args.ProcessFailedKind}");
@@ -115,6 +130,25 @@ public partial class MainWindow : Window
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
                 TextAlignment = System.Windows.TextAlignment.Center
             };
+        }
+    }
+
+    /// <summary>A Windows-launched session opens straight into the immersive
+    /// shell when the player asked for it. Manual launches are untouched, so
+    /// the saved window geometry still wins for normal use.</summary>
+    private void ApplyStartupFullscreen()
+    {
+        try
+        {
+            var startedByWindows = Environment.GetCommandLineArgs()
+                .Any(arg => arg.StartsWith("--startup", StringComparison.OrdinalIgnoreCase));
+            if (!startedByWindows || !Store.Library.Settings.StartupFullscreen) return;
+            SetFullscreen(true);
+            Log.Write("startup fullscreen applied");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("startup fullscreen", ex);
         }
     }
 
@@ -236,9 +270,53 @@ public partial class MainWindow : Window
     public void ToggleMaximize() => SetFullscreen(!_isFullscreen);
 
     private bool _isFullscreen;
+    private bool _autoMinimizedForGame;
+    private bool _gameSessionActive;
     private WindowState _stateBeforeFullscreen = WindowState.Normal;
     private Rect _restoreBounds;
     private bool _hasRestoreBounds;
+
+    /// <summary>Called when a real game process appears. The launcher stops
+    /// being topmost immediately, but it stays visible (and foreground) until
+    /// the game window is actually found — that is what lets Windows accept
+    /// the hand-off instead of keeping the game behind us.</summary>
+    public void BeginGameSession()
+    {
+        _gameSessionActive = true;
+        Topmost = false;
+    }
+
+    /// <summary>Steps out of the way once the game window is in front.</summary>
+    public void MinimizeForGame()
+    {
+        // A very short session may already be over by the time the window
+        // hand-off finishes; never leave the launcher minimized with no game.
+        if (!_gameSessionActive || !IsVisible) return;
+        _autoMinimizedForGame = true;
+        WindowState = WindowState.Minimized;
+    }
+
+    /// <summary>Brings the launcher back once the last session ends, but only
+    /// if it was this code that minimized it and the player has not already
+    /// restored it.</summary>
+    public void EndGameSession()
+    {
+        _gameSessionActive = false;
+        var wasAutoMinimized = _autoMinimizedForGame;
+        _autoMinimizedForGame = false;
+
+        if (wasAutoMinimized && WindowState == WindowState.Minimized)
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            if (_isFullscreen) ApplyMonitorBounds();
+            Activate();
+        }
+
+        Topmost = _isFullscreen;
+    }
+
+    public bool IsGameSessionActive => _gameSessionActive;
 
     /// <summary>
     /// Borderless fullscreen on the current monitor: no chrome, no taskbar and
@@ -263,7 +341,9 @@ public partial class MainWindow : Window
             WindowState = WindowState.Normal;   // leave maximized first
             RootBorder.BorderThickness = new Thickness(0);
             ApplyMonitorBounds();
-            Topmost = true;
+            // While a game owns the screen the launcher must not sit on top of
+            // it, even in immersive mode.
+            Topmost = !_gameSessionActive;
         }
         else
         {
@@ -378,13 +458,13 @@ public partial class MainWindow : Window
     {
         if (_tray != null) return;
         var menu = new WinForms.ContextMenuStrip();
-        menu.Items.Add("显示 NOVA", null, (_, _) => RestoreFromTray());
+        menu.Items.Add("显示 GUGUOVA", null, (_, _) => RestoreFromTray());
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add("退出", null, (_, _) => ExitApplication());
         _tray = new WinForms.NotifyIcon
         {
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(Process.GetCurrentProcess().MainModule?.FileName ?? "") ?? System.Drawing.SystemIcons.Application,
-            Text = "NOVA · 游戏空间",
+            Text = "GUGUOVA · 游戏空间",
             Visible = true,
             ContextMenuStrip = menu
         };
@@ -404,8 +484,98 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Registers the launcher's own scale shortcut only for the
+    /// native path. In `auto` mode the bundled engine owns the key, so two
+    /// RegisterHotKey calls would fight over it.</summary>
+    public void ApplyScalingHotkey(int code)
+    {
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero) return;
+
+        if (_hotkeyRegistered)
+        {
+            UnregisterHotKey(handle, ScalingHotkeyId);
+            _hotkeyRegistered = false;
+        }
+
+        var engine = Store.Library.Settings.ScalingEngine;
+        var useNative = string.Equals(engine, "native", StringComparison.OrdinalIgnoreCase) ||
+                        (string.Equals(engine, "auto", StringComparison.OrdinalIgnoreCase) && !ScalingEngine.Supported);
+        if (!useNative || code <= 0)
+        {
+            Log.Write($"native scale hotkey: engine={engine} code={code} registered=false");
+            return;
+        }
+
+        uint modifiers = 0x4000; // MOD_NOREPEAT
+        if ((code & 0x400) != 0) modifiers |= 0x0001; // ALT
+        if ((code & 0x200) != 0) modifiers |= 0x0002; // CONTROL
+        if ((code & 0x800) != 0) modifiers |= 0x0004; // SHIFT
+        if ((code & 0x100) != 0) modifiers |= 0x0008; // WIN
+
+        _hotkeyRegistered = RegisterHotKey(handle, ScalingHotkeyId, modifiers, (uint)(code & 0xFF));
+        Log.Write($"native scale hotkey registered={_hotkeyRegistered} code={code} label={ScalingEngine.Label(code)}");
+        if (!_hotkeyRegistered)
+        {
+            Bridge?.Notify("scaling-hotkey", new
+            {
+                ok = false,
+                label = ScalingEngine.Label(code),
+                reason = "快捷键注册失败，可能被 Magpie 或其他程序占用"
+            });
+        }
+    }
+
+    private IntPtr WndProc(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message == 0x0312 && wParam.ToInt32() == ScalingHotkeyId)
+        {
+            handled = true;
+            ToggleNativeScaling();
+        }
+        return IntPtr.Zero;
+    }
+
+    private void ToggleNativeScaling()
+    {
+        var sessions = Launcher?.Running;
+        if (sessions == null || sessions.Count == 0)
+        {
+            Bridge?.Notify("scaling-toggled", new { ok = false, reason = "没有正在运行的游戏" });
+            return;
+        }
+
+        var result = GameDisplay.ToggleBorderlessForSessions(sessions.Select(session => session.ProcessId));
+        if (result == null)
+        {
+            Bridge?.Notify("scaling-toggled", new { ok = false, reason = "没有找到游戏窗口" });
+            return;
+        }
+
+        var session = sessions.FirstOrDefault(entry => entry.ProcessId == result.Value.Pid);
+        Bridge?.Notify("scaling-toggled", new
+        {
+            ok = true,
+            on = result.Value.On,
+            gameId = session?.GameId,
+            gameName = session?.GameName
+        });
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool RegisterHotKey(IntPtr window, int id, uint modifiers, uint virtualKey);
+
+    [DllImport("user32.dll")]
+    private static extern bool UnregisterHotKey(IntPtr window, int id);
+
     public void ExitApplication()
     {
+        if (_hotkeyRegistered)
+        {
+            UnregisterHotKey(new WindowInteropHelper(this).Handle, ScalingHotkeyId);
+            _hotkeyRegistered = false;
+        }
+        _hwndSource?.RemoveHook(WndProc);
         _reallyClosing = true;
         if (_tray != null)
         {

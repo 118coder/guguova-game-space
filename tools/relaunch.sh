@@ -12,10 +12,10 @@ set -u
 cd "$(dirname "$0")/.."
 
 PORT="${NOVA_CDP_PORT:-9223}"
-EXE="bin/Debug/net10.0-windows/win-x64/NovaGameSpace.exe"
+EXE="bin/Debug/net10.0-windows/win-x64/GUGUOVA.exe"
 USER_THEMES="$LOCALAPPDATA/NOVA Game Space/themes"
 
-taskkill //IM NovaGameSpace.exe //F >/dev/null 2>&1
+taskkill //IM GUGUOVA.exe //F >/dev/null 2>&1
 sleep 1
 
 if ! dotnet build -c Debug 2>&1 | tail -4; then

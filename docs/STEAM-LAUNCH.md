@@ -61,12 +61,36 @@ NOVA 走的是前一条路线：**不再直接启动 exe，而是让 Steam 客�
 UI 点开始
   → LaunchGame → LauncherService.Launch
   → ModeFor(game) == "steam"
-  → 后台线程 Process.Start("steam://rungameid/<appid>")   ← 不占 UI 线程
+  → 后台线程 Process.Start(steam.exe, "-applaunch <appid>")   ← 不占 UI 线程
   → 立即返回 { ok, pending: true }
-  → 后台 watcher 每 1.5s 找游戏进程（按 exe 全路径匹配）
-  → 找到 → AttachProcess → 触发 session-started → 遮罩关闭、开始计时
+  → 后台 watcher 每 1.5s 找游戏进程（先按 exe 全路径；读不到 MainModule 时按进程名 + 启动时间）
+  → 找到 → AttachProcess → 触发 session-started → 开始计时
+  → GameDisplay 找游戏窗口 → 置前 → 可选全屏缩放 → session-presented → 遮罩关闭
+  → 启动器最小化（设置开启时），最后一个会话退出后恢复
   → 超时 → 触发 session-failed → 遮罩显示原因
 ```
+
+#### 为什么不用 `steam://`
+
+`steam://` 会经过 shell 协议处理器。如果 `steam.exe` 上有
+`HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers` 的
+`RUNASADMIN` 标记（「以管理员身份运行」），协议处理器就会起一个提权的
+`steam.exe` 助手，于是**每打开一次游戏弹一次 UAC**。直接 `CreateProcess`
+绕开这条路径；标记还在时返回 `ERROR_ELEVATION_REQUIRED (740)`，NOVA 把
+「请先修复 Steam 提权设置」交给 UI，而不是弹系统窗口。
+
+#### 提权修复（1.10.0）
+
+`Services/SteamPrivilege.cs` 读 Layers 里 steam.exe 的值，只删 `RUNASADMIN`，
+保留 `HIGHDPIAWARE` 等其它标记，原值备份到
+`%LOCALAPPDATA%\NOVA Game Space\backups\steam-privilege-*.json`。
+删除后必须重启一次 Steam 才生效（进程不能自己降低完整性级别）：
+`steam.exe -shutdown` → 等进程退出 → 用普通权限重新启动。
+本机实测重启后 Steam 可能停在登录界面，UI 会提示「可能需要重新登录」。
+
+前端在 Steam 游戏启动前调用 `steamPrivilege`；`needsFix` 时弹应用内对话框
+（修复并重启 / 先这样启动 / 取消），同一个会话里「先这样」不会再问。
+设置 → 系统与兼容性也有同样入口。
 
 三个设计点都是实测踩出来的：
 
@@ -106,7 +130,9 @@ UI 点开始
 ## 4. 能做什么，不能做什么
 
 **能：** 让依赖 Steam 运行时的游戏在 NOVA 里正常启动；客户端没开时顺手唤起并在登录后继续；
-把「为什么打不开」说清楚；让玩家自己决定哪些游戏走客户端、哪些直连。
+把「为什么打不开」说清楚；让玩家自己决定哪些游戏走客户端、哪些直连；
+检测并修复玩家（或某篇教程）给 `steam.exe` 设的 `RUNASADMIN` 兼容性标记，
+让「每次启动都弹 UAC」变成一次修复、以后不再弹。
 
 **不能：** 在没有 Steam 客户端的情况下运行 SteamStub 或依赖 `steam_api` 的游戏。
 那需要替换 `steam_api.dll` 的模拟器（Goldberg 一类），属于绕过正版校验，

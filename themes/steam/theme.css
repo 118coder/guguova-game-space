@@ -283,12 +283,30 @@ html[data-theme="steam"] .hero-inner > * {
   max-width: 640px;
 }
 
-html[data-theme="steam"] .hero-inner > .kicker { order: 2; }
 html[data-theme="steam"] .hero-inner > .hero-logo { order: 1; }
+html[data-theme="steam"] .hero-inner > .kicker { order: 2; }
 html[data-theme="steam"] .hero-inner > .tagline { order: 3; }
 html[data-theme="steam"] .hero-inner > .meta-row { order: 4; }
 html[data-theme="steam"] .hero-inner > .cta-row { order: 5; }
-html[data-theme="steam"] .hero-inner > .progress-block { order: 6; }
+/* The fullscreen-scale switch belongs to the launch block: same column,
+   directly under the buttons, on every theme. */
+html[data-theme="steam"] .hero-inner > .hero-scale { order: 6; }
+html[data-theme="steam"] .hero-scale {
+  max-width: 100%;
+  min-height: 40px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 3px;
+  background: rgba(27, 40, 56, .72);
+}
+html[data-theme="steam"] .hero-scale .hero-scale-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: rgba(255, 255, 255, .86);
+}
+html[data-theme="steam"] .hero-scale .hero-scale-hint { font-size: 9.5px; }
+html[data-theme="steam"] .hero-inner > .progress-block { order: 7; }
 html[data-theme="steam"] .hero-inner > .activity-strip { display: none; }
 
 /* 封面：贴住舞台右缘，像大屏幕的主陈列位 */

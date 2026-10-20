@@ -1644,7 +1644,7 @@ html[data-theme="dusk"] .hero-inner::after {
   box-shadow: 0 0 0 1px rgba(181, 138, 75, .75), 0 20px 34px -20px rgba(60, 36, 20, .7);
 }
 
-html[data-theme="dusk"] .hero-inner > :is(.kicker, .hero-logo, .tagline, .meta-row, .cta-row, .progress-block) {
+html[data-theme="dusk"] .hero-inner > :is(.kicker, .hero-logo, .tagline, .meta-row, .cta-row, .hero-scale, .progress-block) {
   width: 100%;
   max-width: 100%;
 }
@@ -1690,7 +1690,8 @@ html[data-theme="dusk"] .progress-block::before {
 }
 
 /* 折痕处的阴影 */
-html[data-theme="dusk"] .hero-inner > .cta-row { position: relative; }
+html[data-theme="dusk"] .hero-inner > .cta-row,
+html[data-theme="dusk"] .hero-inner > .hero-scale { position: relative; }
 html[data-theme="dusk"] .hero-inner > .cta-row::before {
   content: "";
   position: absolute;
@@ -1718,7 +1719,7 @@ html[data-theme="dusk"] .hero-inner > .cta-row::before {
     width: 27%;
     border-width: 5px;
   }
-  html[data-theme="dusk"] .hero-inner > :is(.kicker, .hero-logo, .tagline, .meta-row, .cta-row, .progress-block) { width: 100%; }
+  html[data-theme="dusk"] .hero-inner > :is(.kicker, .hero-logo, .tagline, .meta-row, .cta-row, .hero-scale, .progress-block) { width: 100%; }
   html[data-theme="dusk"] .progress-block::before { display: none; }
   html[data-theme="dusk"] .hero-inner > .progress-block { position: relative; }
 

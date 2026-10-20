@@ -1,0 +1,16 @@
+Magpie 0.12.1 对应源码提供说明（GPLv3 §6）
+
+本发行包内含未经修改的 Magpie 0.12.1 可执行文件（engine\magpie\）。
+Magpie 采用 GNU General Public License v3.0；其完整源码可从下列位置获取：
+
+  上游仓库：https://github.com/Blinue/Magpie
+  对应标签：v0.12.1
+
+如果你无法从网络获取源码，请通过本项目的发行渠道联系分发者，索取
+Magpie v0.12.1 的完整对应源码（tar.gz 或 zip）。分发者应在收到请求后，
+按 GPLv3 的要求提供源码，且该提供承诺自本发行包发布之日起三年内有效。
+
+本发行包没有修改 Magpie 的源码或二进制；如你修改了 engine\magpie\ 下的文件，
+请同时公开你的修改及完整对应源码，并保留 GPLv3 许可证与版权声明。
+
+许可证全文见同目录 LICENSE-GPL-3.0.txt。

@@ -61,6 +61,48 @@
         onSessionFailed(message.payload);
         return;
       }
+      if (message.type === 'session-presented') {
+        onSessionPresented(message.payload);
+        return;
+      }
+      if (message.type === 'steam-privilege') {
+        if (state.steamRestartWaiter) {
+          const resolve = state.steamRestartWaiter;
+          state.steamRestartWaiter = null;
+          resolve(message.payload);
+        }
+        refreshSteamPrivilege();
+        return;
+      }
+      if (message.type === 'magpie-status') {
+        if (message.payload) {
+          toast(message.payload.ok ? '缩放引擎已启动' : (message.payload.error || '缩放引擎启动失败'),
+            message.payload.ok ? 'check' : 'alert');
+        }
+        refreshMagpieStatus();
+        return;
+      }
+      if (message.type === 'scaling-hotkey') {
+        if (message.payload && !message.payload.ok) {
+          toast(`${message.payload.label || '快捷键'} 注册失败：${message.payload.reason || '可能被占用'}`, 'alert');
+        }
+        return;
+      }
+      if (message.type === 'scaling-engine') {
+        if (message.payload) {
+          toast(message.payload.message || (message.payload.ok ? '缩放引擎已重启' : '缩放引擎重启失败'),
+            message.payload.ok ? 'check' : 'alert');
+        }
+        setTimeout(refreshMagpieStatus, 600);
+        return;
+      }
+      if (message.type === 'scaling-toggled') {
+        const payload = message.payload || {};
+        toast(payload.ok
+          ? (payload.on ? '全屏缩放已开启' : '全屏缩放已关闭')
+          : (payload.reason || '没有可以缩放的游戏'), payload.ok ? 'fullscreen' : 'alert');
+        return;
+      }
       if (message.type === 'window-state') {
         syncMaxButton(!!message.payload?.maximized);
         return;
@@ -94,13 +136,27 @@
       closeToTray: false,
       autoBackup: true,
       unifiedSfx: false,
-      librarySort: 'recent'
+      librarySort: 'recent',
+      minimizeOnLaunch: true,
+      scalingEngine: 'auto',
+      magpiePath: null,
+      scalingHotkey: 3137,
+      autoStartEngine: true
     },
     userName: '',
     avatarStamp: 0,
     stats: null,
     storage: null,
     system: null,
+    startup: null,
+    startupFullscreen: false,
+    steamPrivilege: null,
+    steamPrivilegeMuted: false,
+    steamRestartWaiter: null,
+    magpie: null,
+    engineOptions: null,
+    fullscreen: false,
+    launchHandoffScheduled: false,
     developerMode: false,
     developerModeEnv: false,
     index: 0,
@@ -132,6 +188,11 @@
     editorId: null,
     editorManifest: null,
     editorFraming: { x: 50, y: 45, zoom: 1 },
+    appearanceEditing: false,
+    hotkeyRecording: false,
+    appearanceFraming: null,
+    appearanceFramingGame: null,
+    appearanceSaveTimers: new Map(),
     dataFolder: '',
     backupsFolder: '',
     version: '1.5.3'
@@ -189,6 +250,10 @@
     playBtn: $('#playBtn'),
     playLabel: $('#playLabel'),
     detailBtn: $('#detailBtn'),
+    homeEngineBtn: $('#homeEngineBtn'),
+    homeScaleRow: $('#homeScaleRow'),
+    homeScaleSwitch: $('#homeScaleSwitch'),
+    homeScaleHint: $('#homeScaleHint'),
     progressLabel: $('#progressLabel'),
     progressPct: $('#progressPct'),
     progressFill: $('#progressFill'),
@@ -237,6 +302,7 @@
     manageSteamNote: $('#manageSteamNote'),
     manageSteamModes: $('#manageSteamModes'),
     editRow: $('#editRow'),
+    refreshArtRow: $('#refreshArtRow'),
     resetArtRow: $('#resetArtRow'),
     removeGameBtn: $('#removeGameBtn'),
     manageDoneBtn: $('#manageDoneBtn'),
@@ -256,6 +322,12 @@
     appearanceOptions: $('#appearanceOptions'),
     appearanceBg: $('#appearanceBg'),
     appearanceImage: $('#appearanceImage'),
+    appearancePreview: $('.appearance-preview'),
+    appearanceEditBtn: $('#appearanceEditBtn'),
+    appearanceFraming: $('#appearanceFraming'),
+    appearanceFramingValue: $('#appearanceFramingValue'),
+    appearanceZoomLabel: $('#appearanceZoomLabel'),
+    appearanceFramingDone: $('#appearanceFramingDone'),
     appearanceLogo: $('#appearanceLogo'),
     appearanceTagline: $('#appearanceTagline'),
     appearanceIndex: $('#appearanceIndex'),
@@ -371,6 +443,48 @@
     settingsAutoBackupSwitch: $('#settingsAutoBackupSwitch'),
     settingsUnifiedSfxRow: $('#settingsUnifiedSfxRow'),
     settingsUnifiedSfxSwitch: $('#settingsUnifiedSfxSwitch'),
+    settingsStartupRow: $('#settingsStartupRow'),
+    settingsStartupSwitch: $('#settingsStartupSwitch'),
+    settingsMinimizeRow: $('#settingsMinimizeRow'),
+    settingsMinimizeSwitch: $('#settingsMinimizeSwitch'),
+    settingsStartupFullscreenRow: $('#settingsStartupFullscreenRow'),
+    settingsStartupFullscreenSwitch: $('#settingsStartupFullscreenSwitch'),
+    engineEngine: $('#engineEngine'),
+    settingsHotkeyRow: $('#settingsHotkeyRow'),
+    settingsHotkeyLabel: $('#settingsHotkeyLabel'),
+    settingsHotkeyHint: $('#settingsHotkeyHint'),
+    settingsAutoEngineRow: $('#settingsAutoEngineRow'),
+    settingsAutoEngineSwitch: $('#settingsAutoEngineSwitch'),
+    settingsMagpieNote: $('#settingsMagpieNote'),
+    settingsMagpieActions: $('#settingsMagpieActions'),
+    settingsMagpieStart: $('#settingsMagpieStart'),
+    settingsMagpieRestart: $('#settingsMagpieRestart'),
+    settingsMagpiePick: $('#settingsMagpiePick'),
+    settingsEngineOptions: $('#settingsEngineOptions'),
+    engineOverlay: $('#engineOverlay'),
+    engineClose: $('#engineClose'),
+    engineSubtitle: $('#engineSubtitle'),
+    engineMode: $('#engineMode'),
+    engineModeNote: $('#engineModeNote'),
+    engineModeList: $('#engineModeList'),
+    engineAutoRow: $('#engineAutoRow'),
+    engineAutoSwitch: $('#engineAutoSwitch'),
+    engineCapture: $('#engineCapture'),
+    engineCursor: $('#engineCursor'),
+    engineFrameRate: $('#engineFrameRate'),
+    engine3dRow: $('#engine3dRow'),
+    engine3dSwitch: $('#engine3dSwitch'),
+    engineNote: $('#engineNote'),
+    engineSave: $('#engineSave'),
+    engineReset: $('#engineReset'),
+    engineOpenFull: $('#engineOpenFull'),
+    settingsSteamPrivilege: $('#settingsSteamPrivilege'),
+    settingsSteamPrivilegeTag: $('#settingsSteamPrivilegeTag'),
+    settingsSteamPrivilegeNote: $('#settingsSteamPrivilegeNote'),
+    settingsSteamFix: $('#settingsSteamFix'),
+    detailScaleRow: $('#detailScaleRow'),
+    detailScaleSwitch: $('#detailScaleSwitch'),
+    detailScaleHint: $('#detailScaleHint'),
     settingsFullscreenRow: $('#settingsFullscreenRow'),
     settingsExport: $('#settingsExport'),
     settingsImport: $('#settingsImport'),
@@ -1331,7 +1445,13 @@
         closeToTray: state.settings.closeToTray,
         autoBackup: state.settings.autoBackup,
         unifiedSfx: !!state.settings.unifiedSfx,
-        librarySort: state.settings.librarySort
+        librarySort: state.settings.librarySort,
+        minimizeOnLaunch: state.settings.minimizeOnLaunch !== false,
+        scalingEngine: state.settings.scalingEngine || 'auto',
+        magpiePath: state.settings.magpiePath || null,
+        scalingHotkey: state.settings.scalingHotkey || 3137,
+        autoStartEngine: state.settings.autoStartEngine !== false,
+        startupFullscreen: state.settings.startupFullscreen === true
       });
     }, 180);
   }
@@ -1629,6 +1749,8 @@
   }
 
   function renderHero(game, animate = true) {
+    if (els.homeEngineBtn) els.homeEngineBtn.hidden = !game;
+    syncHeroScaleRow();
     const status = heroStatus(game);
     const logoText = game ? (game.logo || game.name || '') : 'GUGUOVA';
     document.body.classList.toggle('is-long-logo', logoText.length > 18);
@@ -1837,6 +1959,7 @@
 
   function setView(name, options = {}) {
     if (name === state.view && !options.force) return;
+    if (state.view === 'appearance' && name !== 'appearance') setAppearanceEditing(false);
     const previous = state.view;
     state.view = name;
 
@@ -1863,6 +1986,9 @@
     if (name === 'settings') {
       renderSettings();
       refreshSettingsData();
+      refreshSteamPrivilege();
+      refreshMagpieStatus();
+      refreshStartupState();
       setTimeout(refitLogos, 120);
     }
 
@@ -2096,6 +2222,7 @@
       els.detailStats.innerHTML = '';
       els.detailPath.textContent = '—';
       updateDetailStatus(null);
+      syncDetailScaleRow();
       return;
     }
 
@@ -2137,6 +2264,7 @@
     updatePrimaryButton(els.detailPlay, els.detailPlayLabel, game);
     updateDetailStatus(game);
     updateDetailProgress(game);
+    syncDetailScaleRow();
 
     closeManage({ silent: true });
     els.detailManageLabel.textContent = '管理';
@@ -2144,6 +2272,93 @@
 
     const dialog = $('.detail-modal', els.detailsOverlay);
     if (dialog) dialog.setAttribute('aria-label', `${game.zh || game.name} · 游戏详情`);
+  }
+
+  /* ---------- launch display options ---------- */
+
+  /** A per-game choice wins; without one the switch follows the shell mode,
+      which is what "沉浸式默认勾选" means. */
+  function fullscreenScaleFor(game) {
+    if (!game) return false;
+    if (typeof game.fullscreenScale === 'boolean') return game.fullscreenScale;
+    return !!state.fullscreen;
+  }
+
+  function syncHeroScaleRow() {
+    if (!els.homeScaleRow) return;
+    const game = currentGame();
+    const disabled = state.settings.scalingEngine === 'off';
+    const explicit = !!(game && typeof game.fullscreenScale === 'boolean');
+    els.homeScaleRow.hidden = !game;
+    els.homeScaleRow.disabled = disabled;
+    els.homeScaleRow.setAttribute('aria-disabled', String(disabled));
+    setPrefSwitch(els.homeScaleRow, els.homeScaleSwitch, !disabled && fullscreenScaleFor(game));
+    if (els.homeScaleHint) {
+      els.homeScaleHint.textContent = disabled
+        ? '已在设置中关闭'
+        : explicit
+          ? '仅对这款游戏生效'
+          : (state.fullscreen ? '沉浸模式下默认开启' : '全屏显示时默认开启');
+    }
+  }
+
+  async function toggleHeroScale() {
+    const game = currentGame();
+    if (!game || state.settings.scalingEngine === 'off') return;
+    const next = !fullscreenScaleFor(game);
+    game.fullscreenScale = next;
+    syncHeroScaleRow();
+    syncDetailScaleRow();
+    audio.toggle();
+    const result = await call('updateGame', { id: game.id, fullscreenScale: next });
+    if (!result || !result.ok) {
+      game.fullscreenScale = null;
+      syncHeroScaleRow();
+      syncDetailScaleRow();
+      audio.error();
+      toast(result?.error || '无法保存全屏缩放设置', 'alert');
+      return;
+    }
+    if (result.game) Object.assign(game, result.game);
+    syncHeroScaleRow();
+    syncDetailScaleRow();
+  }
+
+  function syncDetailScaleRow() {
+    if (!els.detailScaleRow) return;
+    const game = currentGame();
+    const explicit = !!(game && typeof game.fullscreenScale === 'boolean');
+    const disabled = state.settings.scalingEngine === 'off';
+    els.detailScaleRow.disabled = disabled;
+    els.detailScaleRow.setAttribute('aria-disabled', String(disabled));
+    setPrefSwitch(els.detailScaleRow, els.detailScaleSwitch, !disabled && fullscreenScaleFor(game));
+    if (els.detailScaleHint) {
+      els.detailScaleHint.textContent = disabled
+        ? '已在设置中关闭'
+        : explicit
+          ? '仅对这款游戏生效'
+          : (state.fullscreen ? '沉浸模式下默认开启' : '全屏显示时默认开启');
+    }
+  }
+
+  async function toggleDetailScale() {
+    const game = currentGame();
+    if (!game) return;
+    const next = !fullscreenScaleFor(game);
+    game.fullscreenScale = next;
+    syncDetailScaleRow();
+    audio.toggle();
+    const result = await call('updateGame', { id: game.id, fullscreenScale: next });
+    if (!result || !result.ok) {
+      game.fullscreenScale = null;
+      syncDetailScaleRow();
+      audio.error();
+      toast(result?.error || '无法保存全屏缩放设置', 'alert');
+      return;
+    }
+    if (result.game) Object.assign(game, result.game);
+    syncDetailScaleRow();
+    toast(next ? '启动时全屏缩放' : '启动时保持窗口大小', 'fullscreen');
   }
 
   function openDetails() {
@@ -2211,6 +2426,7 @@
 
     fillSteamPanel(game);
     els.resetArtRow.hidden = !game.exists;
+    if (els.refreshArtRow) els.refreshArtRow.hidden = !game.steamAppId;
     resetRemoveConfirm();
   }
 
@@ -2323,6 +2539,40 @@
     toast(`已从游戏库移除《${shortName(game)}》`, 'check');
   }
 
+  async function refreshSteamArtwork() {
+    const game = currentGame();
+    if (!game) return;
+    if (!game.steamAppId) {
+      audio.error();
+      toast('这款游戏没有 Steam AppID，无法从 Steam 取封面', 'alert');
+      return;
+    }
+    audio.select();
+    toast('正在从 Steam 重新导入封面…', 'spark');
+    const result = await call('refreshArtwork', { id: game.id });
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '重新导入失败', 'alert');
+      return;
+    }
+    if (!result.updated) {
+      audio.error();
+      toast('Steam 缓存里没有找到这款游戏的封面；先在 Steam 里打开一次游戏库', 'alert');
+      return;
+    }
+    const boot = await call('boot');
+    if (boot && boot.games) {
+      const fresh = boot.games.find((entry) => entry.id === game.id);
+      if (fresh) Object.assign(game, fresh);
+      state.games = boot.games;
+    }
+    audio.confirm();
+    toast('已用 Steam 的最新封面替换', 'check');
+    rebuildAfterLibraryChange(false);
+    if (state.overlay === 'details') populateDetails(currentGame());
+    if (currentGame()) setBackdrop(currentGame(), true);
+  }
+
   async function resetArtwork() {
     const game = currentGame();
     if (!game) return;
@@ -2422,13 +2672,24 @@
 
   function renderAppearance() {
     const game = currentGame();
+    const gameId = game ? game.id : null;
+    // The switcher may have moved to another game while the framing panel was
+    // open; save the previous game before adopting the new one.
+    if (state.appearanceFramingGame && state.appearanceFramingGame !== gameId)
+      flushAppearanceFramingSave(state.appearanceFramingGame);
     const heroSrc = game ? game.heroUrl : 'assets/backdrop.jpg';
     els.appearanceBg.src = heroSrc;
     els.appearanceImage.src = heroSrc;
-    const framing = framingFor(game);
-    applyHeroFraming(els.appearanceBg, framing);
-    applyHeroFraming(els.appearanceImage, framing);
+    // While editing, keep the live framing; on a fresh render (or another
+    // game) take the persisted values again.
+    if (!state.appearanceEditing || state.appearanceFramingGame !== gameId) {
+      state.appearanceFraming = framingFor(game);
+      state.appearanceFramingGame = gameId;
+    }
+    syncAppearanceFraming();
     els.appearanceImage.alt = game ? `${game.zh || game.name} 主视觉` : 'GUGUOVA';
+    if (els.appearanceEditBtn) els.appearanceEditBtn.hidden = !game;
+    if (!game && state.appearanceEditing) setAppearanceEditing(false);
 
     setLogo(els.appearanceLogo, game, 'appearance-logo');
     els.appearanceTagline.textContent = game ? (game.tagline || '') : '选择游戏开始。';
@@ -2450,6 +2711,158 @@
     syncMotionUI();
     renderThemes();
     applyStyleModeUI();
+  }
+
+  /* ---------- appearance hero framing ---------- */
+
+  function syncAppearanceFraming() {
+    const framing = state.appearanceFraming || framingFor(currentGame());
+    applyHeroFraming(els.appearanceBg, framing, true);
+    applyHeroFraming(els.appearanceImage, framing, true);
+    const x = Math.round(clampNumber(framing.x, 0, 100));
+    const y = Math.round(clampNumber(framing.y, 0, 100));
+    const zoom = Math.round(clampNumber(framing.zoom, 1, 2.4) * 100);
+    if (els.appearanceFramingValue) els.appearanceFramingValue.textContent = `${x} · ${y} · ${zoom}%`;
+    if (els.appearanceZoomLabel) els.appearanceZoomLabel.textContent = `${zoom}%`;
+  }
+
+  function setAppearanceEditing(on) {
+    const game = currentGame();
+    const next = !!on && !!game;
+    if (!next && state.appearanceFramingGame) flushAppearanceFramingSave(state.appearanceFramingGame);
+    state.appearanceEditing = next;
+    if (els.appearanceEditBtn) els.appearanceEditBtn.setAttribute('aria-pressed', String(next));
+    if (els.appearanceFraming) els.appearanceFraming.hidden = !next;
+    if (els.appearancePreview) els.appearancePreview.classList.toggle('is-editing', next);
+    if (next) {
+      state.appearanceFraming = framingFor(game);
+      state.appearanceFramingGame = game.id;
+      syncAppearanceFraming();
+      audio.select();
+    } else {
+      audio.close();
+    }
+  }
+
+  function stepAppearanceFraming(action) {
+    const framing = state.appearanceFraming;
+    if (!framing) return;
+    if (action === 'left') framing.x -= 2;
+    else if (action === 'right') framing.x += 2;
+    else if (action === 'up') framing.y -= 2;
+    else if (action === 'down') framing.y += 2;
+    else if (action === 'zoom-in') framing.zoom += 0.1;
+    else if (action === 'zoom-out') framing.zoom -= 0.1;
+    else if (action === 'reset') { framing.x = 50; framing.y = 45; framing.zoom = 1; }
+    framing.x = clampNumber(framing.x, 0, 100);
+    framing.y = clampNumber(framing.y, 0, 100);
+    framing.zoom = clampNumber(framing.zoom, 1, 2.4);
+    syncAppearanceFraming();
+    scheduleAppearanceFramingSave();
+    audio.toggle();
+  }
+
+  function scheduleAppearanceFramingSave() {
+    const game = currentGame();
+    if (!game || !state.appearanceFraming) return;
+    const framing = state.appearanceFraming;
+    const payload = {
+      heroPosition: `${Math.round(framing.x)}% ${Math.round(framing.y)}%`,
+      heroZoom: Number(framing.zoom.toFixed(2))
+    };
+    const existing = state.appearanceSaveTimers.get(game.id);
+    if (existing) clearTimeout(existing.timer);
+    const gameId = game.id;
+    const timer = setTimeout(() => {
+      state.appearanceSaveTimers.delete(gameId);
+      commitAppearanceFraming(gameId, payload);
+    }, 450);
+    state.appearanceSaveTimers.set(gameId, { timer, payload });
+  }
+
+  function flushAppearanceFramingSave(gameId) {
+    const pending = state.appearanceSaveTimers.get(gameId);
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    state.appearanceSaveTimers.delete(gameId);
+    commitAppearanceFraming(gameId, pending.payload);
+  }
+
+  async function commitAppearanceFraming(gameId, payload) {
+    const game = state.games.find((entry) => entry.id === gameId);
+    if (!game) return;
+    // Optimistic: the home backdrop and detail sheet read the same fields.
+    game.heroPosition = payload.heroPosition;
+    game.heroZoom = payload.heroZoom;
+    const result = await call('updateGame', { id: gameId, ...payload });
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '取景保存失败', 'alert');
+      return;
+    }
+    if (result.game) Object.assign(game, result.game);
+    if (currentGame() && currentGame().id === gameId) setBackdrop(game, true);
+  }
+
+  function bindAppearanceFraming() {
+    if (!els.appearanceEditBtn) return;
+    els.appearanceEditBtn.addEventListener('click', () => setAppearanceEditing(!state.appearanceEditing));
+    if (els.appearanceFramingDone) els.appearanceFramingDone.addEventListener('click', () => setAppearanceEditing(false));
+    if (els.appearanceFraming) {
+      els.appearanceFraming.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-frame]');
+        if (!button) return;
+        event.stopPropagation();
+        stepAppearanceFraming(button.dataset.frame);
+      });
+    }
+
+    const preview = els.appearancePreview;
+    if (!preview) return;
+    let drag = null;
+    preview.addEventListener('pointerdown', (event) => {
+      if (!state.appearanceEditing || event.button !== 0 || !state.appearanceFraming) return;
+      if (event.target.closest('button')) return;
+      const rect = preview.getBoundingClientRect();
+      drag = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        width: Math.max(1, rect.width),
+        height: Math.max(1, rect.height),
+        framing: { x: state.appearanceFraming.x, y: state.appearanceFraming.y }
+      };
+      try { preview.setPointerCapture(event.pointerId); } catch (error) {}
+      event.preventDefault();
+    });
+    preview.addEventListener('pointermove', (event) => {
+      if (!drag || event.pointerId !== drag.pointerId || !state.appearanceFraming) return;
+      // A pointerup outside the preview must not leave a drag armed: without
+      // the button held, hovering would keep panning the artwork.
+      if (event.pointerType === 'mouse' && (event.buttons & 1) === 0) {
+        drag = null;
+        return;
+      }
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      state.appearanceFraming.x = clampNumber(drag.framing.x - (dx / drag.width) * 120, 0, 100);
+      state.appearanceFraming.y = clampNumber(drag.framing.y - (dy / drag.height) * 120, 0, 100);
+      syncAppearanceFraming();
+    });
+    const endDrag = (event) => {
+      if (!drag) return;
+      if (event && event.pointerId != null && event.pointerId !== drag.pointerId) return;
+      drag = null;
+      if (event) {
+        try { preview.releasePointerCapture(event.pointerId); } catch (error) {}
+      }
+      scheduleAppearanceFramingSave();
+    };
+    preview.addEventListener('pointerup', endDrag);
+    preview.addEventListener('pointercancel', endDrag);
+    preview.addEventListener('lostpointercapture', endDrag);
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
   }
 
   function updateAppearanceScrollState() {
@@ -2513,6 +2926,610 @@
     }
   }
 
+  /* ============================================================
+     STEAM PRIVILEGE / MAGPIE
+     ============================================================ */
+
+  async function refreshStartupState() {
+    if (!hasBridge) return null;
+    const result = await call('startupState');
+    if (result && result.ok) {
+      state.startup = result;
+      renderStartupRow();
+    }
+    return result;
+  }
+
+  function renderStartupRow() {
+    if (!els.settingsStartupRow) return;
+    const info = state.startup;
+    const on = !!(info && info.enabled);
+    setPrefSwitch(els.settingsStartupRow, els.settingsStartupSwitch, on);
+    const hint = els.settingsStartupRow.querySelector('.pref-hint');
+    if (hint) {
+      hint.textContent = on
+        ? (info.pointsHere === false ? '路径已变化 · 点一次可重新登记' : '登录 Windows 后在后台打开')
+        : '登录 Windows 后在后台打开';
+    }
+  }
+
+  function renderStartupFullscreenRow() {
+    if (!els.settingsStartupFullscreenRow) return;
+    const on = state.settings.startupFullscreen === true;
+    setPrefSwitch(els.settingsStartupFullscreenRow, els.settingsStartupFullscreenSwitch, on);
+    const hint = els.settingsStartupFullscreenRow.querySelector('.pref-hint');
+    if (hint) {
+      hint.textContent = on
+        ? '开机后直接以无边框全屏打开'
+        : '配合上一项：开机即沉浸式全屏';
+    }
+  }
+
+  function toggleStartupFullscreen() {
+    const next = state.settings.startupFullscreen !== true;
+    state.settings.startupFullscreen = next;
+    saveSettings();
+    renderStartupFullscreenRow();
+    audio.toggle();
+    toast(next ? '开机后将直接用无边框全屏打开' : '开机后按普通窗口打开', next ? 'fullscreen' : 'info');
+  }
+
+  async function toggleStartup() {
+    if (!hasBridge) return;
+    const info = state.startup || await refreshStartupState() || {};
+    const next = !info.enabled;
+    const result = await call('setStartup', { enabled: next });
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '无法修改开机启动', 'alert');
+      return;
+    }
+    state.startup = result.state || { enabled: next };
+    renderStartupRow();
+    audio.toggle();
+    toast(next ? '已设为开机自动启动' : '已取消开机自动启动', next ? 'check' : 'info');
+  }
+
+  async function refreshSteamPrivilege() {
+    if (!hasBridge) return null;
+    const result = await call('steamPrivilege');
+    if (result) {
+      state.steamPrivilege = result;
+      renderSteamPrivilege();
+    }
+    return result;
+  }
+
+  function renderSteamPrivilege() {
+    if (!els.settingsSteamPrivilege) return;
+    const info = state.steamPrivilege;
+    if (!info || !info.installed) {
+      els.settingsSteamPrivilege.hidden = true;
+      return;
+    }
+    els.settingsSteamPrivilege.hidden = false;
+    const needs = !!info.needsFix;
+    if (els.settingsSteamPrivilegeTag) {
+      els.settingsSteamPrivilegeTag.textContent = needs ? '需要修复' : '普通权限';
+      els.settingsSteamPrivilegeTag.dataset.state = needs ? 'warn' : 'ok';
+    }
+    if (els.settingsSteamPrivilegeNote) els.settingsSteamPrivilegeNote.textContent = info.note || '';
+    if (els.settingsSteamFix) els.settingsSteamFix.hidden = !needs;
+  }
+
+  function waitSteamRestart(timeoutMs = 60000) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (payload) => {
+        if (settled) return;
+        settled = true;
+        if (state.steamRestartWaiter === finish) state.steamRestartWaiter = null;
+        resolve(payload);
+      };
+      state.steamRestartWaiter = finish;
+      setTimeout(() => finish(null), timeoutMs);
+    });
+  }
+
+  async function runSteamRepair(restart) {
+    const result = await call('fixSteamPrivilege', { restart });
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '修复失败', 'alert');
+      return null;
+    }
+
+    audio.select();
+    if (!result.restarting) {
+      await refreshSteamPrivilege();
+      toast(result.removed ? '已移除 Steam 提权标记' : 'Steam 提权标记本来就不存在', 'check');
+      return { restarted: true, removed: result.removed, message: '设置已检查' };
+    }
+
+    toast('正在重启 Steam…', 'spark');
+    const done = await waitSteamRestart();
+    await refreshSteamPrivilege();
+
+    if (!done || !done.restarted) {
+      await window.NovaOverlays.dialog({
+        title: '请手动重启 Steam',
+        text: (done && done.message) ||
+          'Steam 没有完成重启。请从系统托盘的 Steam 菜单选择「退出」，再重新打开它；之后启动游戏就不会再弹 UAC 了。',
+        icon: 'warning',
+        tone: 'warning',
+        actions: [{ label: '知道了', value: true, style: 'primary' }]
+      });
+      return done || { restarted: false, message: 'Steam 没有完成重启' };
+    }
+
+    toast(done.message || 'Steam 已用普通权限重启', 'check');
+    return done;
+  }
+
+  /** Shown before a Steam launch when the client still demands elevation. */
+  async function ensureSteamPrivilege() {
+    const info = state.steamPrivilege || await refreshSteamPrivilege();
+    if (!info || !info.needsFix) return true;
+
+    const restart = !!info.steamElevated;
+    const choice = await window.NovaOverlays.dialog({
+      title: 'Steam 正在触发提权弹窗',
+      text: `${info.note || ''} 修复会移除 Steam.exe 的「以管理员身份运行」标记${restart
+        ? '，并重启一次 Steam（约 10–20 秒，可能需要重新登录）'
+        : ''}。`,
+      icon: 'warning',
+      tone: 'warning',
+      actions: [
+        { label: restart ? '修复并重启 Steam' : '修复提权设置', value: 'fix', style: 'primary', icon: 'check' },
+        { label: '先这样启动', value: 'skip', icon: 'play' },
+        { label: '取消', value: 'cancel' }
+      ]
+    });
+
+    if (choice === 'cancel') return false;
+    if (choice !== 'fix') {
+      // One "not now" per session; the next launch asks again because the
+      // prompt is exactly what the player asked to get rid of.
+      state.steamPrivilegeMuted = true;
+      return true;
+    }
+
+    const done = await runSteamRepair(restart);
+    if (!done) return false;
+    if (restart && !done.restarted) return false;
+    return true;
+  }
+
+  async function fixSteamFromSettings() {
+    if (!state.steamPrivilege) await refreshSteamPrivilege();
+    const info = state.steamPrivilege;
+    if (!info || !info.needsFix) {
+      toast('Steam 已经是普通权限', 'check');
+      return;
+    }
+
+    const choice = await window.NovaOverlays.dialog({
+      title: '修复 Steam 提权',
+      text: info.steamElevated
+        ? '将移除 Steam.exe 的「以管理员身份运行」标记，并关闭、重新打开 Steam。请先结束正在运行的游戏。'
+        : '将移除 Steam.exe 的「以管理员身份运行」标记；当前 Steam 以普通权限运行，无需重启。',
+      icon: 'warning',
+      tone: 'warning',
+      actions: [
+        { label: '修复', value: true, style: 'primary', icon: 'check' },
+        { label: '取消', value: false }
+      ]
+    });
+    if (choice) await runSteamRepair(!!info.steamElevated);
+  }
+
+  async function openEngineDialog() {
+    const result = await call('engineOptions');
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '缩放引擎还没有生成配置', 'alert');
+      return;
+    }
+    state.engineOptions = result;
+    fillEngineDialog(result);
+    state.lastFocus = document.activeElement;
+    state.overlay = 'engine';
+    document.body.dataset.overlay = 'engine';
+    els.engineOverlay.classList.add('is-open');
+    els.engineOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    audio.open();
+    setTimeout(() => {
+      try { els.engineClose.focus({ preventScroll: true }); } catch (error) {}
+    }, 120);
+  }
+
+  function fillEngineDialog(options) {
+    const modes = Array.isArray(options.modes) ? options.modes : [];
+    if (els.engineMode) {
+      els.engineMode.innerHTML = modes.map((mode) => `
+        <option value="${mode.index}" ${mode.available ? '' : 'disabled'}>${esc(mode.name)}${mode.available ? '' : ' · 缺少效果'}</option>
+      `).join('');
+      els.engineMode.value = String(options.scalingMode ?? 0);
+    }
+    if (els.engineEngine) els.engineEngine.value = state.settings.scalingEngine || 'auto';
+    if (els.engineCapture) els.engineCapture.value = String(options.captureMethod ?? 0);
+    if (els.engineCursor) els.engineCursor.value = String(options.cursorScaling ?? 2);
+    if (els.engineFrameRate) els.engineFrameRate.value = String(Math.round(options.maxFrameRate || 60));
+    setPrefSwitch(els.engine3dRow, els.engine3dSwitch, !!options.gameMode3d);
+
+    renderEngineModeList(modes, Number(els.engineMode?.value || 0));
+    if (els.engineAutoRow) setPrefSwitch(els.engineAutoRow, els.engineAutoSwitch, options.autoStart !== false);
+
+    const current = modes.find((mode) => mode.index === options.scalingMode);
+    if (current && !current.available) {
+      // Lite bundles omit some effect files; never leave an unusable mode
+      // selected just because the old config pointed at it.
+      const first = modes.find((mode) => mode.available);
+      if (first && els.engineMode) els.engineMode.value = String(first.index);
+    }
+    if (els.engineSubtitle) {
+      els.engineSubtitle.textContent = `${options.bundled ? '内置 Magpie' : '系统 Magpie'} · ${options.configPath || '配置尚未生成'}`;
+    }
+    if (els.engineNote) {
+      els.engineNote.textContent = current && !current.available
+        ? `「${current.name}」需要的效果文件不在当前引擎里，请换一个算法。`
+        : '保存后会重启引擎；正在缩放的游戏会先退回窗口。';
+    }
+  }
+
+  function renderEngineModeList(modes, activeIndex) {
+    if (!els.engineModeList) return;
+    els.engineModeList.innerHTML = modes.map((mode) => `
+      <div class="engine-mode-row" data-index="${mode.index}" data-state="${mode.available ? 'ok' : 'missing'}" data-active="${mode.index === activeIndex}">
+        <b>${esc(mode.name)}</b>
+        <span>${esc(mode.available ? (mode.note || '') : `缺少效果文件：${mode.missing || mode.name}`)}</span>
+      </div>
+    `).join('');
+    els.engineModeList.classList.toggle(
+      'is-scrollable',
+      els.engineModeList.scrollHeight > els.engineModeList.clientHeight + 2);
+    if (els.engineModeNote) {
+      const active = modes.find((mode) => mode.index === activeIndex);
+      els.engineModeNote.textContent = active
+        ? `${active.name} · ${active.note || ''}`
+        : '选择一种算法；每种算法的适用场景见下方说明。';
+    }
+  }
+
+  function closeEngineDialog() {
+    if (state.overlay !== 'engine') return;
+    state.engineOptions = null;
+    state.overlay = null;
+    els.engineOverlay.classList.remove('is-open');
+    els.engineOverlay.setAttribute('aria-hidden', 'true');
+    if (document.body.dataset.overlay === 'engine') delete document.body.dataset.overlay;
+    els.app.inert = false;
+    restoreFocus();
+    audio.close();
+  }
+
+  function toggleEngine3d() {
+    const next = els.engine3dRow.getAttribute('aria-checked') !== 'true';
+    setPrefSwitch(els.engine3dRow, els.engine3dSwitch, next);
+    audio.toggle();
+  }
+
+  function resetEngineDialog() {
+    const options = state.engineOptions;
+    if (!options) return;
+    const first = (options.modes || []).find((mode) => mode.available) || { index: 0 };
+    if (els.engineMode) els.engineMode.value = String(first.index);
+    if (els.engineCapture) els.engineCapture.value = '0';
+    if (els.engineCursor) els.engineCursor.value = '2';
+    if (els.engineFrameRate) els.engineFrameRate.value = '60';
+    setPrefSwitch(els.engine3dRow, els.engine3dSwitch, false);
+    audio.toggle();
+    toast('已恢复默认值 · 点保存生效', 'spark');
+  }
+
+  async function saveEngineDialog() {
+    const frameRate = clampNumber(els.engineFrameRate?.value, 10, 1000);
+    const engineMode = els.engineEngine?.value || state.settings.scalingEngine || 'auto';
+    if (engineMode !== state.settings.scalingEngine) await applyScalingEngineMode(engineMode);
+    const result = await call('saveEngineOptions', {
+      scalingMode: Number(els.engineMode?.value || 0),
+      captureMethod: Number(els.engineCapture?.value || 0),
+      cursorScaling: Number(els.engineCursor?.value || 2),
+      maxFrameRate: frameRate,
+      gameMode3d: els.engine3dRow?.getAttribute('aria-checked') === 'true',
+      autoStartEngine: els.engineAutoRow?.getAttribute('aria-checked') === 'true'
+    });
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '缩放引擎设置保存失败', 'alert');
+      return;
+    }
+    audio.confirm();
+    toast(result.message || '缩放引擎设置已保存', 'check');
+    closeEngineDialog();
+    setTimeout(refreshMagpieStatus, 4200);
+  }
+
+  async function openFullMagpie() {
+    const result = await call('openMagpie');
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.message || '无法打开 Magpie', 'alert');
+      return;
+    }
+    toast(result.message || '正在打开完整 Magpie', 'check');
+    closeEngineDialog();
+  }
+
+  async function refreshMagpieStatus() {
+    if (!hasBridge) return;
+    const result = await call('magpieStatus');
+    if (result && result.ok) {
+      state.magpie = result;
+      renderMagpieStatus();
+    }
+  }
+
+  function hotkeyLabel(code) {
+    const parts = [];
+    if (code & 0x400) parts.push('Alt');
+    if (code & 0x200) parts.push('Ctrl');
+    if (code & 0x800) parts.push('Shift');
+    if (code & 0x100) parts.push('Win');
+    const vk = code & 0xFF;
+    let key = '';
+    if (vk >= 0x30 && vk <= 0x39) key = String.fromCharCode(vk);
+    else if (vk >= 0x41 && vk <= 0x5A) key = String.fromCharCode(vk);
+    else if (vk >= 0x70 && vk <= 0x87) key = `F${vk - 0x6F}`;
+    else if (vk === 0x20) key = 'Space';
+    else if (vk === 0x25) key = '←';
+    else if (vk === 0x26) key = '↑';
+    else if (vk === 0x27) key = '→';
+    else if (vk === 0x28) key = '↓';
+    else key = `VK${vk}`;
+    parts.push(key);
+    return parts.join(' + ');
+  }
+
+  function vkForHotkey(key) {
+    if (!key) return 0;
+    if (key.length === 1) {
+      const upper = key.toUpperCase();
+      if (upper >= 'A' && upper <= 'Z') return upper.charCodeAt(0);
+      if (key >= '0' && key <= '9') return key.charCodeAt(0);
+      if (key === ' ') return 0x20;
+    }
+    const match = /^F([1-9]|1[0-2])$/.exec(key);
+    if (match) return 0x6F + Number(match[1]);
+    if (key === 'ArrowLeft') return 0x25;
+    if (key === 'ArrowUp') return 0x26;
+    if (key === 'ArrowRight') return 0x27;
+    if (key === 'ArrowDown') return 0x28;
+    if (key === 'Enter') return 0x0D;
+    if (key === 'Tab') return 0x09;
+    return 0;
+  }
+
+  function syncHotkeyUI() {
+    if (els.settingsHotkeyLabel) {
+      els.settingsHotkeyLabel.textContent = hotkeyLabel(state.settings.scalingHotkey || 3137);
+    }
+    if (els.settingsHotkeyHint) {
+      els.settingsHotkeyHint.textContent = state.hotkeyRecording
+        ? '按下组合键 · Esc 取消'
+        : (state.settings.scalingEngine === 'native' ? '由启动器处理' : '点击录制');
+    }
+    if (els.settingsHotkeyRow) {
+      els.settingsHotkeyRow.classList.toggle('is-recording', !!state.hotkeyRecording);
+    }
+  }
+
+  function beginHotkeyRecording() {
+    if (!hasBridge) return;
+    state.hotkeyRecording = true;
+    syncHotkeyUI();
+    audio.select();
+  }
+
+  function cancelHotkeyRecording() {
+    state.hotkeyRecording = false;
+    syncHotkeyUI();
+    audio.close();
+  }
+
+  async function commitHotkey(code) {
+    state.hotkeyRecording = false;
+    state.settings.scalingHotkey = code;
+    syncHotkeyUI();
+    saveSettings();
+
+    const restart = state.settings.scalingEngine === 'auto' && !!state.magpie?.running;
+    const result = await call('applyScalingHotkey', { code, restart });
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '快捷键保存失败', 'alert');
+      return;
+    }
+
+    audio.confirm();
+    toast(result.message || `快捷键 · ${hotkeyLabel(code)}`, 'check');
+    setTimeout(refreshMagpieStatus, result.restarted ? 4200 : 500);
+  }
+
+  function renderMagpieStatus() {
+    if (!els.settingsMagpieNote) return;
+    const magpie = state.magpie;
+    const engine = state.settings.scalingEngine || 'auto';
+    if (!magpie) {
+      els.settingsMagpieNote.textContent = '正在检测缩放引擎…';
+      if (els.settingsMagpieActions) els.settingsMagpieActions.hidden = true;
+      return;
+    }
+    const mode = engine === 'off' ? '全屏缩放已关闭。'
+      : engine === 'native' ? '全屏缩放方式：仅无边框拉伸。'
+        : '全屏缩放方式：Magpie 优先。';
+    els.settingsMagpieNote.textContent = `${mode} ${magpie.note || ''}`.trim();
+
+    const canStart = engine === 'auto' && magpie.available && !magpie.running;
+    if (els.settingsMagpieStart) els.settingsMagpieStart.hidden = !canStart;
+    if (els.settingsMagpieRestart) els.settingsMagpieRestart.hidden = !magpie.running;
+    if (els.settingsMagpiePick) els.settingsMagpiePick.hidden = !!magpie.exePath;
+    if (els.settingsMagpieActions) els.settingsMagpieActions.hidden = !(canStart || magpie.running || !magpie.exePath);
+    syncHotkeyUI();
+  }
+
+  async function pickMagpieExe() {
+    if (!window.NovaOverlays || !window.NovaOverlays.pickerOpen) return;
+    const path = await window.NovaOverlays.pickerOpen({
+      filter: 'exe',
+      title: '选择 Magpie.exe',
+      note: 'Magpie 会以独立进程运行；GUGUOVA 只负责把游戏窗口交给它'
+    });
+    if (!path) return;
+    state.settings.magpiePath = path;
+    await call('saveSettings', { magpiePath: path });
+    saveSettings();
+    await refreshMagpieStatus();
+    audio.select();
+    toast('已指定 Magpie 路径', 'check');
+  }
+
+  function toggleMinimizeSetting() {
+    const next = state.settings.minimizeOnLaunch === false;
+    state.settings.minimizeOnLaunch = next;
+    saveSettings();
+    setPrefSwitch(els.settingsMinimizeRow, els.settingsMinimizeSwitch, next);
+    audio.toggle();
+    toast(next ? '启动游戏后会最小化启动器' : '启动游戏后保留启动器窗口', 'moon');
+  }
+
+  /** The scale mode lives in the engine sheet now; changing it there is the
+      single place where auto/native/off is decided. */
+  async function applyScalingEngineMode(value) {
+    state.settings.scalingEngine = value;
+    saveSettings();
+    if (value === 'native' && state.magpie?.running) {
+      // Magpie owns the global key while it runs; close it before the
+      // launcher registers the same combination itself.
+      await call('stopScalingEngine');
+      await new Promise((resolve) => setTimeout(resolve, 2600));
+      await call('applyScalingHotkey', { code: state.settings.scalingHotkey, restart: false });
+    }
+    renderMagpieStatus();
+    syncHotkeyUI();
+    syncDetailScaleRow();
+    syncHeroScaleRow();
+  }
+
+  function toggleAutoEngine() {
+    const next = state.settings.autoStartEngine === false;
+    state.settings.autoStartEngine = next;
+    saveSettings();
+    setPrefSwitch(els.settingsAutoEngineRow, els.settingsAutoEngineSwitch, next);
+    renderMagpieStatus();
+    audio.toggle();
+    toast(next ? '启动游戏时会自动打开内置缩放引擎' : '不会自动打开缩放引擎', 'spark');
+  }
+
+  /**
+   * Chromium draws the <select> popup with the OS theme, not ours. Keep the
+   * themed closed control and overlay a transparent hit area that opens a
+   * themed list instead; the native select stays as the value source.
+   */
+  function initThemedSelect(select) {
+    if (!select || select.dataset.novaSelect === '1') return;
+    select.dataset.novaSelect = '1';
+    const wrap = document.createElement('div');
+    wrap.className = 'nova-select';
+    select.parentNode.insertBefore(wrap, select);
+    wrap.appendChild(select);
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+
+    const hit = document.createElement('button');
+    hit.type = 'button';
+    hit.className = 'nova-select-hit';
+    hit.setAttribute('aria-haspopup', 'listbox');
+    hit.setAttribute('aria-expanded', 'false');
+    hit.setAttribute('aria-label', select.getAttribute('aria-label') || '选择');
+
+    const menu = document.createElement('div');
+    menu.className = 'nova-select-menu';
+    menu.setAttribute('role', 'listbox');
+    menu.hidden = true;
+    wrap.appendChild(hit);
+    wrap.appendChild(menu);
+
+    const sync = () => {
+      const options = Array.from(select.options);
+      menu.innerHTML = options.map((option, index) => `
+        <button type="button" class="nova-select-option" role="option" data-index="${index}" aria-selected="${option.selected}" ${option.disabled ? 'disabled' : ''}>${esc(option.textContent)}</button>
+      `).join('');
+      hit.setAttribute('aria-expanded', String(!menu.hidden));
+    };
+    const close = (focusHit) => {
+      menu.hidden = true;
+      hit.setAttribute('aria-expanded', 'false');
+      if (focusHit) { try { hit.focus({ preventScroll: true }); } catch (error) {} }
+    };
+    const open = () => {
+      sync();
+      menu.hidden = false;
+      hit.setAttribute('aria-expanded', 'true');
+      const selected = menu.querySelector('[aria-selected="true"]') || menu.firstElementChild;
+      if (selected) { try { selected.focus({ preventScroll: true }); } catch (error) {} }
+    };
+
+    hit.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (menu.hidden) open(); else close(false);
+    });
+    hit.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        open();
+      }
+    });
+    menu.addEventListener('click', (event) => {
+      const option = event.target.closest('.nova-select-option');
+      if (!option || option.disabled) return;
+      select.selectedIndex = Number(option.dataset.index);
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      sync();
+      close(true);
+    });
+    menu.addEventListener('keydown', (event) => {
+      const options = Array.from(menu.querySelectorAll('.nova-select-option'));
+      const index = options.indexOf(document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close(true);
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        options[Math.min(options.length - 1, index + 1)]?.focus();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        options[Math.max(0, index - 1)]?.focus();
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        document.activeElement?.click();
+      }
+    });
+    select.addEventListener('change', sync);
+    document.addEventListener('pointerdown', (event) => {
+      if (!wrap.contains(event.target)) close(false);
+    });
+    sync();
+  }
+
+  function initThemedSelects(scope = document) {
+    scope.querySelectorAll('select').forEach((select) => {
+      if (select.closest('.nova-select')) return;
+      initThemedSelect(select);
+    });
+  }
+
   function renderSettings() {
     if (!els.settingsPlayerName) return;
     const stats = state.stats || {};
@@ -2552,6 +3569,13 @@
     }
     setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
     setPrefSwitch(els.settingsAutoBackupRow, els.settingsAutoBackupSwitch, state.settings.autoBackup !== false);
+    setPrefSwitch(els.settingsMinimizeRow, els.settingsMinimizeSwitch, state.settings.minimizeOnLaunch !== false);
+    setPrefSwitch(els.settingsAutoEngineRow, els.settingsAutoEngineSwitch, state.settings.autoStartEngine !== false);
+    renderStartupRow();
+    renderStartupFullscreenRow();
+    syncHotkeyUI();
+    renderMagpieStatus();
+    renderSteamPrivilege();
 
     if (els.settingsStorageStats) {
       els.settingsStorageStats.innerHTML = [
@@ -2935,6 +3959,8 @@
     syncFullscreenLabels();
     // Maximize and fullscreen are the same window mode, so one icon serves both.
     syncMaxButton(on);
+    syncDetailScaleRow();
+    syncHeroScaleRow();
     if (on) {
       document.documentElement.classList.remove('idle');
       scheduleFullscreenIdle();
@@ -3126,8 +4152,19 @@
       return;
     }
 
+    // Steam games are where a leftover RUNASADMIN flag shows up as an UAC
+    // prompt on every launch. Offer the one-time repair before the overlay.
+    if (game.launchModeResolved === 'steam') {
+      await refreshSteamPrivilege();
+      if (state.steamPrivilege?.needsFix && !state.steamPrivilegeMuted) {
+        const proceed = await ensureSteamPrivilege();
+        if (!proceed) return;
+      }
+    }
+
     closePopovers();
     clearLaunchTimers();
+    state.launchHandoffScheduled = false;
 
     els.launchArt.src = game.heroUrl;
     els.launchArt.style.objectPosition = game.heroPosition;
@@ -3168,7 +4205,7 @@
     }, state.settings.calm ? 160 : 420));
 
     const startedAt = performance.now();
-    const result = await call('launch', { id: game.id });
+    const result = await call('launch', { id: game.id, fullscreenScale: fullscreenScaleFor(game) });
     const ok = result && result.ok;
     const pending = ok && result.pending;
 
@@ -3239,8 +4276,20 @@
     }
   }
 
+  /** The host has handed the screen to the game (or gave up waiting). Close
+      the in-app launch surface so a later restore does not show it again. */
+  function scheduleLaunchHandoff() {
+    if (state.overlay !== 'launch' || state.launchHandoffScheduled) return;
+    state.launchHandoffScheduled = true;
+    const delay = state.settings.calm ? 450 : 950;
+    state.launchTimers.push(setTimeout(() => {
+      if (state.overlay === 'launch') closeLaunch({ quiet: true });
+    }, delay));
+  }
+
   function closeLaunch(options = {}) {
     if (state.overlay !== 'launch') return;
+    state.launchHandoffScheduled = false;
     clearLaunchTimers();
     if (options.quiet !== true) audio.exitGame();
     const reduce = state.settings.reduceMotion || state.settings.calm;
@@ -3269,15 +4318,11 @@
     }
     // A Steam launch waits here: the overlay was already "ready" and now the
     // real process exists, so it can close the way a direct launch would.
-    if (state.launchPendingId === payload.gameId) {
-      state.launchPendingId = null;
-      if (state.overlay === 'launch') {
-        els.launchProgress && setLaunchProgress(100);
-        els.launchStatus.textContent = '运行中';
-        els.launchSystem.textContent = '运行中';
-        els.launchOverlay.classList.add('is-ready');
-        setTimeout(() => { if (state.overlay === 'launch') closeLaunch({ quiet: true }); }, 900);
-      }
+    if (state.overlay === 'launch') {
+      els.launchProgress && setLaunchProgress(100);
+      els.launchStatus.textContent = '运行中';
+      els.launchSystem.textContent = '运行中';
+      els.launchOverlay.classList.add('is-ready');
     }
     pushNotice({
       icon: 'play',
@@ -3289,6 +4334,22 @@
     refreshLive();
     if (state.overlay === 'details') populateDetails(currentGame());
     updateRail();
+  }
+
+  function onSessionPresented(payload) {
+    if (!payload) return;
+    if (payload.requested && !payload.scaled && payload.error) {
+      const game = findGame(payload.gameId);
+      pushNotice({
+        icon: 'alert',
+        color: game?.accent || '#ffb45e',
+        title: `${payload.gameName || (game ? shortName(game) : '游戏')} 的全屏缩放没有生效`,
+        sub: payload.error,
+        gameId: payload.gameId
+      });
+    }
+    if (state.launchPendingId === payload.gameId) state.launchPendingId = null;
+    scheduleLaunchHandoff();
   }
 
   /** The client accepted the request but the game never appeared — normally a
@@ -3984,6 +5045,46 @@
     if (els.settingsAvatarButton) els.settingsAvatarButton.addEventListener('click', chooseAvatar);
     if (els.settingsClearAvatar) els.settingsClearAvatar.addEventListener('click', clearAvatar);
     if (els.settingsAutoBackupRow) els.settingsAutoBackupRow.addEventListener('click', toggleAutoBackup);
+    if (els.settingsStartupRow) els.settingsStartupRow.addEventListener('click', toggleStartup);
+    if (els.settingsStartupFullscreenRow) els.settingsStartupFullscreenRow.addEventListener('click', toggleStartupFullscreen);
+    if (els.settingsMinimizeRow) els.settingsMinimizeRow.addEventListener('click', toggleMinimizeSetting);
+    if (els.settingsHotkeyRow) els.settingsHotkeyRow.addEventListener('click', () => {
+      if (state.hotkeyRecording) cancelHotkeyRecording();
+      else beginHotkeyRecording();
+    });
+    if (els.settingsAutoEngineRow) els.settingsAutoEngineRow.addEventListener('click', toggleAutoEngine);
+    if (els.settingsMagpieRestart) els.settingsMagpieRestart.addEventListener('click', async () => {
+      audio.select();
+      await call('restartScalingEngine');
+      toast('正在重启缩放引擎…', 'spark');
+    });
+    if (els.settingsEngineOptions) els.settingsEngineOptions.addEventListener('click', openEngineDialog);
+    if (els.engineClose) els.engineClose.addEventListener('click', closeEngineDialog);
+    if (els.engineSave) els.engineSave.addEventListener('click', saveEngineDialog);
+    if (els.engineReset) els.engineReset.addEventListener('click', resetEngineDialog);
+    if (els.engineOpenFull) els.engineOpenFull.addEventListener('click', openFullMagpie);
+    if (els.engine3dRow) els.engine3dRow.addEventListener('click', toggleEngine3d);
+    if (els.engineMode) els.engineMode.addEventListener('change', () => {
+      const modes = (state.engineOptions && state.engineOptions.modes) || [];
+      renderEngineModeList(modes, Number(els.engineMode.value || 0));
+    });
+    if (els.engineAutoRow) els.engineAutoRow.addEventListener('click', () => {
+      const next = els.engineAutoRow.getAttribute('aria-checked') !== 'true';
+      setPrefSwitch(els.engineAutoRow, els.engineAutoSwitch, next);
+      audio.toggle();
+    });
+    if (els.engineOverlay) {
+      els.engineOverlay.addEventListener('pointerdown', (event) => {
+        if (event.target === els.engineOverlay) closeEngineDialog();
+      });
+    }
+    if (els.settingsMagpieStart) els.settingsMagpieStart.addEventListener('click', async () => {
+      audio.select();
+      await call('startMagpie');
+      toast('正在启动缩放引擎…', 'spark');
+    });
+    if (els.settingsMagpiePick) els.settingsMagpiePick.addEventListener('click', pickMagpieExe);
+    if (els.settingsSteamFix) els.settingsSteamFix.addEventListener('click', fixSteamFromSettings);
     if (els.settingsUnifiedSfxRow) els.settingsUnifiedSfxRow.addEventListener('click', () => setUnifiedSfx(!state.settings.unifiedSfx));
     if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));
     if (els.settingsTier) els.settingsTier.addEventListener('change', changeCompatibilityTier);
@@ -4574,11 +5675,57 @@
         window.NovaIntro.skip();
         return;
       }
+      // The hotkey recorder owns every key while it is armed.
+      if (state.hotkeyRecording) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          cancelHotkeyRecording();
+          return;
+        }
+        const vk = vkForHotkey(event.key);
+        if (!vk) return;
+        const modifiers = (event.altKey ? 0x400 : 0) | (event.ctrlKey ? 0x200 : 0) |
+          (event.shiftKey ? 0x800 : 0) | (event.metaKey ? 0x100 : 0);
+        if (!modifiers) {
+          if (els.settingsHotkeyHint) els.settingsHotkeyHint.textContent = '至少加一个修饰键';
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        commitHotkey(modifiers | vk);
+        return;
+      }
+
       // In-app dialog and file browser own the keyboard while open.
       if (window.NovaOverlays && window.NovaOverlays.dialogOpen()) return;
       if (window.NovaOverlays && window.NovaOverlays.pickerOpenState()) {
         if (window.NovaOverlays.pickerKey(event.key)) event.preventDefault();
         return;
+      }
+
+      // The appearance preview's framing editor owns the arrow keys and
+      // +/- while it is open; otherwise they would switch games.
+      if (state.appearanceEditing) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setAppearanceEditing(false);
+          return;
+        }
+        const frameAction = {
+          ArrowLeft: 'left',
+          ArrowRight: 'right',
+          ArrowUp: 'up',
+          ArrowDown: 'down',
+          '+': 'zoom-in',
+          '=': 'zoom-in',
+          '-': 'zoom-out',
+          '0': 'reset'
+        }[event.key];
+        if (frameAction) {
+          event.preventDefault();
+          stepAppearanceFraming(frameAction);
+          return;
+        }
       }
 
       if (state.overlay === 'sleep') {
@@ -4605,6 +5752,14 @@
         if (els.launchOverlay.classList.contains('is-ready') && !event.repeat && !event.metaKey && !event.ctrlKey && !event.altKey) {
           event.preventDefault();
           closeLaunch();
+        }
+        return;
+      }
+
+      if (state.overlay === 'engine') {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeEngineDialog();
         }
         return;
       }
@@ -5100,6 +6255,7 @@
 
   function bindEvents() {
     bindEditorFraming();
+    bindAppearanceFraming();
 
     /* window chrome */
     const dragZone = () => {
@@ -5147,6 +6303,8 @@
     els.playBtn.addEventListener('click', handlePrimary);
     els.detailPlay.addEventListener('click', handlePrimary);
     els.detailBtn.addEventListener('click', openDetails);
+    if (els.homeEngineBtn) els.homeEngineBtn.addEventListener('click', openEngineDialog);
+    if (els.homeScaleRow) els.homeScaleRow.addEventListener('click', toggleHeroScale);
     els.questCard.addEventListener('click', openDetails);
     els.detailsClose.addEventListener('click', () => closeDetails());
     els.detailsOverlay.addEventListener('pointerdown', (event) => {
@@ -5154,6 +6312,7 @@
     });
 
     els.detailFav.addEventListener('click', () => toggleFavorite(currentGame()));
+    if (els.detailScaleRow) els.detailScaleRow.addEventListener('click', toggleDetailScale);
     els.detailManage.addEventListener('click', () => {
       if (state.manageOpen) closeManage();
       else openManage();
@@ -5168,6 +6327,7 @@
       openEditor(game);
     });
     els.resetArtRow.addEventListener('click', resetArtwork);
+    if (els.refreshArtRow) els.refreshArtRow.addEventListener('click', refreshSteamArtwork);
     if (els.manageSteamModes) {
       els.manageSteamModes.addEventListener('click', (event) => {
         const button = event.target.closest('.steam-mode');
@@ -5486,6 +6646,14 @@
       autoBackup: boot.settings?.autoBackup !== false,
       unifiedSfx: boot.settings?.unifiedSfx === true,
       librarySort: boot.settings?.librarySort || 'recent',
+      minimizeOnLaunch: boot.settings?.minimizeOnLaunch !== false,
+      scalingEngine: ['auto', 'native', 'off'].includes(boot.settings?.scalingEngine)
+        ? boot.settings.scalingEngine : 'auto',
+      magpiePath: boot.settings?.magpiePath || null,
+      scalingHotkey: Number.isFinite(boot.settings?.scalingHotkey) && boot.settings.scalingHotkey > 0
+        ? boot.settings.scalingHotkey : 3137,
+      autoStartEngine: boot.settings?.autoStartEngine !== false,
+      startupFullscreen: boot.settings?.startupFullscreen === true,
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
       developerMode: boot.settings?.developerMode === true
     };
@@ -5557,7 +6725,7 @@
     bindContextMenu();
     bindThemePanel();
     bindSettings();
-
+    initThemedSelects();
     document.body.classList.toggle('is-empty', !state.games.length);
     applyAccent(currentGame());
     renderHero(currentGame(), false);
@@ -5576,6 +6744,10 @@
     }
 
     if (currentGame()) setBackdrop(currentGame(), true);
+
+    // Diagnostics are not on the first-frame path: let the shell settle, then
+    // fill in the Steam/Magpie rows so the settings page is ready when opened.
+    setTimeout(() => { refreshSteamPrivilege(); refreshMagpieStatus(); }, 1400);
 
     setTimeout(() => { audio.warm(); }, 1500);
     setTimeout(ensureActiveTileVisible, 140);

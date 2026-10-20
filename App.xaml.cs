@@ -8,8 +8,8 @@ namespace NovaGameSpace;
 
 public sealed partial class App : System.Windows.Application
 {
-    private const string InstanceMutexId = @"Local\NOVA.GameSpace.SingleInstance";
-    private const string ActivateEventId = @"Local\NOVA.GameSpace.Activate";
+    private const string InstanceMutexId = @"Local\GUGUOVA.GameSpace.SingleInstance";
+    private const string ActivateEventId = @"Local\GUGUOVA.GameSpace.Activate";
 
     private Mutex? _instanceMutex;
     private EventWaitHandle? _activateEvent;

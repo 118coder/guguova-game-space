@@ -4,6 +4,10 @@ using NovaGameSpace.Models;
 
 namespace NovaGameSpace.Services;
 
+/// <summary>Per-launch display preferences resolved by the host: the game's
+/// explicit checkbox, or the immersive (fullscreen) default when unset.</summary>
+public sealed record LaunchOptions(bool FullscreenScale);
+
 /// <summary>
 /// Launches real executables, keeps a live session per game, detects crashes vs.
 /// normal exits, and adds elapsed wall-clock time to the game's playtime.
@@ -14,6 +18,7 @@ public sealed class LauncherService
     private readonly Dictionary<string, Process> _processes = new();
     private readonly Dictionary<string, RunningSessionInfo> _sessions = new();
     private readonly Dictionary<string, DateTime> _sessionStarts = new();
+    private readonly Dictionary<string, LaunchOptions> _launchOptions = new();
     private readonly HashSet<string> _pendingSteam = new();
     private readonly object _gate = new();
 
@@ -40,12 +45,16 @@ public sealed class LauncherService
         lock (_gate) return _sessions.ContainsKey(gameId);
     }
 
-    public LaunchResult Launch(GameEntry game)
+    public LaunchResult Launch(GameEntry game, LaunchOptions? options = null)
     {
         var mode = SteamService.ModeFor(game);
+        var resolved = options ?? new LaunchOptions(false);
 
         if (mode == "steam")
+        {
+            lock (_gate) _launchOptions[game.Id] = resolved;
             return LaunchThroughSteam(game);
+        }
 
         if (string.IsNullOrWhiteSpace(game.ExePath))
             return new LaunchResult(false, "没有设置可执行文件路径", null, game.Id);
@@ -63,6 +72,7 @@ public sealed class LauncherService
         {
             if (_sessions.ContainsKey(game.Id))
                 return new LaunchResult(false, "游戏已经在运行", _sessions[game.Id].SessionId, game.Id);
+            _launchOptions[game.Id] = resolved;
         }
 
         try
@@ -81,7 +91,10 @@ public sealed class LauncherService
 
             var process = Process.Start(startInfo);
             if (process == null)
+            {
+                lock (_gate) _launchOptions.Remove(game.Id);
                 return new LaunchResult(false, "系统没有返回进程信息，启动失败", null, game.Id);
+            }
 
             var info = new RunningSessionInfo(
                 Guid.NewGuid().ToString("N"),
@@ -98,6 +111,10 @@ public sealed class LauncherService
                 _sessionStarts[game.Id] = DateTime.UtcNow;
             }
 
+            // We still own the foreground; hand it to the game so its window
+            // comes up in front instead of behind the launcher.
+            GameDisplay.AllowForeground(process.Id);
+
             process.EnableRaisingEvents = true;
             process.Exited += (_, _) => HandleExit(game.Id, process);
             if (process.HasExited) HandleExit(game.Id, process);
@@ -112,6 +129,7 @@ public sealed class LauncherService
         }
         catch (Exception ex)
         {
+            lock (_gate) _launchOptions.Remove(game.Id);
             Log.Error($"launch {game.Name}", ex);
             return new LaunchResult(false, ex.Message, null, game.Id);
         }
@@ -136,10 +154,15 @@ public sealed class LauncherService
                 return new LaunchResult(false, "正在等待 Steam 启动这款游戏", null, game.Id);
         }
 
-        var client = SteamService.Detect();
+        // Refresh instead of using the boot-time cache: the client may have
+        // been restarted by the privilege repair moments ago.
+        var client = SteamService.Detect(true);
         if (!client.Installed)
+        {
+            lock (_gate) _launchOptions.Remove(game.Id);
             return new LaunchResult(false, "本机没有安装 Steam 客户端", null, game.Id, false,
                 "不带 Steam 客户端时，只有本身不依赖 Steam 运行时的游戏才能直接启动。");
+        }
 
         game.LastPlayedUtc = DateTime.UtcNow.ToString("o");
         game.LaunchCount += 1;
@@ -158,7 +181,11 @@ public sealed class LauncherService
             var request = SteamService.RunGame(appId);
             if (!request.Ok)
             {
-                lock (_gate) _pendingSteam.Remove(game.Id);
+                lock (_gate)
+                {
+                    _pendingSteam.Remove(game.Id);
+                    _launchOptions.Remove(game.Id);
+                }
                 Log.Write($"steam request failed {gameName}: {request.Error}");
                 GameFailed?.Invoke(game.Id, request.Error ?? "无法唤起 Steam");
             }
@@ -199,7 +226,7 @@ public sealed class LauncherService
                         if (!_pendingSteam.Contains(gameId)) return; // stopped or superseded
                     }
 
-                    var process = FindSteamGameProcess(gameId, appId, known);
+                    var process = FindSteamGameProcess(gameId, appId, known, started);
                     if (process == null) continue;
 
                     lock (_gate) _pendingSteam.Remove(gameId);
@@ -207,7 +234,11 @@ public sealed class LauncherService
                     return;
                 }
 
-                lock (_gate) _pendingSteam.Remove(gameId);
+                lock (_gate)
+                {
+                    _pendingSteam.Remove(gameId);
+                    _launchOptions.Remove(gameId);
+                }
                 var state = SteamService.Detect(true);
                 Log.Write($"steam launch timeout {game.Name} appid={appId} running={state.Running} signedIn={state.SignedIn}");
                 GameFailed?.Invoke(gameId, state.Running
@@ -216,7 +247,11 @@ public sealed class LauncherService
             }
             catch (Exception ex)
             {
-                lock (_gate) _pendingSteam.Remove(gameId);
+                lock (_gate)
+                {
+                    _pendingSteam.Remove(gameId);
+                    _launchOptions.Remove(gameId);
+                }
                 Log.Error("watch steam launch", ex);
             }
         })
@@ -227,7 +262,7 @@ public sealed class LauncherService
         thread.Start();
     }
 
-    private Process? FindSteamGameProcess(string gameId, string appId, HashSet<int> known)
+    private Process? FindSteamGameProcess(string gameId, string appId, HashSet<int> known, DateTime launchedAt)
     {
         // The exe path recorded by the scanner is the best identity we have:
         // it survives renaming and does not depend on the client's window title.
@@ -235,30 +270,62 @@ public sealed class LauncherService
         var expected = game != null && !string.IsNullOrWhiteSpace(game.ExePath)
             ? SafeFullPath(game.ExePath)
             : null;
+        var expectedName = game != null && !string.IsNullOrWhiteSpace(game.ExePath)
+            ? Path.GetFileName(game.ExePath)
+            : null;
 
         foreach (var process in Process.GetProcesses())
         {
             var keep = false;
             try
             {
-                if (known.Contains(process.Id)) continue;
-
-                var path = process.MainModule?.FileName;
-                if (string.IsNullOrEmpty(path)) continue;
-                if (Path.GetFileName(path).Contains("steam", StringComparison.OrdinalIgnoreCase)) continue;
-
-                var match = expected != null && string.Equals(SafeFullPath(path), expected, StringComparison.OrdinalIgnoreCase);
-                if (!match && expected == null)
+                if (!known.Contains(process.Id))
                 {
-                    // No recorded path (eg. the folder moved): fall back to the
-                    // file name of any library entry, which is still specific.
-                    match = _store.Library.Games.Any(g =>
-                        !string.IsNullOrWhiteSpace(g.ExePath) &&
-                        string.Equals(Path.GetFileName(g.ExePath), Path.GetFileName(path),
-                            StringComparison.OrdinalIgnoreCase));
-                }
+                    string? path = null;
+                    var denied = false;
+                    try
+                    {
+                        path = process.MainModule?.FileName;
+                    }
+                    catch
+                    {
+                        // A game started by an elevated Steam client rejects
+                        // MainModule from our lower integrity level.
+                        denied = true;
+                    }
 
-                if (match) keep = true;
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        if (!Path.GetFileName(path).Contains("steam", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var match = expected != null &&
+                                string.Equals(SafeFullPath(path), expected, StringComparison.OrdinalIgnoreCase);
+                            if (!match && expected == null)
+                            {
+                                // No recorded path (eg. the folder moved): fall back to the
+                                // file name of any library entry, which is still specific.
+                                match = _store.Library.Games.Any(g =>
+                                    !string.IsNullOrWhiteSpace(g.ExePath) &&
+                                    string.Equals(Path.GetFileName(g.ExePath), Path.GetFileName(path),
+                                        StringComparison.OrdinalIgnoreCase));
+                            }
+
+                            if (match) keep = true;
+                        }
+                    }
+                    else if (denied && expectedName != null)
+                    {
+                        // Name + a recent start time is still a safe identity for an
+                        // elevated process; processes that already existed are in
+                        // `known` or started before this launch.
+                        var name = process.ProcessName + ".exe";
+                        if (string.Equals(name, expectedName, StringComparison.OrdinalIgnoreCase) &&
+                            StartedAfter(process, launchedAt.AddSeconds(-10)))
+                        {
+                            keep = true;
+                        }
+                    }
+                }
             }
             catch
             {
@@ -269,6 +336,18 @@ public sealed class LauncherService
             process.Dispose();
         }
         return null;
+    }
+
+    private static bool StartedAfter(Process process, DateTime threshold)
+    {
+        try
+        {
+            return process.StartTime >= threshold;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static string? SafeFullPath(string path)
@@ -312,11 +391,23 @@ public sealed class LauncherService
 
     private void AttachProcess(GameEntry game, Process process)
     {
+        string path;
+        try
+        {
+            path = process.MainModule?.FileName ?? game.ExePath;
+        }
+        catch
+        {
+            // An elevated game hides its module path; the recorded path is
+            // still the right identity for the session.
+            path = game.ExePath;
+        }
+
         var info = new RunningSessionInfo(
             Guid.NewGuid().ToString("N"),
             game.Id,
             game.Name,
-            process.MainModule?.FileName ?? game.ExePath,
+            path,
             process.Id,
             DateTime.UtcNow.ToString("o"));
 
@@ -332,7 +423,11 @@ public sealed class LauncherService
             process.EnableRaisingEvents = true;
             process.Exited += (_, _) => HandleExit(game.Id, process);
             if (process.HasExited) HandleExit(game.Id, process);
-            else GameStarted?.Invoke(info);
+            else
+            {
+                GameDisplay.AllowForeground(process.Id);
+                GameStarted?.Invoke(info);
+            }
         }
         catch (Exception ex)
         {
@@ -342,11 +437,28 @@ public sealed class LauncherService
         Log.Write($"steam game attached {game.Name} pid={process.Id}");
     }
 
+    /// <summary>The host takes the options once, when the session starts. A
+    /// later launch overwrites them, so a stale entry can never leak into the
+    /// next session.</summary>
+    public LaunchOptions TakeLaunchOptions(string gameId)
+    {
+        lock (_gate)
+        {
+            if (_launchOptions.TryGetValue(gameId, out var options))
+            {
+                _launchOptions.Remove(gameId);
+                return options;
+            }
+            return new LaunchOptions(false);
+        }
+    }
+
     public bool Stop(string gameId)
     {
         Process? process;
         lock (_gate)
         {
+            _launchOptions.Remove(gameId);
             // A pending Steam request has no process yet: cancelling it is
             // just dropping the watch, otherwise the button would do nothing.
             if (_pendingSteam.Remove(gameId)) return true;
