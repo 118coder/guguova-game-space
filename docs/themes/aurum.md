@@ -1,6 +1,6 @@
 # 鎏金圣所 · AURUM
 
-> 版本 **1.0.10** · 开屏 `aurum（金门展开）` · 进游戏 `auLaunch（菱形光圈）`
+> 版本 **1.0.12** · 开屏 `aurum（金门展开）` · 进游戏 `auLaunch（菱形光圈）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.2
 
@@ -41,3 +41,8 @@
 - `export-all.js`：无 `overflow-x` / `clipped` / `logo-text-over`
 - 30 字长名（`--stress`）不溢出；960×600 与 1439×1124 两档都过
 - `probe-graphics.js` 装饰不压字
+
+## 8. 导航选中态
+选中标签不再使用羊皮纸实块：改为**直角双层金线框**（外 1px / 内 4px 两道），
+底部居中一枚青玉菱形点。与「金线 + 青玉」的语言一致，也不再出现圆角纸块压字。
+实现见 `themes/aurum/theme.css` 末尾的 `html[data-theme="aurum"] .nav-glide` 段。

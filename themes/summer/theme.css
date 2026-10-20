@@ -2800,3 +2800,11 @@ html[data-theme="summer"] .scene::before {
 html[data-theme="summer"] .type-readout-kicker,
 html[data-theme="summer"] .type-seed,
 html[data-theme="summer"] .style-choice-head em { color: #0d6f9a; }
+
+/* ------------------------------------------------------------
+   menu / pref icons — sky blue, white on the blue hover
+   ------------------------------------------------------------ */
+
+html[data-theme="summer"] { --row-icon: var(--su-sky); }
+html[data-theme="summer"] .menu-row:hover .row-main .ic,
+html[data-theme="summer"] .menu-row:focus-visible .row-main .ic { color: #ffffff; }

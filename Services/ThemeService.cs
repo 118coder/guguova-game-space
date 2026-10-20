@@ -38,6 +38,11 @@ public sealed class ThemeService
         /// <summary>Opening-sequence preset id (see src/intro.js).</summary>
         public string? Intro { get; set; }
 
+        /// <summary>Optional per-theme cues — switch / launch / exit / boot —
+        /// each a path relative to the theme folder. Anything missing falls
+        /// back to the shared interface sound.</summary>
+        public Dictionary<string, string>? Sounds { get; set; }
+
         public Dictionary<string, string>? Tokens { get; set; }
         public Dictionary<string, string>? Icons { get; set; }
 
@@ -63,7 +68,8 @@ public sealed class ThemeService
         bool Ok,
         string? Error,
         Dictionary<string, string> Tokens,
-        Dictionary<string, string> Icons);
+        Dictionary<string, string> Icons,
+        Dictionary<string, string> Sounds);
 
     private readonly List<ThemeInfo> _themes = new();
 
@@ -129,7 +135,27 @@ public sealed class ThemeService
         true,
         null,
         new Dictionary<string, string>(),
-        new Dictionary<string, string>());
+        new Dictionary<string, string>(),
+        BuiltInSounds());
+
+    /// <summary>NOVA has no folder on disk, so its cues live under the built-in
+    /// asset root and are addressed through the same virtual host as the UI.</summary>
+    private static Dictionary<string, string> BuiltInSounds()
+    {
+        var cues = new[]
+        {
+            "bong", "click", "nav", "soft", "select", "confirm", "error", "tick",
+            "chime", "deep", "launchRise", "launchFall", "switch", "launch", "exit", "boot"
+        };
+        var map = new Dictionary<string, string>();
+        // App version busts the WebView cache when a cue is regenerated.
+        var stamp = typeof(ThemeService).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+        foreach (var cue in cues)
+        {
+            map[cue] = $"https://nova.site/assets/sfx/nova/{cue}.ogg?v={stamp}";
+        }
+        return map;
+    }
 
     /// <summary>Rescans the themes folder. Invalid themes are kept in the list
     /// with an error so the UI can explain what is wrong instead of hiding them.</summary>
@@ -213,7 +239,8 @@ public sealed class ThemeService
                 true,
                 null,
                 CleanDictionary(manifest.Tokens),
-                CleanDictionary(manifest.Icons));
+                CleanDictionary(manifest.Icons),
+                ResolveSounds(folder, manifest.Sounds, manifest.Version));
         }
         catch (JsonException ex)
         {
@@ -242,7 +269,33 @@ public sealed class ThemeService
         false,
         error,
         new Dictionary<string, string>(),
+        new Dictionary<string, string>(),
         new Dictionary<string, string>());
+
+    /// <summary>Resolves each declared cue against the theme folder. Entries
+    /// that escape the folder or point at a missing file are dropped, so a
+    /// broken manifest can only silence a theme, never load something else.</summary>
+    private static Dictionary<string, string> ResolveSounds(string folder, Dictionary<string, string>? sounds, string? version)
+    {
+        var result = new Dictionary<string, string>();
+        if (sounds == null) return result;
+        foreach (var pair in sounds)
+        {
+            if (string.IsNullOrWhiteSpace(pair.Key)) continue;
+            var url = ResolveAsset(folder, pair.Value, null);
+            // Cue names are matched against the renderer's SFX table, which is
+            // camelCase ("launchRise"). Lower-casing here silently broke every
+            // themed cue with a capital letter in its name.
+            // The cue URLs are static file paths, so a regenerated sound would
+            // otherwise be served from the WebView cache forever.
+            if (url != null)
+            {
+                var stamp = Uri.EscapeDataString(string.IsNullOrWhiteSpace(version) ? "1" : version!);
+                result[pair.Key.Trim()] = url + (url.Contains('?') ? "&" : "?") + "v=" + stamp;
+            }
+        }
+        return result;
+    }
 
     /// <summary>Only relative paths inside the theme folder are accepted.</summary>
     private static string? ResolveAsset(string folder, string? relative, string? fallbackName)

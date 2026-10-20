@@ -1,6 +1,6 @@
 # 终末地 · ENDFIELD
 
-> 版本 **1.0.6** · 开屏 `endfield（启动序列）` · 进游戏 `efLaunch（工业闸门）`
+> 版本 **1.0.9** · 开屏 `endfield（纸面启动台）` · 进游戏 `efLaunch（工业闸门）`
 
 > 完整设计理念与维护要点：`docs/DESIGN-PHILOSOPHY.md` §5.3
 
@@ -33,7 +33,17 @@
 | `--nova-*`、`--kit-*`、`--t-*` | 主题令牌 | 见统一文件 |
 
 ## 5. 开屏与进游戏
-- 开屏：`endfield（启动序列）`，舞台类与关键帧在 `src/intro.css`。
+- 开屏：`endfield（纸面启动台）`，按 `endfield-ui` 六条法则重做：
+  纸白底 + 制图网格、顶部 3px 品红/酸黄/薄荷三色条、白色直角面板 + 1px 细线分区；
+  实心 `NOVA` 与空心 `SPACE` 双层字标、粗体中文在下；酸黄只用于 `READY` 状态块；
+  右侧空心真实计数（游戏数）；底部 GAMES / THEME / YEAR 三个真实字段。
+  入场全部在 700ms 内（擦入 360ms、字标 260ms、字段 38ms 错开），无投影/发光/渐变。
+  舞台类 `.intro-ef2` 与关键帧在 `src/intro.css`。
+- 字体：拉丁用 **Saira**（可变字体，SIL OFL 1.1，`src/assets/fonts/Saira.ttf`），
+  字标与小标签拉宽到 125%，字段 112%，数字 tabular；中文保持思源黑体粗体。
+  字体只用于本开屏，不进入全局 UI。
+- 质感：两角各一片**等高线**（墨色 9%，`src/assets/contours/`），右侧一条 45° 斜线柱 +
+  竖排 `// NOVA GAME SPACE`；字标不加投影，靠对比与留白。入场有 1px 墨线随擦入推进。
 - 进游戏：`efLaunch（工业闸门）`，规则在 `themes/endfield/theme.css` 末尾（或 `src/motion.css`）。
 - 两者必须互不相同；新增时同步 `src/intro.js` 的 `STAGE_SELECTOR`。
 
@@ -44,3 +54,6 @@
 - `export-all.js`：无 `overflow-x` / `clipped` / `logo-text-over`
 - 30 字长名（`--stress`）不溢出；960×600 与 1439×1124 两档都过
 - `probe-graphics.js` 装饰不压字
+
+## 8. 音效材料
+继电器 + 打字机点击；马林巴双/三音确认；低音失败；开屏为引擎底噪 + 60/200/420ms 三段命中。

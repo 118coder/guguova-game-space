@@ -67,6 +67,7 @@
       write('date', date);
       write('time', time);
       write('games', games);
+      write('gamesBig', games);
       write('year', String(now.getFullYear()));
       runMeter(stage.querySelector('[data-ef="pct"]'), reduce);
     }
@@ -619,66 +620,81 @@
   }
 
   function ensureZeroHourStage(overlay) {
-    let stage = overlay.querySelector('.intro-zh');
+    let stage = overlay.querySelector('.intro-zh2');
     if (stage) return stage;
     stage = document.createElement('div');
-    stage.className = 'intro-zh';
+    stage.className = 'intro-zh2';
     stage.setAttribute('aria-hidden', 'true');
+    // ZERO HOUR's language is a CRT signal resolving into a comic page, not a
+    // terminal log: the screen powers on, "NO SIGNAL" holds a beat, then a
+    // panel cuts in diagonally with the title and a lime subtitle band.
     stage.innerHTML = `
-      <span class="intro-zh-hazard top" aria-hidden="true"></span>
-      <span class="intro-zh-hazard bottom" aria-hidden="true"></span>
-      <div class="intro-zh-head">
-        <span>// NOVA BROADCAST</span>
-        <span class="intro-zh-clock"><b data-zh="date">----.--.--</b><i>│</i><b data-zh="time">--:--</b></span>
-      </div>
-      <div class="intro-zh-main">
-        <div class="intro-zh-ch">CH. <b data-zh="games">--</b> <span>NO SIGNAL</span></div>
-        <div class="intro-zh-word">
-          <span class="intro-zh-solid">ZERO</span>
-          <span class="intro-zh-hollow">HOUR</span>
+      <div class="intro-zh2-screen" aria-hidden="true">
+        <span class="intro-zh2-glass"></span>
+        <span class="intro-zh2-scan"></span>
+        <span class="intro-zh2-noise"></span>
+        <div class="intro-zh2-signal">
+          <span class="intro-zh2-bars"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <b>NO SIGNAL</b>
+          <em>CH.<span data-zh="games">--</span></em>
         </div>
-        <div class="intro-zh-mark"><span>零点街区</span><i data-zh="titles">-- TITLES</i></div>
+        <div class="intro-zh2-panel">
+          <span class="intro-zh2-kicker">// NOVA BROADCAST · <b data-zh="date">----.--.--</b></span>
+          <div class="intro-zh2-word"><span>ZERO</span><span>HOUR</span></div>
+          <span class="intro-zh2-band">零点街区</span>
+          <span class="intro-zh2-titles" data-zh="titles">-- TITLES</span>
+        </div>
+        <span class="intro-zh2-speed"></span>
+        <span class="intro-zh2-lime left"></span>
+        <span class="intro-zh2-lime right"></span>
       </div>
-      <div class="intro-zh-foot">
-        <span class="intro-zh-status"><i></i>ON AIR</span>
-        <span class="intro-zh-bar"><i></i></span>
-        <span class="intro-zh-pct" data-zh="pct">000%</span>
+      <div class="intro-zh2-foot">
+        <span class="intro-zh2-onair"><i></i>ON AIR</span>
+        <span data-zh="time">--:--</span>
       </div>`;
     overlay.appendChild(stage);
     return stage;
   }
 
   function ensureEndfieldStage(overlay) {
-    let stage = overlay.querySelector('.intro-ef');
+    let stage = overlay.querySelector('.intro-ef2');
     if (stage) return stage;
     stage = document.createElement('div');
-    stage.className = 'intro-ef';
+    stage.className = 'intro-ef2';
     stage.setAttribute('aria-hidden', 'true');
+    // Built to the endfield-ui rules: paper ground, one acid-yellow fill used
+    // only for the current state, square blocks, hairlines instead of shadows,
+    // real numbers only (date / time / game count), motion under a second.
     stage.innerHTML = `
-      <span class="intro-ef-tri" aria-hidden="true"></span>
-      <div class="intro-ef-head">
-        <span class="intro-ef-brand">// NOVA GAME SPACE</span>
-        <span class="intro-ef-clock">
-          <b data-ef="date">----.--.--</b><i>│</i><b data-ef="time">--:--</b>
-        </span>
-      </div>
-      <div class="intro-ef-frame" aria-hidden="true"></div>
-      <div class="intro-ef-main">
-        <div class="intro-ef-word">
-          <span class="intro-ef-solid">NOVA</span>
-          <span class="intro-ef-hollow">GAME SPACE</span>
+      <span class="intro-ef2-band" aria-hidden="true"></span>
+      <div class="intro-ef2-shell">
+        <div class="intro-ef2-head">
+          <span class="intro-ef2-kicker">// STARTUP SEQUENCE</span>
+          <span class="intro-ef2-stamp">
+            <b data-ef="date">----.--.--</b><i>│</i><b data-ef="time">--:--</b>
+          </span>
         </div>
-        <div class="intro-ef-mark"><span>游戏空间</span></div>
-        <div class="intro-ef-fields">
+        <div class="intro-ef2-main">
+          <div class="intro-ef2-word">
+            <span class="intro-ef2-solid"><i>N</i><i>O</i><i>V</i><i>A</i></span>
+            <span class="intro-ef2-hollow">SPACE</span>
+          </div>
+          <div class="intro-ef2-cn">游戏空间</div>
+          <div class="intro-ef2-state">
+            <span class="intro-ef2-chip">READY</span>
+            <span class="intro-ef2-state-label">// LOCAL LIBRARY</span>
+          </div>
+          <div class="intro-ef2-count" aria-hidden="true">
+            <b data-ef="gamesBig">--</b>
+            <i>// TITLES</i>
+          </div>
+        </div>
+        <span class="intro-ef2-spine">// NOVA GAME SPACE</span>
+        <div class="intro-ef2-foot">
           <span><i>GAMES</i><b data-ef="games">--</b></span>
           <span><i>THEME</i><b>ENDFIELD</b></span>
           <span><i>YEAR</i><b data-ef="year">----</b></span>
         </div>
-      </div>
-      <div class="intro-ef-foot">
-        <span class="intro-ef-status"><i></i>启动序列</span>
-        <span class="intro-ef-bar"><i></i></span>
-        <span class="intro-ef-pct" data-ef="pct">000%</span>
       </div>`;
     overlay.appendChild(stage);
     return stage;
@@ -746,7 +762,7 @@
     return node;
   }
 
-  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-zh, .intro-ef, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
+  const STAGE_SELECTOR = '.intro-gs, .intro-mn, .intro-zh, .intro-zh2, .intro-ef, .intro-ef2, .intro-su, .intro-vn, .intro-bc, .intro-dr, .intro-nv, .intro-au, .intro-cx, .intro-rs';
 
   function isPlaying() { return state.playing; }
 

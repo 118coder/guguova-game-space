@@ -1313,3 +1313,11 @@ html[data-theme="mnemo"] .launch.is-open .launch-art {
   from { clip-path: inset(0 0 100% 0); transform: scaleY(1.02); }
   to { clip-path: inset(0); transform: none; }
 }
+
+/* ------------------------------------------------------------
+   menu / pref icons — memory plum
+   ------------------------------------------------------------ */
+
+html[data-theme="mnemo"] { --row-icon: var(--mn-plum); }
+html[data-theme="mnemo"] .menu-row:hover .row-main .ic,
+html[data-theme="mnemo"] .menu-row:focus-visible .row-main .ic { color: var(--mn-panel); }

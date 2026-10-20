@@ -2260,3 +2260,11 @@ html[data-theme="riot"] .scene-stack::after {
 html[data-theme="riot"] .type-readout-kicker { color: #7a0010; }
 html[data-theme="riot"] .type-seed,
 html[data-theme="riot"] .style-choice-head em { color: var(--t-ink-2); }
+
+/* ------------------------------------------------------------
+   menu / pref icons — theatre red ink, never white-on-paper
+   ------------------------------------------------------------ */
+
+html[data-theme="riot"] { --row-icon: var(--t-accent); }
+html[data-theme="riot"] .menu-row:hover .row-main .ic,
+html[data-theme="riot"] .menu-row:focus-visible .row-main .ic { color: #f2c94c; }

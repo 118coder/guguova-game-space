@@ -7,22 +7,22 @@
 <meta name="theme-color" content="#0a0b0b">
 <title>NOVA · 游戏空间</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="base.css?v=1.5.3">
-<link rel="stylesheet" href="theme.css?v=1.5.3">
-<link rel="stylesheet" href="cta-palettes.css?v=1.5.3">
-<link rel="stylesheet" href="type.css?v=1.5.3">
-<link rel="stylesheet" href="app.css?v=1.5.3">
-<link rel="stylesheet" href="motion.css?v=1.5.3">
-<link rel="stylesheet" href="views.css?v=1.5.3">
-<link rel="stylesheet" href="dialogs.css?v=1.5.3">
-<link rel="stylesheet" href="themes.css?v=1.5.3">
-<link rel="stylesheet" href="theme-fx.css?v=1.5.3">
-<link rel="stylesheet" href="fx-layers.css?v=1.5.3">
-<link rel="stylesheet" href="theme-kit.css?v=1.5.3">
-<link rel="stylesheet" href="polish.css?v=1.5.3">
-<link rel="stylesheet" href="intro.css?v=1.5.3">
-<link rel="stylesheet" href="compat.css?v=1.5.3" id="compat-style">
-<link rel="stylesheet" href="settings-themes.css?v=1.5.3">
+<link rel="stylesheet" href="base.css?v=1.6.7">
+<link rel="stylesheet" href="theme.css?v=1.6.7">
+<link rel="stylesheet" href="cta-palettes.css?v=1.6.7">
+<link rel="stylesheet" href="type.css?v=1.6.7">
+<link rel="stylesheet" href="app.css?v=1.6.7">
+<link rel="stylesheet" href="motion.css?v=1.6.7">
+<link rel="stylesheet" href="views.css?v=1.6.7">
+<link rel="stylesheet" href="dialogs.css?v=1.6.7">
+<link rel="stylesheet" href="themes.css?v=1.6.7">
+<link rel="stylesheet" href="theme-fx.css?v=1.6.7">
+<link rel="stylesheet" href="fx-layers.css?v=1.6.7">
+<link rel="stylesheet" href="theme-kit.css?v=1.6.7">
+<link rel="stylesheet" href="polish.css?v=1.6.7">
+<link rel="stylesheet" href="intro.css?v=1.6.7">
+<link rel="stylesheet" href="compat.css?v=1.6.7" id="compat-style">
+<link rel="stylesheet" href="settings-themes.css?v=1.6.7">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -627,6 +627,14 @@
                 <span class="pref-hint">保留最近 5 份</span>
                 <span class="switch on" id="settingsAutoBackupSwitch"></span>
               </button>
+              <button class="pref-row" id="settingsUnifiedSfxRow" role="switch" aria-checked="false">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
+                  <span>使用默认统一音效</span>
+                </span>
+                <span class="pref-hint">关闭时每套主题用自己的声音</span>
+                <span class="switch" id="settingsUnifiedSfxSwitch"></span>
+              </button>
               <button class="pref-row" id="settingsFullscreenRow">
                 <span class="pref-label">
                   <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
@@ -813,6 +821,18 @@
           </button>
         </div>
         <div class="manage-stats" id="manageStats"></div>
+        <div class="manage-steam" id="manageSteam" hidden>
+          <div class="manage-steam-head">
+            <span class="manage-steam-title">Steam 启动</span>
+            <span class="manage-steam-state" id="manageSteamState">—</span>
+          </div>
+          <p class="manage-steam-note" id="manageSteamNote"></p>
+          <div class="manage-steam-modes" id="manageSteamModes" role="group" aria-label="启动方式">
+            <button class="steam-mode" data-mode="auto" type="button">自动</button>
+            <button class="steam-mode" data-mode="steam" type="button">走 Steam</button>
+            <button class="steam-mode" data-mode="direct" type="button">直接启动</button>
+          </div>
+        </div>
         <div class="manage-rows">
           <button class="manage-row" id="editRow">
             <span>编辑游戏信息与封面</span>
@@ -1171,14 +1191,14 @@
   <span id="toastText"></span>
 </div>
 
-<script src="motion.js?v=1.5.3" defer></script>
-<script src="focus.js?v=1.5.3" defer></script>
-<script src="surfaces.js?v=1.5.3" defer></script>
-<script src="gamepad.js?v=1.5.3" defer></script>
-<script src="overlays.js?v=1.5.3" defer></script>
-<script src="theme-engine.js?v=1.5.3" defer></script>
-<script src="intro.js?v=1.5.3" defer></script>
-<script src="fx-record.js?v=1.5.3" defer></script>
-<script src="app.js?v=1.5.3" defer></script>
+<script src="motion.js?v=1.6.7" defer></script>
+<script src="focus.js?v=1.6.7" defer></script>
+<script src="surfaces.js?v=1.6.7" defer></script>
+<script src="gamepad.js?v=1.6.7" defer></script>
+<script src="overlays.js?v=1.6.7" defer></script>
+<script src="theme-engine.js?v=1.6.7" defer></script>
+<script src="intro.js?v=1.6.7" defer></script>
+<script src="fx-record.js?v=1.6.7" defer></script>
+<script src="app.js?v=1.6.7" defer></script>
 </body>
 </html>

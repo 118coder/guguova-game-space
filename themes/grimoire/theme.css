@@ -2623,3 +2623,11 @@ html[data-theme="grimoire"] .hero-inner .progress-head > #progressLabel {
 html[data-theme="grimoire"] .hero-inner .progress-head .progress-pct {
   color: #f4e6c8 !important;
 }
+
+/* ------------------------------------------------------------
+   menu / pref icons — illuminated-manuscript gold
+   ------------------------------------------------------------ */
+
+html[data-theme="grimoire"] { --row-icon: var(--gs-gold); }
+html[data-theme="grimoire"] .menu-row:hover .row-main .ic,
+html[data-theme="grimoire"] .menu-row:focus-visible .row-main .ic { color: var(--gs-gold-hi); }
