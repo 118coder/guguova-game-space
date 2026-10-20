@@ -12,7 +12,7 @@
     <RootNamespace>NovaGameSpace</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>build\icon.ico</ApplicationIcon>
-    <Version>1.6.8</Version>
+    <Version>1.6.9</Version>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <DebugType>none</DebugType>
@@ -20,8 +20,8 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
     <PublishTrimmed>false</PublishTrimmed>
-    <Product>NOVA Game Space</Product>
-    <AssemblyTitle>NOVA 游戏空间</AssemblyTitle>
+    <Product>GUGUOVA</Product>
+    <AssemblyTitle>GUGUOVA 游戏空间</AssemblyTitle>
     <Company>NOVA</Company>
     <Copyright>NOVA</Copyright>
   </PropertyGroup>

@@ -125,11 +125,11 @@ def stage_common(source: Path, stage: Path):
 
 def package_legacy(config: str):
     source = ROOT / "legacy" / "bin" / config / "net48"
-    single = DIST / f"NOVA-{VERSION}-legacy-single"
+    single = DIST / f"GUGUOVA-{VERSION}-legacy-single"
     stage_common(source, single)
     write_single_readme(single)
 
-    full = DIST / f"NOVA-{VERSION}-legacy-full"
+    full = DIST / f"GUGUOVA-{VERSION}-legacy-full"
     if full.exists():
         shutil.rmtree(full)
     shutil.copytree(single, full)
@@ -140,7 +140,7 @@ def package_legacy(config: str):
 
 
 def package_modern(modern_dir: Path):
-    stage = DIST / f"NOVA-{VERSION}-modern"
+    stage = DIST / f"GUGUOVA-{VERSION}-modern"
     if stage.exists():
         shutil.rmtree(stage)
     copy_tree(modern_dir, stage, skip_names={"docs"})

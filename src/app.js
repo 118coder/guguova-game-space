@@ -769,7 +769,7 @@
     element.classList.remove('is-retyping');
     element.style.removeProperty('--logo-fit');
 
-    const text = options.text ?? (game ? game.logo : 'NOVA');
+    const text = options.text ?? (game ? game.logo : 'GUGUOVA');
     const forced = options.recipe
       ? TYPE_RECIPES.find((recipe) => recipe.id === options.recipe)
       : null;
@@ -814,7 +814,7 @@
     $$('.type-readout').forEach((el) => el.classList.toggle('is-system', system));
 
     if (system) {
-      els.typeRecipeName.textContent = 'NOVA 统一字体';
+      els.typeRecipeName.textContent = 'GUGUOVA 统一字体';
       els.typeRecipeSpec.textContent = '思源宋体 · 统一字标';
       els.typeSeedLabel.textContent = '统一字标';
       els.typeShuffleLabel.textContent = '系统固定';
@@ -854,7 +854,7 @@
     setLogo(els.launchLogo, game, 'launch-logo', { animate: true });
     setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', {
       forceMode: 'adaptive',
-      text: game ? shortName(game) : 'NOVA',
+      text: game ? shortName(game) : 'GUGUOVA',
       animate: true
     });
     setLogo(els.editorLogo, null, 'editor-logo', { text: editorLogoText() });
@@ -1630,7 +1630,7 @@
 
   function renderHero(game, animate = true) {
     const status = heroStatus(game);
-    const logoText = game ? (game.logo || game.name || '') : 'NOVA';
+    const logoText = game ? (game.logo || game.name || '') : 'GUGUOVA';
     document.body.classList.toggle('is-long-logo', logoText.length > 18);
     setLogo(els.gameLogo, game, 'hero-logo');
     if (window.NovaRecord) {
@@ -1725,7 +1725,7 @@
     if (!options.initial) setBackdrop(game);
     renderHero(game, options.animate !== false);
     updateRail();
-    document.title = `${game.zh || game.name} · NOVA 游戏空间`;
+    document.title = `${game.zh || game.name} · GUGUOVA 游戏空间`;
 
     if (options.scroll) centerTile(wrapped);
     if (options.sound) audio.move(wrapped > previous ? 1 : -1);
@@ -2088,7 +2088,7 @@
     if (!game) {
       els.detailArt.style.setProperty('--detail-bg', 'url("assets/backdrop.jpg")');
       setLogo(els.detailLogo, null, 'detail-logo');
-      els.detailZh.textContent = 'NOVA';
+      els.detailZh.textContent = 'GUGUOVA';
       els.detailTitle.textContent = '还没有游戏';
       els.detailTagline.textContent = '添加一个游戏程序开始使用。';
       els.detailMeta.innerHTML = metaHTML(null);
@@ -2387,7 +2387,7 @@
     setLogo(els.detailLogo, game, 'detail-logo');
     setLogo(els.appearanceLogo, game, 'appearance-logo');
     setLogo(els.launchLogo, game, 'launch-logo');
-    const choiceText = game ? shortName(game) : 'NOVA';
+    const choiceText = game ? shortName(game) : 'GUGUOVA';
     setLogo(els.adaptiveChoiceLogo, game, 'choice-logo', { forceMode: 'adaptive', text: choiceText });
     setLogo(els.systemChoiceLogo, game, 'choice-logo', { forceMode: 'system', text: choiceText });
 
@@ -2396,9 +2396,9 @@
     const use = els.appearanceCta ? $('use', els.appearanceCta) : null;
     if (use) use.setAttribute('href', `#i-${action.icon}`);
 
-    if (els.appearanceCtaNote) els.appearanceCtaNote.textContent = adaptive ? '跟随封面' : 'NOVA 默认';
-    if (els.appearanceModeLabel) els.appearanceModeLabel.textContent = adaptive ? '跟随封面' : 'NOVA 默认';
-    if (els.styleModeTag) els.styleModeTag.textContent = adaptive ? '跟随封面' : 'NOVA 默认';
+    if (els.appearanceCtaNote) els.appearanceCtaNote.textContent = adaptive ? '跟随封面' : 'GUGUOVA 默认';
+    if (els.appearanceModeLabel) els.appearanceModeLabel.textContent = adaptive ? '跟随封面' : 'GUGUOVA 默认';
+    if (els.styleModeTag) els.styleModeTag.textContent = adaptive ? '跟随封面' : 'GUGUOVA 默认';
 
     $$('.style-choice', els.styleChoices).forEach((button) => {
       const active = button.dataset.style === state.settings.styleMode;
@@ -2417,7 +2417,7 @@
     saveSettings();
     applyStyleModeUI();
     if (options.sound !== false) audio.toggle();
-    if (!options.silent) toast(mode === 'adaptive' ? '外观语言 · 跟随封面' : '外观语言 · NOVA 编辑系统', 'spark');
+    if (!options.silent) toast(mode === 'adaptive' ? '外观语言 · 跟随封面' : '外观语言 · GUGUOVA 编辑系统', 'spark');
   }
 
   function renderAppearance() {
@@ -2428,12 +2428,12 @@
     const framing = framingFor(game);
     applyHeroFraming(els.appearanceBg, framing);
     applyHeroFraming(els.appearanceImage, framing);
-    els.appearanceImage.alt = game ? `${game.zh || game.name} 主视觉` : 'NOVA';
+    els.appearanceImage.alt = game ? `${game.zh || game.name} 主视觉` : 'GUGUOVA';
 
     setLogo(els.appearanceLogo, game, 'appearance-logo');
     els.appearanceTagline.textContent = game ? (game.tagline || '') : '选择游戏开始。';
     els.appearanceIndex.textContent = game ? `${String(state.index + 1).padStart(2, '0')} / ${String(state.games.length).padStart(2, '0')}` : '00 / 00';
-    els.appearanceGameName.textContent = game ? shortName(game) : 'NOVA';
+    els.appearanceGameName.textContent = game ? shortName(game) : 'GUGUOVA';
 
     els.appearanceProgressFill.style.width = `${game ? Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100)) : 0}%`;
     els.appearanceProgressPct.textContent = game ? formatHoursShort(game.playtimeSeconds) : '0 小时';
@@ -2959,7 +2959,7 @@
       return;
     }
     const choice = await window.NovaOverlays.dialog({
-      title: '关闭 NOVA',
+      title: '关闭 GUGUOVA',
       text: '可以最小化到托盘，让游戏继续计时。',
       icon: 'power',
       actions: [
@@ -3356,7 +3356,7 @@
      ============================================================ */
 
   function editorLogoText() {
-    const name = els.fLogo.value.trim() || els.fName.value.trim() || 'NOVA';
+    const name = els.fLogo.value.trim() || els.fName.value.trim() || 'GUGUOVA';
     return name.toUpperCase();
   }
 
@@ -3478,7 +3478,7 @@
   }
 
   function syncEditorPreview() {
-    const name = els.fLogo.value.trim() || els.fName.value.trim() || 'NOVA';
+    const name = els.fLogo.value.trim() || els.fName.value.trim() || 'GUGUOVA';
     setLogo(els.editorLogo, currentGame(), 'editor-logo', {
       text: name.toUpperCase(),
       recipe: els.fTypeRecipe ? els.fTypeRecipe.value : ''
@@ -3820,7 +3820,7 @@
   };
 
   function curtainThemeName(theme) {
-    return String(theme.name || theme.id || 'NOVA').split('·')[0].trim() || 'NOVA';
+    return String(theme.name || theme.id || 'GUGUOVA').split('·')[0].trim() || 'GUGUOVA';
   }
 
   function playThemeCurtain(theme) {
@@ -4548,7 +4548,7 @@
     if (state.view === 'library') renderLibrary();
     if (state.view === 'appearance') renderAppearance();
     if (!game) {
-      els.gameLogo.textContent = 'NOVA';
+      els.gameLogo.textContent = 'GUGUOVA';
       els.gameTagline.textContent = '选择游戏开始。';
     }
   }
@@ -5287,7 +5287,7 @@
     els.sleepRow.addEventListener('click', enterSleep);
     els.quitRow.addEventListener('click', async () => {
       const quit = await window.NovaOverlays.dialog({
-        title: '退出 NOVA？',
+        title: '退出 GUGUOVA？',
         text: '游戏进程不会被关闭。',
         icon: 'power',
         tone: 'warning',
@@ -5566,7 +5566,7 @@
     renderNotifications();
     syncInputStatus(null);
     setNav('home');
-    document.title = currentGame() ? `${currentGame().zh || currentGame().name} · NOVA 游戏空间` : 'NOVA · 游戏空间';
+    document.title = currentGame() ? `${currentGame().zh || currentGame().name} · GUGUOVA 游戏空间` : 'GUGUOVA · 游戏空间';
 
     if (hasBridge) {
       call('fullscreenState').then((result) => {

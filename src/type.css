@@ -1826,3 +1826,10 @@ html[data-theme="nova"] .type-dna span {
   background: rgba(255, 255, 255, .06);
 }
 html[data-theme="nova"] .style-choice-head em { color: rgba(244, 240, 231, .68); }
+
+/* GUGUOVA is seven letters where NOVA was four: tighten the wordmark
+   tracking so the top bar keeps its proportions. */
+.brand-word {
+  font-size: 12.5px;
+  letter-spacing: .2em;
+}
