@@ -26,7 +26,8 @@
   Dusk 陶土/木/纸/玻璃/低弦，Steam 电磁阀/控制台/低频合成，Night 翻牌/机场铃/风/PA 人声；
   全部 mono / 44.1k / OGG，峰值 -1dB，`sharp ≤ 1.6`、`above5k ≤ 3%`。
 - 三套主题**禁止任何模糊**：`appearance-bg`、`detail-art::before`、`launch-bg` 禁用，
-  所有 `backdrop-filter` 置 none；外观预览改为全幅封面 + 主题标题框 + 底部游戏切换条。
+  所有 `backdrop-filter` 置 none；外观预览改为**全幅封面 + 主题标题框 + 底部游戏切换条**，
+  与 CODEX / SUMMER / ENDFIELD 的结构一致。
 - 外观预览与其它主题统一：全幅封面、底部渐变标题框、底部游戏切换条；
   隐藏「继续游戏」按钮、`GUGUOVA 默认` 说明与时长。
 - 编辑器 / 扫描器 / 右键菜单：纸面主题改为纸底墨字，深色主题逐项检查，不再出现白字看不见。
