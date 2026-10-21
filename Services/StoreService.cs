@@ -7,8 +7,28 @@ namespace NovaGameSpace.Services;
 
 public static class AppPaths
 {
-    public static string Root { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NOVA Game Space");
+    /// <summary>Data root. NOVA_DATA_ROOT lets the packaging pipeline and the
+    /// screenshot tools run against a throwaway profile, so a test run can
+    /// never touch the player's real library (see docs/HANDOFF-NEXT.md §7b).</summary>
+    public static string Root { get; } = ResolveRoot();
+
+    private static string ResolveRoot()
+    {
+        var over = Environment.GetEnvironmentVariable("NOVA_DATA_ROOT");
+        if (!string.IsNullOrWhiteSpace(over))
+        {
+            try
+            {
+                return Path.GetFullPath(over.Trim().Trim('"'));
+            }
+            catch
+            {
+                // A malformed override must never stop the app from starting.
+            }
+        }
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NOVA Game Space");
+    }
 
     public static string Media { get; } = Path.Combine(Root, "media");
     public static string Themes { get; } = Path.Combine(Root, "themes");
