@@ -332,7 +332,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | steam | 2.0.10 | —（自带版式，不用 theme-kit） | steam | stMax |
 | nightflight | 1.0.11 | —（自带版式，不用 theme-kit） | nightflight | nfLaunch |
 
-静态资源版本：`src/index.html` 的 `?v=1.13.0`。应用版本：**1.13.0**。主题版本：dusk / steam **2.0.10**，nightflight **1.0.11**。
+静态资源版本：`src/index.html` 的 `?v=1.14.0`。应用版本：**1.14.0**。主题版本：dusk / steam **2.0.10**，nightflight **1.0.11**，zerohour **1.0.15**，summer **1.8.12**。
 
 ---
 

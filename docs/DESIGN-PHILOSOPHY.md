@@ -1,6 +1,6 @@
 # NOVA 设计理念与主题维护手册
 
-> 适用版本：**1.13.0**
+> 适用版本：**1.14.0**
 > 最后整理：2026-10-21
 > 配套文档：`docs/HANDOFF-NEXT.md`（下一轮交接）、`docs/HANDOFF.md`（项目全貌）、`docs/HANDOFF-THEMES.md`（本轮细节）、
 > `docs/THEME-INTERFACES.md`（接口契约）、`docs/themes/*.md`（单主题卡）、

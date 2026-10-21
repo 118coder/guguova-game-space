@@ -1,6 +1,6 @@
-# GUGUOVA 主题设计规范（1.13.0）
+# GUGUOVA 主题设计规范（1.14.0）
 
-> 适用版本：**1.13.0**
+> 适用版本：**1.14.0**
 > 最后整理：2026-10-21
 > 覆盖范围：14 套界面主题、全部窗口/浮层/控件/文字、缩放引擎弹窗、全主题下拉、首页启动区块、夜航切换动画
 > 配套：`docs/THEME-INTERFACES.md`（选择器与清单契约）、`docs/DESIGN-PHILOSOPHY.md`（设计理念）、
@@ -399,6 +399,23 @@ node tools/audit-contrast.js --themes=endfield,dusk --views=home,settings,engine
 **门槛：`✓ every measured text run meets AA on a solid background`。**
 `layered` 项要截图目检，不能因为工具标了 layered 就跳过。
 
+### 6.1.1 悬停 / 聚焦审计（1.14.0 新增）
+
+静态审计只看静止态，而真实事故几乎都发生在 hover：
+
+```bash
+node tools/audit-hover.js
+node tools/audit-hover.js --themes=zerohour,summer --views=home,settings,detail
+```
+
+- 用 CDP `CSS.forcePseudoState` 强制 `:hover` / `:focus`，读稳定后的颜色；
+- 把 `.btn::before` 扫光层纳入背景合成（扫完时才作为底色）；
+- 门槛同上：正文 4.5:1、大字 3:1；
+- 输出 `_shots/contrast-hover/hover.json`，有失败时退出码 1。
+
+**改了 `.btn::before`、`.icon-btn`、`.pref-row:hover`、`.btn.ghost:hover`
+或任何 `:hover` 配色，都必须跑这一条。**
+
 ### 6.2 手工抽查
 
 - 每个主题至少看：首页（含全屏缩放行）、设置、引擎弹窗、下拉打开、启动遮罩、通知。
@@ -417,6 +434,10 @@ node tools/audit-contrast.js --themes=endfield,dusk --views=home,settings,engine
 | 禁用行像消失 | 整体 `opacity: .5` | 拆成虚线/删除线 + 正常 muted 色；禁用按钮 opacity ≥ .72 |
 | 启动步骤看不清 | 各主题用 `--t-muted`（纸面墨色）压暗底 | 启动层文字统一用亮色；纸面主题单独写亮色值 |
 | 下拉选中项看不清 | `.nova-select-option[aria-selected] { color: accent }` | 文字用 `--menu-selected-ink`，accent 做左轨 |
+| hover 整块变白 | `.btn::before` 扫光层 `z-index:0` 盖住未包裹的纯文本 | 扫光层改 `z-index:-1`（`.btn` 已有 `isolation:isolate`） |
+| hover 白底荧光字 | 扫光层是纸色，文字仍是 accent | hover 文字改墨色（`--zh-ink` / `--ef-ink`） |
+| 弹窗内图标看不见 | 主题把顶栏 `.icon-btn` 染成浅金，弹窗是浅底 | `html[data-theme="<id>"] .detail-modal .icon-btn` 覆盖成墨色 |
+| 爱心/管理按钮消失 | base.css `.icon-btn.square` 是半透明白 | 浅色主题必须显式给 rest/hover 前景与底 |
 
 ---
 
