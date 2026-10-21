@@ -1,9 +1,9 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.14.1**
+> 交接版本：**1.14.4**
 > 交接时间：2026-10-21
-> 分支：`main`（1.14.0 → PR **#24** `ea7adef`；1.14.1 → PR **#25** `0d2cfe5`）
-> 工作区状态：**干净**；1.12.0 / 1.13.0 / 1.14.0 / 1.14.1 均已合并并发布
+> 分支：`main`（1.14.0 → #24；1.14.1 → #25；**1.14.4 → #26** `1c6f095`）
+> 工作区状态：**干净**；1.12.0 → 1.14.4 均已合并并发布
 > 发行：**v1.14.1** 已发布（**单文件 exe 9.29 MB** + legacy-single 13.58 MB + legacy-full 16.90 MB）
 > 仓库：`https://github.com/118coder/guguova-game-space`
 
@@ -34,18 +34,53 @@
 
 | 项 | 值 |
 | --- | --- |
-| 应用版本 | **1.14.1**（`version.json` 是唯一版本源） |
-| 资源版本 | `src/index.html` 全部 `?v=1.14.1` |
+| 应用版本 | **1.14.4**（`version.json` 是唯一版本源） |
+| 资源版本 | `src/index.html` 全部 `?v=1.14.4` |
 | 主题数 | 14（`nova` + 13） |
-| 单文件 exe | `dist/GUGUOVA-1.14.1-single.exe`（9.29 MB，内嵌主题 + 前端 + Magpie） |
-| 文件夹包 | `dist/GUGUOVA-1.14.1-legacy-single.zip` / `legacy-full.zip` |
+| 单文件 exe | `dist/GUGUOVA-1.14.4-single.exe`（9.29 MB，内嵌主题 + 前端 + Magpie） |
+| 文件夹包 | `dist/GUGUOVA-1.14.4-legacy-single.zip` / `legacy-full.zip` |
 | PR 状态 | #22 → `3a27ae3`；#23 → `96afdf1`；#24 → `ea7adef`；**#25 → `0d2cfe5`** |
 | 打包修复 | `15f2690`：legacy net48 不支持 C# 8 range 语法 |
 | QA 工具切主题 | 全部 `persist:false`，不会覆盖玩家保存的主题 |
 
 ---
 
-## 2. 1.14.1 本轮完成 —— 单文件 exe
+## 2. 1.14.4 本轮完成 —— 流水线式发布
+
+发版从一串手工命令变成一条带闸门的流水线：
+
+```bash
+bash tools/release.sh --version 1.15.0 --publish
+# version → engine → build → package → verify → smoke → publish
+```
+
+| # | 工具 | 作用 |
+| --- | --- | --- |
+| 1 | `tools/release.sh` | 主流水线；`--audit` / `--publish` / `--tag-only` / `--skip-smoke` |
+| 2 | `tools/verify-release.py` | 发布闸门：版本四处一致、资源存在、主题清单、GPL 文件、包内容、SHA-256 |
+| 3 | `tools/smoke-single.py` | 空目录跑单 exe：14 主题、0 坏图、引擎解压且 `bundled:true` |
+| 4 | `tools/publish-release.py` | 读 manifest 建 Release 并上传，可安全重跑 |
+| 5 | `docs/RELEASE.md` | 重写为流水线手册 |
+
+顺带修了两个真问题：
+
+- **`NOVA_DATA_ROOT`**：数据根可迁移，单实例锁按 profile 分离。
+  之前冒烟测试被玩家正在运行的实例接管，只测出 1 个主题。
+- 冒烟测试会自动结束临时目录里的残留启动器（只匹配 `guguova-single-*`，
+  不碰玩家实例）。
+
+### 2.0 流水线的五个闸门
+
+1. **版本一致性**：`version.json` / 两个 csproj / `index.html` 的 `?v=` 必须相同。
+2. **资源存在**：`index.html` 引用的本地文件必须真实存在。
+3. **主题清单**：每套主题要有 `theme.json` + `theme.css`，`id` 与目录名一致。
+4. **包内容**：单 exe 是 `MZ`；两个 zip 里有 exe、引擎、`version.json`；
+   full 包还要有 `src/` 与 `themes/`；manifest 的 SHA-256 必须对得上。
+5. **单 exe 冒烟**：空目录启动 → 主题与引擎解压 → `bundled:true`。
+
+---
+
+## 2b. 1.14.1 完成 —— 单文件 exe
 
 发行物现在是**一个可执行文件**：`GUGUOVA-1.14.1-single.exe`（9.29 MB）。
 下载后双击即可运行，没有文件夹、没有 zip、没有 `launch.cmd`。
@@ -311,6 +346,10 @@ node tools/audit-hover.js
 | 引擎自动启动默认 | `Services/LibraryModels.cs` `AutoStartEngine`、`src/app.js` 默认值 |
 | 单 exe 引擎解压 | `Services/EngineBootstrapper.cs`、`ScalingEngine.BundledDirOverride` |
 | 引擎打包 | `tools/pack-engine.py`、`legacy/NovaGameSpace.Legacy.csproj`（`NOVA.Engine.zip`） |
+| 发布流水线 | `tools/release.sh` |
+| 发布闸门 | `tools/verify-release.py` |
+| 单 exe 冒烟 | `tools/smoke-single.py` |
+| GitHub 发布 | `tools/publish-release.py` |
 | 单 exe 产物 | `tools/package-release.py` `package_exe()` |
 | 静态对比度审计 | `tools/audit-contrast.js` |
 | 悬停对比度审计 | `tools/audit-hover.js` |
@@ -382,6 +421,11 @@ node tools/audit-hover.js
 42. **单 exe 的解压目录必须带 `.complete` 标记**，否则每次启动都会重解压 4.7 MB；
     版本号变化时才允许重新解压。
 43. **文件夹包优先于内嵌**：`engine\magpie\` 存在于 exe 旁边时必须直接用它。
+44. **发版必须走 `tools/release.sh`**，不要手工 build + zip + curl；
+    它的 verify / smoke 两个闸门挡的就是 1.14.3 那类问题。
+45. **改过 `library.json` 结构相关代码要跑 `smoke-single.py`**：它用独立
+    `NOVA_DATA_ROOT` 从零首启，能抓出“首次运行才出现”的问题。
+46. **`NOVA_DATA_ROOT` 会切换单实例锁**；写测试脚本时不要假设只有一个进程。
 
 ---
 
@@ -400,9 +444,14 @@ node tools/drive.js "return await window.nova.call('engineOptions');"
 node tools/drive.js "return await window.nova.call('syncSteamPlaytime');"
 
 node tools/bump-version.js 1.14.1
-bash tools/pipeline.sh --skip-audit --version 1.14.1
-# → dist/GUGUOVA-<ver>-single.exe（单文件）
-#   dist/GUGUOVA-<ver>-legacy-single.zip / -full.zip（文件夹版）
+bash tools/release.sh --version 1.15.0          # 构建 + 校验 + 冒烟
+bash tools/release.sh --version 1.15.0 --publish  # 再加 GitHub Release
+bash tools/release.sh --audit                     # 额外跑 UI 审计
+
+# 排障时可单独跑：
+python tools/verify-release.py
+python tools/smoke-single.py
+python tools/publish-release.py --dry-run
 ```
 
 Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 PR / 合并 / 发 Release。
@@ -444,7 +493,8 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 | 1.12.0 | Steam 封面取原图（按分辨率挑选 + 只降不升） |
 | 1.13.0 | Steam 时长同步、主题源码词典、全主题控件/文字精修、夜航幕布、Esc-only 启动退出、设计规范 + skill |
 | 1.14.0 | 缩放引擎选项对齐 Magpie、文案清理、hover/focus 白块与图标修复、`audit-hover` |
-| **1.14.1** | 单文件 exe：内嵌主题、前端资源与 Magpie 引擎 |
+| 1.14.1 | 单文件 exe：内嵌主题、前端资源与 Magpie 引擎 |
+| **1.14.4** | 流水线式打包：release.sh + verify + smoke + publish |
 
 PR 历史：
 
@@ -454,9 +504,10 @@ PR 历史：
 - `96afdf1` feat: 1.13.0（PR #23，已合并）
 - `3a27ae3` Merge pull request #22（1.12.0）
 
-Release：**v1.14.1**（single.exe / legacy-single / legacy-full）。
+Release：**v1.14.4**（single.exe / legacy-single / legacy-full）。
 
-- `0d2cfe5` feat: 单文件 exe 发行版（**PR #25，已合并**）
+- `1c6f095` feat: 流水线式打包与发布工具链（**PR #26，已合并**）
+- `0d2cfe5` feat: 单文件 exe 发行版（PR #25，已合并）
 
 ---
 
