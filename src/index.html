@@ -7,22 +7,22 @@
 <meta name="theme-color" content="#0a0b0b">
 <title>GUGUOVA · 游戏空间</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="base.css?v=1.14.4">
-<link rel="stylesheet" href="theme.css?v=1.14.4">
-<link rel="stylesheet" href="cta-palettes.css?v=1.14.4">
-<link rel="stylesheet" href="type.css?v=1.14.4">
-<link rel="stylesheet" href="app.css?v=1.14.4">
-<link rel="stylesheet" href="motion.css?v=1.14.4">
-<link rel="stylesheet" href="views.css?v=1.14.4">
-<link rel="stylesheet" href="dialogs.css?v=1.14.4">
-<link rel="stylesheet" href="themes.css?v=1.14.4">
-<link rel="stylesheet" href="theme-fx.css?v=1.14.4">
-<link rel="stylesheet" href="fx-layers.css?v=1.14.4">
-<link rel="stylesheet" href="theme-kit.css?v=1.14.4">
-<link rel="stylesheet" href="polish.css?v=1.14.4">
-<link rel="stylesheet" href="intro.css?v=1.14.4">
-<link rel="stylesheet" href="compat.css?v=1.14.4" id="compat-style">
-<link rel="stylesheet" href="settings-themes.css?v=1.14.4">
+<link rel="stylesheet" href="base.css?v=1.15.0">
+<link rel="stylesheet" href="theme.css?v=1.15.0">
+<link rel="stylesheet" href="cta-palettes.css?v=1.15.0">
+<link rel="stylesheet" href="type.css?v=1.15.0">
+<link rel="stylesheet" href="app.css?v=1.15.0">
+<link rel="stylesheet" href="motion.css?v=1.15.0">
+<link rel="stylesheet" href="views.css?v=1.15.0">
+<link rel="stylesheet" href="dialogs.css?v=1.15.0">
+<link rel="stylesheet" href="themes.css?v=1.15.0">
+<link rel="stylesheet" href="theme-fx.css?v=1.15.0">
+<link rel="stylesheet" href="fx-layers.css?v=1.15.0">
+<link rel="stylesheet" href="theme-kit.css?v=1.15.0">
+<link rel="stylesheet" href="polish.css?v=1.15.0">
+<link rel="stylesheet" href="intro.css?v=1.15.0">
+<link rel="stylesheet" href="compat.css?v=1.15.0" id="compat-style">
+<link rel="stylesheet" href="settings-themes.css?v=1.15.0">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -265,7 +265,7 @@
             <button class="rail-empty-card" id="railAddCard">
               <span class="rail-empty-icon"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></span>
               <span class="rail-empty-title">添加第一款游戏</span>
-              <span class="rail-empty-sub">选择 EXE，或从 Steam 库导入</span>
+              <span class="rail-empty-sub">自动扫描平台，或手动选择 EXE</span>
             </button>
           </div>
 
@@ -320,7 +320,7 @@
               <button class="filter is-active" data-filter="all">全部</button>
               <button class="filter" data-filter="recent">最近游玩</button>
               <button class="filter" data-filter="favorite">已收藏</button>
-              <button class="filter" data-filter="steam">Steam</button>
+              <button class="filter" data-filter="platform">平台</button>
               <button class="filter" data-filter="missing">程序缺失</button>
             </div>
             <label class="lib-sort">
@@ -668,6 +668,13 @@
                 </span>
                 <span class="switch" id="settingsTraySwitch"></span>
               </button>
+              <button class="pref-row" id="settingsIdleRow" role="switch" aria-checked="true">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+                  <span>挂机 10 分钟后暂停计时</span>
+                </span>
+                <span class="switch" id="settingsIdleSwitch"></span>
+              </button>
               <button class="pref-row" id="settingsAutoBackupRow" role="switch" aria-checked="true">
                 <span class="pref-label">
                   <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
@@ -985,6 +992,8 @@
 
       <div class="detail-stats" id="detailStats"></div>
 
+      <div class="detail-sessions" id="detailSessions" hidden></div>
+
       <div class="detail-sync" id="detailPathRow">
         <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
         <span class="detail-path" id="detailPath">—</span>
@@ -1004,14 +1013,14 @@
         <div class="manage-stats" id="manageStats"></div>
         <div class="manage-steam" id="manageSteam" hidden>
           <div class="manage-steam-head">
-            <span class="manage-steam-title">Steam 启动</span>
+            <span class="manage-steam-title" id="manageSteamTitle">Steam 启动</span>
             <span class="manage-steam-state" id="manageSteamState">—</span>
           </div>
           <p class="manage-steam-note" id="manageSteamNote"></p>
           <div class="manage-steam-modes" id="manageSteamModes" role="group" aria-label="启动方式">
-            <button class="steam-mode" data-mode="auto" type="button">自动</button>
-            <button class="steam-mode" data-mode="steam" type="button">走 Steam</button>
-            <button class="steam-mode" data-mode="direct" type="button">直接启动</button>
+            <button class="steam-mode" id="manageModeAuto" data-mode="auto" type="button">自动</button>
+            <button class="steam-mode" id="manageModeClient" data-mode="steam" type="button">走 Steam</button>
+            <button class="steam-mode" id="manageModeDirect" data-mode="direct" type="button">直接启动</button>
           </div>
         </div>
         <div class="manage-rows">
@@ -1020,7 +1029,7 @@
             <svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg>
           </button>
           <button class="manage-row" id="refreshArtRow">
-            <span>用 Steam 最新封面重新导入</span>
+            <span id="refreshArtLabel">用 Steam 最新封面重新导入</span>
             <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
           </button>
           <button class="manage-row" id="resetArtRow">
@@ -1209,6 +1218,55 @@
   </div>
 </div>
 
+<!-- ============ IMPORT MODE (auto / manual) ============
+     The one surface behind every "add a game" entry point. It borrows the
+     scaling sheet's material (--sheet-*) so it lands in all 14 themes as
+     that theme's own dialog, and never as a system message box. -->
+<div class="overlay import-overlay" id="importOverlay" aria-hidden="true">
+  <div class="engine-shell import-shell" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+    <header class="engine-head">
+      <div class="engine-head-copy">
+        <div class="engine-kicker" id="importKicker">LIBRARY · IMPORT</div>
+        <h2 id="importTitle">添加游戏</h2>
+        <p id="importSub">先扫描本机已安装的平台，或直接选一个程序。</p>
+      </div>
+      <button class="icon-btn" id="importClose" aria-label="关闭入库窗口">
+        <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </header>
+
+    <div class="engine-body import-body">
+      <div class="import-detected" id="importDetected" hidden></div>
+
+      <div class="import-choices" id="importChoices" role="radiogroup" aria-label="入库方式">
+        <button class="import-choice" id="importAuto" type="button" role="radio" aria-checked="true" data-mode="auto">
+          <span class="import-choice-top">
+            <span class="import-choice-icon"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg></span>
+            <span class="import-choice-tag" id="importAutoTag">推荐</span>
+          </span>
+          <span class="import-choice-name">自动扫描入库</span>
+          <span class="import-choice-desc">读取 Steam、Epic、GOG、Ubisoft、EA、Xbox 与战网的已安装游戏，勾选后一次加入。</span>
+        </button>
+
+        <button class="import-choice" id="importManual" type="button" role="radio" aria-checked="false" data-mode="manual">
+          <span class="import-choice-top">
+            <span class="import-choice-icon"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></span>
+          </span>
+          <span class="import-choice-name">手动添加</span>
+          <span class="import-choice-desc">自己选择 EXE，填写名称、介绍与封面，适合独立游戏和测试版。</span>
+        </button>
+      </div>
+
+      <p class="import-note" id="importNote">自动入库只读取已安装信息，不会移动或删除任何游戏文件。</p>
+    </div>
+
+    <footer class="engine-actions import-actions">
+      <button class="engine-btn ghost" id="importLater" type="button" hidden>稍后再说</button>
+      <button class="engine-btn primary" id="importGo" type="button">继续</button>
+    </footer>
+  </div>
+</div>
+
 <!-- ============ SCANNER / IMPORT ============ -->
 <div class="overlay scanner-overlay" id="scannerOverlay" aria-hidden="true">
   <div class="scanner-shell" role="dialog" aria-modal="true" aria-label="导入本机游戏">
@@ -1216,7 +1274,7 @@
       <div>
         <div class="scanner-kicker">游戏库 · 导入</div>
         <h2>导入本机游戏</h2>
-        <p id="scannerSub">扫描已安装的游戏。</p>
+        <p id="scannerSub">按平台分组扫描本机已安装的游戏。</p>
       </div>
       <button class="icon-btn" id="scannerClose" aria-label="关闭">
         <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
@@ -1226,6 +1284,19 @@
     <div class="scanner-status" id="scannerStatus">
       <span class="scanner-spinner" id="scannerSpinner"></span>
       <span id="scannerStatusText">正在扫描…</span>
+    </div>
+
+    <div class="scanner-search" id="scannerSearchRow" hidden>
+      <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+      <input id="scannerSearch" type="text" placeholder="搜索名称或路径" autocomplete="off" spellcheck="false" aria-label="搜索扫描结果">
+    </div>
+
+    <div class="scan-bulk" id="scanBulk" hidden>
+      <button class="scan-bulk-toggle" id="scanSelectAll" type="button" role="checkbox" aria-checked="false">
+        <span class="scan-check"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
+        <span id="scanSelectAllLabel">全选</span>
+      </button>
+      <span class="scan-bulk-count" id="scanBulkCount">已选 0 项</span>
     </div>
 
     <div class="scanner-list" id="scannerList"></div>
@@ -1389,14 +1460,14 @@
   <span id="toastText"></span>
 </div>
 
-<script src="motion.js?v=1.14.4" defer></script>
-<script src="focus.js?v=1.14.4" defer></script>
-<script src="surfaces.js?v=1.14.4" defer></script>
-<script src="gamepad.js?v=1.14.4" defer></script>
-<script src="overlays.js?v=1.14.4" defer></script>
-<script src="theme-engine.js?v=1.14.4" defer></script>
-<script src="intro.js?v=1.14.4" defer></script>
-<script src="fx-record.js?v=1.14.4" defer></script>
-<script src="app.js?v=1.14.4" defer></script>
+<script src="motion.js?v=1.15.0" defer></script>
+<script src="focus.js?v=1.15.0" defer></script>
+<script src="surfaces.js?v=1.15.0" defer></script>
+<script src="gamepad.js?v=1.15.0" defer></script>
+<script src="overlays.js?v=1.15.0" defer></script>
+<script src="theme-engine.js?v=1.15.0" defer></script>
+<script src="intro.js?v=1.15.0" defer></script>
+<script src="fx-record.js?v=1.15.0" defer></script>
+<script src="app.js?v=1.15.0" defer></script>
 </body>
 </html>

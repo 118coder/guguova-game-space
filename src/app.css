@@ -151,8 +151,10 @@ img { -webkit-user-drag: none; user-drag: none; }
 
 body.is-empty .hero { opacity: 1; }
 
-body.is-empty .progress-track,
-body.is-empty .cta-row .btn.primary { opacity: .55; }
+/* An empty library makes "添加游戏" the primary action, so the button keeps its
+   full strength; only the empty progress track fades. Dimming the CTA to .55
+   put CODEK's dark-on-gold label at 3.9:1 — an actionable button has to read. */
+body.is-empty .progress-track { opacity: .55; }
 
 /* ---------- editor overlay ---------- */
 
@@ -546,7 +548,129 @@ body.is-empty .cta-row .btn.primary { opacity: .55; }
   background: rgba(255, 255, 255, .07);
 }
 
-.scan-group-title span em { font-style: normal; color: inherit; opacity: .82; margin-left: 6px; }
+/* Platform chips and the group action are small text, so they take the theme's
+   readable accent rather than the raw one. Several theme sheets painted
+   .scan-source with --t-accent, which is 4.04:1 on RIOT's paper; the extra
+   specificity wins over theme CSS loaded after this file. */
+html[data-theme] .scan-source { color: var(--accent-text, var(--accent)); }
+
+/* Everything here mixes from currentColor so the box follows the scanner
+   sheet's ink — hardcoded whites vanished on DUSK/GRIMOIRE paper. */
+.scanner-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 28px 10px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  transition: border-color .2s ease;
+}
+
+.scanner-search:focus-within { border-color: var(--accent); }
+
+.scanner-search .ic {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.scanner-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.scanner-search input::placeholder { color: color-mix(in srgb, currentColor 42%, transparent); }
+
+.scan-client-missing {
+  font-style: normal;
+  font-size: 9.5px;
+  letter-spacing: .08em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
+  color: var(--accent-text, var(--accent));
+  white-space: nowrap;
+}
+
+/* Bulk selection sits between the scan status and the list: one click covers
+   every importable row (all platforms + manifests + shortcuts), the second
+   click clears it. The per-platform headers keep their own toggle. */
+.scan-bulk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 28px 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.scan-bulk[hidden] { display: none; }
+
+.scan-bulk-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px 5px 6px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  letter-spacing: .02em;
+  color: var(--muted);
+  transition: background .18s ease, color .18s ease;
+}
+
+.scan-bulk-toggle:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+
+.scan-bulk-toggle .scan-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border-color: color-mix(in srgb, currentColor 34%, transparent);
+}
+
+.scan-bulk-toggle[aria-checked="true"] .scan-check {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #10120f;
+}
+
+.scan-bulk-toggle[aria-checked="true"] { color: var(--ink, #f5f2ea); }
+
+.scan-bulk-count {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  /* --muted, not --faint: on BROADCAST's paper panel and GRIMOIRE's parchment
+     the faint tier measured 3.8–4.0:1 at this size. */
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Group header action: select every row of one platform. Text is the readable
+   accent (never the raw accent), so it holds up on the paper themes that paint
+   the scanner sheet light. */
+.scan-pick {
+  flex: none;
+  padding: 2px 4px;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  letter-spacing: .12em;
+  color: var(--accent-text, var(--accent));
+  border-radius: 4px;
+  transition: color .18s ease, background .18s ease;
+}
+
+.scan-pick:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+
+.scan-group-title span em { font-style: normal; color: inherit; margin-left: 6px; }
 
 .scan-row {
   display: flex;
@@ -571,6 +695,7 @@ body.is-empty .cta-row .btn.primary { opacity: .55; }
 .scan-row.is-imported .scan-name { color: var(--muted); }
 
 .scan-thumb {
+  position: relative;
   width: 88px;
   height: 50px;
   flex: none;
@@ -583,7 +708,16 @@ body.is-empty .cta-row .btn.primary { opacity: .55; }
   color: rgba(255, 255, 255, .3);
 }
 
-.scan-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* The cover paints over the disc glyph; a failed load removes the img and the
+   glyph is what shows (see scanRow's error listener). */
+.scan-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 .scan-thumb .ic { width: 18px; height: 18px; }
 
 .scan-copy { flex: 1 1 auto; min-width: 0; }
@@ -651,6 +785,47 @@ body.is-empty .cta-row .btn.primary { opacity: .55; }
 .scanner-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
 /* ---------- detail path row ---------- */
+
+.detail-sessions {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--hair, rgba(255, 255, 255, .1));
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.detail-sessions[hidden] { display: none; }
+
+.detail-sessions .session-head,
+.detail-sessions .session-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 4px 0;
+}
+
+.detail-sessions .session-head {
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  color: var(--faint);
+}
+
+.detail-sessions .session-row .session-len {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* No shared --danger token exists, and the hardcoded salmon failed on every
+   paper theme (2.5-2.8:1). --accent-text is the per-theme readable small-text
+   colour the spec reserves for exactly this. */
+.detail-sessions .session-row .session-flag {
+  font-size: 9.5px;
+  letter-spacing: .08em;
+  color: var(--accent-text, inherit);
+  min-height: 1em;
+}
 
 .detail-path {
   min-width: 0;
@@ -1320,9 +1495,9 @@ html[data-theme="grimoire"] { --hero-frame-ratio: .75; }
   font-size: 9.5px;
   letter-spacing: .04em;
   /* Inherit the themed row colour: accent-on-paper (summer's yellow) was
-     unreadable. The row already flips between ink and light per theme. */
+     unreadable. The row already flips between ink and light per theme, and the
+     old .82 opacity multiplied into it — 4.33:1 on ENDFIELD's white sheet. */
   color: inherit;
-  opacity: .82;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -2011,7 +2186,11 @@ html[data-theme] .engine-shell .pref-row .pref-hint {
   color: var(--sheet-muted);
 }
 
-html[data-theme] .engine-shell .icon-btn {
+/* DUSK and RIOT paint top-bar .icon-btn cream on hover; inside a sheet that
+   lands on the sheet's own light well (1.2:1). The :is() form buys one extra
+   specificity level, which is what it takes to win over
+   `html[data-theme="dusk"] .icon-btn:hover` loaded later in theme.css. */
+html[data-theme] .engine-shell :is(.icon-btn, .icon-btn:hover, .icon-btn:focus-visible, .icon-btn:active) {
   color: var(--sheet-ink-2);
 }
 
@@ -2019,6 +2198,196 @@ html[data-theme] .engine-shell .icon-btn {
    themes, so it matches the sheet instead of flashing a light OS list. */
 html[data-theme] .engine-shell .nova-select-menu {
   color-scheme: dark;
+}
+
+/* A white focus ring is invisible on every paper theme. Inside a sheet the
+   ink colour is by definition the readable contrast against its own surface,
+   so the ring follows the sheet instead of the page. */
+html .engine-shell :focus-visible {
+  outline: 2px solid var(--sheet-ink);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   IMPORT SHEET · automatic scan or manual add
+   One surface behind every "add a game" entry point (top bar +, library
+   header, empty library, first run). It is an .engine-shell on purpose:
+   the --sheet-* contract already gives all 14 themes their own material,
+   corner language, title face, button recipe and accent mark, so this
+   control never reads as a stock modal pasted over the theme.
+   ============================================================ */
+
+.import-overlay { z-index: 74; }
+
+.import-shell {
+  width: min(680px, 94vw);
+  opacity: 0;
+  transform: translateY(14px) scale(.99);
+  transition: transform .45s var(--ease), opacity .32s ease;
+}
+
+.overlay.is-open .import-shell { opacity: 1; transform: none; }
+
+html.reduce-motion .import-shell,
+html[data-tier="safe"] .import-shell { transition: none; }
+
+.import-body { display: flex; flex-direction: column; }
+
+/* Which launchers this machine actually has, counted cheaply (manifests and
+   registry keys only) so the sheet opens without waiting for a full scan. */
+.import-detected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.import-detected[hidden] { display: none; }
+
+.import-platform {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 5px 9px;
+  border: 1px solid var(--sheet-line);
+  border-radius: calc(var(--sheet-control-radius) + 2px);
+  font-family: var(--sheet-kicker-font);
+  font-size: 8.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--sheet-ink-2);
+}
+
+.import-platform b {
+  font-family: var(--sheet-control-font);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--sheet-ink);
+}
+
+.import-platform.is-empty {
+  border-style: dashed;
+  color: var(--sheet-muted);
+}
+
+/* Two mode cards. Accent is only ever a border/left mark — never the text
+   colour — because the ink has to stay readable on every theme's sheet. */
+.import-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* The selected state is drawn with a real left border, not a ::before strip:
+   the contrast audit composites any pseudo-element background as if it covered
+   the whole box, which turned every selected card into a false 1:1 failure. */
+.import-choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 138px;
+  padding: 14px 15px 15px 15px;
+  border: 1px solid var(--sheet-line);
+  border-left: var(--sheet-mark-w) solid transparent;
+  border-radius: var(--sheet-control-radius);
+  background: transparent;
+  color: var(--sheet-ink);
+  font-family: var(--sheet-control-font);
+  text-align: left;
+  transition: border-color .2s ease, background .2s ease, transform .15s ease;
+}
+
+.import-choice:hover { border-color: var(--sheet-mark); }
+.import-choice:hover .import-choice-name { color: var(--sheet-ink); }
+.import-choice:active { transform: translateY(1px); }
+
+.import-choice.is-active {
+  border-color: var(--sheet-mark);
+  background: var(--sheet-active-bg);
+}
+
+.import-choice-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.import-choice-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 1px solid var(--sheet-line);
+  border-radius: calc(var(--sheet-control-radius) + 3px);
+  color: var(--sheet-ink-2);
+  transition: color .2s ease, border-color .2s ease;
+}
+
+.import-choice-icon .ic { width: 15px; height: 15px; }
+
+.import-choice.is-active .import-choice-icon {
+  border-color: var(--sheet-mark);
+  color: var(--sheet-ink);
+}
+
+/* "推荐" is a label, not a highlight: it uses the sheet's own secondary ink and
+   marks itself with a dot, because nova's accent is sampled from the cover and
+   a mid-tone cover would drop accent-coloured 8.5px text under 4.5:1. */
+.import-choice-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-family: var(--sheet-kicker-font);
+  font-size: 8.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--sheet-ink-2);
+}
+
+.import-choice-tag::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sheet-mark);
+}
+
+.import-choice-tag[hidden] { display: none; }
+
+.import-choice-name {
+  margin-top: 12px;
+  font-family: var(--sheet-title-font);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: var(--sheet-title-spacing, 0);
+  color: var(--sheet-ink);
+}
+
+.import-choice-desc {
+  margin-top: 6px;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--sheet-muted);
+}
+
+.import-note {
+  margin-top: 14px;
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: var(--sheet-muted);
+}
+
+.import-actions .engine-btn[hidden] { display: none; }
+
+@media (max-width: 620px) {
+  .import-choices { grid-template-columns: 1fr; }
+  .import-choice { min-height: 0; }
+  .import-actions .engine-btn { flex: 1 1 auto; }
 }
 
 .cta-row .btn[hidden] { display: none; }
@@ -2694,7 +3063,10 @@ html[data-theme="dusk"] .engine-shell {
   --sheet-control-bg: var(--dk-paper-edge, #fdf6e8);
   --sheet-control-border: 1px solid var(--dk-line);
   --sheet-btn-radius: 2px;
-  --sheet-primary-bg: linear-gradient(180deg, #c87a52, #a9503a);
+  /* The wax button was terracotta-on-paper at 2.95:1 — unreadable at the
+     11px button size. The gradient starts at the accent's darkened stop so
+     the paper ink clears AA on the lightest end as well. */
+  --sheet-primary-bg: linear-gradient(180deg, #a9503a, #8a3d2a);
   --sheet-primary-ink: #fbf1dc;
   --sheet-primary-border: 1px solid var(--dk-gold);
   --sheet-primary-shadow: inset 0 0 0 1px rgba(217, 181, 124, .55);

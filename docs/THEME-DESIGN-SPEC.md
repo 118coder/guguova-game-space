@@ -1,6 +1,6 @@
 # GUGUOVA 主题设计规范（1.14.0）
 
-> 适用版本：**1.14.0**
+> 适用版本：**1.15.0**
 > 最后整理：2026-10-21
 > 覆盖范围：14 套界面主题、全部窗口/浮层/控件/文字、缩放引擎弹窗、全主题下拉、首页启动区块、夜航切换动画
 > 配套：`docs/THEME-INTERFACES.md`（选择器与清单契约）、`docs/DESIGN-PHILOSOPHY.md`（设计理念）、
@@ -40,6 +40,15 @@
 8. **游戏启动界面只能按 Esc 退出**（手柄 B 等价于返回）；点击、A、其它按键都不得关闭。
 9. **用户数据目录不可直接拿来截图/测试**；截图走隔离演示库或只读审计。
 10. **每轮改动必须更新本文档或对应单主题卡。**
+11. **平台徽标只用文字**（`STEAM` / `EPIC` / `GOG` / `UBISOFT` / `EA` / `XBOX` /
+    `BATTLE.NET`），不引入第三方 logo、品牌色或商店图标；徽标底色永远来自主题的
+    `--sheet-well` / `--accent-text`，不跟平台品牌走。
+12. **来源文案只有一个出口**：`app.js` 的 `platformOf()` / `sourceLabel()` /
+    `platformShort()`。任何界面都不得再写 `game.source === 'steam' ? … : …`，
+    新增平台时只改这三张表。
+13. **入库窗口必须长在 `.engine-shell` 上**：复用 `--sheet-*` 材质与按钮配方，
+    不允许另起一套深色玻璃卡；选择卡片的强调色只做左轨与描边，文字永远用
+    `--sheet-ink` / `--sheet-ink-2` / `--sheet-muted`。
 
 ---
 
@@ -93,7 +102,7 @@ theme-fx → fx-layers → theme-kit → polish → intro → compat → setting
 
 | 主题 | `--accent` | `--accent-text` | 说明 |
 | --- | --- | --- | --- |
-| nova | 封面取色 | 同 accent | 封面渐变通常足够亮，深色底安全 |
+| nova | 封面取色 | 运行时提亮（`readableAccentText`） | 深封面会把 accent 小字压到 2:1；1.15.0 起按 WCAG 逐级提亮到 4.6:1，色相不变 |
 | aurum | `#b08a4e` | `#e8c98a` | 暗底上提亮 |
 | endfield | `#fffa00` | `#161616` | 酸黄是面，文字用墨 |
 | zerohour | `#c9f73a` | `#c9f73a` | 青柠在近黑底可靠 |
@@ -367,7 +376,73 @@ background:
   （那样看起来“没反应”）；
 - 启动遮罩也用 `applyHeroFraming`，与首页保持一致。
 
-### 5.5 启动界面（进游戏）
+### 5.5 入库窗口 `.import-shell`（1.15.0 新增）
+
+**为什么不是新的一套材质**：入库窗口是「添加游戏」的唯一入口（顶栏 `+`、游戏库
+「添加游戏」、空库主按钮、首次启动提示）。它直接挂 `.engine-shell` 类，材质、
+切角、标题字体、按钮配方、强调标记全部继承 `--sheet-*`，所以 14 套主题里它天生
+就是那套主题的弹窗，而不是一块压在纸上的深色卡片。
+
+**结构**：
+
+```html
+.overlay.import-overlay
+  .engine-shell.import-shell[role=dialog]
+    .engine-head     → .engine-kicker + h2 + p + .icon-btn(关闭)
+    .engine-body.import-body
+      .import-detected  → .import-platform × N   （平台名 + 数量）
+      .import-choices   → .import-choice × 2     （role=radio，aria-checked）
+    .engine-actions.import-actions → 次要按钮 + .engine-btn.primary
+```
+
+**使用的令牌**（全部来自 `.engine-shell`，不新增令牌族）：
+
+| 用途 | 令牌 |
+| --- | --- |
+| 表面 / 文字 | `--sheet-bg` `--sheet-ink` `--sheet-ink-2` `--sheet-muted` |
+| 分隔 | `--sheet-line` `--sheet-hair` |
+| 圆角 / 切角 | `--sheet-control-radius` `--sheet-clip` |
+| 选择卡选中态 | `--sheet-active-bg` `--sheet-mark` `--sheet-mark-w` |
+| 主按钮 | `--sheet-primary-bg/ink/border/shadow` |
+| 眉标 / 标题字 | `--sheet-kicker-*` `--sheet-title-*` |
+
+固定规则：
+
+- 选择卡默认 `background: transparent` + `1px var(--sheet-line)`；选中才铺
+  `--sheet-active-bg`，左侧竖条用 **`border-left: var(--sheet-mark-w) solid`**
+  实现——不要用 `::before` 画条：审计会把伪元素背景当成整块底色，
+  选中卡会被误判成 1:1；
+- 「推荐」标签用 `--sheet-ink-2` + 一个 `--sheet-mark` 圆点。**不要**用
+  `--accent-text`：nova 的 accent 取自封面，深色封面会把 8.5px 小字压到 2:1；
+- 平台检测条（`.import-platform`）是「平台名 + 数量」，已安装的用实线框，
+  未检测到的直接不渲染；
+- 弹窗内的焦点环用 `--sheet-ink`（`html .engine-shell :focus-visible`），
+  白色焦点环在纸面主题上等于没有。
+
+**每主题落点**（由上表令牌推导，改令牌即改这里）：
+
+| 主题 | 表面 | 选择卡边框 | 选中标记 | 主按钮 |
+| --- | --- | --- | --- | --- |
+| nova | 深色渐变 | 1px 白 12% / 10px 圆角 | accent 2px 左轨 | accent 填充 + 深字 |
+| aurum | 墨绿渐变 | 1px 青铜 34% / 2px | 青铜 2px 左轨 | 鎏金渐变 + 深墨字 |
+| endfield | 白纸 + 三色顶带 + 16px 切角 | 方角墨框 | 墨 4px 左轨 | 酸黄 + 墨边 + 4px 硬影 |
+| zerohour | `#111214` + 青柠顶线 | 方角青柠细框 | 青柠 4px 左轨 | 青柠 + 墨字 + 硬影 |
+| codex | 深褐渐变 + 金线 | 金 2px | 金 2px 左轨 | 浅金 + 深褐字 |
+| broadcast | 纸白 + 3px 黑顶线 | 方角黑框 | 黑 3px 左轨 | 黑底米白字 |
+| summer | 白纸 + 三色顶带 | 方角墨框 | 墨 4px 左轨 | 黑底白字 |
+| riso | 纸底蓝框 + 蓝硬影 | 方角蓝框 | 蓝 4px 左轨 | 酸黄 + 墨边 + 蓝硬影 |
+| riot | 纸底黑框 + 红硬影 | 方角黑框 | 朱红 4px 左轨 | 黑底米白字 + 红硬影 |
+| grimoire | 羊皮纸 + 金线 | 金 2px | 酒红 3px 左轨 | 酒红 + 羊皮纸字 + 金内线 |
+| mnemo | 白底紫线 | 靛紫细框 | 梅红 3px 左轨 | 梅红 + 白字 |
+| dusk | 纸色 + 金线 | 墨 2px | 陶土 3px 左轨 | 深陶土渐变 + 纸色字 |
+| steam | 炭黑 + 蓝顶线 | 蓝 3px | 蓝 3px 左轨 | 蓝渐变 + 深字 |
+| nightflight | 深夜蓝 + 荧光顶线 | 方角蓝灰框 | 荧光 4px 左轨 | 荧光 + 墨字 + 硬影 |
+
+> DUSK 的主按钮 1.15.0 从 `#c87a52→#a9503a` 改成 `#a9503a→#8a3d2a`：原来的浅端
+> 与纸色文字只有 2.95:1，11px 按钮字读不出来。这条同时修好了缩放引擎弹窗的
+> 保存按钮。
+
+### 5.6 启动界面（进游戏）
 
 - 键盘：**只有 Esc** 可以退出；点击遮罩、A、Enter、空格、任意键都不再关闭。
 - 手柄：B / ○（返回）等价于 Esc；A / ✕ 不再关闭。
@@ -384,7 +459,7 @@ background:
 ```bash
 node tools/audit-contrast.js
 # 或只查指定主题/界面
-node tools/audit-contrast.js --themes=endfield,dusk --views=home,settings,engine,launching
+node tools/audit-contrast.js --themes=endfield,dusk --views=home,settings,import,engine,launching
 ```
 
 工具会：
@@ -405,7 +480,7 @@ node tools/audit-contrast.js --themes=endfield,dusk --views=home,settings,engine
 
 ```bash
 node tools/audit-hover.js
-node tools/audit-hover.js --themes=zerohour,summer --views=home,settings,detail
+node tools/audit-hover.js --themes=zerohour,summer --views=home,settings,import,detail
 ```
 
 - 用 CDP `CSS.forcePseudoState` 强制 `:hover` / `:focus`，读稳定后的颜色；
@@ -438,6 +513,8 @@ node tools/audit-hover.js --themes=zerohour,summer --views=home,settings,detail
 | hover 白底荧光字 | 扫光层是纸色，文字仍是 accent | hover 文字改墨色（`--zh-ink` / `--ef-ink`） |
 | 弹窗内图标看不见 | 主题把顶栏 `.icon-btn` 染成浅金，弹窗是浅底 | `html[data-theme="<id>"] .detail-modal .icon-btn` 覆盖成墨色 |
 | 爱心/管理按钮消失 | base.css `.icon-btn.square` 是半透明白 | 浅色主题必须显式给 rest/hover 前景与底 |
+| 扫描行徽标读不清 | 主题把 `.scan-source` 写成 `--t-accent`（RIOT 纸面 4.04:1） | 统一用 `--accent-text`：`html[data-theme] .scan-source` |
+| 轨道小字发暗 | `.tile.is-active .tile-sub` 用了 `--accent`（封面深色时 2.2:1） | 小字用 `--muted`，强调只保留在卡片边框/进度条 |
 
 ---
 
@@ -544,6 +621,7 @@ node tools/audit-hover.js --themes=zerohour,summer --views=home,settings,detail
 | 外观 | 预览、主题网格、字标、取景编辑、下拉 |
 | 设置 | 双栏、用户卡、开关、输入框、下拉、Steam 权限、同步按钮 |
 | 详情 | 统计格、路径、进度、管理面板、启动选项 |
+| 入库窗口 | 眉标/标题/平台检测条/两张选择卡（选中与未选中）/主次按钮/关闭 |
 | 缩放引擎 | 标题/眉标/标签/控件/按钮/算法列表/禁用行/关闭 |
 | 启动遮罩 | Esc 提示、步骤、进度、底部说明 |
 | 通知/玩家菜单 | 表面墨色、空态、脚注、快捷键 |
@@ -558,6 +636,27 @@ node tools/audit-hover.js --themes=zerohour,summer --views=home,settings,detail
 
 > 审计/截图工具调用 `NovaTheme.activate(id, { persist: false })`，不会改写玩家保存的主题；
 > 只有真实 UI 切换才持久化。
+
+### 11.0 一键全量截图（无头，1.15.0 新增）
+
+改完 CSS 想一次看全 14 套主题时，不必启动 WPF / WebView2：
+
+```bash
+node tools/headless-shots.js                       # 14 主题 × 7 个核心界面
+node tools/headless-shots.js --views=all --workers=4
+node tools/headless-shots.js --themes=endfield,dusk --views=import,settings --sizes=960x600
+node tools/headless-shots.js --format=png --out=../_shots/png --open
+```
+
+- 用本机 Edge/Chrome 的 `--headless=new` 渲染 `http://127.0.0.1:<port>/src/index.html`；
+- 原生桥由 `tools/lib/headless-host.js` 在页面里应答（6 款虚构游戏、各平台计数、
+  引擎选项、扫描结果），**不读玩家数据目录**；
+- 每张图同时跑布局审计（截断 / 横向溢出 / logo 压字），输出
+  `manifest.json`，退出码非 0 表示一张都没出来；
+- 默认 4 个渲染进程并行；实测 14 主题 × 20 界面 = **280 张 / 212 秒**。
+
+> 页面侧「点进某个界面」的脚本只有一份：`tools/lib/ui-views.js`，
+> `export-all.js` 与 `headless-shots.js` 共用，避免两套点击逻辑漂移。
 
 ```bash
 cd nova-game-space-desktop
@@ -608,6 +707,9 @@ node tools/export-all.js --themes=endfield,dusk,steam --views=all --sizes=1439x1
 | 启动退出 | `src/app.js` `bindKeyboard` / `closeLaunch` / `padBack` |
 | 主题文案 | `theme.json.lexicon` + `app.js` `themeWord` |
 | Steam 同步 | `Services/SteamPlaytime.cs`、`Services/StoreService.SyncSteamPlaytime`、`NativeBridge` |
+| 平台扫描 | `Services/PlatformScanner.cs`（Epic/GOG/Ubisoft/EA/Xbox/战网） |
+| 平台启动 | `Services/LaunchModes.cs`（`GameLaunch.ModeFor`）、`LauncherService.LaunchThroughClient` |
+| 入库窗口 | `src/index.html#importOverlay`、`src/app.js` IMPORT SHEET 段、`src/app.css` `.import-shell` |
 | 对比度审计 | `tools/audit-contrast.js` |
 | 截图审计 | `tools/export-all.js` |
 | 重载 | `tools/relaunch.sh` |
@@ -617,6 +719,8 @@ node tools/export-all.js --themes=endfield,dusk,steam --views=all --sizes=1439x1
 ## 14. 已知限制
 
 - 对比度工具只能合成 `background-color`；由伪元素/背景图绘制纸面的区域标为 `layered`，需人眼复核。
+- 悬停审计会把带背景的 `::before` 当成整块底色（`.btn` 扫光层就是这么处理的），
+  所以**细条、角标一类装饰不要用伪元素画**，否则会得到假的 1:1。
 - 多个主题的启动/睡眠层仍有“深底浅字”的视觉签名，工具只检查可见文字，不评价审美。
 - Steam `Playtime` 是分钟粒度；刚启动/刚退出的几分钟内可能滞后，按 §9.3 的延迟与手动按钮兜底。
 - 主题 CSS 改动必须同步到 `%LOCALAPPDATA%\NOVA Game Space\themes\<id>`，否则实机仍是旧样式。

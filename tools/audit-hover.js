@@ -33,7 +33,8 @@ const OUT = flags.out || path.resolve(__dirname, '..', '..', '_shots', 'contrast
 
 const VIEW_ROOTS = {
   home: '#homeView', settings: '#settingsView', detail: '#detailsOverlay',
-  library: '#libraryOverlay', engine: '#engineOverlay', appearance: '#appearanceOverlay'
+  library: '#libraryOverlay', engine: '#engineOverlay', appearance: '#appearanceOverlay',
+  import: '#importOverlay'
 };
 
 // Interactive text hosts per view. Keep this close to what actually carries a
@@ -43,6 +44,7 @@ const TARGETS = {
   settings: ['.pref-row', '.btn', '.settings-avatar-btn', '.section-tag'],
   detail: ['.detail-actions .btn', '.detail-actions .icon-btn', '.modal-close', '.detail-sync', '.manage-row'],
   library: ['.lib-card', '.filter', '.lib-back', '.lib-sort .nova-select-hit'],
+  import: ['.import-choice', '.engine-btn', '.engine-shell .icon-btn'],
   engine: ['.engine-mode-row', '.engine-btn', '.icon-btn', '.pref-row'],
   appearance: ['.theme-card', '.style-choice', '.appearance-edit', '.btn']
 };
@@ -150,6 +152,7 @@ const HELPERS = String.raw`
         case 'appearance': click('.nav-btn[data-nav="appearance"]'); await sleep(700); break;
         case 'detail': click('#detailBtn'); await sleep(750); break;
         case 'engine': click('#homeEngineBtn'); await sleep(850); break;
+        case 'import': click('#addBtn'); await sleep(900); break;
         default: click('.nav-btn[data-nav="home"]'); await sleep(420); break;
       }
       return view;

@@ -15,12 +15,43 @@ public sealed record LaunchOptions(bool FullscreenScale);
 public sealed class LauncherService
 {
     private readonly StoreService _store;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetLastInputInfo(ref LASTINPUTINFO info);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct LASTINPUTINFO
+    {
+        public uint cbSize;
+        public uint dwTime;
+    }
+
+    /// <summary>Milliseconds since the last keyboard/mouse input, system-wide.
+    /// Unsigned subtraction survives the 49-day TickCount wraparound.</summary>
+    private static double IdleMilliseconds()
+    {
+        var info = new LASTINPUTINFO { cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<LASTINPUTINFO>() };
+        if (!GetLastInputInfo(ref info)) return 0;
+        var idle = (uint)Environment.TickCount - info.dwTime;
+        return idle;
+    }
     private readonly Dictionary<string, Process> _processes = new();
     private readonly Dictionary<string, RunningSessionInfo> _sessions = new();
     private readonly Dictionary<string, DateTime> _sessionStarts = new();
     private readonly Dictionary<string, LaunchOptions> _launchOptions = new();
     private readonly HashSet<string> _pendingSteam = new();
+    /// <summary>Entries whose client has been asked to start the game but
+    /// whose process has not appeared yet (Epic, Ubisoft, Xbox, Battle.net).</summary>
+    private readonly HashSet<string> _pendingClient = new();
+
+    // --- idle pause: wall-clock time with the game parked over lunch used to
+    // count in full. While a session runs, a watchdog samples the last input
+    // time; the paused stretch is subtracted when the session settles.
+    private readonly Dictionary<string, DateTime> _idleSince = new();
+    private readonly Dictionary<string, long> _pausedSeconds = new();
+    private System.Threading.Timer? _idleTimer;
     private readonly object _gate = new();
+    private int _idleThresholdMinutes = 10;
 
     public event Action<RunningSessionInfo>? GameStarted;
     public event Action<RunningSessionInfo, bool, long>? GameExited; // info, crashed, seconds
@@ -47,13 +78,20 @@ public sealed class LauncherService
 
     public LaunchResult Launch(GameEntry game, LaunchOptions? options = null)
     {
-        var mode = SteamService.ModeFor(game);
+        EnsureIdleTimer();
+        var mode = GameLaunch.ModeFor(game);
         var resolved = options ?? new LaunchOptions(false);
 
-        if (mode == "steam")
+        if (mode == GameLaunch.Steam)
         {
             lock (_gate) _launchOptions[game.Id] = resolved;
             return LaunchThroughSteam(game);
+        }
+
+        if (mode == GameLaunch.Platform)
+        {
+            lock (_gate) _launchOptions[game.Id] = resolved;
+            return LaunchThroughClient(game);
         }
 
         if (string.IsNullOrWhiteSpace(game.ExePath))
@@ -202,6 +240,141 @@ public sealed class LauncherService
             : "Steam 未运行，正在唤起客户端；登录完成后游戏会自动开始。");
     }
 
+    /// <summary>
+    /// Starts a game through the launcher that owns it: Epic, Ubisoft, Xbox
+    /// and Battle.net all expose a protocol/package URL, and the client has to
+    /// be the one that starts the exe (licence check, overlay, cloud saves).
+    /// Like the Steam path, the session begins when the process appears.
+    /// </summary>
+    private LaunchResult LaunchThroughClient(GameEntry game)
+    {
+        var uri = game.LaunchUri;
+        if (string.IsNullOrWhiteSpace(uri))
+            return new LaunchResult(false, "这款游戏没有记录平台启动地址，请改用直接启动", null, game.Id);
+
+        lock (_gate)
+        {
+            if (_sessions.ContainsKey(game.Id))
+                return new LaunchResult(false, "游戏已经在运行", _sessions[game.Id].SessionId, game.Id);
+            if (_pendingClient.Contains(game.Id) || _pendingSteam.Contains(game.Id))
+                return new LaunchResult(false, "正在等待平台启动这款游戏", null, game.Id);
+            _pendingClient.Add(game.Id);
+        }
+
+        game.LastPlayedUtc = DateTime.UtcNow.ToString("o");
+        game.LaunchCount += 1;
+        _store.Save();
+
+        var label = GamePlatform.LabelFor(game.Source);
+        WatchClientLaunch(game, label);
+
+        // The protocol handler blocks on COM while the client cold-starts, so
+        // it can never run on the UI thread.
+        var gameId = game.Id;
+        var gameName = game.Name;
+        var thread = new System.Threading.Thread(() =>
+        {
+            var started = StartUri(uri);
+            if (started.Ok) return;
+            lock (_gate)
+            {
+                _pendingClient.Remove(gameId);
+                _launchOptions.Remove(gameId);
+            }
+            Log.Write($"client launch failed {gameName} source={game.Source}: {started.Error}");
+            GameFailed?.Invoke(gameId, started.Error ?? ("无法唤起" + label));
+        })
+        {
+            IsBackground = true,
+            Name = "NOVA client protocol"
+        };
+        thread.Start();
+
+        Log.Write($"client launch {game.Name} source={game.Source} uri={uri}");
+        return new LaunchResult(true, null, null, game.Id, true,
+            $"已通知{label}启动，等待游戏进程…");
+    }
+
+    /// <summary>Sends a protocol URL to the shell. A packaged (Xbox) game is
+    /// addressed through shell:AppsFolder, which only explorer understands.</summary>
+    private static (bool Ok, string? Error) StartUri(string uri)
+    {
+        try
+        {
+            if (uri.StartsWith("shell:", StringComparison.OrdinalIgnoreCase))
+            {
+                var arguments = uri.IndexOf(' ') >= 0 ? "\"" + uri + "\"" : uri;
+                Process.Start(new ProcessStartInfo("explorer.exe", arguments) { UseShellExecute = true });
+                return (true, null);
+            }
+
+            Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("start protocol " + uri, ex);
+            return (false, "无法唤起启动地址：" + ex.Message);
+        }
+    }
+
+    /// <summary>Polls for the real game process, then attaches the normal exit
+    /// tracking to it. A client that needs to start and log in can take minutes,
+    /// so the window is generous and the wait never blocks the UI thread.</summary>
+    private void WatchClientLaunch(GameEntry game, string label)
+    {
+        var gameId = game.Id;
+        var known = new HashSet<int>(CurrentSteamGamePids());
+        var budget = TimeSpan.FromMinutes(4);
+
+        var thread = new System.Threading.Thread(() =>
+        {
+            var started = DateTime.UtcNow;
+            try
+            {
+                while (DateTime.UtcNow - started < budget)
+                {
+                    System.Threading.Thread.Sleep(1500);
+
+                    lock (_gate)
+                    {
+                        if (!_pendingClient.Contains(gameId)) return; // stopped or superseded
+                    }
+
+                    var process = FindGameProcess(gameId, known, started);
+                    if (process == null) continue;
+
+                    lock (_gate) _pendingClient.Remove(gameId);
+                    AttachProcess(game, process);
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    _pendingClient.Remove(gameId);
+                    _launchOptions.Remove(gameId);
+                }
+                Log.Write($"client launch timeout {game.Name} source={game.Source}");
+                GameFailed?.Invoke(gameId,
+                    $"{label} 已经开始运行，但没有等到游戏进程。可能仍在登录或更新，请稍后重试。");
+            }
+            catch (Exception ex)
+            {
+                lock (_gate)
+                {
+                    _pendingClient.Remove(gameId);
+                    _launchOptions.Remove(gameId);
+                }
+                Log.Error("watch client launch", ex);
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "NOVA client launch watcher"
+        };
+        thread.Start();
+    }
+
     /// <summary>Polls for the real game process, then attaches the normal exit
     /// tracking to it. A client that needs to start and log in can take minutes,
     /// so the window is generous and the wait never blocks the UI thread.</summary>
@@ -226,7 +399,7 @@ public sealed class LauncherService
                         if (!_pendingSteam.Contains(gameId)) return; // stopped or superseded
                     }
 
-                    var process = FindSteamGameProcess(gameId, appId, known, started);
+                    var process = FindGameProcess(gameId, known, started);
                     if (process == null) continue;
 
                     lock (_gate) _pendingSteam.Remove(gameId);
@@ -262,7 +435,10 @@ public sealed class LauncherService
         thread.Start();
     }
 
-    private Process? FindSteamGameProcess(string gameId, string appId, HashSet<int> known, DateTime launchedAt)
+    /// <summary>The best identity we have for "the process this launch
+    /// produced": the recorded exe path, its file name, or — for a packaged
+    /// game whose path is protected — a recently started process of that name.</summary>
+    private Process? FindGameProcess(string gameId, HashSet<int> known, DateTime launchedAt)
     {
         // The exe path recorded by the scanner is the best identity we have:
         // it survives renaming and does not depend on the client's window title.
@@ -459,9 +635,10 @@ public sealed class LauncherService
         lock (_gate)
         {
             _launchOptions.Remove(gameId);
-            // A pending Steam request has no process yet: cancelling it is
+            // A pending client request has no process yet: cancelling it is
             // just dropping the watch, otherwise the button would do nothing.
             if (_pendingSteam.Remove(gameId)) return true;
+            if (_pendingClient.Remove(gameId)) return true;
             if (!_processes.TryGetValue(gameId, out process)) return false;
         }
         try
@@ -500,6 +677,77 @@ public sealed class LauncherService
         return false;
     }
 
+    /// <summary>Samples the system idle time once per running session. When
+    /// the keyboard and mouse have been quiet past the threshold the session
+    /// is marked idle; the stretch is subtracted when it settles. One timer
+    /// covers every session because the input state is machine-wide.</summary>
+    private void EnsureIdleTimer()
+    {
+        lock (_gate)
+        {
+            if (_idleTimer != null) return;
+            _idleTimer = new System.Threading.Timer(_ => SampleIdle(), null, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
+        }
+    }
+
+    private void SampleIdle()
+    {
+        List<string> sessionIds;
+        lock (_gate) sessionIds = _sessions.Keys.ToList();
+        if (sessionIds.Count == 0) return;
+
+        var threshold = Math.Max(0, _store.Library.Settings.IdlePauseMinutes) * 60000d;
+        var idle = IdleMilliseconds();
+        var now = DateTime.UtcNow;
+
+        foreach (var gameId in sessionIds)
+        {
+            lock (_gate)
+            {
+                if (threshold <= 0)
+                {
+                    // The pause was switched off mid-session: credit what was
+                    // parked and stop tracking.
+                    if (_idleSince.Remove(gameId, out var open)) _pausedSeconds[gameId] = PausedTotal(gameId) + (long)(now - open).TotalSeconds;
+                    continue;
+                }
+
+                if (idle >= threshold)
+                {
+                    if (!_idleSince.ContainsKey(gameId))
+                    {
+                        _idleSince[gameId] = now;
+                        Log.Write($"idle pause started {gameId} after {threshold / 60000}min");
+                    }
+                }
+                else if (_idleSince.Remove(gameId, out var since))
+                {
+                    _pausedSeconds[gameId] = PausedTotal(gameId) + (long)(now - since).TotalSeconds;
+                    Log.Write($"idle pause ended {gameId} (+{(long)(now - since).TotalSeconds}s paused)");
+                }
+            }
+        }
+    }
+
+    private long PausedTotal(string gameId) =>
+        _pausedSeconds.TryGetValue(gameId, out var total) ? total : 0;
+
+    /// <summary>Wall-clock minus the stretches the player was away.</summary>
+    private long EffectiveSeconds(string gameId, DateTime started)
+    {
+        var wall = (long)Math.Max(0, (DateTime.UtcNow - started).TotalSeconds);
+        long paused = 0;
+        lock (_gate)
+        {
+            paused = PausedTotal(gameId);
+            if (_idleSince.TryGetValue(gameId, out var open))
+                paused += (long)(DateTime.UtcNow - open).TotalSeconds;
+            _pausedSeconds.Remove(gameId);
+            _idleSince.Remove(gameId);
+        }
+        return Math.Max(0, wall - paused);
+    }
+
     private void HandleExit(string gameId, Process process)
     {
         RunningSessionInfo info;
@@ -514,7 +762,7 @@ public sealed class LauncherService
             _sessionStarts.Remove(gameId);
         }
 
-        var seconds = (long)Math.Max(0, (DateTime.UtcNow - started).TotalSeconds);
+        var seconds = EffectiveSeconds(gameId, started);
         var crashed = false;
         try
         {

@@ -470,6 +470,20 @@ public partial class MainWindow : Window
         if (_tray != null) return;
         var menu = new WinForms.ContextMenuStrip();
         menu.Items.Add("显示 GUGUOVA", null, (_, _) => RestoreFromTray());
+
+        // Quick launch: the last five games that can still start. The tray menu
+        // is the OS's own surface, so a native menu here is the convention.
+        foreach (var game in RecentGamesForTray(5))
+        {
+            var entry = game;
+            var item = new WinForms.ToolStripMenuItem(entry.Name)
+            {
+                Enabled = !string.IsNullOrWhiteSpace(entry.ExePath) || entry.Source == GamePlatform.Steam.Id
+            };
+            item.Click += (_, _) => LaunchFromTray(entry);
+            menu.Items.Add(item);
+        }
+
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add("退出", null, (_, _) => ExitApplication());
         _tray = new WinForms.NotifyIcon
@@ -480,6 +494,55 @@ public partial class MainWindow : Window
             ContextMenuStrip = menu
         };
         _tray.DoubleClick += (_, _) => RestoreFromTray();
+    }
+
+    /// <summary>Recently played, existing only, honoring the developer filter.</summary>
+    private List<NovaGameSpace.Models.GameEntry> RecentGamesForTray(int take)
+    {
+        if (Launcher == null) return new List<NovaGameSpace.Models.GameEntry>();
+        try
+        {
+            return Store.Library.Games
+                .Where(game => Store.DeveloperMode || !game.DeveloperOnly)
+                .OrderByDescending(game => game.LastPlayedUtc ?? "")
+                .ThenByDescending(game => game.AddedUtc)
+                .Take(take)
+                .ToList();
+        }
+        catch
+        {
+            return new List<NovaGameSpace.Models.GameEntry>();
+        }
+    }
+
+    private void LaunchFromTray(NovaGameSpace.Models.GameEntry game)
+    {
+        if (Launcher == null) return;
+        var immersive = IsFullscreen;
+        var fullscreen = game.FullscreenScale ?? immersive;
+        if (string.Equals(Store.Library.Settings.ScalingEngine, "off", StringComparison.OrdinalIgnoreCase))
+            fullscreen = false;
+
+        var result = Launcher.Launch(game, new LaunchOptions(fullscreen));
+        if (result.Ok)
+        {
+            // The game window takes the foreground on its own; the launcher
+            // stays in the tray unless the player brings it back.
+            return;
+        }
+
+        RestoreFromTray();
+        Bridge?.Notify("session-failed", new { gameId = game.Id, message = result.Error ?? "启动失败" });
+    }
+
+    /// <summary>Files dropped on the window resolve to one launchable exe and
+    /// open the editor prefilled (the page cannot read dropped paths itself).</summary>
+    private void OnWebDrop(object sender, System.Windows.DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop)) return;
+        if (e.Data.GetData(System.Windows.DataFormats.FileDrop) is not string[] paths || paths.Length == 0) return;
+        e.Handled = true;
+        Bridge?.HandleFileDrop(paths);
     }
 
     public void RestoreFromTray()

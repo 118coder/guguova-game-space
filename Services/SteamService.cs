@@ -87,15 +87,11 @@ public static class SteamService
         }
     }
 
-    /// <summary>The mode a game actually uses. "auto" means: a Steam-owned entry
-    /// goes through the client, everything else runs its own exe.</summary>
-    public static string ModeFor(GameEntry game)
-    {
-        var mode = (game.LaunchMode ?? "").Trim().ToLowerInvariant();
-        if (mode == "steam") return "steam";
-        if (mode == "direct") return "direct";
-        return string.IsNullOrWhiteSpace(game.SteamAppId) ? "direct" : "steam";
-    }
+    /// <summary>Kept for callers that only care about the Steam path; the
+    /// authoritative resolver is GameLaunch.ModeFor, which also knows the
+    /// other launchers. "auto" means: an entry that owns a client goes
+    /// through it, everything else runs its own exe.</summary>
+    public static string ModeFor(GameEntry game) => GameLaunch.ModeFor(game);
 
     /// <summary>Hands the app id to the client. Works whether Steam is already
     /// running or needs to start and log in first; the client owns the launch

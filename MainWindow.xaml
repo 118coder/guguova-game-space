@@ -18,7 +18,7 @@
   <Grid>
     <Border x:Name="RootBorder" Background="#060707" BorderBrush="#241c12" BorderThickness="1">
       <Grid>
-        <wv2:WebView2 x:Name="Web" DefaultBackgroundColor="#060707"/>
+        <wv2:WebView2 x:Name="Web" DefaultBackgroundColor="#060707" AllowDrop="True" Drop="OnWebDrop"/>
         <Border x:Name="Splash" Background="#060707">
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <Grid Width="48" Height="48" Margin="0,0,0,22" HorizontalAlignment="Center">

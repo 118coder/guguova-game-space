@@ -945,7 +945,10 @@ kbd.key {
 
 .lib-search input { color: var(--ef-ink); font-weight: 500; }
 .lib-search input::placeholder { color: var(--ef-ink-2); }
-.lib-search .keycap {
+/* app.css paints .keycap with --accent-text for every theme, and ENDFIELD's
+   accent-text is ink — on an ink-filled keycap that is 1:1. The extra
+   specificity (data-theme + two classes) wins over that shared rule. */
+html[data-theme="endfield"] .lib-search .keycap {
   border-radius: 0;
   border: 1px solid var(--ef-ink);
   background: var(--ef-ink);

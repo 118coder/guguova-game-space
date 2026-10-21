@@ -25,6 +25,7 @@
     ['appearance', { selector: '#appearanceOverlay', inertApp: true }],
     ['details', { selector: '#detailsOverlay', inertApp: true }],
     ['editor', { selector: '#editorOverlay', inertApp: true }],
+    ['import', { selector: '#importOverlay', inertApp: true }],
     ['scanner', { selector: '#scannerOverlay', inertApp: true }],
     ['picker', { selector: '#pickerOverlay', inertApp: true }],
     ['launch', { selector: '#launchOverlay', inertApp: true, bodyKey: 'overlay' }],
