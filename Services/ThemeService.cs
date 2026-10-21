@@ -46,6 +46,11 @@ public sealed class ThemeService
         public Dictionary<string, string>? Tokens { get; set; }
         public Dictionary<string, string>? Icons { get; set; }
 
+        /// <summary>Optional interface vocabulary. A theme may replace a few
+        /// fixed phrases ("上次游玩" → "上次委托") without owning the layout.
+        /// Keys are documented in docs/THEME-INTERFACES.md §12.</summary>
+        public Dictionary<string, string>? Lexicon { get; set; }
+
         /// <summary>Optional visual feature modules (texture / type / panel).
         /// The renderer applies them as root data attributes; see theme-fx.css.</summary>
         public Dictionary<string, string>? Features { get; set; }
@@ -69,7 +74,8 @@ public sealed class ThemeService
         string? Error,
         Dictionary<string, string> Tokens,
         Dictionary<string, string> Icons,
-        Dictionary<string, string> Sounds);
+        Dictionary<string, string> Sounds,
+        Dictionary<string, string> Lexicon);
 
     private readonly List<ThemeInfo> _themes = new();
 
@@ -136,7 +142,8 @@ public sealed class ThemeService
         null,
         new Dictionary<string, string>(),
         new Dictionary<string, string>(),
-        BuiltInSounds());
+        BuiltInSounds(),
+        new Dictionary<string, string>());
 
     /// <summary>NOVA has no folder on disk, so its cues live under the built-in
     /// asset root and are addressed through the same virtual host as the UI.</summary>
@@ -240,7 +247,8 @@ public sealed class ThemeService
                 null,
                 CleanDictionary(manifest.Tokens),
                 CleanDictionary(manifest.Icons),
-                ResolveSounds(folder, manifest.Sounds, manifest.Version));
+                ResolveSounds(folder, manifest.Sounds, manifest.Version),
+                CleanDictionary(manifest.Lexicon));
         }
         catch (JsonException ex)
         {
@@ -268,6 +276,7 @@ public sealed class ThemeService
         false,
         false,
         error,
+        new Dictionary<string, string>(),
         new Dictionary<string, string>(),
         new Dictionary<string, string>(),
         new Dictionary<string, string>());

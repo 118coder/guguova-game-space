@@ -89,6 +89,33 @@ public sealed class NativeBridge
                 Task.Run(() => ScalingEngine.ReleaseIfAutoStarted());
             }
             GameDisplay.ForgetProcess(info.ProcessId);
+
+            // Steam writes its own playtime when the game exits, but not
+            // instantly. Wait a beat, merge, and push the corrected numbers
+            // to the UI so the hero does not keep showing the old total.
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(2500);
+                    var changed = _store.SyncSteamPlaytime();
+                    if (changed.Count == 0) return;
+                    Notify("playtime-synced", new
+                    {
+                        source = "steam",
+                        games = changed.Select(game => new
+                        {
+                            id = game.Id,
+                            playtimeSeconds = game.PlaytimeSeconds,
+                            lastPlayedUtc = game.LastPlayedUtc
+                        }).ToList()
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("steam playtime after exit", ex);
+                }
+            });
         };
         // The client accepted the request but never spawned the game: usually
         // a login screen or an update, so the message says that instead of
@@ -171,6 +198,7 @@ public sealed class NativeBridge
                 "openMagpie" => OpenMagpie(),
                 "stop" => StopGame(args),
                 "getRunning" => _launcher.Running,
+                "syncSteamPlaytime" => SyncSteamPlaytime(),
                 "scanLibrary" => ScanLibrary(),
                 "refreshArtwork" => RefreshArtwork(args),
                 "importCandidates" => ImportCandidates(args),
@@ -260,7 +288,8 @@ public sealed class NativeBridge
                     tokens = t.Tokens,
                     icons = t.Icons,
                     features = t.Features,
-                    sounds = t.Sounds
+                    sounds = t.Sounds,
+                    lexicon = t.Lexicon
                 }).ToList()
             };
         }
@@ -1066,6 +1095,31 @@ public sealed class NativeBridge
         }
     }
 
+    private object SyncSteamPlaytime()
+    {
+        try
+        {
+            var changed = _store.SyncSteamPlaytime();
+            return new
+            {
+                ok = true,
+                updated = changed.Count,
+                steamRoot = GameScanner.FindSteamRoot(),
+                games = changed.Select(game => new
+                {
+                    id = game.Id,
+                    playtimeSeconds = game.PlaytimeSeconds,
+                    lastPlayedUtc = game.LastPlayedUtc
+                }).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("sync steam playtime", ex);
+            return new { ok = false, error = ex.Message };
+        }
+    }
+
     private object ScanLibrary()
     {
         try
@@ -1139,6 +1193,10 @@ public sealed class NativeBridge
                 _store.Add(game);
                 added++;
             }
+
+            // New Steam entries start with the hours the player already has,
+            // instead of "不到 1 分钟" until the first launch here.
+            if (added > 0) _store.SyncSteamPlaytime();
         }
         catch (Exception ex)
         {

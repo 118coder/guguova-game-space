@@ -17,9 +17,9 @@
   --text-h2: clamp(32px, 2.6vw, 44px);
   --text-cta: clamp(15px, 1vw, 17px);
   --text-ink: #f4f0e7;
-  --text-soft: rgba(244, 240, 231, .74);
-  --text-muted: rgba(244, 240, 231, .54);
-  --text-faint: rgba(244, 240, 231, .38);
+  --text-soft: rgba(244, 240, 231, .84);
+  --text-muted: rgba(244, 240, 231, .72);
+  --text-faint: rgba(244, 240, 231, .58);
   --serif: var(--font-serif);
   --sans: var(--font-ui);
   --display: var(--font-display);
@@ -356,14 +356,15 @@ body {
 .popover-foot {
   padding: 12px 20px 14px;
   font-size: var(--text-micro);
-  color: var(--text-faint);
+  color: currentColor;
+  opacity: .85;
 }
 
 .profile-menu { width: min(320px, calc(100vw - 32px)); }
 
 .profile-head { padding: 18px 18px 16px; gap: 12px; }
 .profile-id strong { font-size: var(--text-body); }
-.profile-id span { font-size: var(--text-label); color: var(--text-faint); }
+.profile-id span { font-size: var(--text-label); color: currentColor; opacity: 1; }
 
 .menu-row {
   min-height: 44px;
@@ -374,13 +375,14 @@ body {
 
 .row-main { gap: 10px; }
 .row-main .ic { width: 16px; height: 16px; }
-.row-key { font-size: var(--text-micro); color: var(--text-faint); }
+.row-key { font-size: var(--text-micro); color: currentColor; opacity: 1; }
 .row-value { font-size: var(--text-label); }
 
 .profile-foot {
   padding: 11px 18px 13px;
   font-size: var(--text-micro);
-  color: var(--text-faint);
+  color: currentColor;
+  opacity: 1;
 }
 
 /* ============================================================
@@ -1206,7 +1208,7 @@ html[data-theme="nova"].is-nova-system .bell-dot {
 }
 
 .type-shuffle:disabled {
-  opacity: .36;
+  opacity: .72;
   pointer-events: none;
 }
 
@@ -1271,7 +1273,8 @@ html[data-theme="nova"].is-nova-system .bell-dot {
   font-style: normal;
   font-size: var(--text-label);
   letter-spacing: .02em;
-  color: var(--text-muted);
+  color: currentColor;
+  opacity: .96;
 }
 
 .palette-strip .palette-row {
@@ -1364,7 +1367,6 @@ html[data-theme="nova"].is-nova-system .bell-dot {
 .launch-copy .launch-kicker {
   font-size: var(--text-label);
   letter-spacing: .24em;
-  color: var(--text-muted);
 }
 
 .launch-copy .launch-logo { --logo-size: clamp(50px, 6.4vw, 98px); }
@@ -1373,7 +1375,6 @@ html[data-theme="nova"].is-nova-system .bell-dot {
   margin-top: 12px;
   font-size: var(--text-label);
   letter-spacing: .22em;
-  color: var(--text-faint);
 }
 
 .launch-row .launch-status {

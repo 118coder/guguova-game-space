@@ -25,6 +25,9 @@
     tokens: {},
     icons: {},
     features: {},
+    // Fixed interface phrases a theme may rename without owning the layout.
+    // Keys are documented in docs/THEME-INTERFACES.md §13; unknown keys are ignored.
+    lexicon: {},
     // The built-in theme has no folder on disk; its cue set ships beside the shared sounds.
     sounds: {
       bong: 'assets/sfx/nova/bong.ogg',
@@ -415,7 +418,11 @@
     if (activeIconTheme !== 'nova') restoreIcons();
     clearTokens();
 
-    const result = state.call ? await state.call('setTheme', { id: id || 'nova' }) : null;
+    // QA harnesses switch themes dozens of times; they must not rewrite the
+    // player's saved choice. Only real UI switches persist.
+    const result = state.call && options.persist !== false
+      ? await state.call('setTheme', { id: id || 'nova' })
+      : null;
     if (result && result.ok === false) return { ok: false, error: result.error };
 
     const applied = await apply(theme, options);

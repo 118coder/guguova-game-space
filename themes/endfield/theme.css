@@ -32,7 +32,7 @@
   /* ---- shell tokens used by base.css ---- */
   --ink: var(--ef-ink);
   --muted: var(--ef-ink-2);
-  --faint: rgba(22, 22, 22, .44);
+  --faint: rgba(22, 22, 22, .64);
   --hair: var(--ef-rule);
   --accent: var(--ef-signal);
   --accent-2: var(--ef-ink);
@@ -148,7 +148,7 @@ html.calm .scene-stack { transform: none !important; }
   padding: 4px 15px 5px;
   border: 0;
   border-radius: 0;
-  color: rgba(22, 22, 22, .58);
+  color: rgba(22, 22, 22, .68);
   font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
@@ -169,7 +169,7 @@ html.calm .scene-stack { transform: none !important; }
   font-stretch: 112%;
   letter-spacing: .15em;
   line-height: 1;
-  color: rgba(22, 22, 22, .38);
+  color: rgba(22, 22, 22, .58);
 }
 
 .nav-btn[data-nav="home"]::before { content: "// HOME"; }
@@ -536,7 +536,7 @@ html[data-theme="endfield"] .type-system::after {
 
 .btn.compact { height: 44px; padding: 0 17px; font-size: 11.5px; }
 
-.btn:disabled { opacity: .45; }
+.btn:disabled { opacity: .72; }
 .btn:disabled::before { display: none; }
 
 /* Preview capsules inside the appearance cards follow the same rule. */
@@ -1878,7 +1878,7 @@ html[data-theme="endfield"] .detail-art-copy .detail-logo {
 }
 
 .launch-system {
-  color: rgba(244, 244, 242, .48);
+  color: rgba(244, 244, 242, .72);
   font-weight: 600;
   letter-spacing: .2em;
 }
@@ -1967,13 +1967,13 @@ html[data-theme="endfield"] .launch.is-leaving .launch-art {
 }
 
 .launch-copy .launch-zh {
-  color: rgba(244, 244, 242, .5);
+  color: rgba(244, 244, 242, .78);
   font-weight: 500;
   letter-spacing: .18em;
 }
 
 .launch-steps { counter-reset: ef-step; gap: 18px; }
-.launch-step { counter-increment: ef-step; color: rgba(244, 244, 242, .34); font-weight: 600; letter-spacing: .05em; }
+.launch-step { counter-increment: ef-step; color: rgba(244, 244, 242, .64); font-weight: 600; letter-spacing: .05em; }
 .launch-step i { display: none; }
 
 .launch-step::before {
@@ -1995,7 +1995,7 @@ html[data-theme="endfield"] .launch.is-leaving .launch-art {
 
 .launch-step.is-active { color: var(--ef-paper); }
 .launch-step.is-active::before { background: var(--ef-signal); border-color: var(--ef-signal); color: var(--ef-on-signal); font-weight: 800; }
-.launch-step.is-done { color: rgba(244, 244, 242, .62); }
+.launch-step.is-done { color: rgba(244, 244, 242, .82); }
 .launch-step.is-done::before { background: var(--ef-paper); border-color: var(--ef-paper); color: var(--ef-ink); }
 
 .launch-status { color: rgba(244, 244, 242, .62); }
@@ -2014,7 +2014,7 @@ html[data-theme="endfield"] .launch.is-leaving .launch-art {
   font-weight: 800;
 }
 
-.launch-foot { color: rgba(244, 244, 242, .32); letter-spacing: .12em; }
+.launch-foot { color: rgba(244, 244, 242, .64); letter-spacing: .12em; }
 .launch-foot .ic { color: var(--ef-signal); }
 
 .launch::before { background: none; }
@@ -2027,11 +2027,11 @@ html[data-theme="endfield"] .launch.is-leaving .launch-art {
    ------------------------------------------------------------ */
 
 .sleep { background: #101010; }
-.sleep-brand { color: rgba(244, 244, 242, .28); letter-spacing: .34em; font-weight: 700; }
+.sleep-brand { color: rgba(244, 244, 242, .6); letter-spacing: .34em; font-weight: 700; }
 .sleep-time { color: var(--ef-paper); font-family: var(--font-display); font-weight: 800; font-stretch: 112%; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-.sleep-date { color: rgba(244, 244, 242, .4); letter-spacing: .16em; font-weight: 600; }
+.sleep-date { color: rgba(244, 244, 242, .68); letter-spacing: .16em; font-weight: 600; }
 .sleep-moon { color: var(--ef-signal); }
-.sleep-hint { color: rgba(244, 244, 242, .32); }
+.sleep-hint { color: rgba(244, 244, 242, .62); }
 .sleep-dot { border-radius: 0; background: var(--ef-signal); box-shadow: none; }
 
 /* ------------------------------------------------------------
