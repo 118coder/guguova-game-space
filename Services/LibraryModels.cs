@@ -140,9 +140,9 @@ public sealed class PlayerSettings
     public bool StartupFullscreen { get; set; }
 
     /// <summary>Start the bundled scaling engine when a launch asks for
-    /// fullscreen scaling. It is never started at boot and never started for a
-    /// game whose switch is off: the switch is the player's opt-in.</summary>
-    public bool AutoStartEngine { get; set; } = true;
+    /// fullscreen scaling. Off by default: the player opts in from the scaling
+    /// sheet, and a game's switch alone never starts an engine in the background.</summary>
+    public bool AutoStartEngine { get; set; }
 }
 
 /// <summary>Payload returned to the UI after a launch is started. <c>Pending</c>

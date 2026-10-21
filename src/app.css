@@ -1892,6 +1892,14 @@ html .engine-shell .settings-field label {
   font-weight: 600;
 }
 
+html .engine-shell .settings-field label em {
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: .02em;
+  text-transform: none;
+  color: var(--sheet-muted);
+}
+
 html .engine-shell .settings-field select,
 html .engine-shell .settings-field input {
   height: var(--sheet-control-height);
@@ -2169,7 +2177,7 @@ html[data-theme] .engine-shell .nova-select-menu {
   display: grid;
   grid-template-columns: 108px minmax(0, 1fr);
   gap: 10px;
-  align-items: baseline;
+  align-items: start;
   padding: var(--mode-pad);
   border: var(--mode-border);
   border-left: var(--mode-mark-w) solid var(--mode-mark);
@@ -2188,6 +2196,24 @@ html[data-theme] .engine-shell .nova-select-menu {
   font-size: var(--mode-name-size);
   letter-spacing: var(--mode-name-spacing);
   color: var(--mode-name-ink);
+  overflow-wrap: anywhere;
+}
+
+.engine-mode-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.engine-mode-chain {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: .02em;
+  /* Same ink as the row: dimming it with opacity dropped paper themes to
+     3.4:1, below AA for this 9px text. */
+  color: var(--mode-ink);
   overflow-wrap: anywhere;
 }
 

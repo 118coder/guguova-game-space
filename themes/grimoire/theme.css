@@ -2565,6 +2565,13 @@ html[data-theme="grimoire"] .brand-word,
 html[data-theme="grimoire"] .icon-btn,
 html[data-theme="grimoire"] .win-btn,
 html[data-theme="grimoire"] .clock-time { color: #e8cf9a !important; }
+/* The detail sheet and dialogs sit on parchment, not on the dark topbar:
+   gold-on-cream is 1.17:1, so their chrome stays ink. */
+html[data-theme="grimoire"] :is(.detail-modal, .editor-shell, .scanner-shell, .picker-shell) .icon-btn,
+html[data-theme="grimoire"] .modal-close { color: #2a1b12 !important; }
+html[data-theme="grimoire"] :is(.detail-modal, .editor-shell, .scanner-shell, .picker-shell) .icon-btn:hover,
+html[data-theme="grimoire"] .modal-close:hover { background: #7a1f2b !important; color: #f4e6c8 !important; }
+html[data-theme="grimoire"] .detail-modal .modal-close:hover { background: #7a1f2b !important; color: #f4e6c8 !important; }
 html[data-theme="grimoire"] .clock { background: #20150c !important; border-color: #8a6a3a !important; }
 html[data-theme="grimoire"] .clock-date { color: rgba(232, 207, 154, .68) !important; }
 html[data-theme="grimoire"] .nav-btn { color: rgba(232, 207, 154, .66) !important; }

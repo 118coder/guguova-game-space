@@ -736,7 +736,9 @@ html[data-theme="riot"] .appearance-preview-copy .appearance-logo {
 .swatch em { color: var(--t-muted); font-size: 8px; }
 
 .pref-row { border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); color: var(--t-ink); }
-.pref-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+/* Hover keeps the paper panel, so the text needs the darker print red:
+   #cf0017 on #ddd8d0 is only 4.04:1. */
+.pref-row:hover { color: #a00012; background: var(--t-panel-2); }
 .pref-note, .pref-hint { color: var(--t-muted); }
 .appearance-footer { border-top: 1px solid var(--t-line); }
 .autosave { color: var(--t-muted); }

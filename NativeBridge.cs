@@ -884,6 +884,7 @@ public sealed class NativeBridge
                 {
                     mode.Index,
                     mode.Name,
+                    mode.Effects,
                     mode.Available,
                     mode.Missing,
                     mode.Note
@@ -891,6 +892,7 @@ public sealed class NativeBridge
                 scalingMode = options.ScalingMode,
                 captureMethod = options.CaptureMethod,
                 cursorScaling = options.CursorScaling,
+                frameRateLimiterEnabled = options.FrameRateLimiterEnabled,
                 maxFrameRate = options.MaxFrameRate,
                 gameMode3d = options.GameMode3d,
                 autoStart = _store.Library.Settings.AutoStartEngine
@@ -908,8 +910,9 @@ public sealed class NativeBridge
         var settings = _store.Library.Settings;
         var scalingMode = IntArg(args, "scalingMode", 0);
         var captureMethod = IntArg(args, "captureMethod", 0);
-        var cursorScaling = IntArg(args, "cursorScaling", 2);
-        var maxFrameRate = NumberArg(args, "maxFrameRate", 60);
+        var cursorScaling = IntArg(args, "cursorScaling", 6);
+        var frameRateLimiterEnabled = BoolArg(args, "frameRateLimiterEnabled", false);
+        var maxFrameRate = NumberArg(args, "maxFrameRate", 120);
         var gameMode3d = BoolArg(args, "gameMode3d", false);
         if (args.ValueKind == JsonValueKind.Object && args.TryGetProperty("autoStartEngine", out var autoStart) &&
             autoStart.ValueKind is JsonValueKind.True or JsonValueKind.False)
@@ -918,7 +921,8 @@ public sealed class NativeBridge
             _store.Save();
         }
 
-        if (!ScalingEngine.SaveOptions(scalingMode, captureMethod, cursorScaling, maxFrameRate, gameMode3d, out var message))
+        if (!ScalingEngine.SaveOptions(scalingMode, captureMethod, cursorScaling,
+                frameRateLimiterEnabled, maxFrameRate, gameMode3d, out var message))
             return new { ok = false, error = message };
 
         Task.Run(() =>

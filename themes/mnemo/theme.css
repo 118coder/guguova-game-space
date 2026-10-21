@@ -204,6 +204,19 @@ html.calm .scene-stack { transform: none !important; }
 }
 
 .icon-btn:hover { color: var(--mn-plum); border-color: var(--mn-plum); background: var(--mn-plum-soft); }
+
+/* Square icon buttons sit on a pale panel; the shared translucent-white
+   default was 1.03:1 there. */
+html[data-theme="mnemo"] .icon-btn.square {
+  color: var(--mn-plum);
+  background: transparent;
+  border-color: var(--mn-violet);
+}
+html[data-theme="mnemo"] .icon-btn.square:hover {
+  color: var(--mn-plum);
+  background: var(--mn-plum-soft);
+  border-color: var(--mn-plum);
+}
 .bell-dot { border-radius: 50%; background: var(--mn-plum); box-shadow: 0 0 0 2px var(--mn-panel); }
 
 .avatar {
@@ -374,7 +387,7 @@ html[data-theme="mnemo"] .type-system::after { height: 2px; background: var(--mn
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   background: var(--mn-plum);
   transform: translateX(-101%);
   transition: transform .28s var(--ease);

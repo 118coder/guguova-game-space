@@ -407,7 +407,7 @@ html[data-theme="codex"] .type-system::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   background: linear-gradient(180deg, #f6e7c8, var(--cx-parchment));
   transform: translateX(-101%);
   transition: transform .3s var(--cx-ease);

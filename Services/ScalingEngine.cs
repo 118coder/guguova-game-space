@@ -95,7 +95,13 @@ public static class ScalingEngine
 
         var note = running
             ? (bundled ? "内置引擎正在运行" : "系统 Magpie 正在运行")
-            : (bundled ? "内置引擎已就绪，启动游戏时会自动打开" : "已找到系统 Magpie；启动游戏时会自动打开");
+            : (bundled
+                ? (settings.AutoStartEngine
+                    ? "内置引擎已就绪，启动游戏时会自动打开"
+                    : "内置引擎已就绪；随游戏自动启动已关闭")
+                : (settings.AutoStartEngine
+                    ? "已找到系统 Magpie；启动游戏时会自动打开"
+                    : "已找到系统 Magpie；随游戏自动启动已关闭"));
         return new Status(true, exe, running, bundled, hotkey, true, note);
     }
 
@@ -525,13 +531,15 @@ public static class ScalingEngine
        Simplified options (NOVA's engine sheet)
        ------------------------------------------------------------------ */
 
-    public sealed record ModeOption(int Index, string Name, bool Available, string? Missing, string Note);
+    public sealed record ModeOption(int Index, string Name, string Effects, bool Available, string? Missing, string Note);
 
     /// <summary>One plain-language line per stock scaling mode, so the sheet
     /// tells the player which one to pick instead of only naming effects.</summary>
     private static string NoteFor(string name)
     {
         var key = name.Trim().ToLowerInvariant();
+        if (key.Contains("像素超清")) return "Anime4K 放大 + 线条修复，适合像素与二次元画面";
+        if (key.Contains("像素缩放")) return "适应屏幕 · 1×1 倍率 · Nearest 不插值，自定义像素模式";
         if (key.StartsWith("lanczos")) return "通用清晰缩放，速度快，适合大多数游戏";
         if (key.StartsWith("fsr") && !key.StartsWith("fsrcnnx")) return "功能全面，画面干净、开销低，适合大部分游戏";
         if (key.StartsWith("fsrcnnx")) return "神经网络放大，细节更锐，显卡要求较高";
@@ -557,6 +565,7 @@ public static class ScalingEngine
         int ScalingMode,
         int CaptureMethod,
         int CursorScaling,
+        bool FrameRateLimiterEnabled,
         double MaxFrameRate,
         bool GameMode3d);
 
@@ -565,7 +574,7 @@ public static class ScalingEngine
         var file = ActiveConfigFile();
         if (file == null)
             return new EngineOptions(false, "缩放引擎还没有生成配置；先启动一次引擎", null,
-                BundledAvailable, IsRunning(), Array.Empty<ModeOption>(), 0, 0, 2, 60, false);
+                BundledAvailable, IsRunning(), Array.Empty<ModeOption>(), 0, 0, 6, false, 120, false);
 
         var status = Inspect(settings);
         var effectsRoot = EffectsRootFor(settings);
@@ -584,7 +593,9 @@ public static class ScalingEngine
                         : $"模式 {index + 1}";
                     string? missing = null;
                     var available = true;
-                    if (effectsRoot != null && mode.TryGetProperty("effects", out var effects) &&
+                    var effectNames = new List<string>();
+                    var effectPaths = new List<(string Name, string Relative)>();
+                    if (mode.TryGetProperty("effects", out var effects) &&
                         effects.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var effect in effects.EnumerateArray())
@@ -593,7 +604,16 @@ public static class ScalingEngine
                                 ? effectNameElement.GetString()
                                 : null;
                             if (string.IsNullOrWhiteSpace(effectName)) continue;
-                            var relative = effectName!.Replace('\\', '/') + ".hlsl";
+                            var leaf = effectName!.Replace('\\', '/');
+                            var slash = leaf.LastIndexOf('/');
+                            effectNames.Add(slash >= 0 ? leaf[(slash + 1)..] : leaf);
+                            effectPaths.Add((effectName, effectName.Replace('\\', '/') + ".hlsl"));
+                        }
+                    }
+                    if (effectsRoot != null)
+                    {
+                        foreach (var (effectName, relative) in effectPaths)
+                        {
                             var path = Path.Combine(effectsRoot, relative.Replace('/', Path.DirectorySeparatorChar));
                             if (!File.Exists(path))
                             {
@@ -603,7 +623,8 @@ public static class ScalingEngine
                             }
                         }
                     }
-                    modes.Add(new ModeOption(index, name, available, missing, NoteFor(name)));
+                    modes.Add(new ModeOption(index, name, string.Join(" > ", effectNames),
+                        available, missing, NoteFor(name)));
                     index++;
                 }
             }
@@ -627,19 +648,20 @@ public static class ScalingEngine
             var selected = Int("scalingMode", 0);
             if (selected < 0 || selected >= modes.Count) selected = 0;
             return new EngineOptions(true, null, file, status.Bundled, status.Running,
-                modes.ToArray(), selected, Int("captureMethod", 0), Int("cursorScaling", 2),
-                Double("maxFrameRate", 60), Bool("3DGameMode", false));
+                modes.ToArray(), selected, Int("captureMethod", 0), Int("cursorScaling", 6),
+                Bool("frameRateLimiterEnabled", false), Double("maxFrameRate", 120),
+                Bool("3DGameMode", false));
         }
         catch (Exception ex)
         {
             Log.Error("read engine options", ex);
             return new EngineOptions(false, ex.Message, file, status.Bundled, status.Running,
-                Array.Empty<ModeOption>(), 0, 0, 2, 60, false);
+                Array.Empty<ModeOption>(), 0, 0, 6, false, 120, false);
         }
     }
 
     public static bool SaveOptions(int scalingMode, int captureMethod, int cursorScaling,
-        double maxFrameRate, bool gameMode3d, out string message)
+        bool frameRateLimiterEnabled, double maxFrameRate, bool gameMode3d, out string message)
     {
         message = "";
         var file = ActiveConfigFile();
@@ -670,14 +692,16 @@ public static class ScalingEngine
             profile["scalingMode"] = mode;
             profile["captureMethod"] = Math.Max(0, Math.Min(2, captureMethod));
             profile["cursorScaling"] = Math.Max(0, cursorScaling);
-            profile["maxFrameRate"] = Math.Max(10, Math.Min(1000, maxFrameRate));
+            var fps = Math.Max(10, Math.Min(1000, maxFrameRate));
+            profile["frameRateLimiterEnabled"] = frameRateLimiterEnabled;
+            profile["maxFrameRate"] = fps;
             profile["3DGameMode"] = gameMode3d;
 
             AppPaths.Ensure();
             var backup = Path.Combine(AppPaths.Backups, $"magpie-config-{DateTime.Now:yyyyMMdd-HHmmss}.json");
             File.WriteAllText(backup, text);
             File.WriteAllText(file, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-            Log.Write($"engine options saved mode={mode} capture={captureMethod} cursor={cursorScaling} fps={maxFrameRate} 3d={gameMode3d} backup={backup}");
+            Log.Write($"engine options saved mode={mode} capture={captureMethod} cursor={cursorScaling} fpsLimit={frameRateLimiterEnabled}/{fps} 3d={gameMode3d} backup={backup}");
             message = "缩放引擎设置已保存";
             return true;
         }
