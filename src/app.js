@@ -145,7 +145,7 @@
       scalingEngine: 'auto',
       magpiePath: null,
       scalingHotkey: 3137,
-      autoStartEngine: true
+      autoStartEngine: false
     },
     userName: '',
     avatarStamp: 0,
@@ -456,6 +456,7 @@
     settingsMinimizeSwitch: $('#settingsMinimizeSwitch'),
     settingsStartupFullscreenRow: $('#settingsStartupFullscreenRow'),
     settingsStartupFullscreenSwitch: $('#settingsStartupFullscreenSwitch'),
+    settingsStartupHint: $('#settingsStartupHint'),
     engineEngine: $('#engineEngine'),
     settingsHotkeyRow: $('#settingsHotkeyRow'),
     settingsHotkeyLabel: $('#settingsHotkeyLabel'),
@@ -1471,7 +1472,7 @@
         scalingEngine: state.settings.scalingEngine || 'auto',
         magpiePath: state.settings.magpiePath || null,
         scalingHotkey: state.settings.scalingHotkey || 3137,
-        autoStartEngine: state.settings.autoStartEngine !== false,
+        autoStartEngine: state.settings.autoStartEngine === true,
         startupFullscreen: state.settings.startupFullscreen === true
       });
     }, 180);
@@ -3004,24 +3005,16 @@
     const info = state.startup;
     const on = !!(info && info.enabled);
     setPrefSwitch(els.settingsStartupRow, els.settingsStartupSwitch, on);
-    const hint = els.settingsStartupRow.querySelector('.pref-hint');
-    if (hint) {
-      hint.textContent = on
-        ? (info.pointsHere === false ? '路径已变化 · 点一次可重新登记' : '登录 Windows 后在后台打开')
-        : '登录 Windows 后在后台打开';
-    }
+    // Only warn when the registry entry points somewhere else; the normal
+    // "enabled" case needs no explanatory line.
+    const hint = els.settingsStartupHint;
+    if (hint) hint.hidden = !(on && info.pointsHere === false);
   }
 
   function renderStartupFullscreenRow() {
     if (!els.settingsStartupFullscreenRow) return;
     const on = state.settings.startupFullscreen === true;
     setPrefSwitch(els.settingsStartupFullscreenRow, els.settingsStartupFullscreenSwitch, on);
-    const hint = els.settingsStartupFullscreenRow.querySelector('.pref-hint');
-    if (hint) {
-      hint.textContent = on
-        ? '开机后直接以无边框全屏打开'
-        : '配合上一项：开机即沉浸式全屏';
-    }
   }
 
   function toggleStartupFullscreen() {
@@ -3213,12 +3206,16 @@
     }
     if (els.engineEngine) els.engineEngine.value = state.settings.scalingEngine || 'auto';
     if (els.engineCapture) els.engineCapture.value = String(options.captureMethod ?? 0);
-    if (els.engineCursor) els.engineCursor.value = String(options.cursorScaling ?? 2);
-    if (els.engineFrameRate) els.engineFrameRate.value = String(Math.round(options.maxFrameRate || 60));
+    if (els.engineCursor) els.engineCursor.value = String(options.cursorScaling ?? 6);
+    if (els.engineFrameRate) {
+      const limited = options.frameRateLimiterEnabled === true;
+      els.engineFrameRate.value = limited ? String(Math.round(options.maxFrameRate || 120)) : '';
+      els.engineFrameRate.placeholder = limited ? '' : '无上限';
+    }
     setPrefSwitch(els.engine3dRow, els.engine3dSwitch, !!options.gameMode3d);
 
     renderEngineModeList(modes, Number(els.engineMode?.value || 0));
-    if (els.engineAutoRow) setPrefSwitch(els.engineAutoRow, els.engineAutoSwitch, options.autoStart !== false);
+    if (els.engineAutoRow) setPrefSwitch(els.engineAutoRow, els.engineAutoSwitch, options.autoStart === true);
 
     const current = modes.find((mode) => mode.index === options.scalingMode);
     if (current && !current.available) {
@@ -3232,7 +3229,7 @@
     }
     if (els.engineNote) {
       els.engineNote.textContent = current && !current.available
-        ? `「${current.name}」需要的效果文件不在当前引擎里，请换一个算法。`
+        ? `「${current.name}」需要的效果文件不在当前引擎里；换一个算法，或在设置里指定完整的 Magpie.exe。`
         : '保存后会重启引擎；正在缩放的游戏会先退回窗口。';
     }
   }
@@ -3242,7 +3239,10 @@
     els.engineModeList.innerHTML = modes.map((mode) => `
       <div class="engine-mode-row" data-index="${mode.index}" data-state="${mode.available ? 'ok' : 'missing'}" data-active="${mode.index === activeIndex}">
         <b>${esc(mode.name)}</b>
-        <span>${esc(mode.available ? (mode.note || '') : `缺少效果文件：${mode.missing || mode.name}`)}</span>
+        <span class="engine-mode-copy">
+          <span>${esc(mode.available ? (mode.note || '') : `缺少效果文件：${mode.missing || mode.name}`)}</span>
+          ${mode.effects ? `<em class="engine-mode-chain">${esc(mode.effects)}</em>` : ''}
+        </span>
       </div>
     `).join('');
     els.engineModeList.classList.toggle(
@@ -3280,21 +3280,30 @@
     const first = (options.modes || []).find((mode) => mode.available) || { index: 0 };
     if (els.engineMode) els.engineMode.value = String(first.index);
     if (els.engineCapture) els.engineCapture.value = '0';
-    if (els.engineCursor) els.engineCursor.value = '2';
-    if (els.engineFrameRate) els.engineFrameRate.value = '60';
+    if (els.engineCursor) els.engineCursor.value = '6';
+    if (els.engineFrameRate) {
+      els.engineFrameRate.value = '';
+      els.engineFrameRate.placeholder = '无上限';
+    }
     setPrefSwitch(els.engine3dRow, els.engine3dSwitch, false);
+    if (els.engineAutoRow) setPrefSwitch(els.engineAutoRow, els.engineAutoSwitch, false);
     audio.toggle();
     toast('已恢复默认值 · 点保存生效', 'spark');
   }
 
   async function saveEngineDialog() {
-    const frameRate = clampNumber(els.engineFrameRate?.value, 10, 1000);
+    const rawFrameRate = els.engineFrameRate?.value.trim() ?? '';
+    const frameRateLimited = rawFrameRate !== '';
+    const frameRate = frameRateLimited
+      ? clampNumber(rawFrameRate, 10, 1000)
+      : (Number(state.engineOptions?.maxFrameRate) || 120);
     const engineMode = els.engineEngine?.value || state.settings.scalingEngine || 'auto';
     if (engineMode !== state.settings.scalingEngine) await applyScalingEngineMode(engineMode);
     const result = await call('saveEngineOptions', {
       scalingMode: Number(els.engineMode?.value || 0),
       captureMethod: Number(els.engineCapture?.value || 0),
-      cursorScaling: Number(els.engineCursor?.value || 2),
+      cursorScaling: Number(els.engineCursor?.value || 6),
+      frameRateLimiterEnabled: frameRateLimited,
       maxFrameRate: frameRate,
       gameMode3d: els.engine3dRow?.getAttribute('aria-checked') === 'true',
       autoStartEngine: els.engineAutoRow?.getAttribute('aria-checked') === 'true'
@@ -3375,9 +3384,8 @@
       els.settingsHotkeyLabel.textContent = hotkeyLabel(state.settings.scalingHotkey || 3137);
     }
     if (els.settingsHotkeyHint) {
-      els.settingsHotkeyHint.textContent = state.hotkeyRecording
-        ? '按下组合键 · Esc 取消'
-        : (state.settings.scalingEngine === 'native' ? '由启动器处理' : '点击录制');
+      els.settingsHotkeyHint.hidden = !state.hotkeyRecording;
+      els.settingsHotkeyHint.textContent = '按下组合键 · Esc 取消';
     }
     if (els.settingsHotkeyRow) {
       els.settingsHotkeyRow.classList.toggle('is-recording', !!state.hotkeyRecording);
@@ -3630,7 +3638,7 @@
     setPrefSwitch(els.settingsTrayRow, els.settingsTraySwitch, state.settings.closeToTray);
     setPrefSwitch(els.settingsAutoBackupRow, els.settingsAutoBackupSwitch, state.settings.autoBackup !== false);
     setPrefSwitch(els.settingsMinimizeRow, els.settingsMinimizeSwitch, state.settings.minimizeOnLaunch !== false);
-    setPrefSwitch(els.settingsAutoEngineRow, els.settingsAutoEngineSwitch, state.settings.autoStartEngine !== false);
+    setPrefSwitch(els.settingsAutoEngineRow, els.settingsAutoEngineSwitch, state.settings.autoStartEngine === true);
     renderStartupRow();
     renderStartupFullscreenRow();
     syncHotkeyUI();
@@ -6771,7 +6779,7 @@
       magpiePath: boot.settings?.magpiePath || null,
       scalingHotkey: Number.isFinite(boot.settings?.scalingHotkey) && boot.settings.scalingHotkey > 0
         ? boot.settings.scalingHotkey : 3137,
-      autoStartEngine: boot.settings?.autoStartEngine !== false,
+      autoStartEngine: boot.settings?.autoStartEngine === true,
       startupFullscreen: boot.settings?.startupFullscreen === true,
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
       developerMode: boot.settings?.developerMode === true

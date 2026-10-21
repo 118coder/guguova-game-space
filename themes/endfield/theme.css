@@ -232,6 +232,19 @@ html.calm .scene-stack { transform: none !important; }
   background: var(--ef-signal);
 }
 
+/* Square icon buttons (detail heart / manage) sit on a white modal, so their
+   rest state needs ink too: base.css's translucent-white default was 1:1. */
+html[data-theme="endfield"] .icon-btn.square {
+  color: var(--ef-ink);
+  background: transparent;
+  border-color: var(--ef-ink);
+}
+html[data-theme="endfield"] .icon-btn.square:hover {
+  color: var(--ef-ink);
+  background: var(--ef-signal);
+  border-color: var(--ef-signal);
+}
+
 .icon-btn:active { transform: translateY(1px); }
 
 .bell-dot {
@@ -456,7 +469,7 @@ html[data-theme="endfield"] .type-system::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   background: var(--ef-signal);
   transform: translateX(-101%);
   transition: transform .28s var(--ef-mech);

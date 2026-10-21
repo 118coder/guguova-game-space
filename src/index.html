@@ -7,22 +7,22 @@
 <meta name="theme-color" content="#0a0b0b">
 <title>GUGUOVA · 游戏空间</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="base.css?v=1.13.0">
-<link rel="stylesheet" href="theme.css?v=1.13.0">
-<link rel="stylesheet" href="cta-palettes.css?v=1.13.0">
-<link rel="stylesheet" href="type.css?v=1.13.0">
-<link rel="stylesheet" href="app.css?v=1.13.0">
-<link rel="stylesheet" href="motion.css?v=1.13.0">
-<link rel="stylesheet" href="views.css?v=1.13.0">
-<link rel="stylesheet" href="dialogs.css?v=1.13.0">
-<link rel="stylesheet" href="themes.css?v=1.13.0">
-<link rel="stylesheet" href="theme-fx.css?v=1.13.0">
-<link rel="stylesheet" href="fx-layers.css?v=1.13.0">
-<link rel="stylesheet" href="theme-kit.css?v=1.13.0">
-<link rel="stylesheet" href="polish.css?v=1.13.0">
-<link rel="stylesheet" href="intro.css?v=1.13.0">
-<link rel="stylesheet" href="compat.css?v=1.13.0" id="compat-style">
-<link rel="stylesheet" href="settings-themes.css?v=1.13.0">
+<link rel="stylesheet" href="base.css?v=1.14.0">
+<link rel="stylesheet" href="theme.css?v=1.14.0">
+<link rel="stylesheet" href="cta-palettes.css?v=1.14.0">
+<link rel="stylesheet" href="type.css?v=1.14.0">
+<link rel="stylesheet" href="app.css?v=1.14.0">
+<link rel="stylesheet" href="motion.css?v=1.14.0">
+<link rel="stylesheet" href="views.css?v=1.14.0">
+<link rel="stylesheet" href="dialogs.css?v=1.14.0">
+<link rel="stylesheet" href="themes.css?v=1.14.0">
+<link rel="stylesheet" href="theme-fx.css?v=1.14.0">
+<link rel="stylesheet" href="fx-layers.css?v=1.14.0">
+<link rel="stylesheet" href="theme-kit.css?v=1.14.0">
+<link rel="stylesheet" href="polish.css?v=1.14.0">
+<link rel="stylesheet" href="intro.css?v=1.14.0">
+<link rel="stylesheet" href="compat.css?v=1.14.0" id="compat-style">
+<link rel="stylesheet" href="settings-themes.css?v=1.14.0">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -607,7 +607,7 @@
               <button class="btn primary compact" id="settingsSaveName">保存</button>
               <button class="btn ghost compact" id="settingsUseSystemName">使用 Windows 用户名</button>
             </div>
-            <div class="settings-note">本机账户：<b id="settingsOsUser">—</b> · 离线运行，不上传</div>
+            <div class="settings-note">本机账户：<b id="settingsOsUser">—</b></div>
           </section>
 
           <section class="appearance-section settings-card settings-card--data">
@@ -681,7 +681,7 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
                   <span>开机时自动启动</span>
                 </span>
-                <span class="pref-hint">登录 Windows 后在后台打开</span>
+                <span class="pref-hint" id="settingsStartupHint" hidden>路径已变化 · 点一次可重新登记</span>
                 <span class="switch" id="settingsStartupSwitch"></span>
               </button>
               <button class="pref-row" id="settingsStartupFullscreenRow" role="switch" aria-checked="false">
@@ -689,7 +689,6 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
                   <span>开机后无边框全屏启动</span>
                 </span>
-                <span class="pref-hint">配合上一项：开机即沉浸式全屏</span>
                 <span class="switch" id="settingsStartupFullscreenSwitch"></span>
               </button>
               <button class="pref-row" id="settingsMinimizeRow" role="switch" aria-checked="true">
@@ -697,7 +696,6 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg>
                   <span>启动游戏后最小化</span>
                 </span>
-                <span class="pref-hint">让游戏窗口直接接管画面</span>
                 <span class="switch on" id="settingsMinimizeSwitch"></span>
               </button>
               <button class="pref-row" id="settingsUnifiedSfxRow" role="switch" aria-checked="false">
@@ -705,7 +703,6 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
                   <span>使用默认统一音效</span>
                 </span>
-                <span class="pref-hint">关闭时每套主题用自己的声音</span>
                 <span class="switch" id="settingsUnifiedSfxSwitch"></span>
               </button>
               <button class="pref-row" id="settingsHotkeyRow" type="button">
@@ -713,7 +710,7 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg>
                   <span>全屏缩放快捷键</span>
                 </span>
-                <span class="pref-hint" id="settingsHotkeyHint">点击录制</span>
+                <span class="pref-hint" id="settingsHotkeyHint" hidden>按下组合键 · Esc 取消</span>
                 <span class="hotkey-value" id="settingsHotkeyLabel">Alt + Shift + A</span>
               </button>
               <button class="pref-row" id="settingsAutoEngineRow" role="switch" aria-checked="true">
@@ -774,7 +771,6 @@
               <span class="section-tag" id="settingsVersion">1.5.3</span>
             </div>
             <div class="settings-about">
-              <p>完全离线：不登录、不联网、不上传。游戏库、游玩记录和封面都保存在本机。</p>
               <p class="settings-note" id="settingsDevNote" hidden></p>
               <p>迁移：在「数据与备份」导出 <code>.nova-pack</code>，复制到另一台电脑后导入；缺失的游戏程序可在「编辑游戏」里重新指定。</p>
             </div>
@@ -834,25 +830,26 @@
         <div class="settings-field">
           <label for="engineCursor">光标缩放</label>
           <select id="engineCursor" aria-label="光标缩放">
+            <option value="6" selected>跟随画面</option>
             <option value="2">不缩放</option>
-            <option value="6">跟随画面</option>
             <option value="3">1.25×</option>
             <option value="4">1.5×</option>
             <option value="5">2×</option>
           </select>
         </div>
         <div class="settings-field">
-          <label for="engineFrameRate">最大帧率</label>
-          <input id="engineFrameRate" type="number" min="10" max="1000" step="1" inputmode="numeric">
+          <label for="engineFrameRate">最大帧率 <em>留空 = 无上限</em></label>
+          <input id="engineFrameRate" type="number" min="10" max="1000" step="1" inputmode="numeric"
+                 placeholder="无上限" title="留空表示不限制帧率">
         </div>
       </div>
-      <button class="pref-row" id="engineAutoRow" role="switch" aria-checked="true" type="button">
+      <button class="pref-row" id="engineAutoRow" role="switch" aria-checked="false" type="button">
         <span class="pref-label">
           <svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>
           <span>随游戏自动启动引擎</span>
         </span>
         <span class="pref-hint">关闭后只在手动启动时运行</span>
-        <span class="switch on" id="engineAutoSwitch"></span>
+        <span class="switch" id="engineAutoSwitch"></span>
       </button>
       <button class="pref-row engine-switch" id="engine3dRow" role="switch" aria-checked="false" type="button">
         <span class="pref-label">
@@ -1392,14 +1389,14 @@
   <span id="toastText"></span>
 </div>
 
-<script src="motion.js?v=1.13.0" defer></script>
-<script src="focus.js?v=1.13.0" defer></script>
-<script src="surfaces.js?v=1.13.0" defer></script>
-<script src="gamepad.js?v=1.13.0" defer></script>
-<script src="overlays.js?v=1.13.0" defer></script>
-<script src="theme-engine.js?v=1.13.0" defer></script>
-<script src="intro.js?v=1.13.0" defer></script>
-<script src="fx-record.js?v=1.13.0" defer></script>
-<script src="app.js?v=1.13.0" defer></script>
+<script src="motion.js?v=1.14.0" defer></script>
+<script src="focus.js?v=1.14.0" defer></script>
+<script src="surfaces.js?v=1.14.0" defer></script>
+<script src="gamepad.js?v=1.14.0" defer></script>
+<script src="overlays.js?v=1.14.0" defer></script>
+<script src="theme-engine.js?v=1.14.0" defer></script>
+<script src="intro.js?v=1.14.0" defer></script>
+<script src="fx-record.js?v=1.14.0" defer></script>
+<script src="app.js?v=1.14.0" defer></script>
 </body>
 </html>

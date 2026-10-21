@@ -360,7 +360,7 @@ html[data-theme="zerohour"] .type-system::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   background: var(--zh-ink);
   transform: translateX(-101%);
   transition: transform .26s var(--zh-mech);
@@ -1624,6 +1624,15 @@ body::after {
   border-color: var(--zh-lime);
 }
 
+/* Square icon buttons (detail heart / manage) keep the shared light-grey
+   hover plate from base.css, which beat the lime above and left ink text
+   on a dark plate. Restore the lime plate so the ink glyph stays visible. */
+html[data-theme="zerohour"] .icon-btn.square:hover {
+  color: var(--zh-ink);
+  background: var(--zh-lime);
+  border-color: var(--zh-lime);
+}
+
 .bell-dot { border-radius: 50%; background: var(--zh-orange); border: 0; box-shadow: 0 0 0 2px var(--zh-black); }
 
 .avatar {
@@ -1737,6 +1746,14 @@ html[data-theme="zerohour"] .type-system::after { height: 3px; background: var(-
 
 .btn::before { background: var(--zh-paper); }
 
+/* Hover text must sit on the paper sweep, not on the dark rest plate.
+   `--zh-ink` on paper is the readable pair; lime/yellow sit on the dark
+   button and were being painted while the sweep was already paper-white. */
+.btn:hover { color: var(--zh-ink); }
+.btn.primary:hover,
+.btn.primary.cta-adaptive:hover,
+.btn.primary.cta-system:hover { color: var(--zh-ink); }
+
 .btn.primary,
 .btn.primary.cta-adaptive,
 .btn.primary.cta-system {
@@ -1783,7 +1800,7 @@ html[data-theme="zerohour"] .type-system::after { height: 3px; background: var(-
   box-shadow: none;
 }
 
-.btn.ghost:hover { background: #17191d; border-color: var(--zh-lime); color: var(--zh-lime); transform: none; box-shadow: none; }
+.btn.ghost:hover { background: #17191d; border-color: var(--zh-lime); color: var(--zh-ink); transform: none; box-shadow: none; }
 .btn.ghost.danger { border-color: var(--zh-orange); color: var(--zh-orange); }
 .btn.ghost.danger::before { background: var(--zh-orange); }
 .btn.ghost.danger:hover { color: var(--zh-ink); }

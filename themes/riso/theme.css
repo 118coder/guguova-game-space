@@ -192,6 +192,19 @@ html.calm .scene-stack { transform: none !important; }
 }
 
 .icon-btn:hover { color: var(--t-on-accent); background: var(--t-accent); border-color: var(--t-accent); }
+
+/* Square icon buttons sit on the paper modal: the shared translucent-white
+   default (and its grey hover) is invisible there. */
+html[data-theme="riso"] .icon-btn.square {
+  color: var(--t-ink);
+  background: transparent;
+  border-color: var(--t-line);
+}
+html[data-theme="riso"] .icon-btn.square:hover {
+  color: var(--t-on-accent);
+  background: var(--t-accent);
+  border-color: var(--t-accent);
+}
 .bell-dot { border-radius: 50%; background: var(--t-danger); box-shadow: 0 0 0 2px var(--t-panel); }
 
 .avatar {

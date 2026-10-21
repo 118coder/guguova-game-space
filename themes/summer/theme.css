@@ -736,7 +736,8 @@ html[data-theme="summer"] .appearance-preview-copy .appearance-logo {
 .swatch em { color: var(--t-muted); font-size: 8px; }
 
 .pref-row { border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); color: var(--t-ink); }
-.pref-row:hover { color: var(--t-accent); background: var(--t-panel-2); }
+/* The hover plate is near-white, so #1a9bd7 (2.88:1) is unreadable there. */
+.pref-row:hover { color: var(--t-accent-3); background: var(--t-panel-2); }
 .pref-note, .pref-hint { color: var(--t-muted); }
 .appearance-footer { border-top: 1px solid var(--t-line); }
 .autosave { color: var(--t-muted); }
@@ -2563,7 +2564,8 @@ html[data-theme="summer"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.prim
   border: 1px solid #101820 !important;
 }
 html[data-theme="summer"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system):hover {
-  background: #1f93c8 !important;
+  /* White on #1f93c8 is 3.47:1; the deep blue keeps the hover readable. */
+  background: #17345a !important;
   border-color: #101820 !important;
   transform: none !important;
 }
@@ -2608,6 +2610,21 @@ html[data-theme="summer"] .activity-track i { background: #101820 !important; }
 html[data-theme="summer"] .topbar { background: #ffffff !important; border-bottom: 1px solid #101820 !important; }
 html[data-theme="summer"] .win-btn,
 html[data-theme="summer"] .icon-btn { color: #101820 !important; }
+/* Square icon buttons keep base.css's grey hover plate; paint the lime plate
+   so the ink glyph never lands on a light grey disc. */
+html[data-theme="summer"] .icon-btn.square:hover {
+  background: #e8f21f !important;
+  border-color: #101820 !important;
+  color: #101820 !important;
+}
+
+/* Modal close: the ink hover plate above would also paint this icon, and the
+   marker is ink-on-ink. Keep the print-red plate with cream glyph. */
+html[data-theme="summer"] .modal-close:hover {
+  background: #b03a2e !important;
+  border-color: #101820 !important;
+  color: #ffffff !important;
+}
 html[data-theme="summer"] .win-btn:hover { background: #e8f21f !important; color: #101820 !important; }
 html[data-theme="summer"] .win-btn.close:hover { background: #101820 !important; color: #fff !important; }
 html[data-theme="summer"] .window-controls { border-left-color: #101820 !important; }

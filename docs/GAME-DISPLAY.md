@@ -131,10 +131,10 @@ Magpie 默认有 3 秒倒计时，所以 6 秒窗口足够。
 
 ### 5.4 边界
 
-- **自动启动内置引擎**：设置里 `autoStartEngine` 默认开；需要缩放时
-  `ScalingEngine.EnsureRunning` 先启动 `engine/magpie/Magpie.exe`，主窗口出现后发
-  `WM_CLOSE` 收进托盘（`showNotifyIcon=false` 时最小化）。玩家不需要自己开 Magpie。
-  设置里的「启动引擎 / 重启引擎」只是手动入口。
+- **自动启动内置引擎**：设置里 `autoStartEngine` 默认关；玩家在引擎设置里打开后，
+  需要缩放时 `ScalingEngine.EnsureRunning` 才启动 `engine/magpie/Magpie.exe`，
+  主窗口出现后发 `WM_CLOSE` 收进托盘（`showNotifyIcon=false` 时最小化）。
+  默认关闭是为了不在后台偷偷拉起引擎；设置里的「启动引擎 / 重启引擎」始终是手动入口。
 - **轻量包**：`python tools/fetch-magpie.py --lite` 只保留 Lanczos / Nearest / FSR /
   FSRCNNX / CAS / Sharpen 等常用效果（约 14 MB）；引擎设置弹窗会把缺少效果的模式置灰。
   默认包保留全部 effects（26 MB），因为现有配置用到 Anime4K / CRT / CuNNy。
