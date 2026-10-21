@@ -34,6 +34,50 @@ public static class GameScanner
         return FindSteamCachedImage(appId, "hero", folders);
     }
 
+    /// <summary>One appcache/librarycache folder per Steam library root —
+    /// the only place outside the media root that scan artwork comes from.
+    /// The bridge maps each existing one onto a virtual host so cover URLs
+    /// stay loadable without copying files.</summary>
+    public static List<string> CacheRoots()
+    {
+        var roots = new List<string>();
+        var steamRoot = FindSteamRoot();
+        if (string.IsNullOrEmpty(steamRoot)) return roots;
+
+        var folders = new List<string>();
+        try
+        {
+            var vdf = Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf");
+            if (File.Exists(vdf))
+            {
+                foreach (Match match in Regex.Matches(File.ReadAllText(vdf), "\"path\"\\s+\"([^\"]+)\""))
+                {
+                    var path = match.Groups[1].Value.Replace(@"\", @"");
+                    if (Directory.Exists(path) && !folders.Contains(path, StringComparer.OrdinalIgnoreCase))
+                        folders.Add(path);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("cache roots vdf", ex);
+        }
+
+        if (!folders.Contains(steamRoot, StringComparer.OrdinalIgnoreCase)) folders.Add(steamRoot);
+        foreach (var folder in folders)
+        {
+            var cache = Path.Combine(folder, "appcache", "librarycache");
+            if (Directory.Exists(cache) && !roots.Contains(cache, StringComparer.OrdinalIgnoreCase))
+                roots.Add(cache);
+        }
+        return roots;
+    }
+
+    /// <summary>True for launcher clients themselves — a dropped shortcut to
+    /// Steam is not a game.</summary>
+    public static bool IsClientExecutable(string path) =>
+        ClientExeNames.Contains(Path.GetFileName(path?.Trim() ?? ""));
+
     public static string? FindSteamRoot()
     {
         try
@@ -143,7 +187,10 @@ public static class GameScanner
             .ToList();
     }
 
-    private static string CleanName(string name) => Regex.Replace(name, @"\s*(™|®|\(R\)|\(TM\))\s*", " ").Trim();
+    /// <summary>Drops the trademark noise every store appends to a title.
+    /// Shared with PlatformScanner so an Epic or GOG row reads exactly like a
+    /// Steam one.</summary>
+    public static string CleanName(string name) => Regex.Replace(name, @"\s*(™|®|\(R\)|\(TM\))\s*", " ").Trim();
 
     /// <summary>The artwork cache lives next to the client that owns the app;
     /// with several libraries we must look in every Steam root, not just the
@@ -234,6 +281,20 @@ public static class GameScanner
         "easyanticheat", "bootstrap"
     };
 
+    /// <summary>Launcher clients themselves. A Start Menu full of stores used to
+    /// mean "全选" imported Steam, Epic and friends as if they were games.</summary>
+    private static readonly HashSet<string> ClientExeNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "steam.exe", "steamerrorhandler.exe",
+        "epicgameslauncher.exe", "egs.exe",
+        "gog galaxy.exe", "goggalaxy.exe",
+        "battle.net.exe", "battle.net.exe.exe",
+        "origin.exe", "eadesktop.exe", "eadownload.exe",
+        "upc.exe", "ubisoftconnect.exe",
+        "itch.exe",
+        "guguova.exe"
+    };
+
     /// <summary>Picks the most plausible game executable in a folder.</summary>
     public static string? FindMainExecutable(string gameDir, string gameName)
     {
@@ -289,6 +350,7 @@ public static class GameScanner
                     if (string.IsNullOrEmpty(target) || !target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
                     if (!File.Exists(target)) continue;
                     if (SkipExeHints.Any(h => Path.GetFileName(target).Contains(h, StringComparison.OrdinalIgnoreCase))) continue;
+                    if (ClientExeNames.Contains(Path.GetFileName(target))) continue;
                     var name = Path.GetFileName(target).ToLowerInvariant();
                     if (name.Contains("uninstall") || name.Contains("update") || name.Contains("readme")) continue;
                     results.Add(target);

@@ -36,7 +36,7 @@ const THEME_FILTER = flags.themes && flags.themes !== 'all'
 
 const ALL_VIEWS = [
   'home', 'library', 'library-select', 'appearance', 'appearance-framing', 'settings', 'detail',
-  'engine', 'dialog', 'scanner', 'editor', 'context', 'notif', 'profile',
+  'engine', 'dialog', 'import', 'scanner', 'editor', 'context', 'notif', 'profile',
   'launching', 'sleep'
 ];
 const VIEWS = flags.views && flags.views !== 'all'
@@ -106,8 +106,12 @@ const HELPERS = String.raw`
           });
         }
         await sleep(420); break;
+      case 'import':
+        click('#addBtn'); await sleep(900); break;
       case 'scanner':
-        click('#addBtn'); await sleep(850); break;
+        // The + button opens the import sheet first; the scanner is one step in.
+        click('#addBtn'); await sleep(700);
+        click('#importGo'); await sleep(2600); break;
       case 'editor':
         click('.nav-btn[data-nav="library"]'); await sleep(500);
         click('#libAdd'); await sleep(750); break;

@@ -1119,7 +1119,10 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .tile.is-active .tile-label { color: #fff; }
-.tile.is-active .tile-sub { color: var(--accent); }
+/* Accent is a marker, not small text (spec §1.2): nova samples it from the
+   cover, so a deep cover colour turned this 9.5px subtitle into 2.2:1 on the
+   dock. The active tile is already marked by the white label and the art ring. */
+.tile.is-active .tile-sub { color: var(--muted); }
 
 .dock-foot {
   display: flex;

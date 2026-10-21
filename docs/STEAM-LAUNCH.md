@@ -43,17 +43,25 @@ NOVA 走的是前一条路线：**不再直接启动 exe，而是让 Steam 客�
 
 ## 3. 现在的实现
 
-### 3.1 三种启动方式
+### 3.1 四种启动方式
 
-`GameEntry.LaunchMode` 取值 `auto` / `steam` / `direct`，默认 `auto`：
+`GameEntry.LaunchMode` 取值 `auto` / `steam` / `platform` / `direct`，默认 `auto`。
+解析统一走 `Services/LaunchModes.cs` 的 `GameLaunch.ModeFor()`（1.15.0 起），
+`SteamService.ModeFor()` 只是它的转发。
 
 | 取值 | 行为 |
 | --- | --- |
-| `auto` | 有条目 `SteamAppId` 就走 Steam，否则直接启动进程 |
+| `auto` | 有 `SteamAppId` 走 Steam；有 `LaunchUri` 走该平台协议；否则直接启动进程 |
 | `steam` | 一律 `steam://rungameid/<appid>`，由客户端负责认证、覆盖层、云存档 |
+| `platform` | 一律走平台协议：`com.epicgames.launcher://…` / `uplay://launch/<id>/0` / `shell:AppsFolder\<PFN>!App` / `battlenet://<code>` |
 | `direct` | 一律直接启动 exe，用于确认不需要客户端的游戏 |
 
-管理面板可随时切换，写入 `library.json` 的 `launchMode`。
+管理面板可随时切换，写入 `library.json` 的 `launchMode`。GOG 与 EA app 的条目
+`LaunchUri` 为空，`auto` 直接解析为 `direct`：这两家的游戏不需要客户端代启。
+
+平台启动与 Steam 启动共用同一套「等到进程出现才记账」的观察器
+（`LauncherService.WatchClientLaunch`），因此 Epic / Ubisoft / Xbox 的
+首次登录、更新中都不会被误记成一次失败启动。
 
 ### 3.2 启动链路
 

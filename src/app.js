@@ -61,6 +61,10 @@
         applyPlaytimeUpdates(message.payload && message.payload.games);
         return;
       }
+      if (message.type === 'drop-import') {
+        onDropImport(message.payload);
+        return;
+      }
       if (message.type === 'session-failed') {
         onSessionFailed(message.payload);
         return;
@@ -184,6 +188,11 @@
     libPadIndex: 0,
     scanning: false,
     scan: null,
+    scanQuery: '',
+    firstRun: false,
+    importFirstRun: false,
+    importMode: 'auto',
+    importSummary: null,
     theme: 'nova',
     menuOpen: false,
     view: 'home',
@@ -302,6 +311,10 @@
     manageClose: $('#manageClose'),
     manageStats: $('#manageStats'),
     manageSteam: $('#manageSteam'),
+    manageSteamTitle: $('#manageSteamTitle'),
+    manageModeAuto: $('#manageModeAuto'),
+    manageModeClient: $('#manageModeClient'),
+    manageModeDirect: $('#manageModeDirect'),
     manageSteamState: $('#manageSteamState'),
     manageSteamNote: $('#manageSteamNote'),
     manageSteamModes: $('#manageSteamModes'),
@@ -404,6 +417,19 @@
     fAge: $('#fAge'),
     fMode: $('#fMode'),
     fTypeRecipe: $('#fTypeRecipe'),
+    importOverlay: $('#importOverlay'),
+    importKicker: $('#importKicker'),
+    importTitle: $('#importTitle'),
+    importSub: $('#importSub'),
+    importDetected: $('#importDetected'),
+    importChoices: $('#importChoices'),
+    importAuto: $('#importAuto'),
+    importManual: $('#importManual'),
+    importAutoTag: $('#importAutoTag'),
+    importNote: $('#importNote'),
+    importLater: $('#importLater'),
+    importGo: $('#importGo'),
+    importClose: $('#importClose'),
     scannerOverlay: $('#scannerOverlay'),
     scannerClose: $('#scannerClose'),
     scannerSub: $('#scannerSub'),
@@ -414,6 +440,15 @@
     scannerRescan: $('#scannerRescan'),
     scannerManual: $('#scannerManual'),
     scannerImport: $('#scannerImport'),
+    scanBulk: $('#scanBulk'),
+    scannerSearchRow: $('#scannerSearchRow'),
+    scannerSearch: $('#scannerSearch'),
+    detailSessions: $('#detailSessions'),
+    settingsIdleRow: $('#settingsIdleRow'),
+    settingsIdleSwitch: $('#settingsIdleSwitch'),
+    scanSelectAll: $('#scanSelectAll'),
+    scanSelectAllLabel: $('#scanSelectAllLabel'),
+    scanBulkCount: $('#scanBulkCount'),
     scannerImportLabel: $('#scannerImportLabel'),
     launchOverlay: $('#launchOverlay'),
     launchArt: $('#launchArt'),
@@ -602,6 +637,36 @@
 
   function lighten(hex, amount) { return mixHex(hex, '#ffffff', amount); }
   function darken(hex, amount) { return mixHex(hex, '#050609', amount); }
+
+  /* WCAG relative luminance. `luminanceOf` above is a cheap 0–1 average used to
+     match title recipes; contrast math needs the gamma-corrected version. */
+  function wcagLuminance(rgb) {
+    const channel = (value) => {
+      const c = Math.max(0, Math.min(255, value)) / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
+  }
+
+  function contrastRatio(a, b) {
+    const first = wcagLuminance(typeof a === 'string' ? parseHex(a) : a);
+    const second = wcagLuminance(typeof b === 'string' ? parseHex(b) : b);
+    return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+  }
+
+  /**
+   * The readable version of a cover-sampled accent on nova's carbon page.
+   * Small labels (kickers, framing values, platform chips) paint with
+   * --accent-text, and the accent comes from the cover: a dark cover put them
+   * at 2:1. Lift toward white, hue intact, until 12px text clears AA.
+   */
+  function readableAccentText(hex, backdrop, target = 4.6) {
+    let current = hex;
+    for (let step = 0; step < 24 && contrastRatio(current, backdrop || '#0a0c11') < target; step += 1) {
+      current = lighten(current, 0.12);
+    }
+    return current;
+  }
 
   function dnaFor(game) {
     const dna = game && game.dna ? game.dna : null;
@@ -1473,7 +1538,8 @@
         magpiePath: state.settings.magpiePath || null,
         scalingHotkey: state.settings.scalingHotkey || 3137,
         autoStartEngine: state.settings.autoStartEngine === true,
-        startupFullscreen: state.settings.startupFullscreen === true
+        startupFullscreen: state.settings.startupFullscreen === true,
+        idlePauseMinutes: Number.isFinite(state.settings.idlePauseMinutes) ? state.settings.idlePauseMinutes : 10
       });
     }, 180);
   }
@@ -1493,7 +1559,7 @@
     if (themed) {
       const theme = window.NovaTheme ? window.NovaTheme.find(state.theme) : null;
       const tokens = (theme && theme.tokens) || {};
-      ['--accent', '--accent-2', '--glow'].forEach((name) => {
+      ['--accent', '--accent-2', '--glow', '--accent-text'].forEach((name) => {
         if (tokens[name]) root.style.setProperty(name, tokens[name]);
         else root.style.removeProperty(name);
       });
@@ -1505,12 +1571,15 @@
       root.style.setProperty('--accent', system ? '#e7dcc9' : '#ffb45e');
       root.style.setProperty('--accent-2', system ? '#c7b79d' : '#ff6b79');
       root.style.setProperty('--glow', system ? 'rgba(231, 220, 201, .16)' : 'rgba(255, 172, 96, .32)');
+      root.style.setProperty('--accent-text', system ? '#e7dcc9' : readableAccentText('#ffb45e'));
       root.style.setProperty('--scrim-rgb', '16, 12, 10');
       return;
     }
     root.style.setProperty('--accent', system ? '#e7dcc9' : game.accent);
     root.style.setProperty('--accent-2', system ? '#c7b79d' : game.accent2);
     root.style.setProperty('--glow', system ? 'rgba(231, 220, 201, .16)' : game.glow);
+    root.style.setProperty('--accent-text',
+      system ? '#e7dcc9' : readableAccentText(game.accent || '#ffb45e'));
     root.style.setProperty('--scrim-rgb', game.scrim || '16, 12, 10');
   }
 
@@ -1759,18 +1828,22 @@
     if (game.lastPlayedUtc) {
       return { label: '继续', dim: `${themeWord('lastPlayed', '上次游玩')} ${relativeTime(game.lastPlayedUtc)}` };
     }
-    return { label: '就绪', dim: game.source === 'steam' ? 'Steam 库' : '本机' };
+    return { label: '就绪', dim: isPlatformGame(game) ? `${sourceLabel(game)}` : '本机' };
   }
 
   function metaHTML(game) {
     if (!game) return '<span>动作</span><i class="meta-dot"></i><span>冒险</span><i class="meta-dot"></i><span class="age-badge">全年龄</span>';
     const bits = [];
-    const genres = (game.genres && game.genres.length ? game.genres : [game.genre || '游戏'])
-      .filter((genre) => genre && !(game.source === 'steam' && genre.toLowerCase() === 'steam'));
+    // A platform import has no genre of its own; printing the fallback "游戏"
+    // next to a platform badge is noise, so the badge carries the row instead.
+    const genres = (game.genres && game.genres.length ? game.genres : [game.genre || ''])
+      .filter((genre) => genre && PLATFORM_LABELS[genre.toLowerCase()] === undefined)
+      .filter((genre) => !(isPlatformGame(game) && genre.toLowerCase() === game.source));
+    if (!genres.length && !isPlatformGame(game)) genres.push('游戏');
     genres.forEach((genre) => bits.push(`<span>${esc(genre)}</span>`));
     bits.push(`<span class="age-badge">${esc(game.ageRating || '全年龄')}</span>`);
     if (game.mode) bits.push(`<span>${esc(game.mode)}</span>`);
-    if (game.source === 'steam') bits.push('<span class="update-badge">STEAM</span>');
+    if (isPlatformGame(game)) bits.push(`<span class="update-badge">${esc(platformShort(game))}</span>`);
     return bits.join('<i class="meta-dot"></i>');
   }
 
@@ -1841,7 +1914,7 @@
       els.questFill.style.width = '100%';
       return;
     }
-    els.questKicker.textContent = game.source === 'steam' ? 'Steam 游戏库' : '游戏';
+    els.questKicker.textContent = isPlatformGame(game) ? `${sourceLabel(game)} 游戏库` : '游戏';
     const genres = (game.genres && game.genres.length ? game.genres.join(' · ') : game.genre) || '游戏';
     els.questTitle.textContent = game.name || game.zh || '游戏';
     if (!game.exists) {
@@ -1940,7 +2013,7 @@
       let badge = '';
       if (state.running.has(game.id)) badge = '<span class="tile-badge live">运行中</span>';
       else if (!game.exists) badge = '<span class="tile-badge offline">程序缺失</span>';
-      else if (game.source === 'steam') badge = '<span class="tile-badge">STEAM</span>';
+      else if (isPlatformGame(game)) badge = `<span class="tile-badge">${esc(platformShort(game))}</span>`;
       const badges = $('.tile-badges', tile);
       if (badges) badges.innerHTML = badge;
 
@@ -2075,7 +2148,7 @@
     return state.games.filter((game) => {
       if (state.libFilter === 'recent' && !game.lastPlayedUtc) return false;
       if (state.libFilter === 'favorite' && !game.favorite) return false;
-      if (state.libFilter === 'steam' && game.source !== 'steam') return false;
+      if (state.libFilter === 'platform' && !isPlatformGame(game)) return false;
       if (state.libFilter === 'missing' && game.exists) return false;
       if (query) {
         const haystack = `${game.zh} ${game.name} ${(game.genres || []).join(' ')} ${game.genre || ''}`.toLowerCase();
@@ -2088,7 +2161,7 @@
   function renderLibrary() {
     const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
     const favorites = state.games.filter((game) => game.favorite).length;
-    const steamCount = state.games.filter((game) => game.source === 'steam').length;
+    const platformCount = state.games.filter(isPlatformGame).length;
     const missingCount = state.games.filter((game) => !game.exists).length;
 
     els.libStats.innerHTML = `
@@ -2096,7 +2169,7 @@
       <span class="lib-sep"></span>
       <span>累计 <b>${formatHoursShort(totalSeconds)}</b></span>
       <span class="lib-sep"></span>
-      <span><b>${steamCount}</b> 款来自 Steam</span>
+      <span><b>${platformCount}</b> 款来自平台</span>
       <span class="lib-sep"></span>
       <span><b>${favorites}</b> 款收藏</span>
       ${missingCount ? `<span class="lib-sep"></span><span><b>${missingCount}</b> 款程序缺失</span>` : ''}
@@ -2129,7 +2202,7 @@
       els.libGrid.style.display = 'none';
       els.libEmpty.hidden = false;
       els.libEmptyTitle.textContent = '游戏库还是空的';
-      els.libEmptyText.textContent = '添加一个游戏程序，或先从 Steam 库导入。';
+      els.libEmptyText.textContent = '自动扫描已安装的平台，或手动添加一个游戏程序。';
       els.clearFilters.textContent = '添加游戏';
       return;
     }
@@ -2147,7 +2220,7 @@
       if (featured) badges.push('<span class="lib-current">CURRENT</span>');
       if (state.running.has(game.id)) badges.push('<span class="lib-badge live">运行中</span>');
       else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
-      else if (game.source === 'steam') badges.push('<span class="tile-badge">STEAM</span>');
+      else if (isPlatformGame(game)) badges.push(`<span class="tile-badge">${esc(platformShort(game))}</span>`);
       const pct = Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100));
       const displayName = shortName(game);
       const showLatin = !!game.name
@@ -2211,6 +2284,40 @@
   /* ============================================================
      DETAILS
      ============================================================ */
+
+  /** The last five real sessions, newest first. Stored by the host on every
+   * clean or crashed exit; this is the "what did I actually play" view. */
+  function renderDetailSessions(game) {
+    if (!els.detailSessions) return;
+    const sessions = Array.isArray(game.recentSessions) ? game.recentSessions : [];
+    if (!sessions.length) {
+      els.detailSessions.hidden = true;
+      els.detailSessions.innerHTML = '';
+      return;
+    }
+
+    const rows = sessions
+      .slice()
+      .sort((a, b) => String(b.startedUtc || '').localeCompare(String(a.startedUtc || '')))
+      .map((session) => {
+        const when = session.startedUtc ? new Date(session.startedUtc) : null;
+        const label = when && !Number.isNaN(when.getTime())
+          ? `${when.getMonth() + 1}月${when.getDate()}日 ${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}`
+          : '未知时间';
+        return `
+          <div class="session-row${session.crashed ? ' is-crashed' : ''}">
+            <span class="session-when">${esc(label)}</span>
+            <span class="session-len">${esc(formatHoursShort(session.seconds || 0))}</span>
+            <span class="session-flag">${session.crashed ? '异常退出' : ''}</span>
+          </div>`;
+      })
+      .join('');
+
+    els.detailSessions.innerHTML = `
+      <div class="session-head"><span>最近记录</span><span>时长</span><span></span></div>
+      ${rows}`;
+    els.detailSessions.hidden = false;
+  }
 
   function updateDetailStatus(game) {
     els.detailStatus.classList.remove('is-update', 'is-offline');
@@ -2276,11 +2383,12 @@
     els.detailMeta.innerHTML = metaHTML(game);
     els.detailDesc.textContent = game.description || '';
 
+    renderDetailSessions(game);
     els.detailStats.innerHTML = [
       ['累计游玩', game.playtimeSeconds ? formatHours(game.playtimeSeconds) : '还没玩过'],
       ['最近游玩', game.lastPlayedUtc ? relativeTime(game.lastPlayedUtc) : '尚未游玩'],
       ['启动次数', `${game.launchCount || 0} 次`],
-      ['来源', game.source === 'steam' ? 'Steam 库' : '手动添加']
+      ['来源', sourceLabel(game)]
     ].map(([label, value]) => `
       <div class="stat">
         <div class="stat-label">${esc(label)}</div>
@@ -2447,15 +2555,23 @@
   function fillManage() {
     const game = currentGame();
     if (!game) return;
+    const clientLabel = game.launchModeResolved === 'platform' ? sourceLabel(game) : 'Steam';
     const modeLabel = game.launchMode === 'steam' ? '走 Steam 客户端'
+      : game.launchMode === 'platform' ? `走 ${clientLabel}`
       : game.launchMode === 'direct' ? '直接启动'
       : '自动';
+    const launchDetail = game.launchModeResolved === 'steam' ? ' steam://'
+      : game.launchModeResolved === 'platform' ? ' 平台协议'
+      : ' 进程';
+    const sourceDetail = isPlatformGame(game)
+      ? `${sourceLabel(game)}${game.platformId ? ` · ${game.platformId}` : ''}`
+      : '手动添加';
     els.manageStats.innerHTML = [
       ['运行时程序', game.exePath ? (game.exePath.length > 34 ? `…${game.exePath.slice(-33)}` : game.exePath) : '未设置'],
-      ['启动方式', game.launchModeResolved === 'steam' ? `${modeLabel} · steam://` : `${modeLabel} · 进程`],
+      ['启动方式', `${modeLabel} ·${launchDetail}`],
       ['启动参数', game.args || '无'],
       ['工作目录', game.workDir || '与程序相同'],
-      ['版本 / 来源', game.source === 'steam' ? `Steam · App ${game.steamAppId || '—'}` : '手动添加']
+      ['版本 / 来源', sourceDetail]
     ].map(([label, value]) => `<div class="manage-stat"><span>${esc(label)}</span><b title="${esc(value)}">${esc(value)}</b></div>`).join('');
 
     fillSteamPanel(game);
@@ -2472,26 +2588,60 @@
   function fillSteamPanel(game) {
     const panel = els.manageSteam;
     if (!panel) return;
-    const show = game.source === 'steam' || !!game.steamAppId || game.launchMode !== 'auto';
+    const owned = isPlatformGame(game);
+    const show = owned || !!game.steamAppId || game.launchMode !== 'auto';
     panel.hidden = !show;
     if (!show) return;
 
-    const state = game.steamRunning
-      ? (game.steamSignedIn ? 'Steam 运行中 · 已登录' : 'Steam 运行中 · 未登录')
-      : 'Steam 未运行';
+    // The same panel serves every client: Steam reports presence and login,
+    // the other launchers only have "the game has a protocol target".
+    const usesSteam = game.source === 'steam' || (!owned && !!game.steamAppId);
+    const clientName = usesSteam ? 'Steam' : sourceLabel(game);
 
-    els.manageSteamState.textContent = state;
-    els.manageSteamState.dataset.on = game.steamRunning && game.steamSignedIn ? 'ok' : 'warn';
-    els.manageSteamNote.textContent = game.steamNote || '';
+    let stateText;
+    let tone = 'warn';
+    if (usesSteam) {
+      stateText = game.steamRunning
+        ? (game.steamSignedIn ? 'Steam 运行中 · 已登录' : 'Steam 运行中 · 未登录')
+        : 'Steam 未运行';
+      if (game.steamRunning && game.steamSignedIn) tone = 'ok';
+    } else if (game.hasLaunchUri && game.clientInstalled === false) {
+      stateText = `未检测到 ${clientName} 客户端`;
+      tone = 'warn';
+    } else if (game.hasLaunchUri) {
+      stateText = `通过 ${clientName} 启动`;
+      tone = 'ok';
+    } else {
+      stateText = '直接启动 · 无需客户端';
+    }
+
+    if (els.manageSteamTitle) els.manageSteamTitle.textContent = `${clientName} 启动`;
+    els.manageSteamState.textContent = stateText;
+    els.manageSteamState.dataset.on = tone;
+    els.manageSteamNote.textContent = usesSteam
+      ? (game.steamNote || '')
+      : (game.hasLaunchUri
+        ? `交给 ${clientName} 启动，云端存档与平台功能照常可用。`
+        : '这款游戏没有记录平台启动地址，只能从程序本身启动。');
+
+    // "走客户端" is only meaningful when there is an id or URL to hand over.
+    const clientMode = usesSteam ? 'steam' : 'platform';
+    if (els.manageModeClient) {
+      els.manageModeClient.dataset.mode = clientMode;
+      els.manageModeClient.textContent = usesSteam ? '走 Steam' : `走 ${clientName}`;
+    }
 
     const active = game.launchMode || 'auto';
     for (const button of els.manageSteamModes.querySelectorAll('.steam-mode')) {
       const on = button.dataset.mode === active;
       button.classList.toggle('is-active', on);
       button.setAttribute('aria-pressed', String(on));
-      // "走 Steam" is meaningless without an app id to hand over.
-      button.disabled = button.dataset.mode === 'steam' && !game.steamAppId;
+      // A packaged (Xbox) exe lives behind WindowsApps ACLs — "直接启动" is
+      // not an option, the shell hand-off is the only path.
+      button.disabled = (button.dataset.mode === 'steam' && !game.steamAppId) ||
+        (button.dataset.mode === 'direct' && game.source === 'xbox');
     }
+    if (els.manageModeClient) els.manageModeClient.disabled = !game.hasLaunchUri && !game.steamAppId;
   }
 
   async function setLaunchMode(mode) {
@@ -5160,6 +5310,23 @@
     else setTimeout(warm, 900);
   }
 
+  /** "挂机 10 分钟后暂停计时" — 0 in the host means off. */
+  function bindIdleSwitch() {
+    if (!els.settingsIdleRow) return;
+    const sync = () => {
+      const on = (state.settings.idlePauseMinutes || 0) > 0;
+      setPrefSwitch(els.settingsIdleRow, els.settingsIdleSwitch, on);
+    };
+    sync();
+    els.settingsIdleRow.addEventListener('click', () => {
+      state.settings.idlePauseMinutes = (state.settings.idlePauseMinutes || 0) > 0 ? 0 : 10;
+      sync();
+      saveSettings();
+      audio.select();
+      toast(state.settings.idlePauseMinutes > 0 ? '挂机 10 分钟后暂停计时' : '挂机不再暂停计时（按墙钟记录）', 'info');
+    });
+  }
+
   function bindSettings() {
     if (els.settingsSaveName) els.settingsSaveName.addEventListener('click', savePlayerName);
     if (els.settingsUseSystemName) els.settingsUseSystemName.addEventListener('click', useSystemPlayerName);
@@ -5531,6 +5698,189 @@
     syncEditorPreview();
   }
 
+  /** A file dropped on the window (the host resolves paths — the page cannot)
+   * lands here: open the editor with everything prefilled. */
+  function onDropImport(payload) {
+    if (!payload || payload.ok === false) {
+      toast(payload?.error || '没有找到可执行文件', 'alert');
+      audio.error();
+      return;
+    }
+    if (state.overlay && state.overlay !== 'scanner' && state.overlay !== 'details' && state.overlay !== 'import') {
+      toast('请先关闭当前窗口，再添加游戏', 'info');
+      return;
+    }
+    if (state.overlay === 'scanner') closeScanner({ focus: false, sound: false });
+    if (state.overlay === 'details') closeDetails({ focus: false, sound: false });
+
+    openEditor();
+    adoptExecutable(payload.exePath, { quiet: true });
+    if (payload.workDir) els.fWorkDir.value = payload.workDir;
+    syncEditorPreview();
+    toast('已从拖入的文件预填 · 确认后入库', 'spark');
+  }
+
+  /* ============================================================
+     IMPORT SHEET
+     Every "add a game" entry point lands here first: the top-bar +,
+     the library header button, the empty library and the first-run
+     prompt. Two ways in — scan what the machine already has, or pick
+     an exe by hand — and the choice is remembered for the session so
+     the sheet never re-opens on the wrong card.
+     ============================================================ */
+
+  const PLATFORM_LABELS = {
+    steam: 'Steam',
+    epic: 'Epic Games',
+    gog: 'GOG',
+    ubisoft: 'Ubisoft Connect',
+    ea: 'EA app',
+    xbox: 'Xbox',
+    battlenet: '战网'
+  };
+
+  const PLATFORM_SHORT = {
+    steam: 'STEAM',
+    epic: 'EPIC',
+    gog: 'GOG',
+    ubisoft: 'UBISOFT',
+    ea: 'EA',
+    xbox: 'XBOX',
+    battlenet: 'BATTLE.NET'
+  };
+
+  /** Which launcher owns this entry; 'manual' when nothing does. */
+  function platformOf(game) {
+    if (!game) return 'manual';
+    return PLATFORM_LABELS[game.source] ? game.source : 'manual';
+  }
+
+  function isPlatformGame(game) {
+    return platformOf(game) !== 'manual';
+  }
+
+  /** "Steam" / "Epic Games" / … / "手动添加" — the one place the UI asks. */
+  function sourceLabel(game) {
+    const platform = platformOf(game);
+    return platform === 'manual' ? '手动添加' : PLATFORM_LABELS[platform];
+  }
+
+  function platformShort(game) {
+    return PLATFORM_SHORT[platformOf(game)] || '';
+  }
+
+  function openImport(options = {}) {
+    if (state.overlay) return;
+    state.importFirstRun = options.firstRun === true;
+    state.importSummary = null;
+    state.importMode = 'auto';
+
+    els.importKicker.textContent = state.importFirstRun ? 'FIRST RUN · LIBRARY' : 'LIBRARY · IMPORT';
+    els.importTitle.textContent = state.importFirstRun ? '要把已有的游戏收进来吗？' : '添加游戏';
+    els.importSub.textContent = '正在检查本机已安装的平台…';
+    els.importDetected.hidden = true;
+    els.importDetected.innerHTML = '';
+    els.importLater.hidden = !state.importFirstRun;
+    els.importAutoTag.hidden = false;
+
+    chooseImportMode('auto', { silent: true });
+
+    state.lastFocus = document.activeElement;
+    state.overlay = 'import';
+    openSurface('import');
+    audio.open();
+    setTimeout(() => {
+      try { els.importAuto.focus({ preventScroll: true }); } catch (error) {}
+    }, 120);
+
+    loadImportSummary();
+  }
+
+  function closeImport(options = {}) {
+    if (state.overlay !== 'import') return;
+    const { focus = true, sound = true } = options;
+    closeSurface('import');
+    state.overlay = null;
+    if (sound) audio.back();
+    if (focus) restoreFocus();
+  }
+
+  async function loadImportSummary() {
+    const summary = await call('platformSummary');
+    if (state.overlay !== 'import') return;
+    if (!summary || !summary.ok) {
+      els.importSub.textContent = '没能读取本机平台，可以直接手动添加游戏。';
+      chooseImportMode('manual', { silent: true });
+      return;
+    }
+
+    state.importSummary = summary;
+    const platforms = (summary.platforms || []).filter((platform) => platform.count > 0);
+    const total = platforms.reduce((sum, platform) => sum + platform.count, 0);
+
+    if (!platforms.length) {
+      els.importSub.textContent = '没有检测到已安装的平台，先手动添加这款游戏吧。';
+      els.importDetected.hidden = true;
+      els.importAutoTag.hidden = true;
+      chooseImportMode('manual', { silent: true });
+      return;
+    }
+
+    // "约" is honest: the cheap probe counts manifest entries, and the full
+    // scan drops the ones whose install folder or exe is gone.
+    els.importSub.textContent = `检测到 ${platforms.length} 个平台，约 ${total} 款已安装游戏。`;
+    els.importDetected.innerHTML = platforms.map((platform) => `
+      <span class="import-platform"><span>${esc(platform.shortLabel || platform.label)}</span><b>${platform.count}</b></span>
+    `).join('');
+    els.importDetected.hidden = false;
+    chooseImportMode('auto', { silent: true });
+  }
+
+  function chooseImportMode(mode, options = {}) {
+    const next = mode === 'manual' ? 'manual' : 'auto';
+    if (state.importMode === next && !options.silent) {
+      audio.select();
+      return;
+    }
+    state.importMode = next;
+    const auto = next === 'auto';
+    els.importAuto.classList.toggle('is-active', auto);
+    els.importManual.classList.toggle('is-active', !auto);
+    els.importAuto.setAttribute('aria-checked', String(auto));
+    els.importManual.setAttribute('aria-checked', String(!auto));
+    els.importAutoTag.hidden = !auto;
+    els.importGo.textContent = auto ? '开始扫描' : '填写信息';
+    els.importNote.textContent = auto
+      ? '只读取已安装信息，勾选后才写入游戏库；不会移动或删除任何游戏文件。'
+      : '选择 EXE 后会读取同名 nova-game.json；没有清单时用程序图标生成封面。';
+    if (!options.silent) audio.select();
+  }
+
+  function advanceImport() {
+    const mode = state.importMode;
+    const firstRun = state.importFirstRun;
+    dismissFirstRun();
+    closeImport({ focus: false, sound: false });
+    if (firstRun) toast('以后随时可以从右上角的 + 添加游戏', 'info');
+    if (mode === 'auto') openScanner();
+    else openEditor();
+  }
+
+  /** The first-run prompt is asked once. The host owns the flag so a library
+   * export/import keeps the answer, and a failed call must not block the UI. */
+  function dismissFirstRun() {
+    if (!state.firstRun) return;
+    state.firstRun = false;
+    call('dismissFirstRun').catch(() => {});
+  }
+
+  /** Opens the sheet once, after the opening ritual — a modal painted over the
+   * intro would fight it, and the intro is the one place that owns the screen. */
+  function maybeAskFirstRun() {
+    if (!state.firstRun || state.overlay) return;
+    openImport({ firstRun: true });
+  }
+
   /* ============================================================
      SCANNER
      ============================================================ */
@@ -5565,7 +5915,12 @@
     els.scannerStatusText.textContent = '正在扫描…';
     els.scannerImport.disabled = true;
     els.scannerImportLabel.textContent = '扫描中…';
+    if (els.scannerSub) els.scannerSub.textContent = '正在读取各个平台的已安装游戏…';
     els.scannerList.innerHTML = '';
+    if (els.scanBulk) els.scanBulk.hidden = true;
+    if (els.scannerSearchRow) els.scannerSearchRow.hidden = false;
+    if (els.scannerSearch) els.scannerSearch.value = '';
+    state.scanQuery = '';
 
     const [result, manifests] = await Promise.all([call('scanLibrary'), call('scanManifests')]);
     state.scanning = false;
@@ -5582,78 +5937,133 @@
     renderScanResults(result, state.manifestScan);
   }
 
-  function renderScanResults(result, manifestScan) {
-    const steam = result.steam || [];
-    const shortcuts = result.shortcuts || [];
-    const manifests = (manifestScan && manifestScan.items) || [];
-    const pending = steam.filter((item) => !item.imported);
-    const imported = steam.filter((item) => item.imported);
-    els.scannerSpinner.hidden = true;
-    els.scannerStatus.hidden = !(steam.length || shortcuts.length);
-    els.scannerStatusText.textContent = `${pending.length} 款 Steam 游戏、${shortcuts.length} 个快捷方式`;
+  function scanRowMatches(item, query) {
+    if (!query) return true;
+    return `${item.name || ''} ${item.detail || ''}`.toLowerCase().includes(query);
+  }
 
-    if (!steam.length && !shortcuts.length) {
-      els.scannerStatus.hidden = true;
+  function renderScanResults(result, manifestScan) {
+    const query = state.scanQuery.trim().toLowerCase();
+    const groups = (result.groups || [])
+      .map((group) => ({ ...group, items: (group.items || []).filter((item) => scanRowMatches(item, query)) }))
+      .filter((group) => group.items.length);
+    const shortcuts = (result.shortcuts || []).filter((item) => scanRowMatches(item, query));
+    const manifests = ((manifestScan && manifestScan.items) || []).filter((item) => scanRowMatches(item, query));
+    if (els.scanBulk) els.scanBulk.hidden = groups.length + shortcuts.length + manifests.length === 0;
+    const totalShown = groups.reduce((sum, group) => sum + group.items.length, 0);
+    els.scannerSpinner.hidden = true;
+    els.scannerStatus.hidden = !(groups.length || shortcuts.length || manifests.length);
+
+    const summary = groups.map((group) => `${group.label} ${group.items.length}`);
+    if (shortcuts.length) summary.push(`快捷方式 ${shortcuts.length}`);
+    if (manifests.length) summary.push(`清单 ${manifests.length}`);
+    els.scannerStatusText.textContent = summary.length ? summary.join(' · ') : '没有找到可导入的游戏';
+
+    if (!groups.length && !shortcuts.length && !manifests.length) {
       els.scannerList.innerHTML = `
         <div class="scanner-empty">
           <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
           <strong>没有找到可导入的游戏</strong>
-          <span>${result.steamRoot ? 'Steam 库中没有识别到已安装的游戏。' : '未检测到 Steam 安装，可以手动添加游戏。'}</span>
+          <span>${result.steamRoot ? '已读取 Steam、Epic、GOG、Ubisoft、EA、Xbox 与战网，没有识别到已安装的游戏。' : '没有检测到平台客户端，也可以手动添加任意程序。'}</span>
         </div>`;
       els.scannerImport.disabled = true;
       els.scannerImportLabel.textContent = '导入所选';
       return;
     }
 
+    if (els.scannerSub) {
+      els.scannerSub.textContent = totalShown || shortcuts.length
+        ? '按平台分组；点一下勾选，再一次性入库。'
+        : '扫描已安装的游戏。';
+    }
+
     const rows = [];
     if (manifests.length) {
-      rows.push(`<div class="scan-group-title"><span>带清单的游戏 <em>nova-game.json</em></span></div>`);
+      rows.push(scanGroupTitle('带清单的游戏', `${manifests.length} 款`, { group: 'manifest', selectable: manifests.length }));
       manifests.forEach((item, index) => rows.push(scanManifestRow(item, index)));
     }
-    if (pending.length) {
-      rows.push(`<div class="scan-group-title"><span>STEAM 游戏库 <em>${result.steamRoot || ''}</em></span></div>`);
-      pending.forEach((item) => rows.push(scanRow(item, 'steam')));
-    }
-    if (imported.length) {
-      rows.push(`<div class="scan-group-title"><span>已导入 <em>${imported.length} 款</em></span></div>`);
-      imported.forEach((item) => rows.push(scanRow(item, 'steam', true)));
-    }
+
+    groups.forEach((group) => {
+      const pending = group.items.filter((item) => !item.imported);
+      const imported = group.items.filter((item) => item.imported);
+      // The count, not the install root: a 40-character Steam path next to the
+      // platform name turned the header into a second status line.
+      rows.push(scanGroupTitle(group.label, `${group.items.length} 款`, {
+        group: group.id,
+        selectable: pending.length,
+        clientMissing: group.clientInstalled === false
+      }));
+      pending.forEach((item) => rows.push(scanRow(item)));
+      imported.forEach((item) => rows.push(scanRow(item, true)));
+    });
+
     if (shortcuts.length) {
-      rows.push('<div class="scan-group-title"><span>本机快捷方式 <em>START MENU</em></span></div>');
+      rows.push(scanGroupTitle('本机快捷方式', 'START MENU', { group: 'exe', selectable: shortcuts.length }));
       shortcuts.forEach((item, index) => rows.push(scanShortcutRow(item, index)));
     }
 
     els.scannerList.innerHTML = rows.join('');
+    // A cover the shell cannot load must never show the browser's broken-image
+    // icon; drop the <img> and the disc glyph underneath becomes the thumb.
+    $$('.scan-thumb img', els.scannerList).forEach((img) => {
+      img.addEventListener('error', () => img.remove(), { once: true });
+    });
     updateScanSelection();
+  }
+
+  /** Group header doubles as the "select everything in this platform" control.
+   * It is a real button so the pad can reach it; the label is a fixed
+   * 全选 + count and the checked rows carry the state. */
+  function scanGroupTitle(label, note, options = {}) {
+    const group = options.group;
+    const selectable = options.selectable || 0;
+    let action = '';
+    if (group && selectable > 0) {
+      action = `<button class="scan-pick" data-pick-group="${esc(group)}" type="button" aria-pressed="false">全选 ${selectable}</button>`;
+    }
+    const missing = options.clientMissing ? '<i class="scan-client-missing">客户端未安装</i>' : '';
+    return `<div class="scan-group-title"><span>${esc(label)}<em>${esc(note || '')}</em></span>${missing}${action}</div>`;
+  }
+
+  function scanGroupKeys(group) {
+    if (group === 'exe') return (state.scan?.shortcuts || []).map((item, index) => `exe:${index}`);
+    if (group === 'manifest') return (state.manifestScan?.items || []).map((item, index) => `manifest:${index}`);
+    const found = (state.scan?.groups || []).find((entry) => entry.id === group);
+    if (!found) return [];
+    return found.items.filter((item) => !item.imported).map((item) => item.key);
   }
 
   function scanManifestRow(item, index) {
     const key = `manifest:${index}`;
     const checked = scanSelection.has(key);
     return `
-      <button class="scan-row ${checked ? 'is-checked' : ''}" data-scan="${key}">
+      <button class="scan-row ${checked ? 'is-checked' : ''}" data-scan="${key}" type="button">
         <span class="scan-thumb"><svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg></span>
         <span class="scan-copy">
           <span class="scan-name">${esc(item.name || '未命名')}</span>
           <span class="scan-sub">${esc(item.tagline || item.manifestPath || '')}</span>
         </span>
-        <span class="scan-source">MANIFEST</span>
+        <span class="scan-source">清单</span>
         <span class="scan-check"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
       </button>`;
   }
 
-  function scanRow(item, kind, done = false) {
-    const checked = scanSelection.has(`steam:${item.appId}`);
+  function scanRow(item, done = false) {
+    const checked = scanSelection.has(item.key);
+    // The disc glyph always sits underneath: a cover that 404s (cache cleaned,
+    // moved library) removes itself on error and the fallback shows instead of
+    // a broken-image glyph.
     return `
-      <button class="scan-row ${checked ? 'is-checked' : ''} ${done ? 'is-imported' : ''}" data-scan="steam:${esc(item.appId)}" ${done ? 'disabled' : ''}>
+      <button class="scan-row ${checked ? 'is-checked' : ''} ${done ? 'is-imported' : ''}" data-scan="${esc(item.key)}" ${done ? 'disabled' : ''} type="button">
         <span class="scan-thumb">
-          ${item.coverUrl ? `<img src="${esc(item.coverUrl)}" alt="" loading="lazy">` : '<svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg>'}
+          <svg class="ic" aria-hidden="true"><use href="#i-disc"/></svg>
+          ${item.coverUrl ? `<img src="${esc(item.coverUrl)}" alt="" loading="lazy">` : ''}
         </span>
         <span class="scan-copy">
           <span class="scan-name">${esc(item.name)}</span>
-          <span class="scan-sub">${esc(item.installDir)}</span>
+          <span class="scan-sub">${esc(item.detail || '')}</span>
         </span>
-        <span class="scan-source">APP ${esc(item.appId)}</span>
+        <span class="scan-source">${esc(PLATFORM_SHORT[item.platform] || '')}</span>
         <span class="scan-check"><svg class="ic" aria-hidden="true"><use href="${done ? '#i-check' : '#i-check'}"/></svg></span>
       </button>`;
   }
@@ -5662,7 +6072,7 @@
     const key = `exe:${index}`;
     const checked = scanSelection.has(key);
     return `
-      <button class="scan-row ${checked ? 'is-checked' : ''}" data-scan="${key}">
+      <button class="scan-row ${checked ? 'is-checked' : ''}" data-scan="${key}" type="button">
         <span class="scan-thumb"><svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg></span>
         <span class="scan-copy">
           <span class="scan-name">${esc(item.name)}</span>
@@ -5673,9 +6083,66 @@
       </button>`;
   }
 
+  /** Every row the player could add right now: pending platform entries,
+   *  manifests and Start-Menu shortcuts. Imported rows never take part. */
+  function scanAllKeys() {
+    const keys = [];
+    (state.scan?.groups || []).forEach((group) => {
+      (group.items || []).forEach((item) => { if (!item.imported) keys.push(item.key); });
+    });
+    (state.manifestScan?.items || []).forEach((item, index) => keys.push(`manifest:${index}`));
+    (state.scan?.shortcuts || []).forEach((item, index) => keys.push(`exe:${index}`));
+    return keys;
+  }
+
+  /** One click covers everything importable; the next click clears it. */
+  function toggleScanAll() {
+    const keys = scanAllKeys();
+    if (!keys.length) return;
+    const all = keys.every((key) => scanSelection.has(key));
+    if (all) {
+      keys.forEach((key) => scanSelection.delete(key));
+    } else {
+      keys.forEach((key) => scanSelection.add(key));
+    }
+    $$('.scan-row', els.scannerList).forEach((row) => {
+      if (keys.includes(row.dataset.scan)) row.classList.toggle('is-checked', !all);
+    });
+    updateScanSelection();
+    audio.select();
+  }
+
   function updateScanSelection() {
     els.scannerImport.disabled = scanSelection.size === 0;
     els.scannerImportLabel.textContent = scanSelection.size ? `导入所选 (${scanSelection.size})` : '导入所选';
+    // Group headers keep one fixed label; the checked rows themselves are the
+    // state. aria-pressed carries it for the pad and screen readers.
+    $$('.scan-pick', els.scannerList).forEach((button) => {
+      const group = button.dataset.pickGroup;
+      const keys = scanGroupKeys(group);
+      if (!keys.length) return;
+      const all = keys.every((key) => scanSelection.has(key));
+      button.textContent = `全选 ${keys.length}`;
+      button.setAttribute('aria-pressed', String(all));
+    });
+
+    // Bulk row: same three-state contract as the group headers, but across
+    // every group — and the counter shows the player what a click would do.
+    if (els.scanBulk && els.scanSelectAll) {
+      const total = scanAllKeys().length;
+      els.scanBulk.hidden = total === 0;
+      if (total) {
+        // The label never changes — the checkbox is the switch. "已选 X / Y"
+        // next to it tells the player what the next click will do.
+        const all = scanSelection.size > 0 && scanSelection.size === total;
+        els.scanSelectAll.setAttribute('aria-checked', String(all));
+        els.scanSelectAllLabel.textContent = '全选';
+        els.scanBulkCount.textContent = `已选 ${scanSelection.size} / ${total}`;
+      } else {
+        els.scanSelectAll.setAttribute('aria-checked', 'false');
+        els.scanBulkCount.textContent = '已选 0 项';
+      }
+    }
   }
 
   function toggleScanRow(key) {
@@ -5687,28 +6154,45 @@
     updateScanSelection();
   }
 
+  function toggleScanGroup(group) {
+    const keys = scanGroupKeys(group);
+    if (!keys.length) return;
+    const all = keys.every((key) => scanSelection.has(key));
+    keys.forEach((key) => {
+      if (all) scanSelection.delete(key);
+      else scanSelection.add(key);
+    });
+    $$('.scan-row', els.scannerList).forEach((row) => {
+      if (keys.includes(row.dataset.scan)) row.classList.toggle('is-checked', !all);
+    });
+    updateScanSelection();
+    audio.select();
+  }
+
   async function importSelected() {
-    const appIds = [];
+    const knownIds = new Set(state.games.map((game) => game.id));
+    const keys = [];
     const exePaths = [];
     const manifestItems = [];
     scanSelection.forEach((key) => {
-      if (key.startsWith('steam:')) appIds.push(key.slice(6));
-      else if (key.startsWith('exe:')) {
+      if (key.startsWith('exe:')) {
         const item = state.scan?.shortcuts?.[Number(key.slice(4))];
         if (item) exePaths.push(item);
       } else if (key.startsWith('manifest:')) {
         const item = state.manifestScan?.items?.[Number(key.slice(9))];
         if (item) manifestItems.push(item);
+      } else if (key.includes(':')) {
+        keys.push(key);
       }
     });
-    if (!appIds.length && !exePaths.length && !manifestItems.length) return;
+    if (!keys.length && !exePaths.length && !manifestItems.length) return;
 
     els.scannerImport.disabled = true;
     els.scannerImportLabel.textContent = '正在导入…';
 
     let added = 0;
-    if (appIds.length) {
-      const result = await call('importCandidates', { steamAppIds: appIds });
+    if (keys.length) {
+      const result = await call('importCandidates', { keys });
       if (result && result.ok) added += result.added || 0;
     }
     for (const item of manifestItems) {
@@ -5757,6 +6241,25 @@
     toast(added ? `已导入 ${added} 款游戏` : '没有新增游戏', added ? 'check' : 'info');
     closeScanner({ focus: false, sound: false });
     if (!state.overlay) renderHero(currentGame(), false);
+
+    // A batch worth naming deserves a receipt: what landed, and how many
+    // rows were skipped because they were already in the library.
+    if (added > 0) {
+      const names = state.games
+        .filter((game) => !knownIds.has(game.id))
+        .map((game) => game.zh || game.name)
+        .filter(Boolean);
+      if (names.length && window.NovaOverlays) {
+        const head = names.slice(0, 8).join('、');
+        const rest = names.length > 8 ? ` 等 ${names.length} 款` : '';
+        window.NovaOverlays.dialog({
+          title: `已入库 ${added} 款游戏`,
+          text: `${head}${rest}`,
+          icon: 'check',
+          actions: [{ label: '完成', value: true, style: 'primary' }]
+        });
+      }
+    }
   }
 
   /* ============================================================
@@ -5891,6 +6394,15 @@
         if (event.key === 'Escape') {
           event.preventDefault();
           closeEngineDialog();
+        }
+        return;
+      }
+
+      if (state.overlay === 'import') {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          dismissFirstRun();
+          closeImport();
         }
         return;
       }
@@ -6082,6 +6594,7 @@
     if (state.overlay === 'sleep') return 'sleep';
     if (state.overlay === 'launch') return 'launch';
     if (state.overlay === 'editor') return 'editor';
+    if (state.overlay === 'import') return 'import';
     if (state.overlay === 'scanner') return 'scanner';
     if (state.view === 'appearance') return 'appearance';
     if (state.view === 'settings') return 'settings';
@@ -6103,6 +6616,7 @@
     if (picker) return picker;
     if (state.overlay === 'details') return $('.detail-modal', els.detailsOverlay) || els.detailsOverlay;
     if (state.overlay === 'editor') return $('.editor-shell', els.editorOverlay) || els.editorOverlay;
+    if (state.overlay === 'import') return $('.import-shell', els.importOverlay) || els.importOverlay;
     if (state.overlay === 'scanner') return $('.scanner-shell', els.scannerOverlay) || els.scannerOverlay;
     if (els.notifPanel.classList.contains('is-open')) return els.notifPanel;
     if (els.profileMenu.classList.contains('is-open')) return els.profileMenu;
@@ -6509,7 +7023,7 @@
       renderLibrary();
       audio.select();
     });
-    els.libAdd.addEventListener('click', () => openEditor());
+    els.libAdd.addEventListener('click', () => openImport());
 
     $$('.nav-btn').forEach((button) => {
       button.addEventListener('click', () => {
@@ -6531,8 +7045,8 @@
 
     els.allBtn.addEventListener('click', () => openLibrary());
     els.searchBtn.addEventListener('click', () => openLibrary({ search: true }));
-    els.addBtn.addEventListener('click', () => openScanner());
-    els.railAddCard.addEventListener('click', () => openScanner());
+    els.addBtn.addEventListener('click', () => openImport());
+    els.railAddCard.addEventListener('click', () => openImport());
     els.brandBtn.addEventListener('click', () => {
       if (state.overlay) return;
       selectGame(0, { sound: true, scroll: true });
@@ -6668,6 +7182,25 @@
     [els.fName, els.fLogo].forEach((input) => input.addEventListener('input', syncEditorPreview));
     if (els.fTypeRecipe) els.fTypeRecipe.addEventListener('change', syncEditorPreview);
 
+    /* import sheet */
+    els.importClose.addEventListener('click', () => closeImport());
+    els.importLater.addEventListener('click', () => {
+      dismissFirstRun();
+      closeImport();
+      toast('随时可以从右上角的 + 添加游戏', 'info');
+    });
+    els.importOverlay.addEventListener('pointerdown', (event) => {
+      if (event.target !== els.importOverlay) return;
+      dismissFirstRun();
+      closeImport();
+    });
+    els.importChoices.addEventListener('click', (event) => {
+      const choice = event.target.closest('.import-choice');
+      if (!choice) return;
+      chooseImportMode(choice.dataset.mode);
+    });
+    els.importGo.addEventListener('click', advanceImport);
+
     /* scanner */
     els.scannerClose.addEventListener('click', () => closeScanner());
     els.scannerOverlay.addEventListener('pointerdown', (event) => {
@@ -6679,7 +7212,17 @@
       openEditor();
     });
     els.scannerImport.addEventListener('click', importSelected);
+    els.scanSelectAll.addEventListener('click', toggleScanAll);
+    els.scannerSearch.addEventListener('input', () => {
+      state.scanQuery = els.scannerSearch.value || '';
+      if (state.scan) renderScanResults(state.scan, state.manifestScan);
+    });
     els.scannerList.addEventListener('click', (event) => {
+      const pick = event.target.closest('.scan-pick');
+      if (pick) {
+        toggleScanGroup(pick.dataset.pickGroup);
+        return;
+      }
       const row = event.target.closest('.scan-row');
       if (!row || row.disabled) return;
       toggleScanRow(row.dataset.scan);
@@ -6780,12 +7323,17 @@
       scalingHotkey: Number.isFinite(boot.settings?.scalingHotkey) && boot.settings.scalingHotkey > 0
         ? boot.settings.scalingHotkey : 3137,
       autoStartEngine: boot.settings?.autoStartEngine === true,
+      idlePauseMinutes: Number.isFinite(boot.settings?.idlePauseMinutes)
+        ? Math.max(0, boot.settings.idlePauseMinutes) : 10,
       startupFullscreen: boot.settings?.startupFullscreen === true,
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
       developerMode: boot.settings?.developerMode === true
     };
     state.developerMode = boot.developerMode === true;
     state.developerModeEnv = boot.developerModeEnv === true;
+    // The host owns the flag; the prompt itself is a product decision and
+    // shows at most once per install.
+    state.firstRun = boot.firstRun === true;
     state.system = boot.system || null;
     applySystemTier(state.system);
     state.userName = boot.userName || '';
@@ -6852,6 +7400,7 @@
     bindContextMenu();
     bindThemePanel();
     bindSettings();
+    bindIdleSwitch();
     initThemedSelects();
     document.body.classList.toggle('is-empty', !state.games.length);
     applyAccent(currentGame());
@@ -6895,12 +7444,9 @@
     ]);
 
     introPreset.then((preset) => {
-      if (!window.NovaIntro) {
+      if (!window.NovaIntro || (state.system && state.system.tier === 'safe')) {
         document.body.classList.add('is-booted');
-        return;
-      }
-      if (state.system && state.system.tier === 'safe') {
-        document.body.classList.add('is-booted');
+        setTimeout(maybeAskFirstRun, 620);
         return;
       }
       // The theme's boot file is a sequence authored on its intro keyframes:
@@ -6912,9 +7458,12 @@
         audio.stopLong('boot', 0.3);
         ensureActiveTileVisible();
         refitLogos();
+        // First run asks before anything else: an empty library with a full
+        // Steam/Epic/GOG install behind it should not be filled in by hand.
+        setTimeout(maybeAskFirstRun, 620);
         if (!hasBridge) {
           toast('未检测到桌面宿主，正在以预览模式运行', 'info');
-        } else if (!state.games.length) {
+        } else if (!state.games.length && !state.firstRun) {
           setTimeout(() => toast('游戏库是空的 · 按 A 或点击 + 添加游戏', 'spark'), 500);
         }
       });
@@ -6991,6 +7540,9 @@
 
   window.NovaDev = {
     stressTitle: devStressTitle,
+    // QA/dev: simulate a file drop without an OS drag (the page cannot fake
+    // one). Resolves through the same host path a real drop takes.
+    dropImport: (paths) => call('resolveDrop', { paths: Array.isArray(paths) ? paths : [paths] }),
     clearSelection: devClearSelection,
     refit: refitLogos,
     // Headless capture support. The nav buttons deliberately refuse to switch

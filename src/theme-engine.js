@@ -283,6 +283,12 @@
       // Inline custom properties outrank stylesheets, so a themed button must
       // have the cover-derived ones removed — now and after each repaint.
       clearCtaVars();
+      // --accent-text is derived from the cover for the built-in theme only.
+      // Left inline it would outrank `html[data-theme=…] { --accent-text }`
+      // and paint ENDFIELD's kicker in nova's orange (1.76:1 on paper).
+      if (!writtenTokens.has('--accent-text')) {
+        document.documentElement.style.removeProperty('--accent-text');
+      }
       scheduleCtaWatch();
     } else {
       stopCtaWatch();

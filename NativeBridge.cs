@@ -60,6 +60,14 @@ public sealed class NativeBridge
                 web.CoreWebView2.SetVirtualHostNameToFolderMapping(
                     "nova.themes", AppPaths.Themes, CoreWebView2HostResourceAccessKind.Allow);
             }
+
+            // Steam artwork lives in appcache/librarycache outside the media
+            // root; mapping each library's cache folder once, up front, keeps
+            // scan cover URLs loadable without copying a single file.
+            foreach (var cacheRoot in GameScanner.CacheRoots())
+            {
+                MapFileHost(cacheRoot);
+            }
         }
         catch (Exception ex)
         {
@@ -200,6 +208,9 @@ public sealed class NativeBridge
                 "getRunning" => _launcher.Running,
                 "syncSteamPlaytime" => SyncSteamPlaytime(),
                 "scanLibrary" => ScanLibrary(),
+                "platformSummary" => PlatformSummary(),
+                "resolveDrop" => ResolveDrop(args),
+                "dismissFirstRun" => DismissFirstRun(),
                 "refreshArtwork" => RefreshArtwork(args),
                 "importCandidates" => ImportCandidates(args),
                 "readManifest" => ReadManifest(args),
@@ -422,6 +433,9 @@ public sealed class NativeBridge
             developerModeEnv = envDev == "1" || string.Equals(envDev, "true", StringComparison.OrdinalIgnoreCase),
             currentGameId = current?.Id,
             settings = library.Settings,
+            // The first-run import prompt is a product decision, not a setting:
+            // it shows once, then the flag lives next to the rest of the store.
+            firstRun = !library.Settings.FirstRunDone,
             games = visible.Select(ToPayload).ToList(),
             running = _launcher.Running,
             stats = _store.BuildStats(developerMode),
@@ -435,11 +449,15 @@ public sealed class NativeBridge
 
     private GamePayload ToPayload(GameEntry game)
     {
-        var mode = SteamService.ModeFor(game);
+        var mode = GameLaunch.ModeFor(game);
         // Only a Steam-launched entry depends on the client, so the client
         // probe is skipped for everything else and costs nothing at boot.
-        SteamService.State? steam = mode == "steam" ? SteamService.Detect() : null;
-        var exists = !string.IsNullOrWhiteSpace(game.ExePath) && File.Exists(game.ExePath);
+        SteamService.State? steam = mode == GameLaunch.Steam ? SteamService.Detect() : null;
+        // A packaged game's exe lives behind WindowsApps ACLs, so File.Exists
+        // lies about it; an entry with a shell: launch target is installed by
+        // definition (the package folder came with the manifest).
+        var exists = (!string.IsNullOrWhiteSpace(game.ExePath) && File.Exists(game.ExePath))
+            || game.LaunchUri.StartsWith("shell:", StringComparison.OrdinalIgnoreCase);
         return new GamePayload(
             game.Id,
             game.Name,
@@ -481,7 +499,23 @@ public sealed class NativeBridge
             steam?.Running ?? false,
             steam?.SignedIn ?? false,
             SteamService.Inspect(game).Note,
-            game.FullscreenScale);
+            game.FullscreenScale,
+            game.PlatformId ?? "",
+            GamePlatform.LabelFor(game.Source),
+            !string.IsNullOrWhiteSpace(game.LaunchUri),
+            game.Source == GamePlatform.Steam.Id || PlatformScanner.ClientInstalled(game.Source),
+            RecentSessions(game));
+    }
+
+    /// <summary>The last five real sessions, oldest first — the detail sheet
+    /// prints them newest first. Kept out of the stats rollup on purpose.</summary>
+    private static PlaySession[] RecentSessions(GameEntry game)
+    {
+        if (game.Sessions == null || game.Sessions.Count == 0) return Array.Empty<PlaySession>();
+        var take = Math.Min(5, game.Sessions.Count);
+        var slice = new PlaySession[take];
+        game.Sessions.CopyTo(game.Sessions.Count - take, slice, 0, take);
+        return slice;
     }
 
     private static string DisplayName(GameEntry game)
@@ -560,6 +594,8 @@ public sealed class NativeBridge
                 settings.StartupFullscreen = startupFullscreen.GetBoolean();
             if (args.TryGetProperty("minimizeOnLaunch", out var minimize) && minimize.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.MinimizeOnLaunch = minimize.GetBoolean();
+            if (args.TryGetProperty("idlePauseMinutes", out var idlePause) && idlePause.TryGetInt32(out var idleMinutes))
+                settings.IdlePauseMinutes = Math.Max(0, Math.Min(120, idleMinutes));
             if (args.TryGetProperty("scalingEngine", out var scaling) && scaling.ValueKind == JsonValueKind.String)
             {
                 var value = scaling.GetString() ?? "auto";
@@ -1008,7 +1044,7 @@ public sealed class NativeBridge
                 root = state.Root,
                 appId = game.SteamAppId,
                 launchMode = game.LaunchMode,
-                launchModeResolved = SteamService.ModeFor(game),
+                launchModeResolved = GameLaunch.ModeFor(game),
                 usesSteamApi = dependency.UsesSteamApi,
                 steamStub = dependency.SteamStub,
                 hasAppIdFile = dependency.HasAppIdFile,
@@ -1124,26 +1160,77 @@ public sealed class NativeBridge
         }
     }
 
+    /// <summary>
+    /// Every installed game the machine will admit to, grouped by the launcher
+    /// that owns it. Steam keeps its own scanner (it has an artwork cache the
+    /// others do not); everything else comes from PlatformScanner.
+    /// </summary>
     private object ScanLibrary()
     {
         try
         {
             var scan = GameScanner.Scan();
-            var steam = scan.Steam.Select(candidate =>
+            var others = PlatformScanner.Scan();
+
+            var groups = new List<object>();
+            groups.Add(new
             {
-                var existing = _store.FindBySteam(candidate.AppId);
-                return new
+                id = GamePlatform.Steam.Id,
+                label = GamePlatform.Steam.Label,
+                shortLabel = GamePlatform.Steam.Short,
+                note = scan.SteamRoot ?? "",
+                clientInstalled = true,
+                items = scan.Steam.Select(candidate =>
                 {
-                    appId = candidate.AppId,
-                    name = candidate.Name,
-                    installDir = candidate.InstallDir,
-                    exePath = candidate.ExePath,
-                    heroUrl = candidate.HeroPath != null ? FileUrl(candidate.HeroPath) : null,
-                    coverUrl = candidate.CoverPath != null ? FileUrl(candidate.CoverPath) : null,
-                    imported = existing != null,
-                    gameId = existing?.Id
-                };
-            }).ToList();
+                    var existing = _store.FindBySteam(candidate.AppId);
+                    return new
+                    {
+                        key = PlatformKey(GamePlatform.Steam.Id, candidate.AppId),
+                        platform = GamePlatform.Steam.Id,
+                        name = candidate.Name,
+                        detail = candidate.InstallDir,
+                        exePath = candidate.ExePath,
+                        coverUrl = CoverUrlFor(existing, candidate.CoverPath),
+                        heroUrl = candidate.HeroPath != null ? FileUrl(candidate.HeroPath) : null,
+                        imported = existing != null,
+                        gameId = existing?.Id
+                    };
+                }).ToList()
+            });
+
+            foreach (var platform in GamePlatform.All)
+            {
+                if (platform.Id == GamePlatform.Steam.Id) continue;
+                var items = others
+                    .Where(candidate => candidate.Platform == platform.Id)
+                    .Select(candidate =>
+                    {
+                        var existing = FindPlatformEntry(candidate);
+                        return new
+                        {
+                            key = PlatformKey(platform.Id, candidate.PlatformId),
+                            platform = platform.Id,
+                            name = candidate.Name,
+                            detail = candidate.InstallDir,
+                            exePath = candidate.ExePath,
+                            coverUrl = CoverUrlFor(existing, candidate.CoverPath),
+                            heroUrl = candidate.HeroPath != null ? FileUrl(candidate.HeroPath) : null,
+                            imported = existing != null,
+                            gameId = existing?.Id
+                        };
+                    })
+                    .ToList();
+                if (items.Count == 0) continue;
+                groups.Add(new
+                {
+                    id = platform.Id,
+                    label = platform.Label,
+                    shortLabel = platform.Short,
+                    note = "",
+                    clientInstalled = PlatformScanner.ClientInstalled(platform.Id),
+                    items
+                });
+            }
 
             var shortcuts = scan.LocalExes
                 .Where(path => !_store.Library.Games.Any(g => string.Equals(g.ExePath, path, StringComparison.OrdinalIgnoreCase)))
@@ -1156,11 +1243,67 @@ public sealed class NativeBridge
                 })
                 .ToList();
 
-            return new { ok = true, steamRoot = scan.SteamRoot, steam, shortcuts };
+            return new { ok = true, steamRoot = scan.SteamRoot, groups, shortcuts };
         }
         catch (Exception ex)
         {
             Log.Error("scan library", ex);
+            return new { ok = false, error = ex.Message };
+        }
+    }
+
+    private static string PlatformKey(string platform, string platformId) => platform + ":" + platformId;
+
+    /// <summary>Cover URL for a scan row. An already-imported entry shows the
+    /// cover the launcher actually stores (media root, always loadable); only
+    /// fresh candidates fall back to the scanner's cached artwork.</summary>
+    private string CoverUrlFor(GameEntry? existing, string? candidateCover) =>
+        existing != null && !string.IsNullOrWhiteSpace(existing.CoverPath)
+            ? MediaUrl(existing.CoverPath, existing.Id, "cover")
+            : (string.IsNullOrWhiteSpace(candidateCover) ? null : FileUrl(candidateCover));
+
+    private GameEntry? FindPlatformEntry(PlatformCandidate candidate)
+    {
+        return _store.Library.Games.FirstOrDefault(game =>
+            game.Source == candidate.Platform &&
+            (!string.IsNullOrEmpty(game.PlatformId)
+                ? string.Equals(game.PlatformId, candidate.PlatformId, StringComparison.OrdinalIgnoreCase)
+                : !string.IsNullOrWhiteSpace(game.ExePath) &&
+                  string.Equals(game.ExePath, candidate.ExePath, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    /// <summary>
+    /// Cheap "which launchers does this machine have" probe for the import
+    /// sheet. Counts what is there without resolving executables, so the sheet
+    /// can open instantly and the full scan runs only after the player picks
+    /// automatic import.
+    /// </summary>
+    private object PlatformSummary()
+    {
+        try
+        {
+            var presence = PlatformScanner.Detect();
+            var known = _store.Library.Games.Count;
+            return new
+            {
+                ok = true,
+                libraryCount = known,
+                platforms = GamePlatform.All.Select(platform =>
+                {
+                    var hit = presence.FirstOrDefault(item => item.Platform == platform.Id);
+                    return new
+                    {
+                        id = platform.Id,
+                        label = platform.Label,
+                        shortLabel = platform.Short,
+                        count = hit?.Count ?? 0
+                    };
+                }).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("platform summary", ex);
             return new { ok = false, error = ex.Message };
         }
     }
@@ -1170,31 +1313,76 @@ public sealed class NativeBridge
         var added = 0;
         try
         {
-            if (!args.TryGetProperty("steamAppIds", out var steamIds) || steamIds.ValueKind != JsonValueKind.Array)
+            if (!args.TryGetProperty("keys", out var keys) || keys.ValueKind != JsonValueKind.Array)
                 return new { ok = true, added };
 
-            var scan = GameScanner.Scan();
-            foreach (var idElement in steamIds.EnumerateArray())
+            var wanted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var element in keys.EnumerateArray())
             {
-                var appId = idElement.GetString();
-                if (string.IsNullOrEmpty(appId)) continue;
-                var candidate = scan.Steam.FirstOrDefault(s => s.AppId == appId);
-                if (candidate == null || _store.FindBySteam(appId) != null) continue;
+                var key = element.GetString();
+                if (!string.IsNullOrWhiteSpace(key)) wanted.Add(key!);
+            }
+            if (wanted.Count == 0) return new { ok = true, added };
 
-                var game = new GameEntry
+            // One scan for the whole batch: the UI may have been open for a
+            // while, so the selection is re-resolved instead of trusted.
+            var steam = GameScanner.Scan().Steam;
+            var others = PlatformScanner.Scan();
+
+            foreach (var key in wanted)
+            {
+                var split = key.IndexOf(':');
+                if (split <= 0) continue;
+                var platformId = key.Substring(0, split);
+                var ownerId = key.Substring(split + 1);
+                if (string.IsNullOrWhiteSpace(ownerId)) continue;
+
+                if (platformId == GamePlatform.Steam.Id)
                 {
-                    Name = candidate.Name,
+                    if (_store.FindBySteam(ownerId) != null) continue;
+                    var candidate = steam.FirstOrDefault(item => item.AppId == ownerId);
+                    if (candidate == null) continue;
+
+                    var game = new GameEntry
+                    {
+                        Name = candidate.Name,
+                        Zh = "",
+                        Source = GamePlatform.Steam.Id,
+                        SteamAppId = candidate.AppId,
+                        PlatformId = candidate.AppId,
+                        ExePath = candidate.ExePath,
+                        WorkDir = candidate.InstallDir,
+                        Tagline = "",
+                        Description = "",
+                        Genre = "Steam"
+                    };
+                    ApplyMedia(game, candidate.HeroPath, candidate.CoverPath);
+                    _store.Add(game);
+                    added++;
+                    continue;
+                }
+
+                var platformCandidate = others.FirstOrDefault(item =>
+                    item.Platform == platformId &&
+                    string.Equals(item.PlatformId, ownerId, StringComparison.OrdinalIgnoreCase));
+                if (platformCandidate == null || FindPlatformEntry(platformCandidate) != null) continue;
+
+                var entry = new GameEntry
+                {
+                    Name = platformCandidate.Name,
                     Zh = "",
-                    Source = "steam",
-                    SteamAppId = appId,
-                    ExePath = candidate.ExePath,
-                    WorkDir = candidate.InstallDir,
+                    Source = platformCandidate.Platform,
+                    PlatformId = platformCandidate.PlatformId,
+                    LaunchUri = platformCandidate.LaunchUri ?? "",
+                    ExePath = platformCandidate.ExePath,
+                    Args = platformCandidate.Args ?? "",
+                    WorkDir = platformCandidate.InstallDir,
                     Tagline = "",
                     Description = "",
-                    Genre = "Steam"
+                    Genre = ""
                 };
-                ApplyMedia(game, candidate.HeroPath, candidate.CoverPath);
-                _store.Add(game);
+                ApplyMedia(entry, platformCandidate.HeroPath, platformCandidate.CoverPath);
+                _store.Add(entry);
                 added++;
             }
 
@@ -1208,6 +1396,24 @@ public sealed class NativeBridge
             return new { ok = false, error = ex.Message, added };
         }
         return new { ok = true, added };
+    }
+
+    /// <summary>The first-run prompt is a one-time decision. Recording it here
+    /// (not in saveSettings) keeps the "seen it" flag independent from the
+    /// player changing their name on the same page.</summary>
+    private object DismissFirstRun()
+    {
+        try
+        {
+            _store.Library.Settings.FirstRunDone = true;
+            _store.Save();
+            return new { ok = true };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("dismiss first run", ex);
+            return new { ok = false, error = ex.Message };
+        }
     }
 
     private void ApplyMedia(GameEntry game, string? sourceImage, string? coverImage = null)
@@ -1475,10 +1681,12 @@ public sealed class NativeBridge
             if (TryGetString(args, "workDir", out var workDir)) game.WorkDir = workDir ?? game.WorkDir;
             if (TryGetString(args, "launchMode", out var launchMode))
             {
-                var normalized = (launchMode ?? "").Trim().ToLowerInvariant();
-                if (normalized == "steam" && string.IsNullOrWhiteSpace(game.SteamAppId))
+                var normalized = GameLaunch.Normalize(launchMode);
+                if (normalized == GameLaunch.Steam && string.IsNullOrWhiteSpace(game.SteamAppId))
                     return new { ok = false, error = "没有 AppID，无法使用 Steam 启动方式" };
-                game.LaunchMode = normalized == "steam" || normalized == "direct" ? normalized : "auto";
+                if (normalized == GameLaunch.Platform && string.IsNullOrWhiteSpace(game.LaunchUri))
+                    return new { ok = false, error = "这款游戏没有记录平台启动地址，只能直接启动" };
+                game.LaunchMode = normalized;
             }
             if (args.TryGetProperty("fullscreenScale", out var fullscreenScale))
             {
@@ -1731,5 +1939,151 @@ public sealed class NativeBridge
         return true;
     }
 
-    private static string FileUrl(string path) => "file:///" + path.Replace('\\', '/');
+    /// <summary>
+    /// Maps a file outside the media root onto a virtual host the renderer can
+    /// actually load. The page runs on https://nova.site, so a file:/// URL is
+    /// cross-origin and WebView2 refuses to paint it — that is why scan rows
+    /// used to show broken-image glyphs for every Steam cache cover. Each
+    /// folder that shows up gets its own nova.cacheN host, mapped lazily; the
+    /// set is tiny (one per Steam library root) and lives as long as the view.
+    /// </summary>
+    private static readonly object FileUrlGate = new();
+    private static readonly Dictionary<string, string> FileUrlHosts = new(StringComparer.OrdinalIgnoreCase);
+    private static int _fileUrlHostSeq;
+
+    /// <summary>
+    /// A file (or folder) dropped on the window resolves to one launchable exe
+    /// and lands in the editor prefilled. Shortcuts resolve through their
+    /// target, folders through the same main-executable scan the platforms use,
+    /// and launcher clients are refused — dropping Steam is not importing a game.
+    /// </summary>
+    public void HandleFileDrop(IReadOnlyList<string> paths)
+    {
+        try
+        {
+            var resolved = ResolveDropPaths(paths);
+            Notify("drop-import", resolved);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("file drop", ex);
+        }
+    }
+
+    private object ResolveDrop(JsonElement args)
+    {
+        var paths = new List<string>();
+        if (args.ValueKind == JsonValueKind.Object && args.TryGetProperty("paths", out var list) &&
+            list.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var element in list.EnumerateArray())
+            {
+                var value = element.GetString();
+                if (!string.IsNullOrWhiteSpace(value)) paths.Add(value!);
+            }
+        }
+
+        var resolved = ResolveDropPaths(paths);
+        if (!resolved.Ok) return resolved;
+        Notify("drop-import", resolved);
+        return resolved;
+    }
+
+    private DropResolution ResolveDropPaths(IReadOnlyList<string> paths)
+    {
+        foreach (var raw in paths)
+        {
+            var path = raw.Trim().Trim('"');
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) continue;
+
+            var target = path;
+            if (target.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+            {
+                target = ShortcutResolver.Resolve(target) ?? "";
+                if (string.IsNullOrEmpty(target) || !File.Exists(target)) continue;
+            }
+
+            var name = "";
+            if (Directory.Exists(target))
+            {
+                var folderName = Path.GetFileName(target.TrimEnd('\\', '/'));
+                target = GameScanner.FindMainExecutable(target, folderName) ?? "";
+                if (string.IsNullOrEmpty(target)) continue;
+                name = GameScanner.CleanName(folderName);
+            }
+
+            if (!target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || !File.Exists(target)) continue;
+            if (GameScanner.IsClientExecutable(target)) continue;
+
+            return new DropResolution(
+                true,
+                null,
+                target,
+                string.IsNullOrEmpty(name) ? MediaService.SuggestName(target) : name,
+                Path.GetDirectoryName(target));
+        }
+
+        return new DropResolution(false, "没有找到可执行文件；文件夹会自动挑选主程序。", null, null, null);
+    }
+
+    /// <summary>Registers (or returns) the virtual host that serves a folder.
+    /// Returns null when there is no WebView to map onto yet.</summary>
+    private string? MapFileHost(string folder)
+    {
+        var full = Path.GetFullPath(folder);
+        lock (FileUrlGate)
+        {
+            if (FileUrlHosts.TryGetValue(full, out var existing)) return existing;
+            if (_web?.CoreWebView2 == null) return null;
+
+            var host = "nova.cache" + (++_fileUrlHostSeq);
+            _web.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                host, full, CoreWebView2HostResourceAccessKind.Allow);
+            FileUrlHosts[full] = host;
+            Log.Write($"file host {host} -> {full}");
+            return host;
+        }
+    }
+
+    private string FileUrl(string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return "";
+            var full = Path.GetFullPath(path);
+
+            var mediaRoot = Path.GetFullPath(AppPaths.Media);
+            if (full.StartsWith(mediaRoot, StringComparison.OrdinalIgnoreCase))
+                return "https://nova.media/" + CompatUtil.RelativePath(AppPaths.Media, full).Replace('\\', '/');
+
+            lock (FileUrlGate)
+            {
+                // Longest mapped ancestor first: one host per Steam library's
+                // librarycache root covers every per-app subfolder.
+                string? bestFolder = null;
+                foreach (var candidate in FileUrlHosts.Keys)
+                {
+                    if (!full.StartsWith(candidate + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) &&
+                        !full.StartsWith(candidate + Path.AltDirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (bestFolder == null || candidate.Length > bestFolder.Length) bestFolder = candidate;
+                }
+
+                var folder = bestFolder ?? Path.GetDirectoryName(full);
+                if (string.IsNullOrEmpty(folder)) return "";
+
+                var host = MapFileHost(folder);
+                if (host == null) return "";
+
+                var relative = full.Length > folder.Length
+                    ? full.Substring(folder.Length).TrimStart('\\', '/').Replace('\\', '/')
+                    : Path.GetFileName(full);
+                return $"https://{host}/{relative}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("file url", ex);
+            return "";
+        }
+    }
 }

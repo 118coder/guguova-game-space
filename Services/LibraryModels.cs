@@ -35,8 +35,18 @@ public sealed class GameEntry
     public long PlaytimeSeconds { get; set; }
     public string? LastPlayedUtc { get; set; }
     public string AddedUtc { get; set; } = DateTime.UtcNow.ToString("o");
-    public string Source { get; set; } = "manual"; // manual | steam | demo
+    public string Source { get; set; } = "manual"; // manual | steam | epic | gog | ubisoft | ea | xbox | battlenet
     public string? SteamAppId { get; set; }
+
+    /// <summary>Owning launcher's own id for this install: Epic AppName, GOG
+    /// gameID, Ubisoft install id, Xbox AUMID, Battle.net title. Empty for a
+    /// manual entry. Displayed next to the source in the detail sheet.</summary>
+    public string PlatformId { get; set; } = "";
+
+    /// <summary>Protocol URL that must start the game (epic://, uplay://,
+    /// battlenet://, shell:AppsFolder\…). Empty means the exe is enough —
+    /// GOG and EA games launch themselves, and so does everything manual.</summary>
+    public string LaunchUri { get; set; } = "";
 
     /// <summary>"auto" (default), "steam" or "direct". A Steam-owned entry goes
     /// through the client so the ownership check and overlay still apply;
@@ -143,6 +153,11 @@ public sealed class PlayerSettings
     /// fullscreen scaling. Off by default: the player opts in from the scaling
     /// sheet, and a game's switch alone never starts an engine in the background.</summary>
     public bool AutoStartEngine { get; set; }
+
+    /// <summary>Pause playtime counting after this many minutes without input.
+    /// 0 disables the pause. Wall-clock time with the game left running over
+    /// night used to count in full.</summary>
+    public int IdlePauseMinutes { get; set; } = 10;
 }
 
 /// <summary>Payload returned to the UI after a launch is started. <c>Pending</c>
@@ -206,7 +221,15 @@ public sealed record GamePayload(
     bool SteamRunning,
     bool SteamSignedIn,
     string SteamNote,
-    bool? FullscreenScale);
+    bool? FullscreenScale,
+    string PlatformId,
+    string PlatformLabel,
+    bool HasLaunchUri,
+    bool ClientInstalled,
+    PlaySession[] RecentSessions);
+
+/// <summary>Result of turning a dropped file/folder into one launchable exe.</summary>
+public sealed record DropResolution(bool Ok, string? Error, string? ExePath, string? Name, string? WorkDir);
 
 public sealed record SteamCandidate(
     string AppId,
@@ -251,6 +274,7 @@ public sealed record StorageInfo(
 [JsonSerializable(typeof(LaunchResult))]
 [JsonSerializable(typeof(GamePayload))]
 [JsonSerializable(typeof(SteamCandidate))]
+[JsonSerializable(typeof(DropResolution))]
 [JsonSerializable(typeof(RunningSessionInfo))]
 [JsonSerializable(typeof(List<SteamCandidate>))]
 internal partial class StoreJsonContext : JsonSerializerContext { }
