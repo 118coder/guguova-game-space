@@ -2,9 +2,9 @@
 
 > 交接版本：**1.13.0**
 > 交接时间：2026-10-21
-> 分支：`feat/launch-display-and-scaling`
-> 工作区状态：**1.13.0 的改动尚未提交 / 尚未开 PR**（最后一次提交 `b434c69`，1.12.0 的 PR **#22** 仍待合并）
-> 基线：`main` @ `1780b48`
+> 分支：`main`（1.13.0 已通过 PR **#23** 合并，squash commit `96afdf1`）
+> 工作区状态：**干净**；1.12.0（PR #22）与 1.13.0（PR #23）均已合并
+> 基线：`main` @ `96afdf1`
 > 仓库：`https://github.com/118coder/guguova-game-space`
 
 ---
@@ -16,7 +16,7 @@
 把 **Steam 已经记录的游玩时间**接进库，并建立了可复跑的**文字对比度审计**。
 
 当前 **0 个 solid-background 对比度失败**；引擎弹窗、下拉、算法行、全屏缩放行、
-外观取景浮层都已逐主题截图。下一轮从**提交 / 打包 + 真机验证**开始。
+外观取景浮层都已逐主题截图。代码已合并到 `main`；下一轮从**打包 + 真机验证**开始。
 
 ### 先读什么
 
@@ -37,8 +37,8 @@
 | 资源版本 | `src/index.html` 全部 `?v=1.13.0` |
 | 主题数 | 14（`nova` + 13） |
 | 发行包 | `dist/` 仍是 **1.12.0**，1.13.0 需重新打包 |
-| 1.12.0 PR | **#22**（`5c4aca2`），未合并 |
-| 1.13.0 改动 | 48+ 文件未提交，含新增 `Services/SteamPlaytime.cs`、`tools/audit-contrast.js`、`docs/THEME-DESIGN-SPEC.md` |
+| PR 状态 | **#22**（1.12.0）已合并为 `3a27ae3`；**#23**（1.13.0）已 squash 合并为 `96afdf1` |
+| 1.13.0 改动 | 53 文件已提交，含新增 `Services/SteamPlaytime.cs`、`tools/audit-contrast.js`、`docs/THEME-DESIGN-SPEC.md` |
 | QA 工具切主题 | 已全部使用 `persist:false`，不再覆盖玩家保存的主题 |
 
 ---
@@ -311,14 +311,11 @@ QA 产物（仓库外）：
 
 ## 6. 下一轮 P0（按顺序）
 
-### P0-1 · 提交 1.13.0 / 开 PR
+### P0-1 · 提交 1.13.0 / 开 PR（已完成）
 
-当前工作区有大量未提交改动（48+ 文件）。先：
-
-1. `git status` 核对，不要把 `_shots/`、`.cache/`、`bin/`、`dist/` 带进提交；
-2. 提交为 `feat: 界面主题精修、Steam 游玩时间与全量对比度审计（1.13.0）`；
-3. 在 `feat/launch-display-and-scaling` 上开 PR，或从当前 `main` 新建分支；
-4. 更新本文 §12 的提交 / PR 历史。
+- PR **#23** 已 squash 合并到 `main`，commit `96afdf1`；
+- 工作区干净，`feat/launch-display-and-scaling` 已合入；
+- 下一项从 **P0-2 打包** 开始。
 
 ### P0-2 · 打包
 
@@ -534,7 +531,7 @@ Git / PR：本机 git 能访问 `github.com`，凭证由 credential manager 提�
 - **应用是单实例 + 后台子进程**：启动与截图必须在同一个 shell 调用里。
 - **对比度工具只合成 `background-color`**：伪元素纸面 / 背景图标 `layered`，需人眼复核；
   这是当前审计的主要盲区。
-- **1.13.0 尚未提交 / 打包**：`dist/` 仍是 1.12.0；本文件是工作区状态，不是已合并状态。
+- **1.13.0 已合并但尚未打包**：`dist/` 仍是 1.12.0；代码已在 `main` 的 `96afdf1`。
 - 本轮没有在 Win7、真实 Steam 登录态、另一台无 Magpie 机器上验证。
 
 ---
@@ -554,9 +551,11 @@ Git / PR：本机 git 能访问 `github.com`，凭证由 credential manager 提�
 
 PR 历史：
 
+- `96afdf1` feat: 界面精修、Steam 游玩时间与全量对比度审计（1.13.0）— **PR #23，已合并**
+- `3a27ae3` Merge pull request #22（1.12.0）
+- `1a825f2` feat: 1.13.0 功能提交
 - `b434c69` docs: 1.12.0 下一轮交接文档重写
-- `5c4aca2` feat: 启动体验、内置缩放引擎与封面原图（1.12.0）— **PR #22，待合并**
-- `1780b48` docs: 交接文档补充外观预览最终结构
+- `5c4aca2` feat: 启动体验、内置缩放引擎与封面原图（1.12.0）
 - `77e1067` 重做黄昏与 Steam，新增夜航主题（2.0.8 / 1.0.8）(#21)
 
 旧版详细叙事见 `docs/HANDOFF.md`、`docs/HANDOFF-THEMES.md`、`docs/THEMES.md`。
@@ -573,8 +572,9 @@ PR 历史：
 - [x] 启动遮罩 Esc-only 已实测；
 - [x] Steam 时长与 `localconfig.vdf` 数值核对；
 - [x] 当前保存主题 `broadcast`，无 overlay，无 reduce-motion；
-- [ ] **1.13.0 提交 / PR**（下一轮第一件事）；
+- [x] 5 主题 × 首页 / 取景 × 2 尺寸最终截图 0 裁剪 / 0 溢出；
+- [x] **1.13.0 提交 / PR / 合并**（PR #23 → `main` `96afdf1`）；
 - [ ] **1.13.0 打包 / dist**；
 - [ ] Steam 登录态全流程、另一台 Magpie 机器、Win7 验证。
 
-下一轮从 **§6 P0-1（提交 / PR）** 开始，然后 **P0-3（Steam 全流程）**。
+下一轮从 **§6 P0-2（打包 / dist）** 开始，然后 **P0-3（Steam 全流程）**。
