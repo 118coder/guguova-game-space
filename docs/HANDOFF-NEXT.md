@@ -1,17 +1,17 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.14.0**
+> 交接版本：**1.14.1**
 > 交接时间：2026-10-21
-> 分支：`main`（1.14.0 已通过 PR **#24** 合并，squash commit `ea7adef`；随后 `15f2690` 修复 legacy 构建）
-> 工作区状态：**干净**；1.12.0 / 1.13.0 / 1.14.0 均已合并并发布
-> 发行：**v1.14.0** 已发布（legacy-single 8.91 MB / legacy-full 12.23 MB）
+> 分支：`main`（1.14.0 → PR **#24** `ea7adef`；1.14.1 → PR **#25** `0d2cfe5`）
+> 工作区状态：**干净**；1.12.0 / 1.13.0 / 1.14.0 / 1.14.1 均已合并并发布
+> 发行：**v1.14.1** 已发布（**单文件 exe 9.29 MB** + legacy-single 13.58 MB + legacy-full 16.90 MB）
 > 仓库：`https://github.com/118coder/guguova-game-space`
 
 ---
 
 ## 0. 一句话状态
 
-应用 **1.14.0**，14 套主题。启动链路（Steam 提权修复 → 进程发现 → 窗口置前 →
+应用 **1.14.1**，14 套主题。启动链路（Steam 提权修复 → 进程发现 → 窗口置前 →
 启动器退场 → 全屏缩放）自 1.12.0 起完整；1.13.0 把所有界面收紧成“每套主题都像自己”；
 1.14.0 把**缩放引擎选项对齐 Magpie 实际配置**、清掉界面上多余的说明文案，
 并修复了**悬停/聚焦态**的白底荧光字与看不见的图标。
@@ -34,17 +34,43 @@
 
 | 项 | 值 |
 | --- | --- |
-| 应用版本 | **1.14.0**（`version.json` 是唯一版本源） |
-| 资源版本 | `src/index.html` 全部 `?v=1.14.0` |
+| 应用版本 | **1.14.1**（`version.json` 是唯一版本源） |
+| 资源版本 | `src/index.html` 全部 `?v=1.14.1` |
 | 主题数 | 14（`nova` + 13） |
-| 发行包 | `dist/GUGUOVA-1.14.0-legacy-single.zip` / `legacy-full.zip`，已上传 Release |
-| PR 状态 | #22（1.12.0）→ `3a27ae3`；#23（1.13.0）→ `96afdf1`；**#24（1.14.0）→ `ea7adef`** |
+| 单文件 exe | `dist/GUGUOVA-1.14.1-single.exe`（9.29 MB，内嵌主题 + 前端 + Magpie） |
+| 文件夹包 | `dist/GUGUOVA-1.14.1-legacy-single.zip` / `legacy-full.zip` |
+| PR 状态 | #22 → `3a27ae3`；#23 → `96afdf1`；#24 → `ea7adef`；**#25 → `0d2cfe5`** |
 | 打包修复 | `15f2690`：legacy net48 不支持 C# 8 range 语法 |
 | QA 工具切主题 | 全部 `persist:false`，不会覆盖玩家保存的主题 |
 
 ---
 
-## 2. 1.14.0 本轮完成
+## 2. 1.14.1 本轮完成 —— 单文件 exe
+
+发行物现在是**一个可执行文件**：`GUGUOVA-1.14.1-single.exe`（9.29 MB）。
+下载后双击即可运行，没有文件夹、没有 zip、没有 `launch.cmd`。
+
+| # | 任务 | 结果 |
+| --- | --- | --- |
+| 1 | 引擎内嵌 | `tools/pack-engine.py` 把 `third_party/magpie` 压成 `engine.zip`（4.69 MB） |
+| 2 | 首次解压 | `Services/EngineBootstrapper.cs` 解压到 `%LOCALAPPDATA%\NOVA Game Space\runtime\<ver>\engine\magpie` |
+| 3 | 引擎解析 | `ScalingEngine.BundledDirOverride`；`IsBundledPath` 自动跟随 |
+| 4 | csproj | legacy 内嵌 `NOVA.Engine.zip`（与 `NOVA.Assets.zip` 并列） |
+| 5 | 构建 | `build-legacy.sh` 同时重建 `assets.zip` 与 `engine.zip`，不会打包过期内容 |
+| 6 | 产物 | `package-release.py` 生成 `dist/GUGUOVA-<ver>-single.exe` |
+| 7 | 兼容 | 文件夹包仍优先用 exe 旁的 `engine\magpie\`；GPLv3 边界不变（独立进程） |
+
+### 2.0 单 exe 的关键约定
+
+- Magpie **永远以独立进程运行**，启动器只 `Process.Start`，不链接；
+  解压出来的目录里带 `NOTICE.md` / `SOURCE-OFFER.txt` / `LICENSE-GPL-3.0.txt`。
+- 解压目录带 `.complete` 标记，版本号变化才会重新解压。
+- 单 exe 不带 `GUGUOVA.exe.config`；net48 用自身默认运行时启动（实测正常）。
+- 仍然需要 **.NET Framework 4.8 + WebView2 Runtime**，这两项无法塞进 exe。
+
+---
+
+## 2b. 1.14.0 完成
 
 | # | 任务 | 结果 |
 | --- | --- | --- |
@@ -185,7 +211,7 @@ UserLocalConfigStore → Software → Valve → Steam → apps → <appid>
 
 ---
 
-## 5. 验证记录（1.14.0）
+## 5. 验证记录（1.14.1 / 1.14.0）
 
 | 项 | 结果 |
 | --- | --- |
@@ -195,13 +221,17 @@ UserLocalConfigStore → Software → Valve → Steam → apps → <appid>
 | 引擎弹窗 | 算法行显示效果链；光标默认跟随画面；帧率留空显示“无上限” |
 | 文案 | 7 处说明文字已删除，设置页与关于页确认 |
 | legacy 构建 | net48 通过（移除 range 语法），两个包均生成 |
-| 发行包 | single 8.91 MB / full 12.23 MB，含 `engine/magpie/`，`?v=1.14.0` |
+| 单 exe | 空文件夹内只放 exe 可启动；首次解压 assets + WebView2 loader + 引擎；二次不重复 |
+| 单 exe 引擎 | `magpieStatus` → `bundled:true`；`restartScalingEngine` 能拉起，`stopScalingEngine` 能关 |
+| 单 exe 资源 | 14 套主题；图片 0 缺失；对比度审计 0 失败；6 视图 × 2 主题 0 裁剪 |
+| 发行包 | single.exe 9.29 MB / legacy-single 13.58 MB / legacy-full 16.90 MB |
 
 QA 产物（仓库外）：
 
 - `../_shots/contrast/contrast.json`
 - `../_shots/contrast-hover/hover.json`
-- `../_shots/export/`（1.14.0 最终截图）
+- `../_shots/export/`（最终截图）
+- `../_shots/singleexe3/`（单 exe 实测目录，含 `run.log`）
 
 ---
 
@@ -218,7 +248,7 @@ QA 产物（仓库外）：
 
 ### P0-2 · 缩放引擎真机
 
-- 用 1.14.0 包在**另一台**没有 Magpie 的机器上跑：自动拉起、隐藏主窗、快捷键触发、
+- 用 1.14.1 单 exe 在**另一台**没有 Magpie 的机器上跑：自动拉起、隐藏主窗、快捷键触发、
   游戏退出后自动关闭；
 - **重点验证本轮改动**：光标「跟随画面」、帧率留空=无上限、
   「像素缩放」在像素游戏上的实际表现；
@@ -279,6 +309,9 @@ node tools/audit-hover.js
 | Steam 时长 | `Services/SteamPlaytime.cs`、`StoreService.SyncSteamPlaytime` |
 | 缩放引擎选项 | `Services/ScalingEngine.cs`（`EngineOptions` / `ReadOptions` / `SaveOptions`）、`NativeBridge.cs` `SaveEngineOptions` |
 | 引擎自动启动默认 | `Services/LibraryModels.cs` `AutoStartEngine`、`src/app.js` 默认值 |
+| 单 exe 引擎解压 | `Services/EngineBootstrapper.cs`、`ScalingEngine.BundledDirOverride` |
+| 引擎打包 | `tools/pack-engine.py`、`legacy/NovaGameSpace.Legacy.csproj`（`NOVA.Engine.zip`） |
+| 单 exe 产物 | `tools/package-release.py` `package_exe()` |
 | 静态对比度审计 | `tools/audit-contrast.js` |
 | 悬停对比度审计 | `tools/audit-hover.js` |
 | 截图 / 布局审计 | `tools/export-all.js` |
@@ -344,6 +377,11 @@ node tools/audit-hover.js
 39. **`#questCard` 默认隐藏是产品决定**；恢复活动通知时去掉 `hidden`。
 40. **legacy (net48) 不支持 C# 8 的 range / index 语法**（`x[..n]`、`x[^1]`）；
     写共享代码时用 `Substring` / 显式下标，否则 `pipeline.sh` 打包会失败。
+41. **Magpie 永远独立进程**：内嵌只打包成 zip，解压后再 `Process.Start`；
+    不得改成 in-process 引用，也不要删随包的 `NOTICE.md` / `SOURCE-OFFER.txt`。
+42. **单 exe 的解压目录必须带 `.complete` 标记**，否则每次启动都会重解压 4.7 MB；
+    版本号变化时才允许重新解压。
+43. **文件夹包优先于内嵌**：`engine\magpie\` 存在于 exe 旁边时必须直接用它。
 
 ---
 
@@ -363,6 +401,8 @@ node tools/drive.js "return await window.nova.call('syncSteamPlaytime');"
 
 node tools/bump-version.js 1.14.1
 bash tools/pipeline.sh --skip-audit --version 1.14.1
+# → dist/GUGUOVA-<ver>-single.exe（单文件）
+#   dist/GUGUOVA-<ver>-legacy-single.zip / -full.zip（文件夹版）
 ```
 
 Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 PR / 合并 / 发 Release。
@@ -387,6 +427,9 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - **`audit-hover.js` 只覆盖 home / settings / detail**；library / engine / appearance
   需要用 `--views=` 显式指定。
 - **对比度工具只合成 `background-color`**；伪元素纸面标为 `layered`，需人眼复核。
+- **单 exe 首次启动会在数据目录解压约 12 MB**（assets 3.3 MB + 引擎 4.7 MB + loader）；
+  杀毒软件首次扫描可能让启动慢几秒。
+- **单 exe 无法内置 .NET Framework 4.8 与 WebView2 Runtime**，这两项仍是系统依赖。
 - 本轮未在 Win7、真实 Steam 登录态、另一台无 Magpie 机器上验证。
 
 ---
@@ -400,7 +443,8 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 | 1.11.0 | 内置轻量 Magpie、快捷键录制、简化引擎弹窗、`.nova-select` |
 | 1.12.0 | Steam 封面取原图（按分辨率挑选 + 只降不升） |
 | 1.13.0 | Steam 时长同步、主题源码词典、全主题控件/文字精修、夜航幕布、Esc-only 启动退出、设计规范 + skill |
-| **1.14.0** | 缩放引擎选项对齐 Magpie、文案清理、hover/focus 白块与图标修复、`audit-hover` |
+| 1.14.0 | 缩放引擎选项对齐 Magpie、文案清理、hover/focus 白块与图标修复、`audit-hover` |
+| **1.14.1** | 单文件 exe：内嵌主题、前端资源与 Magpie 引擎 |
 
 PR 历史：
 
@@ -410,7 +454,9 @@ PR 历史：
 - `96afdf1` feat: 1.13.0（PR #23，已合并）
 - `3a27ae3` Merge pull request #22（1.12.0）
 
-Release：**v1.14.0**（legacy-single / legacy-full）。
+Release：**v1.14.1**（single.exe / legacy-single / legacy-full）。
+
+- `0d2cfe5` feat: 单文件 exe 发行版（**PR #25，已合并**）
 
 ---
 
@@ -423,6 +469,8 @@ Release：**v1.14.0**（legacy-single / legacy-full）。
 - [x] 文案清理 7 处已确认；
 - [x] legacy net48 构建通过；
 - [x] 1.14.0 已合并（PR #24）、已打包、已发布（v1.14.0）；
+- [x] **1.14.1 单文件 exe 已在空文件夹首启通过**（主题 + 引擎解压、引擎可拉起/关闭）；
+- [x] 1.14.1 已合并（PR #25）、已打包、已发布（v1.14.1）；
 - [x] 当前保存主题 `broadcast`，无 overlay；
 - [ ] Steam 登录态全流程；
 - [ ] 另一台无 Magpie 机器的引擎真机验证；
