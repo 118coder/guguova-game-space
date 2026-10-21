@@ -40,7 +40,13 @@ public static class ScalingEngine
     /// closed again once no game needs it.</summary>
     private static bool _startedByUs;
 
-    public static string BundledDir => Path.Combine(AppContext.BaseDirectory, "engine", "magpie");
+    /// <summary>Set by EngineBootstrapper when the engine comes from the
+    /// single-exe bundle (extracted under the user data folder) instead of a
+    /// folder next to the launcher.</summary>
+    public static string? BundledDirOverride { get; set; }
+
+    public static string BundledDir =>
+        BundledDirOverride ?? Path.Combine(AppContext.BaseDirectory, "engine", "magpie");
     public static string BundledExe => Path.Combine(BundledDir, "Magpie.exe");
     public static bool BundledAvailable => File.Exists(BundledExe);
 

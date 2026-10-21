@@ -23,6 +23,7 @@ public sealed partial class App : System.Windows.Application
         {
             AssetBootstrapper.Ensure();
             WebView2Bootstrapper.Ensure();
+            EngineBootstrapper.Ensure();
         }
         catch (Exception ex)
         {
