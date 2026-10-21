@@ -206,7 +206,7 @@ public static class SteamPlaytime
                 while (cursor < text.Length && !char.IsWhiteSpace(text[cursor]) &&
                        text[cursor] != '{' && text[cursor] != '}')
                     cursor++;
-                tokens.Add(new Token(TokenKind.Text, text[start..cursor]));
+                tokens.Add(new Token(TokenKind.Text, text.Substring(start, cursor - start)));
             }
             return tokens;
         }

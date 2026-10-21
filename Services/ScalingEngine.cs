@@ -606,7 +606,7 @@ public static class ScalingEngine
                             if (string.IsNullOrWhiteSpace(effectName)) continue;
                             var leaf = effectName!.Replace('\\', '/');
                             var slash = leaf.LastIndexOf('/');
-                            effectNames.Add(slash >= 0 ? leaf[(slash + 1)..] : leaf);
+                            effectNames.Add(slash >= 0 ? leaf.Substring(slash + 1) : leaf);
                             effectPaths.Add((effectName, effectName.Replace('\\', '/') + ".hlsl"));
                         }
                     }
