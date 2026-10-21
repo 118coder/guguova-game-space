@@ -8,8 +8,22 @@ namespace NovaGameSpace;
 
 public sealed partial class App : System.Windows.Application
 {
-    private const string InstanceMutexId = @"Local\GUGUOVA.GameSpace.SingleInstance";
-    private const string ActivateEventId = @"Local\GUGUOVA.GameSpace.Activate";
+    // A throwaway data root (NOVA_DATA_ROOT) is a separate profile, so it also
+    // needs its own single-instance lock: otherwise a smoke test forwarded its
+    // activation to the player's running launcher and never showed a window.
+    private static readonly string InstanceMutexId = @"Local\GUGUOVA.GameSpace.SingleInstance" + ProfileSuffix();
+    private static readonly string ActivateEventId = @"Local\GUGUOVA.GameSpace.Activate" + ProfileSuffix();
+
+    private static string ProfileSuffix()
+    {
+        var over = Environment.GetEnvironmentVariable("NOVA_DATA_ROOT");
+        if (string.IsNullOrWhiteSpace(over)) return "";
+        // Names must stay short and free of backslashes for the kernel objects.
+        var hash = 17;
+        foreach (var ch in over.Trim().ToLowerInvariant())
+            unchecked { hash = hash * 31 + ch; }
+        return "." + Math.Abs(hash).ToString("x8");
+    }
 
     private Mutex? _instanceMutex;
     private EventWaitHandle? _activateEvent;
