@@ -583,9 +583,11 @@ padMoveFocus / padActivate`（焦点导航）、`src/focus.js`（强制焦点留
 ### 9.3 发版
 
 ```bash
-node tools/bump-version.js 1.5.x   # 同步 Modern/Legacy csproj、index.html、version.json
-bash tools/pipeline.sh             # 审计 + Legacy 构建 + 单文件/全主题包
+bash tools/release.sh --version 1.x.y --audit    # 审计 + 构建 + 校验 + 冒烟
+bash tools/release.sh --publish                  # 校验通过后再发 Release
 ```
+
+完整阶段与闸门见 `docs/RELEASE.md`。
 
 - `version.json` 是唯一版本源；
 - 两个 Legacy 包与 Modern 包共用 `library.json` / `.nova-pack`；

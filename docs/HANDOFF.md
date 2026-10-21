@@ -162,9 +162,9 @@
 - 系统目录里的 manual 条目（notepad/calc/powershell）由 `StoreService.Normalize`
   自动标记 `DeveloperOnly`；boot/统计默认过滤。开发者用 `NOVA_DEV=1` 或
   **Ctrl+Shift+D** 查看；条目仍保留在 `library.json` 与 `.nova-pack`。
-- 发布：`bash tools/pipeline.sh`（审计 + Legacy 包），`--modern` 额外产出
-  self-contained 大包，`--skip-audit` 快速打包。产物在 `dist/`，
-  `release-manifest.json` 含大小与 SHA-256。
+- 发布：`bash tools/release.sh`（version → build → package → verify → smoke →
+  publish），详见 `docs/RELEASE.md`。产物在 `dist/`，`release-manifest.json`
+  含大小与 SHA-256。旧的 `pipeline.sh` 仍可用但没有 verify / smoke 闸门。
 - 默认包是 **Legacy net48 单文件版（zip 约 2.34 MB）**：一个 exe 内嵌
   托管 DLL、WebView2 loader、`src/` 与 `themes/`；首次运行解压到
   `%LOCALAPPDATA%/NOVA Game Space/runtime/<version>/assets`。

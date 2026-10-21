@@ -296,7 +296,7 @@ Steam 游戏如果封面糊，点「用 Steam 最新封面重新导入」；它�
 
 ```bash
 dotnet run
-bash tools/pipeline.sh --version 1.10.1    # 审计 + 打包
+bash tools/release.sh --version 1.15.0     # 构建 + 校验 + 单 exe 冒烟
 ```
 
 产物在 `dist\`，附带 `release-manifest.json`（SHA-256 和体积）。

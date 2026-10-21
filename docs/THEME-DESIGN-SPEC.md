@@ -590,7 +590,7 @@ node tools/export-all.js --themes=endfield,dusk,steam --views=all --sizes=1439x1
 
 1. `node tools/bump-version.js <x.y.z>`（同步 csproj / index.html / version.json）；
 2. **每套改过 CSS 的主题** 手动 bump `theme.json` 的 patch 版本；
-3. `bash tools/pipeline.sh`（审计 + Legacy 构建 + 包）；
+3. `bash tools/release.sh --audit`（审计 + 构建 + 校验 + 冒烟 + 可选发布）；
 4. 更新 `docs/HANDOFF-NEXT.md`、`docs/THEME-INTERFACES.md` 版本表、本文件日期；
 5. 发布前确认：主题预览图、音效许可、30 字测试、首次切换动画、缓存位置。
 
