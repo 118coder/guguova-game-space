@@ -203,6 +203,23 @@ def package_modern(modern_dir: Path):
     return stage
 
 
+def package_exe(source: Path) -> Path:
+    """A true one-file build: only GUGUOVA.exe, no folder, no zip.
+
+    The web assets, all 14 themes and the bundled Magpie engine are embedded
+    as resources and extracted once under the user data folder. Magpie is still
+    started as its own process, so the GPLv3 boundary is unchanged.
+    """
+    out = DIST / f"GUGUOVA-{VERSION}-single.exe"
+    exe = source / "GUGUOVA.exe"
+    if not exe.exists():
+        raise SystemExit(f"missing build output: {exe}")
+    if not (ROOT / "legacy" / "embedded" / "engine.zip").exists():
+        print("warning: engine.zip missing; the one-file build will have no bundled engine")
+    shutil.copy2(exe, out)
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="Release")
@@ -214,6 +231,8 @@ def main():
     packages = []
 
     single, full = package_legacy(args.config)
+    exe = package_exe(ROOT / "legacy" / "bin" / args.config / "net48")
+    packages.append(exe)
     if not args.no_zip:
         packages.append(make_zip(single, DIST / f"{single.name}.zip"))
         packages.append(make_zip(full, DIST / f"{full.name}.zip"))

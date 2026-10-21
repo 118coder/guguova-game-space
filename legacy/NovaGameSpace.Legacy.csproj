@@ -14,7 +14,7 @@
     <RootNamespace>NovaGameSpace</RootNamespace>
     <ApplicationManifest>..\app.manifest</ApplicationManifest>
     <ApplicationIcon>..\build\icon.ico</ApplicationIcon>
-    <Version>1.14.0</Version>
+    <Version>1.14.1</Version>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <Product>GUGUOVA (Legacy)</Product>
@@ -49,6 +49,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="embedded\assets.zip" LogicalName="NOVA.Assets.zip" Condition="Exists('embedded\assets.zip')" />
+    <!-- Single-exe Magpie: extracted once under %LOCALAPPDATA% and run as its
+         own process so the GPLv3 boundary stays intact. -->
+    <EmbeddedResource Include="embedded\engine.zip" LogicalName="NOVA.Engine.zip" Condition="Exists('embedded\engine.zip')" />
     <EmbeddedResource Include="$(PkgMicrosoft_Web_WebView2)\runtimes\win-x64\native\WebView2Loader.dll" LogicalName="NOVA.WebView2Loader.dll" />
   </ItemGroup>
 
