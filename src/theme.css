@@ -523,7 +523,6 @@
   transform: none;
   font-size: 8.5px;
   letter-spacing: .3em;
-  color: rgba(255, 255, 255, .4);
 }
 
 .launch-copy .launch-logo {
@@ -539,7 +538,6 @@
   opacity: 1;
   font-size: 10px;
   letter-spacing: .28em;
-  color: rgba(255, 255, 255, .36);
 }
 
 .launch-copy .launch-track {
@@ -647,7 +645,7 @@
   font-size: 8.5px;
   letter-spacing: .03em;
   color: inherit;
-  opacity: .78;
+  opacity: .94;
 }
 
 .menu-row:hover .row-value,

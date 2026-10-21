@@ -3,7 +3,7 @@
   "id": "nightflight",
   "name": "夜航 · NIGHT FLIGHT",
   "author": "GUGUOVA",
-  "version": "1.0.8",
+  "version": "1.0.11",
   "description": "夜间航班：深夜蓝、荧光航线、登机牌主视觉与离港航班表。自带「离港」开场。",
   "css": "theme.css",
   "preview": "assets/preview.jpg",

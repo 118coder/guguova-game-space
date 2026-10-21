@@ -57,6 +57,10 @@
         onSessionEnded(message.payload);
         return;
       }
+      if (message.type === 'playtime-synced') {
+        applyPlaytimeUpdates(message.payload && message.payload.games);
+        return;
+      }
       if (message.type === 'session-failed') {
         onSessionFailed(message.payload);
         return;
@@ -322,6 +326,9 @@
     appearanceOptions: $('#appearanceOptions'),
     appearanceBg: $('#appearanceBg'),
     appearanceImage: $('#appearanceImage'),
+    appearanceCrop: $('#appearanceCrop'),
+    appearanceCropWindow: $('#appearanceCropWindow'),
+    appearanceCropImg: $('#appearanceCropImg'),
     appearancePreview: $('.appearance-preview'),
     appearanceEditBtn: $('#appearanceEditBtn'),
     appearanceFraming: $('#appearanceFraming'),
@@ -489,6 +496,7 @@
     settingsExport: $('#settingsExport'),
     settingsImport: $('#settingsImport'),
     settingsCsv: $('#settingsCsv'),
+    settingsSyncPlaytime: $('#settingsSyncPlaytime'),
     settingsOpenData: $('#settingsOpenData'),
     settingsOpenBackups: $('#settingsOpenBackups'),
     settingsTier: $('#settingsTier'),
@@ -1379,6 +1387,19 @@
     return `${then.getMonth() + 1} 月 ${then.getDate()} 日`;
   }
 
+  /* Themes may rename a handful of fixed phrases through theme.json's
+     "lexicon" block (DUSK turns "上次游玩" into "上次委托"). Unknown keys fall
+     back to the shared wording, so a theme can never blank out the UI. */
+  function themeWord(key, fallback) {
+    try {
+      const theme = window.NovaTheme ? window.NovaTheme.find(window.NovaTheme.activeId) : null;
+      const value = theme && theme.lexicon ? theme.lexicon[key] : null;
+      return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
   function restoreFocus() {
     const target = state.lastFocus;
     if (!target || !document.contains(target)) return;
@@ -1613,8 +1634,20 @@
   function publishHeroVar(game) {
     const root = document.documentElement;
     const url = game && game.heroUrl;
-    if (url) root.style.setProperty('--nova-hero', `url("${String(url).replace(/"/g, '%22')}")`);
-    else root.style.removeProperty('--nova-hero');
+    if (!url) {
+      root.style.removeProperty('--nova-hero');
+      root.style.removeProperty('--nova-hero-position');
+      root.style.removeProperty('--nova-hero-size');
+      return;
+    }
+    root.style.setProperty('--nova-hero', `url("${String(url).replace(/"/g, '%22')}")`);
+    // DUSK / GRIMOIRE / NIGHTFLIGHT / STEAM paint the hero as a themed
+    // background instead of the shared .scene <img>. Publishing the same
+    // framing lets those compositions obey the appearance editor too.
+    const framing = framingFor(game);
+    const zoom = clampNumber(framing.zoom, 1, 2.4);
+    root.style.setProperty('--nova-hero-position', `${Math.round(framing.x)}% ${Math.round(framing.y)}%`);
+    root.style.setProperty('--nova-hero-size', zoom > 1.001 ? `auto ${(zoom * 100).toFixed(1)}%` : 'cover');
   }
 
   function buildBackdrop() {
@@ -1706,7 +1739,7 @@
     return {
       pct,
       pctText: formatHoursShort(total),
-      title: game.lastPlayedUtc ? `上次游玩 ${relativeTime(game.lastPlayedUtc)}` : '还没玩过',
+      title: game.lastPlayedUtc ? `${themeWord('lastPlayed', '上次游玩')} ${relativeTime(game.lastPlayedUtc)}` : '还没玩过',
       sub: game.playtimeSeconds ? `累计 ${formatHours(game.playtimeSeconds)}` : '启动后开始计时',
       icon: 'clock'
     };
@@ -1723,7 +1756,7 @@
       return { label: '找不到程序', dim: '文件被移动或删除' };
     }
     if (game.lastPlayedUtc) {
-      return { label: '继续', dim: `上次游玩 ${relativeTime(game.lastPlayedUtc)}` };
+      return { label: '继续', dim: `${themeWord('lastPlayed', '上次游玩')} ${relativeTime(game.lastPlayedUtc)}` };
     }
     return { label: '就绪', dim: game.source === 'steam' ? 'Steam 库' : '本机' };
   }
@@ -2680,6 +2713,7 @@
     const heroSrc = game ? game.heroUrl : 'assets/backdrop.jpg';
     els.appearanceBg.src = heroSrc;
     els.appearanceImage.src = heroSrc;
+    if (els.appearanceCropImg) els.appearanceCropImg.src = heroSrc;
     // While editing, keep the live framing; on a fresh render (or another
     // game) take the persisted values again.
     if (!state.appearanceEditing || state.appearanceFramingGame !== gameId) {
@@ -2687,6 +2721,7 @@
       state.appearanceFramingGame = gameId;
     }
     syncAppearanceFraming();
+    if (state.appearanceEditing) requestAnimationFrame(layoutAppearanceCrop);
     els.appearanceImage.alt = game ? `${game.zh || game.name} 主视觉` : 'GUGUOVA';
     if (els.appearanceEditBtn) els.appearanceEditBtn.hidden = !game;
     if (!game && state.appearanceEditing) setAppearanceEditing(false);
@@ -2715,10 +2750,32 @@
 
   /* ---------- appearance hero framing ---------- */
 
+  function layoutAppearanceCrop() {
+    const overlay = els.appearanceCrop;
+    const windowEl = els.appearanceCropWindow;
+    if (!overlay || !windowEl || !state.appearanceEditing) return;
+    const rect = overlay.getBoundingClientRect();
+    const style = getComputedStyle(overlay);
+    const padX = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const padY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+    const availableW = Math.max(120, rect.width - padX);
+    const availableH = Math.max(80, rect.height - padY);
+    const ratio = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hero-frame-ratio')) || 16 / 9;
+    let width = availableW;
+    let height = width / ratio;
+    if (height > availableH) {
+      height = availableH;
+      width = height * ratio;
+    }
+    windowEl.style.width = `${Math.round(width)}px`;
+    windowEl.style.height = `${Math.round(height)}px`;
+  }
+
   function syncAppearanceFraming() {
     const framing = state.appearanceFraming || framingFor(currentGame());
     applyHeroFraming(els.appearanceBg, framing, true);
     applyHeroFraming(els.appearanceImage, framing, true);
+    applyHeroFraming(els.appearanceCropImg, framing, true);
     const x = Math.round(clampNumber(framing.x, 0, 100));
     const y = Math.round(clampNumber(framing.y, 0, 100));
     const zoom = Math.round(clampNumber(framing.zoom, 1, 2.4) * 100);
@@ -2737,7 +2794,9 @@
     if (next) {
       state.appearanceFraming = framingFor(game);
       state.appearanceFramingGame = game.id;
+      if (els.appearanceCropImg) els.appearanceCropImg.src = game.heroUrl || 'assets/backdrop.jpg';
       syncAppearanceFraming();
+      requestAnimationFrame(layoutAppearanceCrop);
       audio.select();
     } else {
       audio.close();
@@ -3548,6 +3607,7 @@
     if (els.settingsHeroTier) els.settingsHeroTier.textContent = system.tierLabel || '完整效果';
     if (els.settingsHeroVersion) els.settingsHeroVersion.textContent = `v${state.version}`;
     if (els.settingsFootPath) els.settingsFootPath.textContent = storage.root ? `数据目录 · ${storage.root}` : '数据目录 · —';
+    if (els.settingsSyncPlaytime) els.settingsSyncPlaytime.hidden = !games.some((game) => game.steamAppId);
     if (els.settingsTier) els.settingsTier.value = state.settings.compatibilityTier || 'auto';
     if (els.settingsTierTag) els.settingsTierTag.textContent = system.tierLabel || '完整效果';
     if (els.settingsSystemStats) {
@@ -3795,6 +3855,60 @@
       return;
     }
     await showExportResult('游玩记录已导出', result.path, 'CSV 可用 Excel 或文本编辑器打开。');
+  }
+
+  /**
+   * Merge Steam's own playtime into the library and repaint every surface
+   * that prints hours. The native side does the same merge at boot and after
+   * a session ends; this is the manual escape hatch for a running Steam
+   * client that has not flushed its numbers yet.
+   */
+  function applyPlaytimeUpdates(entries) {
+    if (!Array.isArray(entries) || !entries.length) return false;
+    let touched = false;
+    entries.forEach((entry) => {
+      const game = findGame(entry.id);
+      if (!game) return;
+      if (typeof entry.playtimeSeconds === 'number' && entry.playtimeSeconds > (game.playtimeSeconds || 0)) {
+        game.playtimeSeconds = entry.playtimeSeconds;
+        touched = true;
+      }
+      if (entry.lastPlayedUtc) {
+        const next = new Date(entry.lastPlayedUtc).getTime();
+        const current = game.lastPlayedUtc ? new Date(game.lastPlayedUtc).getTime() : 0;
+        if (Number.isFinite(next) && next > current) {
+          game.lastPlayedUtc = entry.lastPlayedUtc;
+          touched = true;
+        }
+      }
+    });
+    if (!touched) return false;
+    refreshLive();
+    if (state.overlay === 'details') populateDetails(currentGame());
+    if (state.view === 'settings') renderSettings();
+    return true;
+  }
+
+  async function syncSteamPlaytime() {
+    audio.select();
+    const result = await call('syncSteamPlaytime');
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '无法读取 Steam 游玩时间', 'alert');
+      return;
+    }
+    if (!result.steamRoot) {
+      toast('没有找到 Steam 安装目录', 'alert');
+      return;
+    }
+    const changed = applyPlaytimeUpdates(result.games || []);
+    if (changed) {
+      audio.confirm();
+      toast(`已同步 ${result.updated} 款游戏的 Steam 游玩时间`, 'check');
+    } else {
+      audio.select();
+      toast('Steam 没有新的游玩记录', 'check');
+    }
   }
 
   async function importPack() {
@@ -4167,7 +4281,7 @@
     state.launchHandoffScheduled = false;
 
     els.launchArt.src = game.heroUrl;
-    els.launchArt.style.objectPosition = game.heroPosition;
+    applyHeroFraming(els.launchArt, framingFor(game), true);
     els.launchArt.alt = `${game.zh || game.name} 启动画面`;
     setLogo(els.launchLogo, game, 'launch-logo');
     els.launchZh.textContent = fullName(game);
@@ -4177,6 +4291,10 @@
     els.launchFootMeta.textContent = game.playtimeSeconds > 0
       ? `累计 ${formatHours(game.playtimeSeconds)} · 本次会计入`
       : '本次时长会计入统计';
+    // Esc is the keyboard exit; a connected pad gets its own Back hint.
+    if (els.launchHint) {
+      els.launchHint.textContent = (window.NovaPad && window.NovaPad.connected) ? '按 B 退出' : '按 Esc 退出';
+    }
     setLaunchProgress(12);
     setLaunchStep(0);
 
@@ -4878,7 +4996,7 @@
   const CURTAIN_HOLD = {
     nova: 360, aurum: 400, endfield: 380, zerohour: 420, codex: 430,
     broadcast: 360, summer: 470, riso: 380, riot: 380, grimoire: 650, mnemo: 360,
-    dusk: 460, steam: 440, nightflight: 440
+    dusk: 460, steam: 440, nightflight: 560
   };
 
   function curtainThemeName(theme) {
@@ -4961,6 +5079,11 @@
       applyStyleModeUI();
       applyAccent(currentGame());
       refitLogos();
+      // A theme may rename fixed phrases (DUSK: 上次游玩 → 上次委托), so the
+      // hero and an open detail sheet must be repainted with the new lexicon.
+      if (currentGame()) renderHero(currentGame(), false);
+      if (state.overlay === 'details') populateDetails(currentGame());
+      if (state.appearanceEditing) requestAnimationFrame(layoutAppearanceCrop);
       // The theme changes nav paddings and font metrics. Without this the
       // sliding highlight keeps the previous width/offset until the next
       // view switch, which reads as a white pill stuck over another tab.
@@ -5085,6 +5208,7 @@
     });
     if (els.settingsMagpiePick) els.settingsMagpiePick.addEventListener('click', pickMagpieExe);
     if (els.settingsSteamFix) els.settingsSteamFix.addEventListener('click', fixSteamFromSettings);
+    if (els.settingsSyncPlaytime) els.settingsSyncPlaytime.addEventListener('click', syncSteamPlaytime);
     if (els.settingsUnifiedSfxRow) els.settingsUnifiedSfxRow.addEventListener('click', () => setUnifiedSfx(!state.settings.unifiedSfx));
     if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));
     if (els.settingsTier) els.settingsTier.addEventListener('change', changeCompatibilityTier);
@@ -5744,12 +5868,11 @@
       }
 
       if (state.overlay === 'launch') {
+        // Only Esc leaves the launch surface. Every other key used to close
+        // it once the overlay reached "ready", which meant a stray keystroke
+        // (or a click on the overlay) dropped the player out of the launch
+        // sequence by accident. Gamepad B still maps to a deliberate Back.
         if (event.key === 'Escape') {
-          event.preventDefault();
-          closeLaunch();
-          return;
-        }
-        if (els.launchOverlay.classList.contains('is-ready') && !event.repeat && !event.metaKey && !event.ctrlKey && !event.altKey) {
           event.preventDefault();
           closeLaunch();
         }
@@ -6140,7 +6263,7 @@
       const scope = padScope();
       if (padDialogOpen() || padPickerOpen() || PAD_FOCUS_SCOPES.has(scope)) { padActivate(); return; }
       if (scope === 'sleep') { exitSleep(); return; }
-      if (scope === 'launch') { if (els.launchOverlay.classList.contains('is-ready')) closeLaunch(); return; }
+      if (scope === 'launch') { return; }
       handlePrimary();
     },
     back() {
@@ -6340,12 +6463,8 @@
       if (game) call('revealGame', { id: game.id });
     });
 
-    // Once the game is running, any deliberate click returns to NOVA.
-    // Before that, the launch sequence owns the screen so a stray click
-    // (for example the one that opened the overlay) cannot interrupt it.
-    els.launchOverlay.addEventListener('click', () => {
-      if (els.launchOverlay.classList.contains('is-ready')) closeLaunch();
-    });
+    // The launch surface is deliberately click-proof: a stray click (including
+    // the one that opened it) must not cancel a launch. Esc is the only exit.
     els.sleepOverlay.addEventListener('pointerdown', exitSleep);
 
     els.libBack.addEventListener('click', () => closeLibrary());
@@ -6801,6 +6920,7 @@
         refitLogos();
         updateAppearanceScrollState();
         ensureActiveTileVisible();
+        layoutAppearanceCrop();
         setNav(document.documentElement.dataset.view || 'home');
       }, 160);
     }, { passive: true });
@@ -6878,7 +6998,20 @@
           try { window.NovaSurfaces.close(id, { focus: false }); } catch (error) { /* already closed */ }
         });
       }
+      // The scaling sheet predates the surface registry, so it has its own
+      // close path. Without this the QA harness leaves it painted above every
+      // later view (state.overlay says null but the element stays open).
+      if (state.overlay === 'engine') {
+        try { closeEngineDialog(); } catch (error) { /* already closed */ }
+      }
+      // The framing editor is view-local state, not a surface; leaving it on
+      // makes the next appearance capture open with the panel already toggled.
+      if (state.appearanceEditing) {
+        try { setAppearanceEditing(false); } catch (error) { /* not available yet */ }
+      }
       state.overlay = null;
+      document.querySelectorAll('.overlay.is-open').forEach((el) => el.classList.remove('is-open'));
+      document.querySelectorAll('.nova-select-menu').forEach((menu) => { menu.hidden = true; });
       state.view = null;
       setView('home', { force: true });
       setNav('home');

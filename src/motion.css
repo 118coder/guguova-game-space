@@ -113,7 +113,7 @@
   z-index: 5;
   font-size: 8.5px;
   letter-spacing: .24em;
-  color: rgba(255, 255, 255, .34);
+  color: rgba(255, 255, 255, .62);
   opacity: 0;
   transition: opacity .8s ease .45s;
 }
@@ -193,7 +193,7 @@
   font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: .32em;
-  color: rgba(255, 255, 255, .44);
+  color: rgba(255, 255, 255, .74);
 }
 
 .launch-logo {
@@ -204,7 +204,7 @@
 .launch-zh {
   font-size: 12px;
   letter-spacing: .16em;
-  color: rgba(255, 255, 255, .5);
+  color: rgba(255, 255, 255, .78);
 }
 
 .launch-steps {
@@ -220,7 +220,7 @@
   gap: 8px;
   font-size: 11.5px;
   letter-spacing: .05em;
-  color: rgba(255, 255, 255, .28);
+  color: rgba(255, 255, 255, .58);
   transition: color .4s ease;
 }
 
@@ -228,13 +228,13 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, .22);
+  background: rgba(255, 255, 255, .5);
   transition: background .4s ease, box-shadow .4s ease;
 }
 
-.launch-step.is-active { color: rgba(255, 255, 255, .78); }
+.launch-step.is-active { color: rgba(255, 255, 255, .96); }
 .launch-step.is-active i { background: var(--accent, #ffb45e); box-shadow: 0 0 9px var(--accent, #ffb45e); }
-.launch-step.is-done { color: rgba(255, 255, 255, .46); }
+.launch-step.is-done { color: rgba(255, 255, 255, .72); }
 .launch-step.is-done i { background: #7fe3c0; box-shadow: 0 0 7px rgba(127, 227, 192, .6); }
 
 .launch-row {
@@ -244,7 +244,7 @@
   margin-top: 22px;
   font-size: 11.5px;
   letter-spacing: .04em;
-  color: rgba(255, 255, 255, .5);
+  color: rgba(255, 255, 255, .72);
 }
 
 .launch-status { min-width: 0; }
@@ -252,9 +252,9 @@
 .launch-hint {
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .3);
   font-size: 10.5px;
-  color: rgba(255, 255, 255, .38);
+  color: rgba(255, 255, 255, .68);
 }
 
 .launch.is-ready .launch-hint {
@@ -280,7 +280,7 @@
   gap: 16px;
   font-size: 10px;
   letter-spacing: .12em;
-  color: rgba(255, 255, 255, .26);
+  color: rgba(255, 255, 255, .6);
   opacity: 0;
   transition: opacity .8s ease .5s;
 }
@@ -1650,101 +1650,6 @@ html.reduce-motion .theme-curtain[data-variant="zerohour"] .tc-label b {
   letter-spacing: .2em;
 }
 
-/* ============================================================
-   NIGHT FLIGHT · SPLIT-FLAP BOARD
-   The interface closes like a departure board: two dark panels fold
-   shut, a lime line runs across, and the theme name flips in a tile.
-   ============================================================ */
-
-.theme-curtain[data-variant="nightflight"] {
-  --tc-bg: #04070d;
-  --tc-fg: #d9ff45;
-  --tc-accent: #d9ff45;
-  --tc-accent-2: #f4f0e0;
-}
-
-.theme-curtain[data-variant="nightflight"] .tc-half {
-  height: 50.6%;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='1000'%3E%3Cg stroke='%236fa8ff' stroke-width='1' opacity='.05'%3E%3Cpath d='M0 160h1600M0 320h1600M0 480h1600M0 640h1600M0 800h1600M0 960h1600M160 0v1000M320 0v1000M480 0v1000M640 0v1000M800 0v1000M960 0v1000M1120 0v1000M1280 0v1000M1440 0v1000'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
-    linear-gradient(180deg, #07101c 0%, #04070d 100%);
-  clip-path: none;
-  transform: translateY(-101%);
-  transition: transform .42s cubic-bezier(.16, 1, .3, 1);
-}
-
-.theme-curtain[data-variant="nightflight"] .tc-top {
-  top: 0;
-  bottom: auto;
-  clip-path: none;
-  transform: translateY(-101%);
-}
-
-.theme-curtain[data-variant="nightflight"] .tc-bottom {
-  top: auto;
-  bottom: 0;
-  clip-path: none;
-  transform: translateY(101%);
-}
-
-.theme-curtain[data-variant="nightflight"].is-cover .tc-top,
-.theme-curtain[data-variant="nightflight"].is-cover .tc-bottom { transform: translateY(0); }
-
-.theme-curtain[data-variant="nightflight"].is-reveal .tc-top { transform: translateY(-101%); transition-duration: .36s; }
-.theme-curtain[data-variant="nightflight"].is-reveal .tc-bottom { transform: translateY(101%); transition-duration: .36s; }
-
-.theme-curtain[data-variant="nightflight"] .tc-rule {
-  height: 3px;
-  margin-top: -1.5px;
-  background: linear-gradient(90deg, transparent 0%, #d9ff45 12%, #d9ff45 88%, transparent 100%);
-  box-shadow: 0 0 22px rgba(217, 255, 69, .5);
-  transform: scaleX(0);
-  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
-}
-
-.theme-curtain[data-variant="nightflight"].is-cover .tc-rule { transform: scaleX(1); opacity: 1; }
-.theme-curtain[data-variant="nightflight"].is-reveal .tc-rule { transform: scaleX(0); opacity: 0; }
-
-.theme-curtain[data-variant="nightflight"] .tc-label { gap: 8px; }
-
-.theme-curtain[data-variant="nightflight"] .tc-label::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  background: #d9ff45;
-  box-shadow: 0 0 12px rgba(217, 255, 69, .8);
-  animation: tcNfBlink .7s steps(2, end) infinite;
-}
-
-.theme-curtain[data-variant="nightflight"] .tc-kicker {
-  color: #d9ff45;
-  font-family: "Cascadia Mono", "Consolas", monospace;
-  font-size: 8.5px;
-  letter-spacing: .26em;
-}
-
-.theme-curtain[data-variant="nightflight"] .tc-label b {
-  padding: 8px 20px 9px;
-  border: 1px solid #d9ff45;
-  background: #0a0f14;
-  color: #d9ff45;
-  font-family: "Cascadia Mono", "Consolas", monospace;
-  font-size: clamp(20px, 2.8vw, 32px);
-  font-weight: 700;
-  letter-spacing: .1em;
-  box-shadow: 4px 4px 0 rgba(217, 255, 69, .12);
-}
-
-.theme-curtain[data-variant="nightflight"] .tc-sub {
-  color: rgba(233, 237, 242, .55);
-  font-family: "Cascadia Mono", "Consolas", monospace;
-  font-size: 8.5px;
-  letter-spacing: .22em;
-}
-
-@keyframes tcNfBlink { 50% { opacity: .2; } }
-
-html.reduce-motion .theme-curtain[data-variant="nightflight"] .tc-label::before { animation: none; }
 
 /* ============================================================
    2.1 · 三套切换彻底分化
@@ -1888,46 +1793,43 @@ html.reduce-motion .theme-curtain[data-variant="nightflight"] .tc-label::before 
 .theme-curtain[data-variant="steam"].is-cover .tc-rule { transform: translateX(-50%) scaleX(1); opacity: 1; }
 .theme-curtain[data-variant="steam"].is-reveal .tc-rule { transform: translateX(-50%) scaleX(0); opacity: 0; }
 
-/* ---------- NIGHT FLIGHT · TICKET TEAR ---------- */
-.theme-curtain[data-variant="nightflight"] { perspective: none; }
+/* ---------- NIGHT FLIGHT · GATE CLOSE / BOARDING BAND ----------
+   The shutter is a departure gate: two navy sky panels close from the top
+   and bottom, leaving one cream boarding band across the centre. The band
+   unfolds from the middle, a lime scanner runs across it, and the theme
+   name drops in like a split-flap tile. No blur, no full-screen filter —
+   transform / opacity only. */
+.theme-curtain[data-variant="nightflight"] {
+  perspective: 1200px;
+  --tc-bg: #04070d;
+  --tc-fg: #0a0f14;
+  --tc-accent: #d9ff45;
+  --tc-accent-2: #f4f0e0;
+}
 
 .theme-curtain[data-variant="nightflight"] .tc-half {
-  width: 100%;
   left: 0;
   right: 0;
+  width: 100%;
+  height: 46%;
   clip-path: none;
-  transition: transform .44s cubic-bezier(.16, 1, .3, 1);
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 100%, rgba(111, 168, 255, .16), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cg stroke='%236fa8ff' stroke-width='1' opacity='.07'%3E%3Cpath d='M0 150h1600M0 300h1600M0 450h1600M0 600h1600M0 750h1600M160 0v900M320 0v900M480 0v900M640 0v900M800 0v900M960 0v900M1120 0v900M1280 0v900M1440 0v900'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
+    linear-gradient(180deg, #07101c 0%, #04070d 100%);
+  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
 }
 
 .theme-curtain[data-variant="nightflight"] .tc-top {
   top: 0;
   bottom: auto;
-  height: 64%;
   transform: translateY(-101%);
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"),
-    linear-gradient(155deg, #faf7ec 0%, #f1ecda 58%, #e6dfc8 100%);
-  box-shadow: inset 0 -1px 0 rgba(10, 15, 20, .22);
 }
 
 .theme-curtain[data-variant="nightflight"] .tc-bottom {
   top: auto;
   bottom: 0;
-  height: 36%;
   transform: translateY(101%);
-  background:
-    linear-gradient(180deg, #07101c 0%, #04070d 100%);
-}
-
-.theme-curtain[data-variant="nightflight"] .tc-top::after {
-  content: "";
-  position: absolute;
-  left: 8%;
-  bottom: 22px;
-  width: 150px;
-  height: 36px;
-  background: repeating-linear-gradient(90deg, #0a0f14 0 2px, transparent 2px 4px, #0a0f14 4px 5px, transparent 5px 9px);
-  opacity: .55;
 }
 
 .theme-curtain[data-variant="nightflight"] .tc-top::before {
@@ -1935,56 +1837,165 @@ html.reduce-motion .theme-curtain[data-variant="nightflight"] .tc-label::before 
   position: absolute;
   left: 0;
   right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(217, 255, 69, .55) 22%, rgba(217, 255, 69, .55) 78%, transparent);
+  opacity: 0;
+  transition: opacity .2s ease .1s;
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-bottom::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
   top: 0;
-  height: 2px;
-  background: #d9ff45;
-  box-shadow: 0 0 22px rgba(217, 255, 69, .6);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(217, 255, 69, .55) 22%, rgba(217, 255, 69, .55) 78%, transparent);
+  opacity: 0;
+  transition: opacity .2s ease .1s;
 }
 
 .theme-curtain[data-variant="nightflight"].is-cover .tc-top,
 .theme-curtain[data-variant="nightflight"].is-cover .tc-bottom { transform: translateY(0); }
-.theme-curtain[data-variant="nightflight"].is-cover .tc-top::before { transform: scaleX(1); }
+.theme-curtain[data-variant="nightflight"].is-cover .tc-top::before,
+.theme-curtain[data-variant="nightflight"].is-cover .tc-bottom::before { opacity: 1; }
 
-.theme-curtain[data-variant="nightflight"].is-reveal .tc-top { transform: translateY(-101%); transition-duration: .38s; }
-.theme-curtain[data-variant="nightflight"].is-reveal .tc-bottom { transform: translateY(101%); transition-duration: .38s; }
-.theme-curtain[data-variant="nightflight"].is-reveal .tc-top::before { transform: scaleX(0); }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-top,
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-bottom {
+  transition-duration: .34s;
+  transition-timing-function: cubic-bezier(.7, 0, .2, 1);
+}
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-top { transform: translateY(-101%); }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-bottom { transform: translateY(101%); }
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-top::before,
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-bottom::before { opacity: 0; }
 
+/* The boarding band itself. Ticket notches at both ends are cut with
+   radial gradients so no extra DOM is needed. */
 .theme-curtain[data-variant="nightflight"] .tc-rule {
-  top: 64%;
+  top: 50%;
   left: 0;
   right: 0;
   width: auto;
-  height: 2px;
-  margin: -1px 0 0;
-  transform: scaleX(0);
-  background: repeating-linear-gradient(90deg, #d9ff45 0 12px, transparent 12px 24px);
-  transition: transform .4s cubic-bezier(.16, 1, .3, 1);
+  height: clamp(88px, 12vh, 112px);
+  margin: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-top: 2px solid #d9ff45;
+  border-bottom: 2px solid #d9ff45;
+  background:
+    radial-gradient(circle at 0 50%, #04070d 0 9px, transparent 9.5px) left center / 10px 100% no-repeat,
+    radial-gradient(circle at 100% 50%, #04070d 0 9px, transparent 9.5px) right center / 10px 100% no-repeat,
+    linear-gradient(180deg, #faf7ec 0%, #f0e9d6 100%);
+  box-shadow: 0 18px 44px -22px rgba(0, 0, 0, .85);
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: center center;
+  transition: transform .4s cubic-bezier(.16, 1, .3, 1) .04s;
 }
 
-.theme-curtain[data-variant="nightflight"].is-cover .tc-rule { transform: scaleX(1); opacity: 1; }
-.theme-curtain[data-variant="nightflight"].is-reveal .tc-rule { transform: scaleX(0); opacity: 0; }
+/* Lime scanner bar crossing the band once, on transform only. */
+.theme-curtain[data-variant="nightflight"] .tc-rule::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 16%;
+  background: linear-gradient(90deg, transparent, rgba(217, 255, 69, .5), transparent);
+  transform: translateX(-140%) skewX(-12deg);
+  pointer-events: none;
+}
 
+.theme-curtain[data-variant="nightflight"].is-cover .tc-rule {
+  transform: translateY(-50%) scaleX(1);
+}
+.theme-curtain[data-variant="nightflight"].is-cover .tc-rule::before {
+  animation: nfGateScan .55s cubic-bezier(.4, 0, .2, 1) .16s both;
+}
+
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-rule {
+  transform: translateY(-50%) scaleX(0);
+  transition-duration: .3s;
+  transition-timing-function: cubic-bezier(.7, 0, .2, 1);
+}
+
+@keyframes nfGateScan {
+  from { transform: translateX(-140%) skewX(-12deg); }
+  to { transform: translateX(700%) skewX(-12deg); }
+}
+
+/* Label: ink on the cream band, with a split-flap tile for the name. */
 .theme-curtain[data-variant="nightflight"] .tc-label {
   justify-content: center;
+  gap: 7px;
   padding-top: 0;
+  color: #0a0f14;
+  opacity: 0;
+  transform: rotateX(-78deg) translateY(-4px);
+  transform-origin: center top;
+  transition: opacity .18s ease .22s, transform .3s cubic-bezier(.16, 1, .3, 1) .22s;
+}
+
+.theme-curtain[data-variant="nightflight"].is-cover .tc-label {
+  opacity: 1;
+  transform: none;
+}
+
+.theme-curtain[data-variant="nightflight"].is-reveal .tc-label {
+  opacity: 0;
+  transform: rotateX(70deg) translateY(3px);
+  transform-origin: center bottom;
+  transition: opacity .14s ease, transform .22s cubic-bezier(.7, 0, .2, 1);
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-label::before {
+  content: "";
+  width: 34px;
+  height: 2px;
+  background: #0a0f14;
+  box-shadow: 0 0 0 1px rgba(217, 255, 69, .55);
+  animation: none;
+}
+
+.theme-curtain[data-variant="nightflight"] .tc-kicker {
+  padding: 0;
+  color: rgba(10, 15, 20, .68);
+  background: transparent;
+  font-family: "Cascadia Mono", "Consolas", "思源黑体 CN Medium", monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .3em;
+  text-indent: .3em;
 }
 
 .theme-curtain[data-variant="nightflight"] .tc-label b {
-  color: var(--nf-ink, #0a0f14);
+  padding: 4px 18px 5px;
+  border: 0;
   background: #d9ff45;
-  border-color: #0a0f14;
-  box-shadow: 4px 4px 0 rgba(10, 15, 20, .9);
+  color: #0a0f14;
+  font-family: "Cascadia Mono", "Consolas", "思源黑体 CN Medium", monospace;
+  font-size: clamp(19px, 2.5vw, 29px);
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-indent: .12em;
+  line-height: 1.1;
+  box-shadow: 4px 4px 0 rgba(10, 15, 20, .88);
 }
 
-.theme-curtain[data-variant="nightflight"] .tc-label::before { background: #0a0f14; box-shadow: none; }
-.theme-curtain[data-variant="nightflight"] .tc-kicker { color: #0a0f14; background: transparent; padding: 0; }
-.theme-curtain[data-variant="nightflight"] .tc-sub { color: rgba(10, 15, 20, .62); background: transparent; padding: 0; }
+.theme-curtain[data-variant="nightflight"] .tc-sub {
+  padding: 0;
+  color: rgba(10, 15, 20, .62);
+  background: transparent;
+  font-family: "Cascadia Mono", "Consolas", "思源黑体 CN Medium", monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .24em;
+  text-indent: .24em;
+}
 
-html.reduce-motion .theme-curtain[data-variant="nightflight"] .tc-top::before,
-html.reduce-motion .theme-curtain[data-variant="steam"] .tc-top { transition: none; }
+html.reduce-motion .theme-curtain[data-variant="nightflight"] .tc-rule::before,
+html.reduce-motion .theme-curtain[data-variant="steam"] .tc-top { animation: none; transition: none; }
 
 /* ---------- DUSK 2.2 · ENVELOPE OPEN ---------- */
 .theme-curtain[data-variant="dusk"] { perspective: 1500px; }

@@ -54,8 +54,8 @@ const SIZES = String(SIZE_ARG).split(',').map((s) => {
 
 const CORE_VIEWS = ['home', 'library', 'appearance', 'detail'];
 const ALL_VIEWS = [
-  'home', 'home-row', 'home-stress', 'library', 'library-search', 'appearance', 'settings',
-  'detail', 'context', 'scanner', 'editor', 'dialog', 'notif', 'profile', 'launching', 'sleep'
+  'home', 'home-row', 'home-stress', 'library', 'library-search', 'library-select', 'appearance', 'appearance-framing', 'settings',
+  'detail', 'context', 'scanner', 'editor', 'dialog', 'engine', 'notif', 'profile', 'launching', 'sleep'
 ];
 
 const VIEWS = flags.views && flags.views !== 'all'
@@ -142,8 +142,16 @@ const HELPERS = String.raw`
         break;
       case 'library':
       case 'library-search':
+      case 'library-select':
         click('.nav-btn[data-nav="library"]');
         await sleep(700);
+        if (view === 'library-select') {
+          const wrap = $('.lib-sort .nova-select');
+          const hit = wrap && wrap.querySelector('.nova-select-hit');
+          const menu = wrap && wrap.querySelector('.nova-select-menu');
+          if (hit && menu && menu.hidden) hit.click();
+          await sleep(320);
+        }
         if (view === 'library-search') {
           const input = $('#libSearch');
           if (input) { input.focus(); input.value = 'a'; input.dispatchEvent(new Event('input', { bubbles: true })); }
@@ -153,6 +161,12 @@ const HELPERS = String.raw`
       case 'appearance':
         click('.nav-btn[data-nav="appearance"]');
         await sleep(800);
+        break;
+      case 'appearance-framing':
+        click('.nav-btn[data-nav="appearance"]');
+        await sleep(800);
+        click('#appearanceEditBtn');
+        await sleep(500);
         break;
       case 'settings':
         click('.nav-btn[data-nav="settings"]');
@@ -175,6 +189,10 @@ const HELPERS = String.raw`
       }
       case 'scanner':
         click('#addBtn');
+        await sleep(900);
+        break;
+      case 'engine':
+        click('#homeEngineBtn');
         await sleep(900);
         break;
       case 'editor':
@@ -421,7 +439,7 @@ async function main() {
 
     for (const theme of themes) {
       await cdp.ev(`(async () => {
-        await window.NovaTheme.activate(${JSON.stringify(theme)}, { silent: true });
+        await window.NovaTheme.activate(${JSON.stringify(theme)}, { silent: true, persist: false });
         ${TIER ? `document.documentElement.dataset.tier = ${JSON.stringify(TIER)};` : ''}
         if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
         await new Promise((r) => setTimeout(r, 420));

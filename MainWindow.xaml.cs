@@ -57,6 +57,17 @@ public partial class MainWindow : Window
         try
         {
             Store.Load();
+            // Pull Steam's own playtime once at boot so the hero shows the
+            // real number even for games the launcher has never counted.
+            try
+            {
+                var synced = Store.SyncSteamPlaytime();
+                if (synced.Count > 0) Log.Write($"steam playtime synced at boot: {synced.Count}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("steam playtime boot", ex);
+            }
             Launcher = new LauncherService(Store);
             Bridge = new NativeBridge(Store, Media, Launcher);
 

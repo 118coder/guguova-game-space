@@ -157,6 +157,57 @@ public sealed class StoreService
     public GameEntry? Find(string id) => _library.Games.FirstOrDefault(g => g.Id == id);
 
     /// <summary>
+    /// Merges Steam's own recorded playtime into Steam-owned entries.
+    ///
+    /// Steam and the launcher count the same session independently, so the
+    /// larger value wins instead of adding them (adding would double every
+    /// Steam launch). Non-Steam entries are never touched: Steam has no
+    /// numbers for them and a stale zero must not erase local playtime.
+    /// Returns the entries that actually changed.
+    /// </summary>
+    public List<GameEntry> SyncSteamPlaytime()
+    {
+        var snapshots = SteamPlaytime.Read();
+        var changed = new List<GameEntry>();
+        if (snapshots.Count == 0) return changed;
+
+        lock (_gate)
+        {
+            foreach (var game in _library.Games)
+            {
+                if (!string.Equals(game.Source, "steam", StringComparison.OrdinalIgnoreCase)) continue;
+                if (string.IsNullOrWhiteSpace(game.SteamAppId)) continue;
+                if (!snapshots.TryGetValue(game.SteamAppId!, out var snapshot)) continue;
+
+                var dirty = false;
+                if (snapshot.Seconds > game.PlaytimeSeconds)
+                {
+                    // Steam only knows the total; keep the launcher's session
+                    // history and simply raise the accumulated number.
+                    game.PlaytimeSeconds = snapshot.Seconds;
+                    dirty = true;
+                }
+                if (snapshot.LastPlayedUtc is DateTime steamLast)
+                {
+                    var localLast = DateTime.TryParse(game.LastPlayedUtc, CultureInfo.InvariantCulture,
+                        DateTimeStyles.RoundtripKind, out var parsed)
+                        ? parsed.ToUniversalTime()
+                        : (DateTime?)null;
+                    if (localLast == null || localLast.Value < steamLast)
+                    {
+                        game.LastPlayedUtc = steamLast.ToString("o");
+                        dirty = true;
+                    }
+                }
+                if (!dirty) continue;
+                changed.Add(game);
+            }
+            if (changed.Count > 0) Save();
+        }
+        return changed;
+    }
+
+    /// <summary>
     /// The display name follows the Windows account until the player types
     /// their own. Older builds shipped "Yuki" / "玩家" as the default; those
     /// are treated as untouched defaults and replaced once with the OS user.

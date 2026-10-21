@@ -264,7 +264,7 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | `mnemo` | 纵向记忆条带 + 紫色重影 | 360ms |
 | `dusk` | 信封拆开：信纸升起 + 三角封盖折回 + 红绳收紧 | 460ms |
 | `steam` | 游戏 tile 从中心放大到全屏 + 焦点环 + 蓝线 | 440ms |
-| `nightflight` | 登机牌对撕：上下票根 + 虚线撕口 + 荧光扫描线 | 440ms |
+| `nightflight` | 登机口关闭：上下深夜蓝面板 + 中央奶油登机牌带 + 荧光扫描线 + 翻牌主题名 | 560ms |
 
 ### 8.2 字体契约
 
@@ -318,21 +318,21 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | 主题 | 版本 | features | intro | launch |
 |---|---|---|---|---|
 | nova（内置） | 2.0.1 | — | gilded | nvLaunch |
-| aurum | 1.0.14 | — | aurum | auLaunch |
-| endfield | 1.0.10 | — | endfield | efLaunch |
-| zerohour | 1.0.13 | scanline / bracket | zerohour | zhLaunch |
-| codex | 1.7.6 | starfield / plate / rule / plates-off | codex | cxIris |
-| broadcast | 1.4.7 | film / plate / rule / plates-off | broadcast | bcSweep |
-| summer | 1.8.8 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
-| riso | 1.4.6 | riso / plate / rule / plates-off | riso | rsRoll |
-| riot | 1.5.8 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
-| grimoire | 1.5.7 | parchment / plate / rule / plates-off | seal | grStamp |
-| mnemo | 1.1.8 | map / emboss / folder | mnemo | mnUnfold |
-| dusk | 2.0.8 | —（自带版式，不用 theme-kit） | dusk | dlDusk |
-| steam | 2.0.8 | —（自带版式，不用 theme-kit） | steam | stMax |
-| nightflight | 1.0.8 | —（自带版式，不用 theme-kit） | nightflight | nfLaunch |
+| aurum | 1.0.15 | — | aurum | auLaunch |
+| endfield | 1.0.11 | — | endfield | efLaunch |
+| zerohour | 1.0.14 | scanline / bracket | zerohour | zhLaunch |
+| codex | 1.7.7 | starfield / plate / rule / plates-off | codex | cxIris |
+| broadcast | 1.4.8 | film / plate / rule / plates-off | broadcast | bcSweep |
+| summer | 1.8.9 | photo / plate / rule / plates-off / scrim=none | draft | suShutter |
+| riso | 1.4.7 | riso / plate / rule / plates-off | riso | rsRoll |
+| riot | 1.5.9 | paper / ink / plate / rule / plates-off | vinyl | rtDrop |
+| grimoire | 1.5.9 | parchment / plate / rule / plates-off | seal | grStamp |
+| mnemo | 1.1.9 | map / emboss / folder | mnemo | mnUnfold |
+| dusk | 2.0.10 | —（自带版式，不用 theme-kit） | dusk | dlDusk |
+| steam | 2.0.10 | —（自带版式，不用 theme-kit） | steam | stMax |
+| nightflight | 1.0.11 | —（自带版式，不用 theme-kit） | nightflight | nfLaunch |
 
-静态资源版本：`src/index.html` 的 `?v=1.9.0`。主题版本：dusk / steam **2.0.8**，nightflight **1.0.8**。
+静态资源版本：`src/index.html` 的 `?v=1.13.0`。应用版本：**1.13.0**。主题版本：dusk / steam **2.0.10**，nightflight **1.0.11**。
 
 ---
 
@@ -353,3 +353,42 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 11. **预览图**：16:9。常规流程来自 `tools/theme-concepts.html` 的**设计概念板**，
     用 `render-concepts.js` 渲染后缩到 960×540；本轮 dusk / steam / nightflight 三套
     因整体重做，预览图暂由实机首页裁成 16:9（960×540），下一轮再补概念板版本。
+
+
+---
+
+## 13. 主题文案词典（1.13.0）
+
+`theme.json` 可声明固定短语的替换，不接管布局：
+
+```json
+"lexicon": { "lastPlayed": "上次委托" }
+```
+
+| 键 | 用在哪 | 回退 |
+| --- | --- | --- |
+| `lastPlayed` | 首页眉标 / 进度标题的“上次游玩 …” | `上次游玩` |
+
+- 渲染侧：`src/app.js` 的 `themeWord(key, fallback)`，读取 `window.NovaTheme.activeId` 对应 manifest；
+- 缺失/空白键回退共享文案，不允许把 UI 文案变空；
+- 当前使用：DUSK → `上次委托`；
+- 新增键必须同步本表与 `docs/THEME-DESIGN-SPEC.md` §8。
+
+## 14. 共享控件令牌（1.13.0）
+
+| 控件 | 令牌前缀 | 定义位置 | 规范 |
+| --- | --- | --- | --- |
+| 全局下拉 `.nova-select` | `--menu-*` | `src/app.css` 每主题块 | `docs/THEME-DESIGN-SPEC.md` §5.1 |
+| 缩放引擎 `.engine-shell` | `--sheet-*` | `src/app.css` 每主题块 | §5.2 |
+| 首页全屏缩放行 `.hero-scale` | `--hs-*` | `src/app.css` 每主题块 | §5.3 |
+| 可读强调文字 | `--accent-text` | `src/app.css` 末尾 | §3.2 |
+
+> 新增主题必须同时提供 `--menu-*`、`--sheet-*`、`--hs-*`、`--accent-text` 四组；
+> 只写 `theme.css` 会导致下拉/引擎弹窗/全屏缩放行退回共享默认外观。
+
+## 15. 启动界面交互（1.13.0）
+
+- 键盘只有 **Esc** 退出；点击遮罩、A、Enter、空格、任意键都不关闭；
+- 手柄 B / ○ 等价 Esc；A / ✕ 不关闭；
+- 提示：`按 Esc 退出`；
+- 实现在 `src/app.js` 的 `bindKeyboard`、`closeLaunch`、pad `back()`，不要在遮罩上重新挂 click。

@@ -3,7 +3,7 @@
   "id": "steam",
   "name": "Steam 经典 · STEAM CLASSIC",
   "author": "GUGUOVA",
-  "version": "2.0.8",
+  "version": "2.0.10",
   "description": "大屏幕模式：全幅封面、炭黑控制台、绿色继续按钮与手柄按键条。自带「大屏启动」开场。",
   "css": "theme.css",
   "preview": "assets/preview.jpg",

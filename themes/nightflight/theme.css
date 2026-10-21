@@ -343,7 +343,7 @@ html[data-theme="nightflight"] .hero-inner::after {
   border: 9px solid var(--nf-cream);
   background:
     linear-gradient(180deg, rgba(10, 15, 20, .06) 0%, rgba(10, 15, 20, .34) 100%),
-    var(--nova-hero, linear-gradient(150deg, #1d3a54, #0a1724)) center / cover no-repeat;
+    var(--nova-hero, linear-gradient(150deg, #1d3a54, #0a1724)) var(--nova-hero-position, center) / var(--nova-hero-size, cover) no-repeat;
   box-shadow:
     0 0 0 1px rgba(10, 15, 20, .75),
     inset 0 0 0 1px rgba(10, 15, 20, .6),
@@ -861,7 +861,7 @@ html[data-theme="nightflight"] .lib-sort select {
 html[data-theme="nightflight"] .lib-grid {
   counter-reset: nf-row;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(22px, 3.2vh, 30px) clamp(14px, 1.4vw, 20px);
   margin-top: clamp(20px, 3vh, 28px);
 }

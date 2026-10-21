@@ -27,8 +27,8 @@
   --aurum-cyan-glow: rgba(95, 214, 198, .4);
 
   --aurum-text: #ede3cd;
-  --aurum-text-soft: rgba(237, 227, 205, .68);
-  --aurum-text-dim: rgba(237, 227, 205, .4);
+  --aurum-text-soft: rgba(237, 227, 205, .8);
+  --aurum-text-dim: rgba(237, 227, 205, .66);
   --aurum-hair: rgba(232, 201, 138, .17);
 
   --aurum-ease: cubic-bezier(.2, .9, .3, 1);
@@ -1000,7 +1000,7 @@ kbd.key {
 .ring-progress { stroke: var(--aurum-cyan); filter: drop-shadow(0 0 8px var(--aurum-cyan-glow)); }
 .launch-ring-label { color: var(--aurum-cyan); font-size: 11px; letter-spacing: .08em; }
 
-.launch-step { color: rgba(230, 221, 200, .22); letter-spacing: .08em; }
+.launch-step { color: rgba(230, 221, 200, .6); letter-spacing: .08em; }
 .launch-step i { border-radius: 1px; background: rgba(232, 201, 138, .26); }
 .launch-step.is-active { color: var(--aurum-text); }
 .launch-step.is-active i { background: var(--aurum-cyan); box-shadow: 0 0 10px var(--aurum-cyan-glow); }
@@ -1017,20 +1017,20 @@ kbd.key {
 }
 
 .launch.is-ready .launch-hint { color: var(--aurum-bronze-hi); border-color: rgba(232, 201, 138, .6); }
-.launch-foot { color: rgba(232, 201, 138, .34); letter-spacing: .14em; }
+.launch-foot { color: rgba(232, 201, 138, .64); letter-spacing: .14em; }
 .launch-brand { color: var(--aurum-bronze); letter-spacing: .42em; }
-.launch-system { color: rgba(232, 201, 138, .4); letter-spacing: .26em; }
+.launch-system { color: rgba(232, 201, 138, .68); letter-spacing: .26em; }
 
 /* ------------------------------------------------------------
    sleep
    ------------------------------------------------------------ */
 
 .sleep { background: #05060a; }
-.sleep-brand { color: rgba(232, 201, 138, .3); letter-spacing: .5em; }
+.sleep-brand { color: rgba(232, 201, 138, .58); letter-spacing: .5em; }
 .sleep-time { color: var(--aurum-text); font-variant-numeric: tabular-nums; }
-.sleep-date { color: rgba(232, 201, 138, .34); letter-spacing: .22em; }
+.sleep-date { color: rgba(232, 201, 138, .64); letter-spacing: .22em; }
 .sleep-moon { color: var(--aurum-bronze); }
-.sleep-hint { color: rgba(232, 201, 138, .34); }
+.sleep-hint { color: rgba(232, 201, 138, .64); }
 .sleep-dot { background: var(--aurum-cyan); box-shadow: 0 0 8px var(--aurum-cyan-glow); }
 
 /* ------------------------------------------------------------

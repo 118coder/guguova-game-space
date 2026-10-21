@@ -192,7 +192,7 @@ html[data-theme="summer"] .settings-field select:focus {
   border-color: #101820;
   box-shadow: 3px 3px 0 #e8f21f;
 }
-html[data-theme="summer"] .settings-field label { color: #1f93c8; letter-spacing: .14em; }
+html[data-theme="summer"] .settings-field label { color: #0f5f80; letter-spacing: .14em; }
 html[data-theme="summer"] .settings-card {
   border: 1px solid #101820;
   border-radius: 0;
@@ -247,7 +247,7 @@ html[data-theme="summer"] .settings-stat {
   border-left: 6px solid #e8f21f;
   border-radius: 0;
 }
-html[data-theme="summer"] .settings-stat span { color: #1f93c8; }
+html[data-theme="summer"] .settings-stat span { color: #0f5f80; }
 html[data-theme="summer"] .settings-stat b { color: #101820; font-family: var(--font-serif); }
 html[data-theme="summer"] .settings-stat em { color: #4a5a66; }
 html[data-theme="summer"] .settings-note b { color: #101820; }
@@ -299,19 +299,19 @@ html[data-theme="riot"] .settings-field select:focus {
   border-color: #111111;
   box-shadow: 4px 4px 0 #111111;
 }
-html[data-theme="riot"] .settings-field label { color: #e2001a; letter-spacing: .14em; }
+html[data-theme="riot"] .settings-field label { color: #a00012; letter-spacing: .14em; }
 html[data-theme="riot"] .settings-stat {
   background: #fbf7ee;
   border: 2px solid #111111;
   border-top: 6px solid #e2001a;
   border-radius: 0;
 }
-html[data-theme="riot"] .settings-stat span { color: #e2001a; }
+html[data-theme="riot"] .settings-stat span { color: #a00012; }
 html[data-theme="riot"] .settings-stat b { color: #111111; font-family: var(--font-hero, var(--font-display)); }
 html[data-theme="riot"] .settings-stat em { color: #4a463f; }
 html[data-theme="riot"] .settings-note b { color: #111111; }
 html[data-theme="riot"] .session-row { border-color: #ded7c9; }
-html[data-theme="riot"] .session-row em { color: #e2001a; }
+html[data-theme="riot"] .session-row em { color: #a00012; }
 
 /* ---------- GRIMOIRE · adventurer record ---------- */
 

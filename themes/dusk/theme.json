@@ -3,13 +3,16 @@
   "id": "dusk",
   "name": "黄昏之炼 · DUSK",
   "author": "GUGUOVA",
-  "version": "2.0.8",
+  "version": "2.0.10",
   "description": "暮色工作台：黄昏天幕、炼金环、羊皮纸页、拱形画框与火漆印。自带「暮色开工」开场。",
   "css": "theme.css",
   "preview": "assets/preview.jpg",
   "base": "system",
   "dark": true,
   "intro": "dusk",
+  "lexicon": {
+    "lastPlayed": "上次委托"
+  },
   "tokens": {
     "--accent": "#c87a52",
     "--accent-2": "#4f7d72",
