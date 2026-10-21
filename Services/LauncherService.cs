@@ -51,7 +51,6 @@ public sealed class LauncherService
     private readonly Dictionary<string, long> _pausedSeconds = new();
     private System.Threading.Timer? _idleTimer;
     private readonly object _gate = new();
-    private int _idleThresholdMinutes = 10;
 
     public event Action<RunningSessionInfo>? GameStarted;
     public event Action<RunningSessionInfo, bool, long>? GameExited; // info, crashed, seconds
@@ -708,7 +707,13 @@ public sealed class LauncherService
                 {
                     // The pause was switched off mid-session: credit what was
                     // parked and stop tracking.
-                    if (_idleSince.Remove(gameId, out var open)) _pausedSeconds[gameId] = PausedTotal(gameId) + (long)(now - open).TotalSeconds;
+                    // net48 has no Dictionary.Remove(key, out value) overload,
+                    // so TryGetValue + Remove it is.
+                    if (_idleSince.TryGetValue(gameId, out var open))
+                    {
+                        _idleSince.Remove(gameId);
+                        _pausedSeconds[gameId] = PausedTotal(gameId) + (long)(now - open).TotalSeconds;
+                    }
                     continue;
                 }
 
@@ -720,8 +725,9 @@ public sealed class LauncherService
                         Log.Write($"idle pause started {gameId} after {threshold / 60000}min");
                     }
                 }
-                else if (_idleSince.Remove(gameId, out var since))
+                else if (_idleSince.TryGetValue(gameId, out var since))
                 {
+                    _idleSince.Remove(gameId);
                     _pausedSeconds[gameId] = PausedTotal(gameId) + (long)(now - since).TotalSeconds;
                     Log.Write($"idle pause ended {gameId} (+{(long)(now - since).TotalSeconds}s paused)");
                 }

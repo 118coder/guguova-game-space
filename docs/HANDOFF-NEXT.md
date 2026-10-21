@@ -4,7 +4,10 @@
 > 交接时间：2026-10-21
 > 分支：`main`，工作区**有未提交改动**（本轮全部改动）
 > 上一版：1.14.4（流水线式发布，`6652f09` / `bb296d2`）
-> 发行：本轮**未打包发布**，只做代码、验证与文档
+> 发行：**v1.15.0 已发布**（PR #27 squash 合并 → `tools/release.sh` 全绿 → GitHub Release）
+> 产物：`GUGUOVA-1.15.0-single.exe` 9.35 MB（sha256 前 16 位 `5516fc489cddfde8`）、
+> `GUGUOVA-1.15.0-legacy-single.zip` 13.61 MB、`GUGUOVA-1.15.0-legacy-full.zip` 16.94 MB
+> 打包日志：`../_shots/release/1.15.0/pipeline.log`（build → package → verify → smoke 全过）
 > 仓库：`https://github.com/118coder/guguova-game-space`
 
 ---
@@ -175,6 +178,11 @@ node tools/headless-shots.js --views=all --workers=4 # 14 × 20 = 280 张，约 
 | 7 | **托盘快速启动** | 托盘右键列出最近游玩 5 款（可启动的），点击直接启动，失败弹回主窗并 toast |
 | 8 | **详情最近记录** | payload 带最近 5 条 `PlaySession`；详情页新增「最近记录」列表（时间 · 时长 · 异常退出标记） |
 | 9 | **Xbox 直连置灰** | 打包应用受 WindowsApps ACL 保护，管理面板对 Xbox 条目禁用「直接启动」 |
+
+发版时踩到并修掉的：**net48 没有 `Dictionary.Remove(key, out value)` 重载**
+（.NET Core 2.0+ 才有）——挂机看门狗的 `_idleSince.Remove(id, out var t)` 在 legacy
+构建直接 CS1501。改回 `TryGetValue` + `Remove` 两步，并删掉未使用的
+`_idleThresholdMinutes` 字段。**写共享服务代码时先过一遍 legacy (net48) 语法面。**
 
 明确不做（本轮决策）：EA 的 `origin://launchgame` 需要稳定 contentId，注册表里拿不到，EA 条目维持直接启动；itch.io 不是主流平台且无法真机验证；游戏内浮层（Shift+Tab 迷你浮层）是远景。
 
