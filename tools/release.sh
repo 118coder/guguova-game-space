@@ -95,6 +95,9 @@ else
 fi
 
 # ---------------------------------------------------------------- 2. audit (optional)
+# The theme contract gate is cheap and needs no host, so it always runs.
+run "audit: theme interface slots" node tools/theme-slot-check.js --strict
+
 if [ "$DO_AUDIT" -eq 1 ]; then
   run "audit: static contrast" node tools/audit-contrast.js
   run "audit: hover/focus contrast" node tools/audit-hover.js
