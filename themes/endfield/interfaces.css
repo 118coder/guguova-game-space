@@ -1,0 +1,215 @@
+/* ============================================================
+   ENDFIELD · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="endfield"] { color-scheme: light; }
+
+html[data-theme="endfield"] {
+  --menu-bg: #ffffff;
+  --menu-ink: #161616;
+  --menu-muted: #5c5c5c;
+  --menu-line: #161616;
+  --menu-border: 1px solid #161616;
+  --menu-radius: 0;
+  --menu-option-radius: 0;
+  --menu-hover: #f0f0ec;
+  --menu-selected-bg: #fffa00;
+  --menu-selected-ink: #161616;
+  --menu-mark: #161616;
+  --menu-mark-w: 3px;
+  --menu-check: "■";
+  --menu-letter: .02em;
+  --menu-scheme: light;
+  --menu-shadow: 4px 4px 0 #d9d9d6;
+}
+
+/* Square / soft themes: keep the launch block's corner and material. */
+html[data-theme="endfield"] {
+  --hero-scale-radius: 0;
+  --hs-bg: var(--ef-panel);
+  --hs-hover-bg: var(--ef-paper);
+  --hs-border: 1px solid var(--ef-ink);
+  --hs-hover-line: var(--ef-ink);
+  --hs-ink: var(--ef-ink);
+  --hs-mark: var(--ef-signal);
+  --hs-mark-w: 4px;
+  --hs-shadow: 3px 3px 0 var(--ef-rule);
+  --hs-label-spacing: .05em;
+  --hs-hint-alpha: .8;
+}
+
+/* ENDFIELD · engineering sheet: paper, ink line, acid signal, cut corner. */
+html[data-theme="endfield"] .engine-shell {
+  --sheet-bg: var(--ef-panel);
+  --sheet-ink: var(--ef-ink);
+  --sheet-ink-2: var(--ef-ink);
+  --sheet-muted: var(--ef-ink-2);
+  --sheet-line: var(--ef-ink);
+  --sheet-hair: var(--ef-rule);
+  --sheet-well: var(--ef-paper);
+  --sheet-radius: 0;
+  --sheet-shadow: 6px 6px 0 var(--ef-rule);
+  --sheet-on-accent: var(--ef-on-signal);
+  --sheet-title-font: var(--font-ui);
+  --sheet-title-weight: 800;
+  --sheet-title-spacing: -.02em;
+  --sheet-kicker-color: var(--ef-ink-2);
+  --sheet-kicker-spacing: .3em;
+  --sheet-label-color: var(--ef-ink-2);
+  --sheet-label-spacing: .12em;
+  --sheet-control-radius: 0;
+  --sheet-control-bg: var(--ef-paper);
+  --sheet-control-border: 1px solid var(--ef-ink);
+  --sheet-btn-radius: 0;
+  --sheet-primary-bg: var(--ef-signal);
+  --sheet-primary-ink: var(--ef-on-signal);
+  --sheet-primary-border: 1px solid var(--ef-ink);
+  --sheet-primary-shadow: 4px 4px 0 var(--ef-ink);
+  --sheet-ghost-bg: var(--ef-panel);
+  --sheet-ghost-ink: var(--ef-ink);
+  --sheet-ghost-border: 1px solid var(--ef-ink);
+  --sheet-ghost-shadow: 3px 3px 0 var(--ef-rule);
+  --sheet-strip-h: 3px;
+  --sheet-strip: linear-gradient(90deg, #ff00f0 0 33.3%, #fffa00 33.3% 66.6%, #00ffa2 66.6%);
+  --sheet-mark: var(--ef-ink);
+  --sheet-mark-w: 4px;
+  --sheet-active-bg: var(--ef-paper);
+  --sheet-clip: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  color-scheme: light;
+}
+
+html[data-theme="endfield"] { --accent-text: var(--ef-ink); }
+
+html[data-theme="endfield"] .engine-mode-row {
+  --mode-radius: 0;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: var(--ef-signal);
+  --mode-active-ink: var(--ef-ink);
+  --mode-active-name: var(--ef-ink);
+  --mode-active-border: 1px solid var(--ef-ink);
+  --mode-active-mark: var(--ef-ink);
+  --mode-active-mark-w: 6px;
+  --mode-active-shadow: 3px 3px 0 var(--ef-ink);
+  --mode-active-weight: 800;
+  --mode-missing-border: 1px dashed var(--ef-rule);
+  --mode-missing-name: var(--ef-ink-2);
+}
+
+html[data-theme="endfield"] .appearance-framing {
+  --af-bg: #ffffff;
+  --af-ink: #161616;
+  --af-muted: #5c5c5c;
+  --af-line: #161616;
+  --af-border: 1px solid #161616;
+  --af-radius: 0;
+  --af-shadow: 4px 4px 0 #d9d9d6;
+  --af-strip-h: 3px;
+  --af-strip: linear-gradient(90deg, #ff00f0 0 33.3%, #fffa00 33.3% 66.6%, #00ffa2 66.6%);
+  --af-clip: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+  --af-kicker-color: #5c5c5c;
+  --af-kicker-spacing: .18em;
+  --af-value-color: #161616;
+  --af-key-bg: #f4f4f2;
+  --af-key-ink: #161616;
+  --af-key-border: 1px solid #161616;
+  --af-key-radius: 0;
+  --af-key-hover-bg: #fffa00;
+  --af-key-hover-ink: #161616;
+  --af-key-hover-border: #161616;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #5c5c5c;
+  --af-hint-color: #5c5c5c;
+  --af-done-bg: #fffa00;
+  --af-done-ink: #161616;
+  --af-done-border: 1px solid #161616;
+  --af-done-radius: 0;
+  --af-done-shadow: 3px 3px 0 #161616;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- ENDFIELD · industrial paper ---------- */
+
+html[data-theme="endfield"] .settings-field input,
+html[data-theme="endfield"] .settings-field select {
+  background: var(--ef-panel);
+  border: 1px solid var(--ef-ink);
+  border-radius: 0;
+  color: var(--ef-ink);
+  box-shadow: 3px 3px 0 var(--ef-rule);
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+}
+
+html[data-theme="endfield"] .settings-field input:focus,
+html[data-theme="endfield"] .settings-field select:focus {
+  border-color: var(--ef-ink);
+  box-shadow: 3px 3px 0 var(--ef-signal);
+}
+
+html[data-theme="endfield"] .settings-field label {
+  color: var(--ef-ink);
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+html[data-theme="endfield"] .settings-stat {
+  background: var(--ef-paper);
+  border: 1px solid var(--ef-ink);
+  border-top: 4px solid var(--ef-signal);
+  border-radius: 0;
+}
+
+html[data-theme="endfield"] .settings-stat span {
+  color: var(--ef-ink-2);
+  font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  letter-spacing: .18em;
+}
+
+html[data-theme="endfield"] .settings-stat b { color: var(--ef-ink); font-family: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; }
+
+html[data-theme="endfield"] .settings-stat em { color: var(--ef-ink-2); }
+
+html[data-theme="endfield"] .settings-note b { color: var(--ef-ink); }
+
+html[data-theme="endfield"] .session-row { border-color: var(--ef-rule); }
+
+html[data-theme="endfield"] .session-row em { color: var(--ef-ink); }
+
+/* ---------- ENDFIELD · industrial label ---------- */
+html[data-theme="endfield"] .settings-id {
+  border: 2px solid var(--ef-ink);
+  border-radius: 0;
+  background: var(--ef-panel);
+  box-shadow: 5px 5px 0 rgba(22, 22, 22, .12);
+}
+
+html[data-theme="endfield"] .settings-id-avatar {
+  border: 2px solid var(--ef-ink);
+  border-radius: 0;
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+  font-weight: 800;
+}
+
+html[data-theme="endfield"] .settings-id-copy b { color: var(--ef-ink); font-weight: 800; }
+
+html[data-theme="endfield"] .settings-id-copy em { color: var(--ef-ink-2); letter-spacing: .04em; }
+
+html[data-theme="endfield"] .settings-id-tags i {
+  border: 1px solid var(--ef-ink);
+  border-radius: 0;
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+  font-weight: 700;
+}

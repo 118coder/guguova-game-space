@@ -1,0 +1,193 @@
+/* ============================================================
+   CODEX · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="codex"] {
+  --menu-bg: linear-gradient(180deg, #2a1d14, #1b120c);
+  --menu-ink: #f0e4cc;
+  --menu-muted: rgba(240, 228, 204, .6);
+  --menu-line: rgba(226, 199, 142, .34);
+  --menu-border: 1px solid rgba(226, 199, 142, .34);
+  --menu-radius: 2px;
+  --menu-option-radius: 0;
+  --menu-hover: rgba(226, 199, 142, .1);
+  --menu-selected-bg: rgba(226, 199, 142, .1);
+  --menu-mark: #e2c78e;
+  --menu-mark-w: 2px;
+  --menu-font: var(--font-serif);
+  --menu-letter: .03em;
+  --menu-scheme: dark;
+  --menu-shadow: 0 24px 50px -24px #000;
+}
+
+html[data-theme="codex"] {
+  --hero-scale-radius: 2px;
+  --hs-bg: rgba(33, 22, 15, .72);
+  --hs-hover-bg: rgba(42, 29, 20, .86);
+  --hs-border: 1px solid var(--cx-gold-line);
+  --hs-hover-line: var(--cx-gold);
+  --hs-ink: var(--cx-cream);
+  --hs-mark: var(--cx-gold);
+  --hs-mark-w: 2px;
+  --hs-label-spacing: .06em;
+  --hs-hint-alpha: .78;
+}
+
+/* CODEX · copperplate archive: brown paper, gold rule, serif. */
+html[data-theme="codex"] .engine-shell {
+  --sheet-bg: linear-gradient(180deg, var(--cx-panel-2), var(--cx-panel));
+  --sheet-ink: var(--cx-cream);
+  --sheet-ink-2: rgba(240, 228, 204, .76);
+  --sheet-muted: rgba(240, 228, 204, .6);
+  --sheet-line: var(--cx-gold-line);
+  --sheet-hair: var(--cx-gold-line-soft);
+  --sheet-well: var(--cx-well);
+  --sheet-radius: 2px;
+  --sheet-shadow: 0 30px 80px -40px #000;
+  --sheet-on-accent: #2a1d14;
+  --sheet-title-font: var(--font-serif);
+  --sheet-title-weight: 600;
+  --sheet-title-spacing: .08em;
+  --sheet-kicker-color: var(--cx-gold);
+  --sheet-kicker-spacing: .34em;
+  --sheet-label-color: var(--cx-gold);
+  --sheet-label-spacing: .14em;
+  --sheet-control-radius: 2px;
+  --sheet-control-bg: var(--cx-well);
+  --sheet-control-border: 1px solid var(--cx-gold-line);
+  --sheet-btn-radius: 2px;
+  --sheet-primary-bg: var(--cx-gold);
+  --sheet-primary-ink: #2a1d14;
+  --sheet-primary-border: 1px solid var(--cx-gold-hi);
+  --sheet-ghost-bg: transparent;
+  --sheet-ghost-ink: var(--cx-cream);
+  --sheet-ghost-border: 1px solid var(--cx-gold-line);
+  --sheet-strip-h: 1px;
+  --sheet-strip: var(--cx-gold-deep);
+  --sheet-mark: var(--cx-gold);
+  --sheet-mark-w: 2px;
+  --sheet-active-bg: rgba(226, 199, 142, .08);
+  color-scheme: dark;
+}
+
+html[data-theme="codex"] { --accent-text: var(--cx-gold); }
+
+html[data-theme="codex"] .engine-mode-row {
+  --mode-radius: 2px;
+  --mode-pad: 6px 9px;
+  --mode-name-spacing: .03em;
+  --mode-active-bg: linear-gradient(90deg, rgba(226, 199, 142, .18), rgba(226, 199, 142, .04));
+  --mode-active-ink: var(--cx-cream);
+  --mode-active-name: var(--cx-gold-hi);
+  --mode-active-border: 1px solid rgba(226, 199, 142, .4);
+  --mode-active-mark: var(--cx-gold);
+  --mode-active-mark-w: 2px;
+  --mode-active-shadow: inset 0 1px 0 rgba(226, 199, 142, .1);
+  --mode-active-font: var(--font-serif);
+  --mode-missing-border: 1px dashed rgba(226, 199, 142, .2);
+  --mode-missing-name: rgba(240, 228, 204, .64);
+}
+
+html[data-theme="codex"] .appearance-framing {
+  --af-bg: linear-gradient(180deg, #2a1d14, #1b120c);
+  --af-solid: #2a1d14;
+  --af-ink: #f0e4cc;
+  --af-muted: rgba(240, 228, 204, .64);
+  --af-line: rgba(226, 199, 142, .34);
+  --af-border: 1px solid rgba(226, 199, 142, .34);
+  --af-radius: 2px;
+  --af-shadow: 0 24px 50px -24px #000;
+  --af-strip-h: 1px;
+  --af-strip: #a9874e;
+  --af-kicker-color: #e2c78e;
+  --af-kicker-spacing: .2em;
+  --af-value-color: #f6e3bb;
+  --af-key-bg: #100b07;
+  --af-key-ink: #f0e4cc;
+  --af-key-border: 1px solid rgba(226, 199, 142, .28);
+  --af-key-radius: 2px;
+  --af-key-hover-bg: rgba(226, 199, 142, .12);
+  --af-key-hover-ink: #f6e3bb;
+  --af-key-hover-border: #e2c78e;
+  --af-reset-radius: 2px;
+  --af-zoom-ink: rgba(240, 228, 204, .76);
+  --af-hint-color: rgba(240, 228, 204, .6);
+  --af-done-bg: #e2c78e;
+  --af-done-ink: #2a1d14;
+  --af-done-border: 1px solid #f6e3bb;
+  --af-done-radius: 2px;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- CODEX · copperplate dossier ---------- */
+
+html[data-theme="codex"] .settings-field input,
+html[data-theme="codex"] .settings-field select {
+  background: var(--cx-well);
+  border: 1px solid var(--cx-gold-line);
+  border-radius: 0;
+  color: var(--cx-cream);
+  font-family: var(--font-serif);
+  box-shadow: inset 0 0 0 3px var(--cx-bg);
+}
+
+html[data-theme="codex"] .settings-field input:focus,
+html[data-theme="codex"] .settings-field select:focus {
+  border-color: var(--cx-gold);
+  box-shadow: inset 0 0 0 3px var(--cx-bg), 0 0 0 1px var(--cx-gold-line);
+}
+
+html[data-theme="codex"] .settings-field label { color: var(--cx-gold); letter-spacing: .16em; }
+
+html[data-theme="codex"] .settings-stat {
+  background: var(--cx-panel);
+  border: 1px solid var(--cx-gold-line);
+  box-shadow: inset 0 0 0 3px var(--cx-bg), inset 0 0 0 4px var(--cx-gold-line-soft);
+  border-radius: 0;
+}
+
+html[data-theme="codex"] .settings-stat span { color: var(--cx-gold); font-family: var(--font-serif); letter-spacing: .16em; }
+
+html[data-theme="codex"] .settings-stat b { color: var(--cx-cream); font-family: var(--font-serif); }
+
+html[data-theme="codex"] .settings-stat em { color: var(--cx-cream-3); }
+
+html[data-theme="codex"] .settings-note b { color: var(--cx-gold-hi); }
+
+html[data-theme="codex"] .session-row { border-color: var(--cx-gold-line-soft); }
+
+html[data-theme="codex"] .session-row em { color: var(--cx-gold); }
+
+/* ---------- CODEX · gilded bookplate ---------- */
+html[data-theme="codex"] .settings-id {
+  border: 1px solid var(--cx-gold-line);
+  border-radius: 2px;
+  background:
+    linear-gradient(135deg, rgba(226, 199, 142, .12), transparent 50%),
+    var(--cx-panel);
+  box-shadow: inset 0 0 0 1px rgba(226, 199, 142, .07), inset 0 1px 0 rgba(246, 227, 187, .16);
+}
+
+html[data-theme="codex"] .settings-id-avatar {
+  border: 1px solid var(--cx-gold);
+  background: radial-gradient(circle, rgba(138, 47, 40, .35), rgba(16, 11, 7, .8));
+  color: var(--cx-gold-hi);
+  font-family: var(--font-serif);
+}
+
+html[data-theme="codex"] .settings-id-copy b { color: var(--cx-cream); font-family: var(--font-serif); letter-spacing: .05em; }
+
+html[data-theme="codex"] .settings-id-copy em { color: var(--cx-cream-3); }
+
+html[data-theme="codex"] .settings-id-tags i { border-color: var(--cx-gold-line); border-radius: 0; color: var(--cx-gold); }

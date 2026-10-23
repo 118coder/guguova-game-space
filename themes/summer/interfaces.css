@@ -1,0 +1,281 @@
+/* ============================================================
+   SUMMER · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="summer"] { color-scheme: light; }
+
+html[data-theme="summer"] {
+  --menu-bg: #ffffff;
+  --menu-ink: #101820;
+  --menu-muted: #4a5f70;
+  --menu-line: #101820;
+  --menu-border: 1px solid #101820;
+  --menu-radius: 0;
+  --menu-option-radius: 0;
+  --menu-hover: #f1f5f7;
+  --menu-selected-bg: #e8f21f;
+  --menu-selected-ink: #101820;
+  --menu-mark: #101820;
+  --menu-mark-w: 4px;
+  --menu-check: "■";
+  --menu-scheme: light;
+  --menu-shadow: 4px 4px 0 #101820;
+}
+
+/* Paper themes: white/cream stock, ink rule, accent tick. */
+html[data-theme="summer"] {
+  --hero-scale-radius: 0;
+  --hs-bg: #ffffff;
+  --hs-hover-bg: #f2f6f8;
+  --hs-border: 1px solid #101820;
+  --hs-hover-line: #1f93c8;
+  --hs-ink: #101820;
+  --hs-mark: #101820;
+  --hs-mark-w: 4px;
+  --hs-shadow: 3px 3px 0 #e8f21f;
+  --hs-label-spacing: .06em;
+  --hs-hint-alpha: .82;
+}
+
+/* ---------- per-theme engine sheet skins ----------
+   Each block answers four questions:
+     1. what material is this sheet (paper / charcoal / parchment / board)?
+     2. which typeface speaks here (sans / serif / mono)?
+     3. how are corners cut (0 / 2px / 3px / 20px / clip-path)?
+     4. which accent marks the active row — never the text colour.
+   Buttons use the theme's own primary recipe instead of a generic accent
+   fill, so a save action reads like the rest of that theme. */
+
+/* SUMMER · printed page: white stock, black frame, lime third ink. */
+html[data-theme="summer"] .engine-shell {
+  --sheet-bg: var(--t-panel);
+  --sheet-ink: var(--t-ink);
+  --sheet-ink-2: var(--t-ink);
+  --sheet-muted: var(--t-ink-2);
+  --sheet-line: var(--t-ink);
+  --sheet-hair: rgba(23, 52, 90, .18);
+  --sheet-well: #ffffff;
+  --sheet-radius: 0;
+  --sheet-shadow: 6px 6px 0 var(--su-lime, #e8f21f);
+  --sheet-on-accent: #ffffff;
+  --sheet-title-font: var(--font-serif);
+  --sheet-title-weight: 700;
+  --sheet-title-spacing: -.01em;
+  --sheet-kicker-color: var(--su-sky, #1f93c8);
+  --sheet-kicker-spacing: .28em;
+  --sheet-label-color: var(--t-ink-2);
+  --sheet-label-spacing: .12em;
+  --sheet-control-radius: 0;
+  --sheet-control-bg: #ffffff;
+  --sheet-control-border: 1px solid var(--t-ink);
+  --sheet-btn-radius: 0;
+  --sheet-primary-bg: #101820;
+  --sheet-primary-ink: #ffffff;
+  --sheet-primary-border: 1px solid #101820;
+  --sheet-ghost-bg: var(--su-lime, #e8f21f);
+  --sheet-ghost-ink: #101820;
+  --sheet-ghost-border: 1px solid #101820;
+  --sheet-strip-h: 4px;
+  --sheet-strip: linear-gradient(90deg, #101820 0 34%, #e8f21f 34% 67%, #1f93c8 67%);
+  --sheet-mark: #101820;
+  --sheet-mark-w: 4px;
+  --sheet-active-bg: #f2f6f8;
+  color-scheme: light;
+}
+
+html[data-theme="summer"] { --accent-text: #0f5f80; }
+
+/* SUMMER's launch kicker was white on sky blue (3:1). Use its black block. */
+html[data-theme="summer"] .launch-kicker {
+  background: #101820;
+  color: #ffffff;
+}
+
+html[data-theme="summer"] :is(.row-key, .menu-key) { color: var(--accent-text); }
+
+html[data-theme="summer"] .engine-shell { --sheet-kicker-color: #0f5f80; }
+
+html[data-theme="summer"] .engine-mode-row {
+  --mode-radius: 0;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: #101820;
+  --mode-active-ink: #ffffff;
+  --mode-active-name: #ffffff;
+  --mode-active-border: 1px solid #101820;
+  --mode-active-mark: #e8f21f;
+  --mode-active-mark-w: 6px;
+  --mode-active-shadow: 3px 3px 0 #e8f21f;
+  --mode-active-weight: 700;
+  --mode-missing-border: 1px dashed #101820;
+  --mode-missing-name: #53677a;
+}
+
+html[data-theme="summer"] .appearance-framing {
+  --af-bg: #ffffff;
+  --af-ink: #101820;
+  --af-muted: #4a5f70;
+  --af-line: #101820;
+  --af-border: 1px solid #101820;
+  --af-radius: 0;
+  --af-shadow: 5px 5px 0 #e8f21f;
+  --af-strip-h: 4px;
+  --af-strip: linear-gradient(90deg, #101820 0 34%, #e8f21f 34% 67%, #1f93c8 67%);
+  --af-kicker-color: #0f5f80;
+  --af-kicker-spacing: .18em;
+  --af-value-color: #101820;
+  --af-key-bg: #ffffff;
+  --af-key-ink: #101820;
+  --af-key-border: 1px solid #101820;
+  --af-key-radius: 0;
+  --af-key-hover-bg: #101820;
+  --af-key-hover-ink: #ffffff;
+  --af-key-hover-border: #101820;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #101820;
+  --af-hint-color: #4a5f70;
+  --af-done-bg: #101820;
+  --af-done-ink: #ffffff;
+  --af-done-radius: 0;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- SUMMER · white paper ---------- */
+
+html[data-theme="summer"] .settings-field input,
+html[data-theme="summer"] .settings-field select {
+  background: #ffffff;
+  border: 1px solid #101820;
+  border-radius: 0;
+  color: #101820;
+  font-family: var(--font-ui);
+}
+
+html[data-theme="summer"] .settings-field input:focus,
+html[data-theme="summer"] .settings-field select:focus {
+  border-color: #101820;
+  box-shadow: 3px 3px 0 #e8f21f;
+}
+
+html[data-theme="summer"] .settings-field label { color: #0f5f80; letter-spacing: .14em; }
+
+html[data-theme="summer"] .settings-card {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+html[data-theme="summer"] .settings-card:focus-within {
+  border-color: #101820;
+  box-shadow: 5px 5px 0 #e8f21f;
+}
+
+html[data-theme="summer"] .settings-hero { border-bottom-color: #101820; }
+
+html[data-theme="summer"] .settings-foot { border-top-color: #101820; }
+
+html[data-theme="summer"] .section-tag {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #e8f21f;
+  color: #101820;
+  font-weight: 800;
+}
+
+html[data-theme="summer"] .pref-row { border-color: rgba(16, 24, 32, .16); }
+
+html[data-theme="summer"] .pref-row .pref-label { color: #101820; }
+
+html[data-theme="summer"] .pref-hint,
+html[data-theme="summer"] .pref-note { color: #4a5a66; }
+
+html[data-theme="summer"] .switch {
+  width: 38px;
+  height: 18px;
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+html[data-theme="summer"] .switch::after {
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: #101820;
+}
+
+html[data-theme="summer"] .switch.on { background: #e8f21f; }
+
+html[data-theme="summer"] .switch.on::after { transform: translateX(20px); background: #101820; }
+
+html[data-theme="summer"] .settings-avatar-btn {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+  color: #101820;
+  font-weight: 700;
+}
+
+html[data-theme="summer"] .settings-avatar-btn:hover { background: #101820; color: #ffffff; }
+
+html[data-theme="summer"] .settings-about p { color: #2a3a46; }
+
+html[data-theme="summer"] .settings-stat {
+  background: #ffffff;
+  border: 1px solid #101820;
+  border-left: 6px solid #e8f21f;
+  border-radius: 0;
+}
+
+html[data-theme="summer"] .settings-stat span { color: #0f5f80; }
+
+html[data-theme="summer"] .settings-stat b { color: #101820; font-family: var(--font-serif); }
+
+html[data-theme="summer"] .settings-stat em { color: #4a5a66; }
+
+html[data-theme="summer"] .settings-note b { color: #101820; }
+
+html[data-theme="summer"] .session-row { border-color: #d8e2e4; }
+
+html[data-theme="summer"] .session-row em { color: #101820; }
+
+/* ---------- SUMMER · print block ---------- */
+html[data-theme="summer"] .settings-id {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow: 6px 6px 0 #e8f21f;
+}
+
+html[data-theme="summer"] .settings-id-avatar {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #101820;
+  color: #ffffff;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+html[data-theme="summer"] .settings-id-copy b { color: #101820; font-family: var(--font-serif); }
+
+html[data-theme="summer"] .settings-id-copy em { color: #4a5a66; }
+
+html[data-theme="summer"] .settings-id-tags i {
+  border: 1px solid #101820;
+  border-radius: 0;
+  background: #e8f21f;
+  color: #101820;
+  font-weight: 700;
+}

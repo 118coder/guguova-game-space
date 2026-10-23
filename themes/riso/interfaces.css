@@ -1,0 +1,202 @@
+/* ============================================================
+   RISO · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="riso"] { color-scheme: light; }
+
+html[data-theme="riso"] {
+  --menu-bg: #faf8ef;
+  --menu-ink: #101014;
+  --menu-muted: #4a4a55;
+  --menu-line: #2f3fd4;
+  --menu-border: 2px solid #2f3fd4;
+  --menu-radius: 0;
+  --menu-option-radius: 0;
+  --menu-hover: #ece9dc;
+  --menu-selected-bg: #e8ff2a;
+  --menu-selected-ink: #101014;
+  --menu-mark: #2f3fd4;
+  --menu-mark-w: 4px;
+  --menu-check: "■";
+  --menu-scheme: light;
+  --menu-shadow: 4px 4px 0 #2f3fd4;
+}
+
+html[data-theme="riso"] {
+  --hero-scale-radius: 0;
+  --hs-bg: #faf8ef;
+  --hs-hover-bg: #ece9dc;
+  --hs-border: 2px solid #2f3fd4;
+  --hs-hover-line: #101014;
+  --hs-ink: #101014;
+  --hs-mark: #e8ff2a;
+  --hs-mark-w: 5px;
+  --hs-shadow: 3px 3px 0 #2f3fd4;
+  --hs-label-spacing: .06em;
+}
+
+/* RISO · two-ink print: blue frame, acid second plate, hard offset. */
+html[data-theme="riso"] .engine-shell {
+  --sheet-bg: var(--t-panel);
+  --sheet-ink: var(--t-ink);
+  --sheet-ink-2: var(--t-ink);
+  --sheet-muted: var(--t-ink-2);
+  --sheet-line: var(--t-ink);
+  --sheet-hair: rgba(16, 16, 20, .16);
+  --sheet-well: #faf8ef;
+  --sheet-radius: 0;
+  --sheet-shadow: 8px 8px 0 rgba(47, 63, 212, .18);
+  --sheet-on-accent: #101014;
+  --sheet-title-font: var(--font-serif);
+  --sheet-title-weight: 700;
+  --sheet-title-spacing: -.01em;
+  --sheet-kicker-color: #2f3fd4;
+  --sheet-kicker-spacing: .26em;
+  --sheet-label-color: var(--t-ink-2);
+  --sheet-label-spacing: .12em;
+  --sheet-control-radius: 0;
+  --sheet-control-bg: #faf8ef;
+  --sheet-control-border: 2px solid #2f3fd4;
+  --sheet-btn-radius: 0;
+  --sheet-primary-bg: #e8ff2a;
+  --sheet-primary-ink: #101014;
+  --sheet-primary-border: 2px solid #101014;
+  --sheet-primary-shadow: 4px 4px 0 #2f3fd4;
+  --sheet-ghost-bg: #faf8ef;
+  --sheet-ghost-ink: #101014;
+  --sheet-ghost-border: 2px solid #101014;
+  --sheet-strip-h: 3px;
+  --sheet-strip: #2f3fd4;
+  --sheet-mark: #2f3fd4;
+  --sheet-mark-w: 4px;
+  --sheet-active-bg: #ece9dc;
+  border: 2px solid #2f3fd4;
+  color-scheme: light;
+}
+
+html[data-theme="riso"] { --accent-text: #2b2fa8; }
+
+html[data-theme="riso"] .engine-mode-row {
+  --mode-radius: 0;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: #e8ff2a;
+  --mode-active-ink: #101014;
+  --mode-active-name: #101014;
+  --mode-active-border: 2px solid #101014;
+  --mode-active-mark: #2f3fd4;
+  --mode-active-mark-w: 6px;
+  --mode-active-shadow: 4px 4px 0 #2f3fd4;
+  --mode-active-weight: 700;
+  --mode-missing-border: 1px dashed #2f3fd4;
+  --mode-missing-name: #55555f;
+}
+
+html[data-theme="riso"] .appearance-framing {
+  --af-bg: #faf8ef;
+  --af-ink: #101014;
+  --af-muted: #55555f;
+  --af-line: #2f3fd4;
+  --af-border: 2px solid #2f3fd4;
+  --af-radius: 0;
+  --af-shadow: 5px 5px 0 #2f3fd4;
+  --af-strip-h: 3px;
+  --af-strip: #2f3fd4;
+  --af-kicker-color: #2f3fd4;
+  --af-kicker-spacing: .18em;
+  --af-value-color: #2f3fd4;
+  --af-key-bg: #faf8ef;
+  --af-key-ink: #101014;
+  --af-key-border: 2px solid #101014;
+  --af-key-radius: 0;
+  --af-key-hover-bg: #e8ff2a;
+  --af-key-hover-ink: #101014;
+  --af-key-hover-border: #101014;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #101014;
+  --af-hint-color: #55555f;
+  --af-done-bg: #e8ff2a;
+  --af-done-ink: #101014;
+  --af-done-border: 2px solid #101014;
+  --af-done-radius: 0;
+  --af-done-shadow: 4px 4px 0 #2f3fd4;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- RISO · two-ink poster ---------- */
+
+html[data-theme="riso"] .settings-field input,
+html[data-theme="riso"] .settings-field select {
+  background: #fbf9f0;
+  border: 2px solid #101014;
+  border-radius: 0;
+  color: #101014;
+  box-shadow: 4px 4px 0 #e8ff2a;
+}
+
+html[data-theme="riso"] .settings-field input:focus,
+html[data-theme="riso"] .settings-field select:focus {
+  border-color: #101014;
+  box-shadow: 4px 4px 0 #2b2fa8;
+}
+
+html[data-theme="riso"] .settings-field label { color: #2b2fa8; letter-spacing: .14em; }
+
+html[data-theme="riso"] .settings-stat {
+  background: #fbf9f0;
+  border: 2px solid #101014;
+  box-shadow: 4px 4px 0 #e8ff2a;
+  border-radius: 0;
+}
+
+html[data-theme="riso"] .settings-stat span { color: #2b2fa8; }
+
+html[data-theme="riso"] .settings-stat b { color: #2b2fa8; font-family: var(--font-serif); }
+
+html[data-theme="riso"] .settings-stat em { color: #4a4a55; }
+
+html[data-theme="riso"] .settings-note b { color: #101014; }
+
+html[data-theme="riso"] .session-row { border-color: #d6d2c2; }
+
+html[data-theme="riso"] .session-row em { color: #2b2fa8; }
+
+/* ---------- RISO · misregistered print card ---------- */
+html[data-theme="riso"] .settings-id {
+  border: 2px solid var(--t-ink);
+  border-radius: 0;
+  background:
+    radial-gradient(rgba(47, 63, 212, .16) 1px, transparent 1.4px) 0 0 / 6px 6px,
+    var(--t-panel);
+  box-shadow: 6px 6px 0 var(--t-accent-2), 6px 6px 0 2px var(--t-ink);
+}
+
+html[data-theme="riso"] .settings-id-avatar {
+  border: 2px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  box-shadow: 3px 3px 0 var(--t-accent-2);
+}
+
+html[data-theme="riso"] .settings-id-copy b { color: var(--t-ink); }
+
+html[data-theme="riso"] .settings-id-copy em { color: var(--t-muted); }
+
+html[data-theme="riso"] .settings-id-tags i {
+  border: 1px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-accent-2);
+  color: var(--t-ink);
+  font-weight: 700;
+}

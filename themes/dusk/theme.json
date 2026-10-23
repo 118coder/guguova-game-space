@@ -10,6 +10,7 @@
   "base": "system",
   "dark": true,
   "intro": "dusk",
+  "curtainMs": 460,
   "lexicon": {
     "lastPlayed": "上次委托"
   },

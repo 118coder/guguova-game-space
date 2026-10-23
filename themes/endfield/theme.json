@@ -10,6 +10,8 @@
   "base": "system",
   "dark": false,
   "intro": "endfield",
+  "curtainMs": 380,
+  "pinned": 2,
   "sounds": {
     "bong": "sounds/bong.ogg",
     "click": "sounds/click.ogg",

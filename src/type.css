@@ -826,97 +826,6 @@ html.is-nova-system {
   --editorial-line: rgba(243, 238, 227, .17);
 }
 
-html[data-theme="nova"].is-nova-system .atmosphere::after {
-  opacity: .26;
-  mix-blend-mode: normal;
-}
-
-html[data-theme="nova"].is-nova-system .grain { opacity: .038; }
-
-html[data-theme="nova"].is-nova-system .nav-btn.is-active {
-  color: #0a0a09;
-  background: var(--warm-white);
-  border-color: rgba(255, 255, 255, .6);
-}
-
-html[data-theme="nova"].is-nova-system .progress-track i,
-html[data-theme="nova"].is-nova-system .activity-track i,
-html[data-theme="nova"].is-nova-system .dp-track i,
-html[data-theme="nova"].is-nova-system .manage-progress-track i,
-html[data-theme="nova"].is-nova-system .launch-track i {
-  background: linear-gradient(90deg, #f2ecdf, #cbbda6);
-  box-shadow: none;
-}
-
-html[data-theme="nova"].is-nova-system .progress-track i::after {
-  background: #f3eee3;
-  box-shadow: 0 0 0 2px rgba(243, 238, 227, .16);
-}
-
-html[data-theme="nova"].is-nova-system .kicker { letter-spacing: .18em; }
-
-html[data-theme="nova"].is-nova-system .activity-strip {
-  border-radius: 8px;
-  border-color: var(--editorial-line);
-  background: linear-gradient(120deg, rgba(11, 11, 10, .66), rgba(7, 7, 6, .46));
-  box-shadow: 0 18px 60px -42px #000;
-}
-
-html[data-theme="nova"].is-nova-system .activity-icon {
-  border-radius: 50%;
-  color: var(--warm-white);
-  background: rgba(243, 238, 227, .07);
-}
-
-html[data-theme="nova"].is-nova-system .tile.is-active .tile-art {
-  border-color: rgba(243, 238, 227, .92);
-  box-shadow:
-    0 0 0 3px rgba(243, 238, 227, .05),
-    0 24px 50px -24px rgba(0, 0, 0, .9);
-}
-
-html[data-theme="nova"].is-nova-system .tile.is-active .tile-sub { color: var(--warm-white); }
-
-html[data-theme="nova"].is-nova-system .appearance-shell,
-html[data-theme="nova"].is-nova-system .detail-modal {
-  border-color: var(--editorial-line);
-  background: #090909;
-}
-
-html[data-theme="nova"].is-nova-system .appearance-options {
-  background: linear-gradient(180deg, #0b0b0a 0%, #080808 100%);
-}
-
-html[data-theme="nova"].is-nova-system .appearance-head h2,
-html[data-theme="nova"].is-nova-system .lib-title h2 {
-  letter-spacing: .005em;
-}
-
-html[data-theme="nova"].is-nova-system .section-tag {
-  color: var(--warm-white);
-  border-color: var(--editorial-line);
-}
-
-html[data-theme="nova"].is-nova-system .style-choice.is-active {
-  border-color: rgba(243, 238, 227, .34);
-  box-shadow: inset 0 0 0 1px rgba(243, 238, 227, .04);
-}
-
-html[data-theme="nova"].is-nova-system .style-choice.is-active .choice-radio {
-  background: var(--warm-white);
-  border-color: var(--warm-white);
-  box-shadow: none;
-}
-
-html[data-theme="nova"].is-nova-system .switch.on { background: var(--editorial-accent); }
-html[data-theme="nova"].is-nova-system .switch.on::after { background: #15130f; }
-
-html[data-theme="nova"].is-nova-system .notif-unread,
-html[data-theme="nova"].is-nova-system .bell-dot {
-  background: var(--warm-white);
-  box-shadow: 0 0 8px rgba(243, 238, 227, .45), 0 0 0 1.5px rgba(8, 10, 14, .8);
-}
-
 /* ============================================================
    APPEARANCE STUDIO
    ============================================================ */
@@ -1818,15 +1727,6 @@ html[data-theme="nova"].is-nova-system .bell-dot {
   .lib-current { height: 19px; font-size: 9.5px; }
   .lib-badges .tile-badge { height: 19px; font-size: 9.5px; }
 }
-
-/* 字体设定可读性：默认模式下的小字必须过 4.5:1 */
-html[data-theme="nova"] .type-readout-kicker,
-html[data-theme="nova"] .type-seed { color: rgba(244, 240, 231, .68); }
-html[data-theme="nova"] .type-dna span {
-  color: rgba(244, 240, 231, .74);
-  background: rgba(255, 255, 255, .06);
-}
-html[data-theme="nova"] .style-choice-head em { color: rgba(244, 240, 231, .68); }
 
 /* GUGUOVA is seven letters where NOVA was four: tighten the wordmark
    tracking so the top bar keeps its proportions. */

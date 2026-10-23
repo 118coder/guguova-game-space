@@ -378,13 +378,19 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 
 | 控件 | 令牌前缀 | 定义位置 | 规范 |
 | --- | --- | --- | --- |
-| 全局下拉 `.nova-select` | `--menu-*` | `src/app.css` 每主题块 | `docs/THEME-DESIGN-SPEC.md` §5.1 |
-| 缩放引擎 `.engine-shell` | `--sheet-*` | `src/app.css` 每主题块 | §5.2 |
-| 首页全屏缩放行 `.hero-scale` | `--hs-*` | `src/app.css` 每主题块 | §5.3 |
-| 可读强调文字 | `--accent-text` | `src/app.css` 末尾 | §3.2 |
+| 全局下拉 `.nova-select` | `--menu-*` | `themes/<id>/interfaces.css` | `docs/THEME-DESIGN-SPEC.md` §5.1 |
+| 缩放引擎 `.engine-shell` | `--sheet-*` | `themes/<id>/interfaces.css` | §5.2 |
+| 首页全屏缩放行 `.hero-scale` | `--hs-*` | `themes/<id>/interfaces.css` | §5.3 |
+| 取景浮层 `.appearance-framing` | `--af-*` | `themes/<id>/interfaces.css` | §5.4 |
+| 算法选择行 `.engine-mode-row` | `--mode-*` | `themes/<id>/interfaces.css` | §5.5 |
+| 可读强调文字 | `--accent-text` | `themes/<id>/interfaces.css` | §3.2 |
 
-> 新增主题必须同时提供 `--menu-*`、`--sheet-*`、`--hs-*`、`--accent-text` 四组；
-> 只写 `theme.css` 会导致下拉/引擎弹窗/全屏缩放行退回共享默认外观。
+> 1.16.0 起这些令牌不再写在共享表里，改由各主题的 `interfaces.css` 提供，
+> 详见 §16。共享表只保留消费方（`.engine-shell` 等结构规则）与默认值。
+
+> 新增主题必须同时提供 `--menu-*`、`--sheet-*`、`--hs-*`、`--af-*`、
+> `--mode-*`、`--accent-text`；只写 `theme.css` 会让这些控件退回共享默认外观。
+> `node tools/theme-slot-check.js` 会逐个主题列出缺失项。
 
 ## 15. 启动界面交互（1.13.0）
 
@@ -392,3 +398,117 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 - 手柄 B / ○ 等价 Esc；A / ✕ 不关闭；
 - 提示：`按 Esc 退出`；
 - 实现在 `src/app.js` 的 `bindKeyboard`、`closeLaunch`、pad `back()`，不要在遮罩上重新挂 click。
+
+---
+
+## 16. 接口式映射架构（1.16.0）
+
+> 这一节是「换主题只映射接口」的实现契约。改主题前先读它；
+> 改共享样式前先看 §16.5 的红线。
+
+### 16.1 为什么改了
+
+1.15.0 之前，主题知识散在三份共享样式表里（`app.css` 111 处、
+`settings-themes.css` 214 处、`type.css` 30 处 `html[data-theme="…"]`），
+另有三处 JS 常量（幕布时长、固定主题排序）。
+
+后果：**每新增一套主题，都要改主代码**。共享表越来越难维护，
+而且一次 `refactor` 就可能悄悄改变某个主题的层叠胜负。
+
+现在：**共享样式表不再出现任何具体主题 id**，
+每套主题把自己的材质映射写在 `themes/<id>/interfaces.css`。
+
+### 16.2 三份文件，三种职责
+
+| 文件 | 归属 | 内容 |
+| --- | --- | --- |
+| `src/theme-slots.css` | 共享 | 插槽的容器规则（如 `.settings-id { position: relative }`）与引擎弹窗内部令牌的重新绑定 |
+| `themes/<id>/interfaces.css` | 主题 | 该主题在每个插槽上的材质、墨色、圆角、字体、强调色 |
+| `src/theme-nova.css` | 内置主题 | nova 没有主题目录，它的映射作为渲染层文件随包分发 |
+
+> 三者都不含布局与行为。布局在 `base/views/dialogs/motion`，
+> 行为在 `app.js`。**主题只能决定「长什么样」，不能决定「怎么动」。**
+
+### 16.3 加载顺序（改动前务必确认）
+
+```
+base.css → theme.css → … → app.css → views.css → … → theme-slots.css
+      → interfaces.css → theme.css(主题自己的) → compat.css
+```
+
+要点：
+
+- `interfaces.css` 在**主题自己的 `theme.css` 之前**。这不是随意选的：
+  历史上这些规则就活在共享表里，本来排 `theme.css` 之前；
+  调换顺序会改变胜负（1.16.0 实测：DUSK 设置卡底色、STEAM 设置卡整体变样）。
+- `compat.css` 永远最后，能力降级（`data-tier`）压过一切主题材质。
+- `theme-nova.css` 与 `interfaces.css` 同层，由 `theme-engine.js` 内联注入。
+
+### 16.4 插槽清单
+
+| 插槽 | DOM 锚点 | 令牌族 | 默认来自 |
+| --- | --- | --- | --- |
+| 主题菜单 | `.nova-select-menu` | `--menu-*` | `app.css` `.nova-select-*` |
+| 引擎弹窗 | `.engine-shell` | `--sheet-*` | `app.css` `.engine-shell` |
+| 全屏缩放行 | `.hero-scale` | `--hs-*` | `app.css` `.hero-scale` |
+| 取景浮层 | `.appearance-framing` | `--af-*` | `app.css` `.appearance-framing` |
+| 算法选择行 | `.engine-mode-row` | `--mode-*` | `app.css` `.engine-mode-row` |
+| 设置控件 | `.settings-field` / `.settings-stat` / `.session-row` | 可读色 | `views.css` 的 `--ink` / `--muted` |
+| 用户卡 | `.settings-id` | 可读色 | `views.css` |
+| 强调文字 | 全局 | `--accent-text` | `app.css` §「accent as a marker」 |
+| 强调底色上的字 | 全局 | `--accent-on` | `app.js` `readableOn()` |
+| 启动动画 | `.launch.is-open .launch-art` | `animation` | `motion.css`（关键帧全局） |
+
+**两种合法的映射写法**，插槽检查器都接受：
+
+```css
+/* A. 直接改材质（主题完全接管这个面） */
+html[data-theme="endfield"] .engine-shell { --sheet-bg: #fff; --sheet-ink: #161616; }
+
+/* B. 只喂令牌（主题沿用共享结构，只换值） */
+html[data-theme="endfield"] { --hs-bg: var(--ef-panel); --hs-mark: var(--ef-signal); }
+```
+
+### 16.5 红线
+
+1. **共享表里禁止出现 `html[data-theme="<具体 id>"]`**。
+   要按主题区分 → 写进该主题的 `interfaces.css`。
+   `html[data-theme]`（无值）是合法的「所有主题通用」选择器。
+2. **`interfaces.css` 只能引用自己的 id**，不能替别的主题写规则。
+3. **`@keyframes` 留在共享表**：它是行为名，不是主题名。
+4. **一个插槽没映射 = 回到共享默认**，这是设计好的降级，不是错误。
+   但颜色类插槽（`--sheet-*` / `--hs-*` / `--af-*` / `--mode-*` /
+   `--accent-text` / `--menu-*`）漏掉会让该控件退回为另一个主题调好的默认值，
+   所以检查器把它们视为必须项。
+5. **不要为了「纯」而把布局搬进主题**：主题换主题时布局必须稳定。
+
+### 16.6 清单新字段
+
+| 字段 | 类型 | 作用 |
+| --- | --- | --- |
+| `interfaces` | string | 映射文件相对路径，缺省 `interfaces.css`，文件不存在则用共享默认 |
+| `curtainMs` | number | 幕布合拢时长（200–1200，越界取 420）。**必须 ≥ 该主题覆盖动画最长时长** |
+| `pinned` | number | 外观网格固定位次（1 = 最前）；不写则按使用次数排序 |
+
+`app.js` 不再有 `CURTAIN_HOLD` 表与 `THEME_PREFIX` 常量——都从清单读。
+
+### 16.7 验证
+
+```bash
+node tools/theme-slot-check.js --strict   # 契约守门：共享表无主题 id、每套主题有映射
+node tools/headless-shots.js --themes=all --views=all   # 视觉
+NOVA_CDP_PORT=9333 node tools/audit-contrast.js          # 静态对比度
+NOVA_CDP_PORT=9333 node tools/audit-hover.js             # 悬停对比度
+```
+
+`theme-slot-check.js` 应保持 0 finding。它是防止「主题知识回流到共享表」的唯一自动闸门。
+
+### 16.8 新增主题的最小步骤（1.16.0 起）
+
+1. 复制 `themes/<existing>/` 为 `themes/<new>/`；
+2. 改 `theme.json` 的 `id` / `name` / `version` / `preview` / `curtainMs` / `pinned`；
+3. 重写 `theme.css`（美术方向）与 `interfaces.css`（插槽映射）；
+4. `node tools/theme-slot-check.js` 必须 0 finding；
+5. 跑无头截图与两条对比度审计。
+
+**不需要改 `src/` 下任何文件。** 这是本轮改造的唯一目的。

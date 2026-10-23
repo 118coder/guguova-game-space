@@ -10,6 +10,7 @@
   "base": "system",
   "dark": true,
   "intro": "nightflight",
+  "curtainMs": 560,
   "tokens": {
     "--accent": "#d9ff45",
     "--accent-2": "#f4f0e0",

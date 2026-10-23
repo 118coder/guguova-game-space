@@ -1,0 +1,194 @@
+/* ============================================================
+   MNEMO · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="mnemo"] { color-scheme: light; }
+
+html[data-theme="mnemo"] {
+  --menu-bg: #fbf9fd;
+  --menu-ink: #241f33;
+  --menu-muted: #5d5673;
+  --menu-line: #5b4a8c;
+  --menu-border: 1px solid #5b4a8c;
+  --menu-radius: 2px;
+  --menu-option-radius: 0;
+  --menu-hover: #f3eff9;
+  --menu-selected-bg: #e4dfee;
+  --menu-mark: #9b3550;
+  --menu-mark-w: 3px;
+  --menu-letter: .03em;
+  --menu-scheme: light;
+  --menu-shadow: 5px 5px 0 rgba(91, 74, 140, .18);
+}
+
+html[data-theme="mnemo"] {
+  --hero-scale-radius: 0;
+  --hs-bg: #ffffff;
+  --hs-hover-bg: var(--mn-panel-2, var(--mn-mist-2));
+  --hs-border: 1px solid var(--mn-violet);
+  --hs-hover-line: var(--mn-plum);
+  --hs-ink: var(--mn-ink);
+  --hs-mark: var(--mn-plum);
+  --hs-mark-w: 3px;
+  --hs-shadow: 3px 3px 0 rgba(91, 74, 140, .14);
+  --hs-label-spacing: .05em;
+}
+
+/* MNEMO · classified file: mist paper, violet rule, plum action. */
+html[data-theme="mnemo"] .engine-shell {
+  --sheet-bg: var(--mn-panel);
+  --sheet-ink: var(--mn-ink);
+  --sheet-ink-2: var(--mn-ink-2);
+  --sheet-muted: var(--mn-ink-2);
+  --sheet-line: var(--mn-violet);
+  --sheet-hair: var(--mn-hair);
+  --sheet-well: var(--mn-panel-2, var(--mn-mist-2));
+  --sheet-radius: 2px;
+  --sheet-shadow: 6px 6px 0 rgba(91, 74, 140, .18);
+  --sheet-on-accent: #ffffff;
+  --sheet-title-font: var(--font-ui);
+  --sheet-title-weight: 700;
+  --sheet-title-spacing: .01em;
+  --sheet-kicker-color: var(--mn-violet);
+  --sheet-kicker-spacing: .28em;
+  --sheet-label-color: var(--mn-violet);
+  --sheet-label-spacing: .1em;
+  --sheet-control-radius: 0;
+  --sheet-control-bg: #ffffff;
+  --sheet-control-border: 1px solid var(--mn-violet);
+  --sheet-btn-radius: 0;
+  --sheet-primary-bg: var(--mn-plum);
+  --sheet-primary-ink: #ffffff;
+  --sheet-primary-border: 1px solid var(--mn-plum-deep);
+  --sheet-ghost-bg: var(--mn-panel-2, var(--mn-mist-2));
+  --sheet-ghost-ink: var(--mn-ink);
+  --sheet-ghost-border: 1px solid var(--mn-violet);
+  --sheet-strip-h: 3px;
+  --sheet-strip: var(--mn-violet);
+  --sheet-mark: var(--mn-plum);
+  --sheet-mark-w: 3px;
+  --sheet-active-bg: var(--mn-mist-2);
+  color-scheme: light;
+}
+
+html[data-theme="mnemo"] { --accent-text: #5b4a8c; }
+
+html[data-theme="mnemo"] .launch .launch-status { color: #c4b9de; }
+
+html[data-theme="mnemo"] .engine-mode-row {
+  --mode-radius: 2px;
+  --mode-pad: 6px 9px;
+  --mode-name-spacing: .03em;
+  --mode-active-bg: #e4dfee;
+  --mode-active-ink: #241f33;
+  --mode-active-name: #241f33;
+  --mode-active-border: 1px solid #5b4a8c;
+  --mode-active-mark: #9b3550;
+  --mode-active-mark-w: 4px;
+  --mode-active-shadow: inset 0 0 0 1px rgba(91, 74, 140, .18);
+  --mode-missing-border: 1px dashed #5b4a8c;
+  --mode-missing-name: #5d5673;
+}
+
+html[data-theme="mnemo"] .appearance-framing {
+  --af-bg: #fbf9fd;
+  --af-ink: #241f33;
+  --af-muted: #5d5673;
+  --af-line: #5b4a8c;
+  --af-border: 1px solid #5b4a8c;
+  --af-radius: 2px;
+  --af-shadow: 5px 5px 0 rgba(91, 74, 140, .18);
+  --af-strip-h: 3px;
+  --af-strip: #5b4a8c;
+  --af-kicker-color: #5b4a8c;
+  --af-kicker-spacing: .18em;
+  --af-value-color: #9b3550;
+  --af-key-bg: #ffffff;
+  --af-key-ink: #241f33;
+  --af-key-border: 1px solid #5b4a8c;
+  --af-key-radius: 0;
+  --af-key-hover-bg: #e4dfee;
+  --af-key-hover-ink: #241f33;
+  --af-key-hover-border: #9b3550;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #241f33;
+  --af-hint-color: #5d5673;
+  --af-done-bg: #9b3550;
+  --af-done-ink: #ffffff;
+  --af-done-border: 1px solid #6d2238;
+  --af-done-radius: 0;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- MNEMO · mystery bureau ---------- */
+
+html[data-theme="mnemo"] .settings-field input,
+html[data-theme="mnemo"] .settings-field select {
+  background: var(--mn-panel);
+  border: 1px solid var(--mn-hair);
+  border-radius: 8px;
+  color: var(--mn-ink);
+  font-family: var(--mn-mono);
+}
+
+html[data-theme="mnemo"] .settings-field input:focus,
+html[data-theme="mnemo"] .settings-field select:focus {
+  border-color: var(--mn-violet);
+  box-shadow: 0 0 0 2px var(--mn-violet-soft);
+}
+
+html[data-theme="mnemo"] .settings-field label { color: var(--mn-violet); letter-spacing: .12em; }
+
+html[data-theme="mnemo"] .settings-stat {
+  background: var(--mn-panel);
+  border: 1px solid var(--mn-hair);
+  border-top: 3px solid var(--mn-violet);
+  border-radius: 8px;
+}
+
+html[data-theme="mnemo"] .settings-stat span { color: var(--mn-violet); font-family: var(--mn-mono); }
+
+html[data-theme="mnemo"] .settings-stat b { color: var(--mn-ink); }
+
+html[data-theme="mnemo"] .settings-stat em { color: var(--mn-ink-2); }
+
+html[data-theme="mnemo"] .settings-note b { color: var(--mn-ink); }
+
+html[data-theme="mnemo"] .session-row { border-color: var(--mn-line); }
+
+html[data-theme="mnemo"] .session-row em { color: var(--mn-plum); }
+
+/* ---------- MNEMO · memory module ---------- */
+html[data-theme="mnemo"] .settings-id {
+  border: 1px solid var(--mn-violet);
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(0deg, rgba(91, 74, 140, .05) 0 3px, transparent 3px 6px),
+    var(--mn-panel);
+  box-shadow: inset 3px 0 0 var(--mn-violet), 0 0 0 1px rgba(91, 74, 140, .08);
+}
+
+html[data-theme="mnemo"] .settings-id-avatar {
+  border: 1px solid var(--mn-violet);
+  border-radius: 2px;
+  background: var(--mn-violet-soft);
+  color: var(--mn-violet);
+  text-shadow: 1px 0 0 rgba(155, 53, 80, .5);
+}
+
+html[data-theme="mnemo"] .settings-id-copy b { color: var(--mn-ink); font-family: var(--mn-mono); letter-spacing: .04em; }
+
+html[data-theme="mnemo"] .settings-id-copy em { color: var(--mn-ink-2); font-family: var(--mn-mono); }
+
+html[data-theme="mnemo"] .settings-id-tags i { border-color: var(--mn-hair); border-radius: 2px; color: var(--mn-violet); font-family: var(--mn-mono); }

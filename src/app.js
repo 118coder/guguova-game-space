@@ -668,6 +668,20 @@
     return current;
   }
 
+  /**
+   * Text colour to place *on* a filled accent surface.
+   * --accent is a fill colour sampled from the cover, so it can be any
+   * luminance; a fixed ink (#0b0d11) was 2.08:1 on a dark blue cover. Pick
+   * whichever of ink/white wins against the actual fill instead.
+   */
+  function readableOn(hex) {
+    const dark = '#0b0d11';
+    const light = '#ffffff';
+    const a = contrastRatio(dark, hex);
+    const b = contrastRatio(light, hex);
+    return a >= b ? dark : light;
+  }
+
   function dnaFor(game) {
     const dna = game && game.dna ? game.dna : null;
     return {
@@ -1559,7 +1573,7 @@
     if (themed) {
       const theme = window.NovaTheme ? window.NovaTheme.find(state.theme) : null;
       const tokens = (theme && theme.tokens) || {};
-      ['--accent', '--accent-2', '--glow', '--accent-text'].forEach((name) => {
+      ['--accent', '--accent-2', '--glow', '--accent-text', '--accent-on'].forEach((name) => {
         if (tokens[name]) root.style.setProperty(name, tokens[name]);
         else root.style.removeProperty(name);
       });
@@ -1572,6 +1586,7 @@
       root.style.setProperty('--accent-2', system ? '#c7b79d' : '#ff6b79');
       root.style.setProperty('--glow', system ? 'rgba(231, 220, 201, .16)' : 'rgba(255, 172, 96, .32)');
       root.style.setProperty('--accent-text', system ? '#e7dcc9' : readableAccentText('#ffb45e'));
+      root.style.setProperty('--accent-on', readableOn(system ? '#e7dcc9' : '#ffb45e'));
       root.style.setProperty('--scrim-rgb', '16, 12, 10');
       return;
     }
@@ -1580,6 +1595,8 @@
     root.style.setProperty('--glow', system ? 'rgba(231, 220, 201, .16)' : game.glow);
     root.style.setProperty('--accent-text',
       system ? '#e7dcc9' : readableAccentText(game.accent || '#ffb45e'));
+    root.style.setProperty('--accent-on',
+      readableOn(system ? '#e7dcc9' : (game.accent || '#ffb45e')));
     root.style.setProperty('--scrim-rgb', game.scrim || '16, 12, 10');
   }
 
@@ -5050,15 +5067,27 @@
 
   let themeOrder = null;
 
-  // Fixed shelf: the first four cards never move, regardless of usage counts.
-  const THEME_PREFIX = ['nova', 'endfield', 'zerohour', 'codex'];
+  /**
+   * Fixed shelf: the first cards never move regardless of usage counts.
+   * A theme opts in with `"pinned": <n>` in theme.json; ties keep the
+   * built-in order, so a new theme ships its position as data instead of
+   * needing a line here. Themes without the field sort by usage below.
+   */
+  function themePins(themes) {
+    return themes
+      .map((theme, index) => ({ id: theme.id, pin: Number(theme.pinned), index }))
+      .filter((entry) => Number.isFinite(entry.pin) && entry.pin > 0)
+      .sort((a, b) => a.pin - b.pin || a.index - b.index)
+      .map((entry) => entry.id);
+  }
 
   function computeThemeOrder(themes) {
     const usage = readThemeUsage();
     const byId = new Map(themes.map((theme) => [theme.id, theme]));
-    const head = THEME_PREFIX.map((id) => byId.get(id)).filter(Boolean);
+    const pins = themePins(themes);
+    const head = pins.map((id) => byId.get(id)).filter(Boolean);
     const tail = themes
-      .filter((theme) => !THEME_PREFIX.includes(theme.id))
+      .filter((theme) => !pins.includes(theme.id))
       .sort((a, b) => {
         const delta = (Number(usage[b.id]) || 0) - (Number(usage[a.id]) || 0);
         if (delta) return delta;
@@ -5150,12 +5179,17 @@
   let themeSwitching = false;
 
   // Each theme owns a different shutter: doors, page turn, CRT, ink blot…
-  // The hold time matches the longest cover phase so the style swap stays hidden.
-  const CURTAIN_HOLD = {
-    nova: 360, aurum: 400, endfield: 380, zerohour: 420, codex: 430,
-    broadcast: 360, summer: 470, riso: 380, riot: 380, grimoire: 650, mnemo: 360,
-    dusk: 460, steam: 440, nightflight: 560
-  };
+  // The hold time must match the longest cover phase, otherwise the style
+  // swap becomes visible. A theme declares it in theme.json as `curtainMs`;
+  // the default below covers a theme that has not mapped the slot yet.
+  const CURTAIN_HOLD_DEFAULT = 420;
+
+  function curtainHold(theme) {
+    const value = Number(theme && theme.curtainMs);
+    return Number.isFinite(value) && value >= 200 && value <= 1200
+      ? value
+      : CURTAIN_HOLD_DEFAULT;
+  }
 
   function curtainThemeName(theme) {
     return String(theme.name || theme.id || 'GUGUOVA').split('·')[0].trim() || 'GUGUOVA';
@@ -5180,7 +5214,7 @@
       requestAnimationFrame(() => requestAnimationFrame(() => {
         if (!els.themeCurtain || !els.themeCurtain.classList.contains('is-on')) { resolve(); return; }
         els.themeCurtain.classList.add('is-cover');
-        curtainTimer = setTimeout(resolve, CURTAIN_HOLD[theme.id] || 380);
+        curtainTimer = setTimeout(resolve, curtainHold(theme));
       }));
     });
   }
@@ -7396,6 +7430,13 @@
     // its stylesheet so the saved theme owns the first frame; the fallback
     // only exists so a broken theme can never hold the shell hostage.
     const themesReady = startThemes().catch((error) => console.warn('theme boot failed', error));
+    // Optional accelerators (WebGPU / WebAssembly) probe after the shell is
+    // scheduled, never before: a missing wasm file or a dead GPU process must
+    // cost the player nothing at start-up. See src/capability/capability.js.
+    if (window.NovaCapability) {
+      const whenIdle = window.requestIdleCallback || ((fn) => setTimeout(fn, 400));
+      whenIdle(() => window.NovaCapability.probe().catch(() => {}), { timeout: 2000 });
+    }
     bindNativeGuards();
     bindContextMenu();
     bindThemePanel();

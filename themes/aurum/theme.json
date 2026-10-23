@@ -10,6 +10,7 @@
   "base": "adaptive",
   "dark": true,
   "intro": "aurum",
+  "curtainMs": 400,
   "sounds": {
     "bong": "sounds/bong.ogg",
     "click": "sounds/click.ogg",

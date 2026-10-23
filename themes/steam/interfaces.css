@@ -1,0 +1,169 @@
+/* ============================================================
+   STEAM · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="steam"] {
+  --menu-bg: linear-gradient(180deg, #24262d, #1a1c21);
+  --menu-ink: #f3f4f6;
+  --menu-muted: #9ca1ac;
+  --menu-line: #30333b;
+  --menu-border: 1px solid #30333b;
+  --menu-radius: 3px;
+  --menu-option-radius: 2px;
+  --menu-hover: #2d3038;
+  --menu-selected-bg: #2d3038;
+  --menu-mark: #1a9fff;
+  --menu-mark-w: 3px;
+  --menu-scheme: dark;
+  --menu-shadow: 0 24px 50px -22px #000;
+}
+
+html[data-theme="steam"] {
+  --hero-scale-radius: 3px;
+  --hs-bg: linear-gradient(90deg, rgba(26, 159, 255, .14), rgba(19, 20, 24, .9) 34%);
+  --hs-hover-bg: linear-gradient(90deg, rgba(26, 159, 255, .22), rgba(29, 31, 37, .94) 38%);
+  --hs-border: 1px solid var(--st-line);
+  --hs-hover-line: var(--st-blue);
+  --hs-ink: var(--st-text);
+  --hs-mark: var(--st-blue);
+  --hs-mark-w: 3px;
+  --hs-shadow: inset 0 0 0 1px rgba(26, 159, 255, .12);
+  --hs-min-h: 42px;
+  --hs-label-size: 11.5px;
+  --hs-label-weight: 700;
+  --hs-label-spacing: .05em;
+  --hs-hint-alpha: .82;
+}
+
+/* STEAM · living-room console: charcoal panel, blue focus, 3px corners. */
+html[data-theme="steam"] .engine-shell {
+  --sheet-bg: linear-gradient(180deg, var(--st-panel-2), var(--st-panel));
+  --sheet-ink: var(--st-text);
+  --sheet-ink-2: #c7cbd3;
+  --sheet-muted: #9ca1ac;
+  --sheet-line: var(--st-line);
+  --sheet-hair: rgba(255, 255, 255, .07);
+  --sheet-well: var(--st-deep);
+  --sheet-radius: 3px;
+  --sheet-shadow: 0 30px 80px -40px #000;
+  --sheet-on-accent: #06101a;
+  --sheet-title-font: var(--font-ui);
+  --sheet-title-weight: 700;
+  --sheet-title-spacing: -.02em;
+  --sheet-kicker-color: var(--st-blue);
+  --sheet-kicker-spacing: .26em;
+  --sheet-label-color: var(--st-text-2);
+  --sheet-label-spacing: .1em;
+  --sheet-label-transform: uppercase;
+  --sheet-control-radius: 3px;
+  --sheet-control-bg: var(--st-deep);
+  --sheet-control-border: 1px solid var(--st-line);
+  --sheet-btn-radius: 3px;
+  --sheet-primary-bg: linear-gradient(180deg, #3fb2ff, var(--st-blue));
+  --sheet-primary-ink: #06101a;
+  --sheet-primary-border: 1px solid var(--st-blue);
+  --sheet-primary-shadow: inset 0 1px 0 rgba(255, 255, 255, .3);
+  --sheet-ghost-bg: var(--st-panel-2);
+  --sheet-ghost-ink: var(--st-text);
+  --sheet-ghost-border: 1px solid var(--st-line);
+  --sheet-strip-h: 2px;
+  --sheet-strip: var(--st-blue);
+  --sheet-mark: var(--st-blue);
+  --sheet-mark-w: 3px;
+  --sheet-active-bg: var(--st-panel-3, #2d3038);
+  color-scheme: dark;
+}
+
+html[data-theme="steam"] { --accent-text: var(--st-blue); }
+
+html[data-theme="steam"] .menu-key { color: var(--st-text-2); }
+
+html[data-theme="steam"] .context-menu .menu-key { color: var(--st-text-2); }
+
+html[data-theme="steam"] .engine-mode-row {
+  --mode-radius: 3px;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: linear-gradient(90deg, rgba(26, 159, 255, .2), rgba(36, 38, 45, .92) 60%);
+  --mode-active-ink: var(--st-text);
+  --mode-active-name: #ffffff;
+  --mode-active-border: 1px solid rgba(26, 159, 255, .4);
+  --mode-active-mark: var(--st-blue);
+  --mode-active-mark-w: 4px;
+  --mode-active-shadow: inset 0 0 0 1px rgba(26, 159, 255, .12);
+  --mode-active-weight: 700;
+  --mode-missing-border: 1px dashed var(--st-line);
+  --mode-missing-name: #9ca1ac;
+}
+
+html[data-theme="steam"] .appearance-framing {
+  --af-bg: linear-gradient(180deg, #24262d, #1a1c21);
+  --af-solid: #24262d;
+  --af-ink: #f3f4f6;
+  --af-muted: #9ca1ac;
+  --af-line: #30333b;
+  --af-border: 1px solid #30333b;
+  --af-radius: 3px;
+  --af-shadow: 0 24px 50px -22px #000;
+  --af-strip-h: 2px;
+  --af-strip: #1a9fff;
+  --af-kicker-color: #1a9fff;
+  --af-kicker-spacing: .2em;
+  --af-value-color: #ffffff;
+  --af-key-bg: #17191e;
+  --af-key-ink: #e8eaee;
+  --af-key-border: 1px solid #30333b;
+  --af-key-radius: 3px;
+  --af-key-hover-bg: #2d3038;
+  --af-key-hover-ink: #ffffff;
+  --af-key-hover-border: #1a9fff;
+  --af-reset-radius: 3px;
+  --af-zoom-ink: #c7cbd3;
+  --af-hint-color: #9ca1ac;
+  --af-done-bg: linear-gradient(180deg, #3fb2ff, #1a9fff);
+  --af-done-solid: #1a9fff;
+  --af-done-ink: #06101a;
+  --af-done-border: 1px solid #1a9fff;
+  --af-done-radius: 3px;
+  --af-done-shadow: inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- STEAM CLASSIC · 客户端账户卡 ---------- */
+html[data-theme="steam"] .settings-id {
+  border: 1px solid var(--st-line);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #1f3047, #16202d);
+  box-shadow: inset 3px 0 0 var(--st-blue), inset 0 1px 0 rgba(255, 255, 255, .05);
+}
+
+html[data-theme="steam"] .settings-id-avatar {
+  border: 1px solid var(--st-line-hi);
+  border-radius: 2px;
+  background: #0e141b;
+  color: var(--st-blue);
+  font-family: var(--font-ui);
+}
+
+html[data-theme="steam"] .settings-id-copy b { color: #ffffff; font-family: var(--font-ui); letter-spacing: .02em; }
+
+html[data-theme="steam"] .settings-id-copy em { color: var(--st-dim); }
+
+html[data-theme="steam"] .settings-id-tags i {
+  border: 1px solid var(--st-line);
+  border-radius: 1px;
+  color: var(--st-text-2);
+  background: #16202d;
+}
+
+html[data-theme="steam"] .settings-card { background: #16202d; }

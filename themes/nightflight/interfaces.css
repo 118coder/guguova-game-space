@@ -1,0 +1,153 @@
+/* ============================================================
+   NIGHTFLIGHT · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="nightflight"] { --hero-frame-ratio: 1; }
+
+html[data-theme="nightflight"] {
+  --menu-bg: #0b1724;
+  --menu-ink: #e9edf2;
+  --menu-muted: #93a6b8;
+  --menu-line: #2f5474;
+  --menu-border: 1px solid #2f5474;
+  --menu-radius: 4px;
+  --menu-option-radius: 0;
+  --menu-hover: rgba(217, 255, 69, .08);
+  --menu-selected-bg: rgba(217, 255, 69, .12);
+  --menu-mark: #d9ff45;
+  --menu-mark-w: 3px;
+  --menu-check: "▶";
+  --menu-font: var(--font-mono, var(--font-ui));
+  --menu-size: 11px;
+  --menu-letter: .03em;
+  --menu-scheme: dark;
+  --menu-shadow: 5px 5px 0 rgba(10, 15, 20, .8);
+}
+
+html[data-theme="nightflight"] {
+  --hero-scale-radius: 0;
+  --hs-bg: rgba(11, 23, 36, .78);
+  --hs-hover-bg: rgba(16, 31, 48, .9);
+  --hs-border: 1px solid var(--nf-line);
+  --hs-hover-line: var(--nf-lime);
+  --hs-ink: var(--nf-text);
+  --hs-mark: var(--nf-lime);
+  --hs-mark-w: 3px;
+  --hs-shadow: 4px 4px 0 rgba(4, 7, 13, .7);
+  --hs-font: var(--font-mono, var(--font-ui));
+  --hs-label-spacing: .06em;
+  --hs-hint-alpha: .8;
+}
+
+/* NIGHTFLIGHT · departure board: navy, mono labels, lime rule, square. */
+html[data-theme="nightflight"] .engine-shell {
+  --sheet-bg: linear-gradient(180deg, var(--nf-panel-2), var(--nf-panel));
+  --sheet-ink: var(--nf-text);
+  --sheet-ink-2: var(--nf-cream-2);
+  --sheet-muted: var(--nf-muted);
+  --sheet-line: var(--nf-line);
+  --sheet-hair: rgba(47, 84, 116, .55);
+  --sheet-well: var(--nf-void);
+  --sheet-radius: 0;
+  --sheet-shadow: 6px 6px 0 rgba(4, 7, 13, .9);
+  --sheet-on-accent: var(--nf-ink);
+  --sheet-title-font: var(--font-ui);
+  --sheet-title-weight: 700;
+  --sheet-title-spacing: -.03em;
+  --sheet-kicker-font: var(--font-mono, var(--font-ui));
+  --sheet-kicker-color: var(--nf-lime);
+  --sheet-kicker-spacing: .3em;
+  --sheet-label-font: var(--font-mono, var(--font-ui));
+  --sheet-label-color: var(--nf-muted);
+  --sheet-label-spacing: .16em;
+  --sheet-label-transform: uppercase;
+  --sheet-control-radius: 0;
+  --sheet-control-font: var(--font-mono, var(--font-ui));
+  --sheet-control-size: 11px;
+  --sheet-control-bg: var(--nf-void);
+  --sheet-control-border: 1px solid var(--nf-line);
+  --sheet-btn-radius: 0;
+  --sheet-btn-font: var(--font-mono, var(--font-ui));
+  --sheet-btn-spacing: .06em;
+  --sheet-primary-bg: var(--nf-lime);
+  --sheet-primary-ink: var(--nf-ink);
+  --sheet-primary-border: 1px solid var(--nf-ink);
+  --sheet-primary-shadow: 4px 4px 0 var(--nf-ink);
+  --sheet-ghost-bg: transparent;
+  --sheet-ghost-ink: var(--nf-cream);
+  --sheet-ghost-border: 1px solid var(--nf-line-hi);
+  --sheet-strip-h: 2px;
+  --sheet-strip: var(--nf-lime);
+  --sheet-mark: var(--nf-lime);
+  --sheet-mark-w: 4px;
+  --sheet-active-bg: rgba(217, 255, 69, .08);
+  color-scheme: dark;
+}
+
+html[data-theme="nightflight"] { --accent-text: var(--nf-lime); }
+
+/* Context-menu shortcut keys keep the theme's secondary ink, not the
+   dimmest step of the scale. */
+html[data-theme="nightflight"] .menu-key { color: var(--nf-muted); }
+
+html[data-theme="nightflight"] .context-menu .menu-key { color: var(--nf-cream-2); }
+
+html[data-theme="nightflight"] .lib-search .keycap { color: var(--nf-muted); }
+
+html[data-theme="nightflight"] .engine-mode-row {
+  --mode-radius: 0;
+  --mode-pad: 6px 9px;
+  --mode-name-spacing: .03em;
+  --mode-active-bg: rgba(217, 255, 69, .1);
+  --mode-active-ink: var(--nf-text);
+  --mode-active-name: var(--nf-cream);
+  --mode-active-border: 1px solid var(--nf-line-hi);
+  --mode-active-mark: var(--nf-lime);
+  --mode-active-mark-w: 5px;
+  --mode-active-shadow: 4px 4px 0 rgba(4, 7, 13, .9);
+  --mode-active-font: var(--font-mono, var(--font-ui));
+  --mode-missing-border: 1px dashed var(--nf-line);
+  --mode-missing-name: var(--nf-muted);
+}
+
+html[data-theme="nightflight"] .appearance-framing {
+  --af-bg: #0b1724;
+  --af-ink: #e9edf2;
+  --af-muted: #93a6b8;
+  --af-line: #2f5474;
+  --af-border: 1px solid #2f5474;
+  --af-radius: 0;
+  --af-shadow: 5px 5px 0 rgba(4, 7, 13, .9);
+  --af-strip-h: 2px;
+  --af-strip: #d9ff45;
+  --af-kicker-font: var(--font-mono, var(--font-ui));
+  --af-kicker-color: #d9ff45;
+  --af-kicker-spacing: .22em;
+  --af-value-color: #d9ff45;
+  --af-key-bg: #04070d;
+  --af-key-ink: #e9edf2;
+  --af-key-border: 1px solid #1c3348;
+  --af-key-radius: 0;
+  --af-key-font: var(--font-mono, var(--font-ui));
+  --af-key-hover-bg: rgba(217, 255, 69, .1);
+  --af-key-hover-ink: #ffffff;
+  --af-key-hover-border: #d9ff45;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #f4f0e0;
+  --af-hint-color: #93a6b8;
+  --af-done-bg: #d9ff45;
+  --af-done-ink: #0a0f14;
+  --af-done-border: 1px solid #0a0f14;
+  --af-done-radius: 0;
+  --af-done-shadow: 4px 4px 0 #0a0f14;
+}

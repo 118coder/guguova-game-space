@@ -397,6 +397,11 @@ function readThemes() {
       const data = JSON.parse(fs.readFileSync(manifest, 'utf8'));
       if (data.id && data.id !== entry.name) return;
       const preview = (data.preview || 'preview.png');
+      // The slot mapping is what themes/<id>/interfaces.css exists for; the
+      // QA harness has to serve it or every screenshot would show the shared
+      // defaults instead of the theme's own surfaces.
+      const interfaces = data.interfaces || 'interfaces.css';
+      const hasInterfaces = fs.existsSync(path.join(folder, entry.name, interfaces));
       list.push(Object.assign({}, data, {
         id: entry.name,
         name: data.name || entry.name,
@@ -404,7 +409,10 @@ function readThemes() {
         version: data.version || '1.0.0',
         description: data.description || '',
         intro: data.intro || '',
+        curtainMs: Number(data.curtainMs) || 420,
+        pinned: Number(data.pinned) || 0,
         cssUrl: `/themes/${entry.name}/theme.css`,
+        interfacesUrl: hasInterfaces ? `/themes/${entry.name}/${interfaces}` : null,
         previewUrl: fs.existsSync(path.join(folder, entry.name, preview)) ? `/themes/${entry.name}/${preview}` : '',
         base: data.base || '',
         builtIn: false,
@@ -508,6 +516,25 @@ function mockScript() {
 
   return `(() => {
   if (!window.chrome) window.chrome = {};
+
+  // Freeze the wall clock before app.js reads it. Screenshots are compared
+  // pixel by pixel between refactors, and a live clock would differ on every
+  // run: the top bar time, the "last backup" line and the sleep screen all
+  // render it. Only the QA harness gets this; the product is untouched.
+  if (!window.__novaClockFrozen) {
+    const FROZEN = new Date('2026-10-21T09:41:00+08:00').getTime();
+    const RealDate = Date;
+    class FrozenDate extends RealDate {
+      constructor(...args) {
+        if (args.length === 0) super(FROZEN);
+        else super(...args);
+      }
+      static now() { return FROZEN; }
+    }
+    window.Date = FrozenDate;
+    window.__novaClockFrozen = true;
+  }
+
   if (window.chrome.webview) return;
 
   const DATA = ${payload};
