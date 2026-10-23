@@ -1,0 +1,174 @@
+/* ============================================================
+   DUSK · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="dusk"] { --hero-frame-ratio: 1.6; }
+
+html[data-theme="dusk"] { color-scheme: light; }
+
+html[data-theme="dusk"] {
+  --menu-bg: #f7edd8;
+  --menu-ink: #30251a;
+  --menu-muted: #6a5740;
+  --menu-line: #b58a4b;
+  --menu-border: 1px solid #b58a4b;
+  --menu-radius: 2px;
+  --menu-option-radius: 0;
+  --menu-hover: #eddec2;
+  --menu-selected-bg: #eddec2;
+  --menu-mark: #a9503a;
+  --menu-mark-w: 3px;
+  --menu-font: var(--font-ui);
+  --menu-letter: .03em;
+  --menu-scheme: light;
+  --menu-shadow: 0 18px 34px -22px rgba(48, 37, 26, .5);
+}
+
+html[data-theme="dusk"] {
+  --hero-scale-radius: 2px;
+  --hs-bg: rgba(247, 237, 216, .5);
+  --hs-hover-bg: rgba(253, 246, 232, .72);
+  --hs-border: 1px solid rgba(90, 66, 38, .26);
+  --hs-hover-line: var(--dk-gold);
+  --hs-ink: var(--dk-ink);
+  --hs-mark: #a9503a;
+  --hs-mark-w: 3px;
+  --hs-shadow: inset 0 0 0 1px rgba(181, 138, 75, .14);
+  --hs-hint-alpha: .82;
+}
+
+/* DUSK · commission letter: serif title, gold rules, terracotta wax. */
+html[data-theme="dusk"] .engine-shell {
+  --sheet-bg: var(--dk-paper);
+  --sheet-ink: var(--dk-ink);
+  --sheet-ink-2: var(--dk-ink-2);
+  --sheet-muted: var(--dk-ink-2);
+  --sheet-line: var(--dk-line);
+  --sheet-hair: var(--dk-hair);
+  --sheet-well: var(--dk-paper-2);
+  --sheet-radius: 2px;
+  --sheet-shadow: 0 18px 40px -26px rgba(48, 37, 26, .5);
+  --sheet-on-accent: #fbf1dc;
+  --sheet-title-font: var(--font-serif);
+  --sheet-title-weight: 600;
+  --sheet-title-spacing: .04em;
+  --sheet-kicker-color: #a9503a;
+  --sheet-kicker-spacing: .32em;
+  --sheet-label-color: var(--dk-ink-2);
+  --sheet-label-spacing: .1em;
+  --sheet-control-radius: 2px;
+  --sheet-control-bg: var(--dk-paper-edge, #fdf6e8);
+  --sheet-control-border: 1px solid var(--dk-line);
+  --sheet-btn-radius: 2px;
+  /* The wax button was terracotta-on-paper at 2.95:1 — unreadable at the
+     11px button size. The gradient starts at the accent's darkened stop so
+     the paper ink clears AA on the lightest end as well. */
+  --sheet-primary-bg: linear-gradient(180deg, #a9503a, #8a3d2a);
+  --sheet-primary-ink: #fbf1dc;
+  --sheet-primary-border: 1px solid var(--dk-gold);
+  --sheet-primary-shadow: inset 0 0 0 1px rgba(217, 181, 124, .55);
+  --sheet-ghost-bg: var(--dk-paper);
+  --sheet-ghost-ink: var(--dk-ink);
+  --sheet-ghost-border: 1px solid rgba(90, 66, 38, .38);
+  --sheet-strip-h: 2px;
+  --sheet-strip: var(--dk-gold);
+  --sheet-mark: #a9503a;
+  --sheet-mark-w: 3px;
+  --sheet-active-bg: var(--dk-paper-2);
+  color-scheme: light;
+}
+
+html[data-theme="dusk"] { --accent-text: #a9503a; }
+
+html[data-theme="dusk"] .engine-mode-row {
+  --mode-radius: 2px;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: var(--dk-paper-2);
+  --mode-active-ink: var(--dk-ink);
+  --mode-active-name: var(--dk-ink);
+  --mode-active-border: 1px solid rgba(90, 66, 38, .32);
+  --mode-active-mark: #a9503a;
+  --mode-active-mark-w: 4px;
+  --mode-active-shadow: inset 0 0 0 1px rgba(181, 138, 75, .25);
+  --mode-active-font: var(--font-serif);
+  --mode-missing-border: 1px dashed rgba(90, 66, 38, .3);
+  --mode-missing-name: var(--dk-ink-2);
+}
+
+html[data-theme="dusk"] .appearance-framing {
+  --af-bg: #f7edd8;
+  --af-ink: #30251a;
+  --af-muted: #6a5740;
+  --af-line: #b58a4b;
+  --af-border: 1px solid #b58a4b;
+  --af-radius: 2px;
+  --af-shadow: 0 18px 34px -22px rgba(48, 37, 26, .55), inset 0 0 0 1px rgba(181, 138, 75, .24);
+  --af-strip-h: 2px;
+  --af-strip: #b58a4b;
+  --af-kicker-font: var(--font-serif);
+  --af-kicker-color: #a9503a;
+  --af-kicker-spacing: .2em;
+  --af-value-color: #a9503a;
+  --af-key-bg: #fdf6e8;
+  --af-key-ink: #30251a;
+  --af-key-border: 1px solid rgba(90, 66, 38, .32);
+  --af-key-radius: 2px;
+  --af-key-hover-bg: #eddec2;
+  --af-key-hover-ink: #30251a;
+  --af-key-hover-border: #a9503a;
+  --af-reset-radius: 2px;
+  --af-zoom-ink: #30251a;
+  --af-hint-color: #6a5740;
+  --af-done-bg: linear-gradient(180deg, #c87a52, #a9503a);
+  --af-done-solid: #a9503a;
+  --af-done-ink: #fbf1dc;
+  --af-done-border: 1px solid #b58a4b;
+  --af-done-radius: 2px;
+  --af-done-shadow: inset 0 0 0 1px rgba(217, 181, 124, .5);
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- DUSK · 配方台账 ---------- */
+html[data-theme="dusk"] .settings-id {
+  border: 1px solid var(--dk-line);
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 58%),
+    #f8efdb;
+  box-shadow: inset 4px 0 0 var(--dk-terra), inset 0 0 0 3px rgba(255, 255, 255, .34);
+}
+
+html[data-theme="dusk"] .settings-id-avatar {
+  border: 1px solid var(--dk-line);
+  border-radius: 50%;
+  background: #fdf6e6;
+  color: var(--dk-terra);
+  font-family: var(--font-serif);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .8);
+}
+
+html[data-theme="dusk"] .settings-id-copy b { color: var(--dk-ink); font-family: var(--font-serif); letter-spacing: .06em; }
+
+html[data-theme="dusk"] .settings-id-copy em { color: var(--dk-ink-3); }
+
+html[data-theme="dusk"] .settings-id-tags i {
+  border: 1px solid var(--dk-line);
+  border-radius: 1px;
+  color: var(--dk-ink-2);
+  background: rgba(255, 251, 241, .66);
+}
+
+html[data-theme="dusk"] .settings-card { background: rgba(255, 251, 241, .58); }
+
+html[data-theme="dusk"] .settings-stat b { font-family: var(--font-serif); }

@@ -1,0 +1,57 @@
+/* ============================================================
+   INTERFACE SLOTS · the shared half of the theme contract
+   ------------------------------------------------------------
+   A "slot" is one themed surface with a fixed name, a fixed DOM
+   anchor and a fixed set of custom properties. The shared sheets
+   define layout, behaviour and a readable fallback; a theme only
+   supplies values.
+
+   A theme maps a slot in themes/<id>/interfaces.css:
+
+       html[data-theme="<id>"] .engine-shell {
+         --sheet-bg: #ffffff;
+         --sheet-ink: #161616;
+       }
+
+   Nothing here may reference a concrete theme id. If a rule needs
+   to know which theme is active, it belongs in that theme's file.
+
+   Slot list and the full variable contract: docs/THEME-INTERFACES.md §16.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   SLOT · settings-id
+   The local identity card. Layout lives in views.css; material,
+   border language and seal are the theme's. This declaration is
+   the positioning context those seals are drawn in, so it must
+   stay in a shared sheet.
+   ------------------------------------------------------------ */
+
+.settings-id { position: relative; }
+
+/* ------------------------------------------------------------
+   SLOT · engine-shell inner fields
+   A sheet owns its inside. These re-pin the field and preference
+   rows to the sheet's own tokens after the theme layers have had
+   their say, because a theme's page-level `.settings-field` and
+   `.pref-row` rules would otherwise paint page ink on sheet paper.
+   ------------------------------------------------------------ */
+
+html[data-theme] .engine-shell .settings-field label {
+  color: var(--sheet-label-color);
+}
+
+html[data-theme] .engine-shell .settings-field select,
+html[data-theme] .engine-shell .settings-field input {
+  background: var(--sheet-control-bg);
+  border-color: var(--sheet-line);
+  color: var(--sheet-control-ink);
+}
+
+html[data-theme] .engine-shell .pref-row .pref-label {
+  color: var(--sheet-ink-2);
+}
+
+html[data-theme] .engine-shell .pref-row .pref-hint {
+  color: var(--sheet-muted);
+}

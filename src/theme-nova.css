@@ -1,0 +1,229 @@
+/* ============================================================
+   NOVA · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+/* ---------- per-theme menu surfaces ---------- */
+
+html[data-theme="nova"] {
+  --menu-bg: #12151c;
+  --menu-ink: #f5f2ea;
+  --menu-muted: rgba(245, 242, 234, .5);
+  --menu-line: rgba(255, 255, 255, .14);
+  --menu-radius: 10px;
+  --menu-option-radius: 6px;
+  --menu-hover: rgba(255, 255, 255, .07);
+  --menu-selected-bg: rgba(255, 255, 255, .07);
+  --menu-mark: var(--accent);
+  --menu-mark-w: 2px;
+  --menu-shadow: 0 20px 44px -20px rgba(0, 0, 0, .65);
+}
+
+/* ---------- accent as a marker, not as body text ----------
+   Rule #8: several themes use their accent as a *surface* (ENDFIELD acid
+   yellow, SUMMER lime, RISO acid). Painting small text with it produces
+   yellow-on-white. --accent-text is the readable variant of each accent;
+   text uses it, while fills, rails and underlines keep --accent. */
+html[data-theme="nova"] { --accent-text: var(--accent); }
+
+/* ---------- engine algorithm row · per-theme selection cards ----------
+   The "current algorithm" row is a small piece of theme typography, not a
+   utility list item. Each theme gives it its own surface, frame, mark and
+   type; hard-edge themes also get their offset shadow. */
+
+html[data-theme="nova"] .engine-mode-row {
+  --mode-radius: 6px;
+  --mode-active-bg: linear-gradient(90deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .035));
+  --mode-active-border: 1px solid rgba(255, 255, 255, .12);
+  --mode-active-mark: var(--accent);
+  --mode-active-mark-w: 3px;
+  --mode-active-radius: 6px;
+}
+
+/* ---------- appearance framing panel · per-theme surfaces ----------
+   This panel floats over arbitrary artwork. Paper themes get opaque paper
+   and ink; dark themes get their own panel material. Keys and the "完成"
+   action follow each theme's button recipe. */
+
+html[data-theme="nova"] .appearance-framing {
+  --af-bg: linear-gradient(180deg, #12151c, #0a0c11);
+  --af-solid: #12151c;
+  --af-ink: #f5f2ea;
+  /* The value readout is text, so it takes the contrast-clamped accent
+     (--accent-text, lifted by readableAccentText) — not the raw cover
+     accent, which on a dark cover fell to 1.95:1 on this panel. */
+  --af-value-color: var(--accent-text, var(--accent));
+  /* The done button is a fill, so the raw accent stays correct here. */
+  --af-done-bg: var(--accent);
+  --af-done-solid: var(--accent);
+  /* Ink chosen against the actual fill (app.js readableOn), so a dark cover
+     accent gets white text instead of 2.08:1 black. */
+  --af-done-ink: var(--accent-on, #0b0d11);
+}
+
+/* ==================== TYPE LAYERS · built-in nova system type and progress rails ==================== */
+
+html[data-theme="nova"].is-nova-system .atmosphere::after {
+  opacity: .26;
+  mix-blend-mode: normal;
+}
+
+html[data-theme="nova"].is-nova-system .grain { opacity: .038; }
+
+html[data-theme="nova"].is-nova-system .nav-btn.is-active {
+  color: #0a0a09;
+  background: var(--warm-white);
+  border-color: rgba(255, 255, 255, .6);
+}
+
+html[data-theme="nova"].is-nova-system .progress-track i,
+html[data-theme="nova"].is-nova-system .activity-track i,
+html[data-theme="nova"].is-nova-system .dp-track i,
+html[data-theme="nova"].is-nova-system .manage-progress-track i,
+html[data-theme="nova"].is-nova-system .launch-track i {
+  background: linear-gradient(90deg, #f2ecdf, #cbbda6);
+  box-shadow: none;
+}
+
+html[data-theme="nova"].is-nova-system .progress-track i::after {
+  background: #f3eee3;
+  box-shadow: 0 0 0 2px rgba(243, 238, 227, .16);
+}
+
+html[data-theme="nova"].is-nova-system .kicker { letter-spacing: .18em; }
+
+html[data-theme="nova"].is-nova-system .activity-strip {
+  border-radius: 8px;
+  border-color: var(--editorial-line);
+  background: linear-gradient(120deg, rgba(11, 11, 10, .66), rgba(7, 7, 6, .46));
+  box-shadow: 0 18px 60px -42px #000;
+}
+
+html[data-theme="nova"].is-nova-system .activity-icon {
+  border-radius: 50%;
+  color: var(--warm-white);
+  background: rgba(243, 238, 227, .07);
+}
+
+html[data-theme="nova"].is-nova-system .tile.is-active .tile-art {
+  border-color: rgba(243, 238, 227, .92);
+  box-shadow:
+    0 0 0 3px rgba(243, 238, 227, .05),
+    0 24px 50px -24px rgba(0, 0, 0, .9);
+}
+
+html[data-theme="nova"].is-nova-system .tile.is-active .tile-sub { color: var(--warm-white); }
+
+html[data-theme="nova"].is-nova-system .appearance-shell,
+html[data-theme="nova"].is-nova-system .detail-modal {
+  border-color: var(--editorial-line);
+  background: #090909;
+}
+
+html[data-theme="nova"].is-nova-system .appearance-options {
+  background: linear-gradient(180deg, #0b0b0a 0%, #080808 100%);
+}
+
+html[data-theme="nova"].is-nova-system .appearance-head h2,
+html[data-theme="nova"].is-nova-system .lib-title h2 {
+  letter-spacing: .005em;
+}
+
+html[data-theme="nova"].is-nova-system .section-tag {
+  color: var(--warm-white);
+  border-color: var(--editorial-line);
+}
+
+html[data-theme="nova"].is-nova-system .style-choice.is-active {
+  border-color: rgba(243, 238, 227, .34);
+  box-shadow: inset 0 0 0 1px rgba(243, 238, 227, .04);
+}
+
+html[data-theme="nova"].is-nova-system .style-choice.is-active .choice-radio {
+  background: var(--warm-white);
+  border-color: var(--warm-white);
+  box-shadow: none;
+}
+
+html[data-theme="nova"].is-nova-system .switch.on { background: var(--editorial-accent); }
+
+html[data-theme="nova"].is-nova-system .switch.on::after { background: #15130f; }
+
+html[data-theme="nova"].is-nova-system .notif-unread,
+html[data-theme="nova"].is-nova-system .bell-dot {
+  background: var(--warm-white);
+  box-shadow: 0 0 8px rgba(243, 238, 227, .45), 0 0 0 1.5px rgba(8, 10, 14, .8);
+}
+
+/* 字体设定可读性：默认模式下的小字必须过 4.5:1 */
+html[data-theme="nova"] .type-readout-kicker,
+html[data-theme="nova"] .type-seed { color: rgba(244, 240, 231, .68); }
+
+html[data-theme="nova"] .type-dna span {
+  color: rgba(244, 240, 231, .74);
+  background: rgba(255, 255, 255, .06);
+}
+
+html[data-theme="nova"] .style-choice-head em { color: rgba(244, 240, 231, .68); }
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+/* ============================================================
+   SETTINGS · per-theme signatures
+   The settings view reuses the appearance shell, but its fields,
+   stat cards and history rows get a theme-specific treatment here.
+   Loaded after compat.css; themes do not target .settings-* themselves.
+   ============================================================ */
+
+/* ---------- NOVA (built-in cinematic) ---------- */
+
+html[data-theme="nova"] .settings-field input,
+html[data-theme="nova"] .settings-field select,
+html[data-theme="nova"] .settings-stat {
+  background: rgba(9, 10, 14, .56);
+  border: 1px solid rgba(255, 255, 255, .14);
+  color: #f5f2ea;
+}
+
+html[data-theme="nova"] .settings-field input:focus,
+html[data-theme="nova"] .settings-field select:focus { border-color: var(--accent); }
+
+html[data-theme="nova"] .settings-stat span,
+html[data-theme="nova"] .settings-stat em { color: rgba(245, 242, 234, .55); }
+
+/* ---------- NOVA · cinema glass ---------- */
+html[data-theme="nova"] .settings-id {
+  border-color: rgba(255, 164, 119, .26);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(255, 164, 119, .16), transparent 55%),
+    linear-gradient(145deg, rgba(20, 18, 24, .9), rgba(9, 10, 14, .72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07), 0 18px 40px -28px rgba(255, 164, 119, .5);
+}
+
+html[data-theme="nova"] .settings-id-avatar {
+  border-color: rgba(255, 164, 119, .55);
+  background: radial-gradient(circle at 34% 28%, rgba(255, 196, 160, .42), rgba(255, 164, 119, .12) 62%);
+  color: #ffd9c2;
+  box-shadow: 0 0 24px -6px rgba(255, 164, 119, .6);
+}
+
+html[data-theme="nova"] .settings-id-copy b { letter-spacing: .01em; }
+
+html[data-theme="nova"] .settings-id-tags i { border-color: rgba(255, 164, 119, .3); color: rgba(255, 214, 190, .8); }
+
+/* ==================== MOTION SIGNATURES ==================== */
+
+/* The launch gateway is the built-in theme's anamorphic slit. The keyframes
+   are global in motion.css; this is the slot that binds them to `nova`. */
+html[data-theme="nova"] .launch.is-open .launch-art {
+  animation: nvLaunch 720ms cubic-bezier(.2, .8, .3, 1) both;
+}

@@ -57,17 +57,6 @@ public partial class MainWindow : Window
         try
         {
             Store.Load();
-            // Pull Steam's own playtime once at boot so the hero shows the
-            // real number even for games the launcher has never counted.
-            try
-            {
-                var synced = Store.SyncSteamPlaytime();
-                if (synced.Count > 0) Log.Write($"steam playtime synced at boot: {synced.Count}");
-            }
-            catch (Exception ex)
-            {
-                Log.Error("steam playtime boot", ex);
-            }
             Launcher = new LauncherService(Store);
             Bridge = new NativeBridge(Store, Media, Launcher);
 
@@ -97,6 +86,17 @@ public partial class MainWindow : Window
             if (!string.IsNullOrEmpty(cdpPort))
                 browserArgs.Add($"--remote-debugging-port={cdpPort} --remote-allow-origins=*");
 
+            // A previous session lost its GPU process. Start in software mode
+            // rather than repeating the crash; NOVA_IGNORE_GPU_FALLBACK=1
+            // overrides it after a driver update.
+            var softwareFallback = GpuFallbackRequested();
+            if (softwareFallback)
+            {
+                Log.Write("starting in software rendering (gpu fallback marker present)");
+                browserArgs.Add("--disable-gpu --disable-gpu-compositing");
+                _gpuDegraded = true;
+            }
+
             // Development escape hatch: a wedged GPU process (driver reset,
             // stale shader cache) otherwise takes the whole WebView down with
             // "GPU process isn't usable. Goodbye." Software rendering is
@@ -118,14 +118,59 @@ public partial class MainWindow : Window
             Web.CoreWebView2.ProcessFailed += (_, args) =>
             {
                 Log.Write($"webview failed: {args.ProcessFailedKind}");
+
                 if (args.ProcessFailedKind == CoreWebView2ProcessFailedKind.RenderProcessExited)
                 {
                     Dispatcher.Invoke(() => Web.Reload());
+                    return;
+                }
+
+                // A dead GPU process is what "GPU process isn't usable.
+                // Goodbye." looks like from here. Software rendering is
+                // perfectly usable for a launcher — a shader-driven theme is
+                // an enhancement, not a requirement — so degrade instead of
+                // leaving the player with a white window.
+                if (args.ProcessFailedKind == CoreWebView2ProcessFailedKind.GpuProcessExited)
+                {
+                    Dispatcher.Invoke(() => DegradeToSoftwareRendering(args.ProcessFailedKind.ToString()));
                 }
             };
 
             Web.CoreWebView2.Navigate("https://nova.site/index.html");
             Splash.Visibility = Visibility.Collapsed;
+
+            // Steam's localconfig.vdf can be several megabytes and parsing it
+            // sat in front of WebView creation: every cold start paid for a
+            // number that only matters once the hero has already rendered.
+            // Load it after the shell is up and tell the page to refresh, so
+            // the playtime still arrives within a second or two of first paint
+            // instead of delaying it.
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    var synced = Store.SyncSteamPlaytime();
+                    if (synced.Count == 0) return;
+                    Log.Write($"steam playtime synced at boot: {synced.Count}");
+                    // Same shape as the `syncSteamPlaytime` bridge reply, so the
+                    // page can reuse applyPlaytimeUpdates() without a special case.
+                    var payload = new
+                    {
+                        updated = synced.Count,
+                        games = synced.Select(game => new
+                        {
+                            id = game.Id,
+                            playtimeSeconds = game.PlaytimeSeconds,
+                            lastPlayedUtc = game.LastPlayedUtc
+                        }).ToList()
+                    };
+                    Dispatcher.BeginInvoke(() => Bridge?.Notify("playtime-synced", payload));
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("steam playtime boot", ex);
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -209,6 +254,93 @@ public partial class MainWindow : Window
 
         Directory.CreateDirectory(defaultRoot);
         return defaultRoot;
+    }
+
+    /// <summary>
+    /// The GPU process died (driver reset, stale shader cache, remote session).
+    /// Recreating the WebView with software rendering keeps the launcher
+    /// usable; the marker file means the next start goes straight to software
+    /// instead of crashing again on every launch.
+    ///
+    /// This is the safety net behind the WebGPU capability layer: enabling the
+    /// GPU is worth it for the cover palette kernel, but it must never be able
+    /// to leave a player with a blank window.
+    /// </summary>
+    private void DegradeToSoftwareRendering(string reason)
+    {
+        if (_gpuDegraded) return;
+        _gpuDegraded = true;
+        Log.Write($"gpu degraded to software rendering: {reason}");
+
+        try
+        {
+            File.WriteAllText(GpuFallbackMarker(), reason);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("write gpu fallback marker", ex);
+        }
+
+        // Tell the page first so a following reload doesn't re-probe the GPU,
+        // then recreate the environment with software rendering enabled.
+        try { Bridge?.Notify("gpu-degraded", new { reason }); } catch { }
+
+        Dispatcher.BeginInvoke(new Action(async () =>
+        {
+            try
+            {
+                await RestartWebViewSoftwareAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error("software rendering restart", ex);
+            }
+        }));
+    }
+
+    private bool _gpuDegraded;
+
+    private static string GpuFallbackMarker() => Path.Combine(AppPaths.Root, "gpu-fallback.txt");
+
+    /// <summary>True when a previous session already lost its GPU process.</summary>
+    private static bool GpuFallbackRequested()
+    {
+        try
+        {
+            return File.Exists(GpuFallbackMarker())
+                && !string.Equals(Environment.GetEnvironmentVariable("NOVA_IGNORE_GPU_FALLBACK"), "1", StringComparison.Ordinal);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds the WebView2 environment with software rendering. Used after a
+    /// GPU process failure; the page state is intentionally reloaded, because
+    /// a dead GPU process can leave the compositor without a surface.
+    /// </summary>
+    private async Task RestartWebViewSoftwareAsync()
+    {
+        var cdpPort = Environment.GetEnvironmentVariable("NOVA_CDP_PORT");
+        var options = new CoreWebView2EnvironmentOptions { AdditionalBrowserArguments = "--disable-gpu --disable-gpu-compositing" };
+        if (!string.IsNullOrEmpty(cdpPort))
+        {
+            options.AdditionalBrowserArguments += $" --remote-debugging-port={cdpPort} --remote-allow-origins=*";
+        }
+
+        var fixedRuntime = Path.Combine(AppContext.BaseDirectory, "WebView2Runtime");
+        var browserFolder = Directory.Exists(fixedRuntime) && File.Exists(Path.Combine(fixedRuntime, "msedgewebview2.exe")) ? fixedRuntime : null;
+
+        // A WebView2 environment cannot be swapped in place; recreate the
+        // control's core so the new arguments actually take effect.
+        Web.Dispose();
+        var env = await CoreWebView2Environment.CreateAsync(browserFolder, CacheRoot() + "-sw", options);
+        await Web.EnsureCoreWebView2Async(env);
+        Bridge?.Attach(Web);
+        Web.CoreWebView2.ProcessFailed += (_, args) => Log.Write($"webview failed (software): {args.ProcessFailedKind}");
+        Web.CoreWebView2.Navigate("https://nova.site/index.html");
     }
 
     /// <summary>

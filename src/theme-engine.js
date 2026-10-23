@@ -17,6 +17,9 @@
     description: '电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。',
     intro: 'gilded',
     cssUrl: null,
+    // The built-in theme has no folder, so its slot mapping is a renderer
+    // file. See docs/THEME-INTERFACES.md §16.
+    interfacesUrl: 'theme-nova.css',
     previewUrl: 'assets/theme-nova-preview.jpg?v=1.4.1',
     baseStyle: '',
     builtIn: true,
@@ -166,11 +169,17 @@
     }
   }
 
-  /** Warm the stylesheet cache ahead of a click (hover / focus / idle). */
+  /** Warm the stylesheets cache ahead of a click (hover / focus / idle).
+   *  Both layers are warmed: a theme that loads its art direction instantly
+   *  but fetches its slot mapping on switch would flash the generic
+   *  interface for one frame. */
   function preload(id) {
     const theme = find(id);
-    if (!theme || !theme.cssUrl || theme.ok === false) return Promise.resolve(null);
-    return loadThemeCss(theme.cssUrl);
+    if (!theme || theme.ok === false) return Promise.resolve(null);
+    return Promise.all([
+      theme.cssUrl ? loadThemeCss(theme.cssUrl) : null,
+      theme.interfacesUrl ? loadThemeCss(theme.interfacesUrl) : null
+    ]);
   }
 
   let preloadCursor = 0;
@@ -185,7 +194,9 @@
   function preloadAll(options = {}) {
     if (preloading) return;
     const limit = Number(options.limit) || state.themes.length;
-    const list = state.themes.filter((theme) => theme.cssUrl && theme.ok !== false).slice(0, limit);
+    const list = state.themes
+      .filter((theme) => (theme.cssUrl || theme.interfacesUrl) && theme.ok !== false)
+      .slice(0, limit);
     if (!list.length) return;
     const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 120));
     const generation = ++preloadGeneration;
@@ -245,10 +256,54 @@
     });
   }
 
+  /* ---------- interface slot mapping ---------- */
+
+  /**
+   * A theme maps the shared interface slots (menus, sheets, settings,
+   * framing panel, accent text) in its own `interfaces.css`. The file is
+   * inlined like the theme sheet: WebView2 caches virtual-host files
+   * ignoring the query string, so fetching with no-store is what makes an
+   * edited mapping take effect without a restart.
+   *
+   * The mapping is optional. A theme without one keeps whatever the shared
+   * defaults give it, which is a readable — if generic — interface. That is
+   * deliberate: a new theme can ship art direction first and fill in the
+   * slots later, and a partial mapping degrades instead of breaking.
+   */
+  const interfacesSheet = document.createElement('style');
+  interfacesSheet.id = 'theme-interfaces';
+
+  async function loadInterfacesCss(theme) {
+    if (!theme || !theme.interfacesUrl) return null;
+    return loadThemeCss(theme.interfacesUrl);
+  }
+
+  async function applyInterfaces(theme) {
+    const css = await loadInterfacesCss(theme);
+    if (css == null) {
+      interfacesSheet.textContent = '';
+      interfacesSheet.remove();
+      return false;
+    }
+    interfacesSheet.textContent = css;
+    // Re-append on every switch: the sheet has to stay after theme.css even
+    // when the previous theme had no mapping and it was detached.
+    document.head.appendChild(interfacesSheet);
+    return true;
+  }
+
   /** Applies a theme by loading its stylesheet and merging token overrides. */
   async function apply(theme, options = {}) {
     const normalized = theme || BUILT_IN;
     const link = themeLink();
+
+    // Load order, and why it is this order:
+    //   shared sheets  →  interfaces.css  →  theme.css  →  compat.css
+    // The slot mapping historically lived in the shared sheets, i.e. BEFORE
+    // the theme's own stylesheet, so theme.css could override a slot where a
+    // theme disagreed with the shared default. Swapping those two silently
+    // changed e.g. DUSK's settings card. Keep the historical relative order.
+    await applyInterfaces(normalized);
 
     if (normalized.cssUrl) {
       const css = await loadThemeCss(normalized.cssUrl);
@@ -256,9 +311,6 @@
         inlineSheet.textContent = css;
         // Always last in <head> so a theme outranks every base sheet.
         document.head.appendChild(inlineSheet);
-        // Capability overrides must stay after the theme sheet.
-        const compat = document.getElementById('compat-style');
-        if (compat) document.head.appendChild(compat);
         link.removeAttribute('href');
       } else {
         // Fall back to a plain link if the fetch is blocked.
@@ -270,6 +322,10 @@
       inlineSheet.textContent = '';
       document.documentElement.dataset.theme = 'nova';
     }
+
+    // Capability overrides must stay after every theme layer.
+    const compat = document.getElementById('compat-style');
+    if (compat) document.head.appendChild(compat);
 
     // Token overrides are applied on the root element so any theme can
     // recolour without shipping its own stylesheet.
@@ -300,7 +356,6 @@
 
   /** Clearing tokens must not clear the ones a theme set; track what we wrote. */
   const writtenTokens = new Set();
-
   function clearTokens() {
     writtenTokens.forEach((name) => document.documentElement.style.removeProperty(name));
     writtenTokens.clear();

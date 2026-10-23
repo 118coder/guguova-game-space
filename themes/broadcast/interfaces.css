@@ -1,0 +1,196 @@
+/* ============================================================
+   BROADCAST · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="broadcast"] { color-scheme: light; }
+
+html[data-theme="broadcast"] {
+  --menu-bg: #f7f7f4;
+  --menu-ink: #141414;
+  --menu-muted: #4b4b49;
+  --menu-line: #141414;
+  --menu-border: 1px solid #141414;
+  --menu-radius: 0;
+  --menu-option-radius: 0;
+  --menu-hover: #e4e4e0;
+  --menu-selected-bg: #141414;
+  --menu-selected-ink: #f7f7f4;
+  --menu-mark: #c9c9c3;
+  --menu-mark-w: 3px;
+  --menu-letter: .04em;
+  --menu-scheme: light;
+  --menu-shadow: 5px 5px 0 rgba(20, 20, 20, .18);
+}
+
+html[data-theme="broadcast"] {
+  --hero-scale-radius: 0;
+  --hs-bg: #f7f7f4;
+  --hs-hover-bg: #ececea;
+  --hs-border: 1px solid #141414;
+  --hs-hover-line: #141414;
+  --hs-ink: #141414;
+  --hs-mark: #141414;
+  --hs-mark-w: 4px;
+  --hs-shadow: 3px 3px 0 rgba(20, 20, 20, .16);
+  --hs-label-spacing: .08em;
+  --hs-font: var(--font-serif);
+}
+
+/* BROADCAST · late-night newspaper: serif masthead, zero colour. */
+html[data-theme="broadcast"] .engine-shell {
+  --sheet-bg: #f7f7f4;
+  --sheet-ink: #141414;
+  --sheet-ink-2: #2b2b29;
+  --sheet-muted: #4b4b49;
+  --sheet-line: #141414;
+  --sheet-hair: #c9c9c3;
+  --sheet-well: #ececea;
+  --sheet-radius: 0;
+  --sheet-shadow: 6px 6px 0 rgba(20, 20, 20, .16);
+  --sheet-on-accent: #f7f7f4;
+  --sheet-title-font: var(--font-serif);
+  --sheet-title-weight: 700;
+  --sheet-title-spacing: .02em;
+  --sheet-kicker-color: #4b4b49;
+  --sheet-kicker-spacing: .3em;
+  --sheet-label-color: #141414;
+  --sheet-label-spacing: .16em;
+  --sheet-label-transform: uppercase;
+  --sheet-control-radius: 0;
+  --sheet-control-bg: #fbfbf9;
+  --sheet-control-border: 1px solid #141414;
+  --sheet-btn-radius: 0;
+  --sheet-primary-bg: #141414;
+  --sheet-primary-ink: #f7f7f4;
+  --sheet-primary-border: 1px solid #141414;
+  --sheet-ghost-bg: transparent;
+  --sheet-ghost-ink: #141414;
+  --sheet-ghost-border: 1px solid #141414;
+  --sheet-strip-h: 3px;
+  --sheet-strip: #141414;
+  --sheet-mark: #141414;
+  --sheet-mark-w: 3px;
+  --sheet-active-bg: #ececea;
+  color-scheme: light;
+}
+
+html[data-theme="broadcast"] { --accent-text: #141414; }
+
+html[data-theme="broadcast"] .engine-mode-row {
+  --mode-radius: 0;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: #141414;
+  --mode-active-ink: #f7f7f4;
+  --mode-active-name: #f7f7f4;
+  --mode-active-border: 1px solid #141414;
+  --mode-active-mark: #e7e5df;
+  --mode-active-mark-w: 4px;
+  --mode-active-shadow: 3px 3px 0 rgba(20, 20, 20, .18);
+  --mode-active-font: var(--font-serif);
+  --mode-missing-border: 1px dashed #c9c9c3;
+  --mode-missing-name: #5f5f5b;
+}
+
+html[data-theme="broadcast"] .appearance-framing {
+  --af-bg: #f7f7f4;
+  --af-ink: #141414;
+  --af-muted: #4b4b49;
+  --af-line: #141414;
+  --af-border: 1px solid #141414;
+  --af-radius: 0;
+  --af-shadow: 4px 4px 0 rgba(20, 20, 20, .18);
+  --af-strip-h: 3px;
+  --af-strip: #141414;
+  --af-kicker-font: var(--font-serif);
+  --af-kicker-color: #4b4b49;
+  --af-kicker-spacing: .2em;
+  --af-value-color: #141414;
+  --af-key-bg: #ffffff;
+  --af-key-ink: #141414;
+  --af-key-border: 1px solid #141414;
+  --af-key-radius: 0;
+  --af-key-hover-bg: #141414;
+  --af-key-hover-ink: #f7f7f4;
+  --af-key-hover-border: #141414;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #141414;
+  --af-hint-color: #4b4b49;
+  --af-done-bg: #141414;
+  --af-done-ink: #f7f7f4;
+  --af-done-radius: 0;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- BROADCAST · late-night paper ---------- */
+
+html[data-theme="broadcast"] .settings-field input,
+html[data-theme="broadcast"] .settings-field select {
+  background: #f3f1eb;
+  border: 1px solid #101010;
+  border-radius: 0;
+  color: #101010;
+  box-shadow: 4px 4px 0 rgba(16, 16, 16, .12);
+}
+
+html[data-theme="broadcast"] .settings-field input:focus,
+html[data-theme="broadcast"] .settings-field select:focus {
+  border-color: #101010;
+  box-shadow: 4px 4px 0 rgba(16, 16, 16, .26);
+}
+
+html[data-theme="broadcast"] .settings-field label { color: #101010; letter-spacing: .18em; text-transform: uppercase; }
+
+html[data-theme="broadcast"] .settings-stat {
+  background: #f3f1eb;
+  border: 1px solid #101010;
+  border-top: 3px solid #101010;
+  border-radius: 0;
+}
+
+html[data-theme="broadcast"] .settings-stat span { color: #55544e; }
+
+html[data-theme="broadcast"] .settings-stat b { color: #101010; font-family: var(--font-serif); }
+
+html[data-theme="broadcast"] .settings-stat em { color: #7a7a76; }
+
+html[data-theme="broadcast"] .settings-note b { color: #101010; }
+
+html[data-theme="broadcast"] .session-row { border-color: rgba(16, 16, 16, .18); }
+
+html[data-theme="broadcast"] .session-row em { color: #101010; }
+
+/* ---------- BROADCAST · clipped newspaper ---------- */
+html[data-theme="broadcast"] .settings-id {
+  border: 1px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-panel);
+  box-shadow: 4px 4px 0 rgba(20, 20, 20, .1);
+}
+
+html[data-theme="broadcast"] .settings-id-avatar {
+  border: 1px solid var(--t-ink);
+  background: var(--t-ink);
+  color: var(--t-panel);
+  font-family: var(--font-serif);
+}
+
+html[data-theme="broadcast"] .settings-id-copy b { color: var(--t-ink); font-family: var(--font-serif); }
+
+html[data-theme="broadcast"] .settings-id-copy em { color: var(--t-muted); }
+
+html[data-theme="broadcast"] .settings-id-tags i {
+  border: 1px solid var(--t-line);
+  border-radius: 0;
+  color: var(--t-ink-2);
+}

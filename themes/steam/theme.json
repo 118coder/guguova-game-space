@@ -10,6 +10,7 @@
   "base": "system",
   "dark": true,
   "intro": "steam",
+  "curtainMs": 440,
   "tokens": {
     "--accent": "#1a9fff",
     "--accent-2": "#8fbc1c",

@@ -32,11 +32,25 @@ public sealed class ThemeService
         public string? Version { get; set; }
         public string? Description { get; set; }
         public string? Css { get; set; }
+
+        /// <summary>Optional slot mapping sheet (menus, sheets, settings,
+        /// accent text). Defaults to interfaces.css; see
+        /// docs/THEME-INTERFACES.md §16.</summary>
+        public string? Interfaces { get; set; }
         public string? Preview { get; set; }
         public string? Base { get; set; }
 
         /// <summary>Opening-sequence preset id (see src/intro.js).</summary>
         public string? Intro { get; set; }
+
+        /// <summary>How long the switch curtain must stay closed, in ms. It
+        /// has to cover the longest phase of this theme's shutter; otherwise
+        /// the stylesheet swap shows through. See app.js curtainHold().</summary>
+        public int? CurtainMs { get; set; }
+
+        /// <summary>Shelf position in the appearance grid (1 = first). Themes
+        /// that omit it sort by usage behind the pinned ones.</summary>
+        public int? Pinned { get; set; }
 
         /// <summary>Optional per-theme cues — switch / launch / exit / boot —
         /// each a path relative to the theme folder. Anything missing falls
@@ -64,9 +78,12 @@ public sealed class ThemeService
         string Version,
         string Description,
         string? Intro,
+        int CurtainMs,
+        int Pinned,
         Dictionary<string, string> Features,
         string Folder,
         string? CssUrl,
+        string? InterfacesUrl,
         string? PreviewUrl,
         string Base,
         bool BuiltIn,
@@ -132,9 +149,12 @@ public sealed class ThemeService
         "2.0.0",
         "电影感外观：按钮与标题颜色跟随封面，适合每款游戏的独立气质。",
         "gilded",
+        360,
+        1,
         new Dictionary<string, string>(),
         "",
         null,
+        "https://nova.site/theme-nova.css",
         "https://nova.site/assets/theme-nova-preview.jpg?v=1.7.0",
         "",
         true,
@@ -220,6 +240,9 @@ public sealed class ThemeService
                 return Invalid(folderId, folder, $"主题 id 重复：{id}", manifest);
 
             var cssUrl = ResolveAsset(folder, manifest.Css, "theme.css");
+            // The slot mapping is optional: a theme without it keeps the
+            // shared defaults instead of failing to load.
+            var interfacesUrl = ResolveAsset(folder, manifest.Interfaces, "interfaces.css");
             var previewUrl = ResolveAsset(folder, manifest.Preview, "preview.jpg")
                           ?? ResolveAsset(folder, "preview.png", null)
                           ?? ResolveAsset(folder, "preview.jpg", null);
@@ -237,9 +260,12 @@ public sealed class ThemeService
                 manifest.Version ?? "1.0.0",
                 manifest.Description ?? "",
                 NormalizeIntro(manifest.Intro),
+                NormalizeCurtain(manifest.CurtainMs),
+                Math.Max(0, manifest.Pinned ?? 0),
                 CleanDictionary(manifest.Features),
                 folder,
                 cssUrl,
+                interfacesUrl,
                 previewUrl,
                 NormalizeBase(manifest.Base),
                 false,
@@ -268,8 +294,11 @@ public sealed class ThemeService
         manifest?.Version ?? "—",
         manifest?.Description ?? "",
         NormalizeIntro(manifest?.Intro),
+        NormalizeCurtain(manifest?.CurtainMs),
+        Math.Max(0, manifest?.Pinned ?? 0),
         CleanDictionary(manifest?.Features),
         folder,
+        null,
         null,
         null,
         "",
@@ -322,6 +351,12 @@ public sealed class ThemeService
         }
         return null;
     }
+
+    /// <summary>The curtain hold must cover the theme's own cover phase; a
+    /// value outside the sane range would either flash the swap or stall the
+    /// switch, so it is clamped rather than trusted.</summary>
+    private static int NormalizeCurtain(int? value) =>
+        value is >= 200 and <= 1200 ? value.Value : 420;
 
     private static string NormalizeBase(string? value) =>
         value is "adaptive" or "system" ? value : "";

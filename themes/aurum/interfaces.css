@@ -1,0 +1,213 @@
+/* ============================================================
+   AURUM · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="aurum"] {
+  --menu-bg: linear-gradient(180deg, #151d18, #0d1310);
+  --menu-ink: #f2e2bd;
+  --menu-muted: rgba(242, 226, 189, .56);
+  --menu-line: rgba(232, 201, 138, .38);
+  --menu-border: 1px solid rgba(232, 201, 138, .34);
+  --menu-radius: 2px;
+  --menu-option-radius: 0;
+  --menu-hover: rgba(232, 201, 138, .1);
+  --menu-selected-bg: rgba(232, 201, 138, .12);
+  --menu-selected-ink: #f6e3bb;
+  --menu-mark: #e8c98a;
+  --menu-mark-w: 2px;
+  --menu-font: var(--font-serif);
+  --menu-letter: .04em;
+  --menu-scheme: dark;
+  --menu-shadow: 0 24px 50px -24px #000;
+}
+
+html[data-theme="aurum"] {
+  --hero-scale-radius: 2px;
+  --hs-bg: rgba(7, 11, 9, .66);
+  --hs-hover-bg: rgba(21, 29, 24, .82);
+  --hs-border: 1px solid rgba(232, 201, 138, .22);
+  --hs-hover-line: var(--aurum-bronze);
+  --hs-ink: var(--aurum-text);
+  --hs-mark: var(--aurum-bronze-hi);
+  --hs-mark-w: 2px;
+  --hs-label-spacing: .1em;
+  --hs-hint-alpha: .78;
+}
+
+/* AURUM · bronze sanctuary: dark green, wide serif, double bronze line. */
+html[data-theme="aurum"] .engine-shell {
+  --sheet-bg: linear-gradient(180deg, var(--aurum-panel-2), var(--aurum-panel));
+  --sheet-ink: var(--aurum-text);
+  --sheet-ink-2: rgba(237, 227, 205, .78);
+  --sheet-muted: rgba(237, 227, 205, .62);
+  --sheet-line: var(--aurum-hair);
+  --sheet-hair: rgba(232, 201, 138, .14);
+  --sheet-well: var(--aurum-well);
+  --sheet-radius: 4px;
+  --sheet-shadow: 0 30px 80px -40px #000;
+  --sheet-on-accent: var(--aurum-ink);
+  --sheet-title-font: var(--font-serif);
+  --sheet-title-weight: 600;
+  --sheet-title-spacing: .1em;
+  --sheet-kicker-color: var(--aurum-bronze-hi);
+  --sheet-kicker-spacing: .38em;
+  --sheet-label-color: var(--aurum-bronze-hi);
+  --sheet-label-spacing: .14em;
+  --sheet-control-radius: 2px;
+  --sheet-control-bg: var(--aurum-well);
+  --sheet-control-border: 1px solid rgba(232, 201, 138, .28);
+  --sheet-btn-radius: 2px;
+  --sheet-primary-bg: linear-gradient(180deg, #e8c98a, #b08a4e);
+  --sheet-primary-ink: #0b100e;
+  --sheet-primary-border: 1px solid #b08a4e;
+  --sheet-ghost-bg: transparent;
+  --sheet-ghost-ink: var(--aurum-text);
+  --sheet-ghost-border: 1px solid rgba(232, 201, 138, .4);
+  --sheet-strip-h: 2px;
+  --sheet-strip: var(--aurum-bronze);
+  --sheet-mark: var(--aurum-bronze-hi);
+  --sheet-mark-w: 2px;
+  --sheet-active-bg: rgba(232, 201, 138, .08);
+  color-scheme: dark;
+}
+
+html[data-theme="aurum"] { --accent-text: #e8c98a; }
+
+html[data-theme="aurum"] .engine-mode-row {
+  --mode-radius: 2px;
+  --mode-pad: 6px 9px;
+  --mode-name-spacing: .04em;
+  --mode-active-bg: linear-gradient(90deg, rgba(232, 201, 138, .18), rgba(232, 201, 138, .04));
+  --mode-active-ink: #f6e3bb;
+  --mode-active-name: #f6e3bb;
+  --mode-active-border: 1px solid rgba(232, 201, 138, .38);
+  --mode-active-mark: #e8c98a;
+  --mode-active-mark-w: 2px;
+  --mode-active-shadow: inset 0 1px 0 rgba(232, 201, 138, .12);
+  --mode-active-font: var(--font-serif);
+  --mode-missing-border: 1px dashed rgba(232, 201, 138, .2);
+  --mode-missing-name: rgba(237, 227, 205, .66);
+}
+
+html[data-theme="aurum"] .appearance-framing {
+  --af-bg: linear-gradient(180deg, #151d18, #0d1310);
+  --af-solid: #151d18;
+  --af-ink: #ede3cd;
+  --af-muted: rgba(237, 227, 205, .68);
+  --af-line: rgba(232, 201, 138, .36);
+  --af-border: 1px solid rgba(232, 201, 138, .34);
+  --af-radius: 2px;
+  --af-shadow: 0 24px 50px -24px #000;
+  --af-strip-h: 2px;
+  --af-strip: #b08a4e;
+  --af-kicker-color: #e8c98a;
+  --af-kicker-spacing: .22em;
+  --af-value-color: #f6e3bb;
+  --af-key-bg: #0b100e;
+  --af-key-ink: #ede3cd;
+  --af-key-border: 1px solid rgba(232, 201, 138, .3);
+  --af-key-radius: 2px;
+  --af-key-hover-bg: rgba(232, 201, 138, .14);
+  --af-key-hover-ink: #f6e3bb;
+  --af-key-hover-border: #e8c98a;
+  --af-reset-radius: 2px;
+  --af-zoom-ink: rgba(237, 227, 205, .78);
+  --af-hint-color: rgba(237, 227, 205, .62);
+  --af-done-bg: linear-gradient(180deg, #e8c98a, #b08a4e);
+  --af-done-solid: #b08a4e;
+  --af-done-ink: #0b100e;
+  --af-done-border: 1px solid #b08a4e;
+  --af-done-radius: 2px;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- AURUM · gilded sanctum ---------- */
+
+html[data-theme="aurum"] .settings-field input,
+html[data-theme="aurum"] .settings-field select {
+  background: var(--aurum-well);
+  border: 1px solid rgba(232, 201, 138, .3);
+  border-radius: 0;
+  color: var(--aurum-text);
+  font-family: var(--font-serif);
+  box-shadow: inset 0 1px 0 rgba(232, 201, 138, .08);
+}
+
+html[data-theme="aurum"] .settings-field input:focus,
+html[data-theme="aurum"] .settings-field select:focus {
+  border-color: var(--aurum-bronze-hi);
+  box-shadow: 0 0 0 1px var(--aurum-bronze-glow), inset 0 1px 0 rgba(232, 201, 138, .12);
+}
+
+html[data-theme="aurum"] .settings-field label { color: var(--aurum-bronze-hi); letter-spacing: .14em; }
+
+html[data-theme="aurum"] .settings-stat {
+  background: linear-gradient(180deg, rgba(232, 201, 138, .08), rgba(0, 0, 0, .22)), var(--aurum-panel);
+  border: 1px solid rgba(232, 201, 138, .32);
+  border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(232, 201, 138, .16);
+}
+
+html[data-theme="aurum"] .settings-stat span { color: var(--aurum-bronze-hi); }
+
+html[data-theme="aurum"] .settings-stat b { color: var(--aurum-text); font-family: var(--font-serif); }
+
+html[data-theme="aurum"] .settings-stat em { color: var(--aurum-text-dim); }
+
+html[data-theme="aurum"] .settings-note b { color: var(--aurum-bronze-hi); }
+
+html[data-theme="aurum"] .session-row { border-color: var(--aurum-hair); }
+
+html[data-theme="aurum"] .session-row em { color: var(--aurum-bronze-hi); }
+
+/* ---------- AURUM · bronze plaque ---------- */
+html[data-theme="aurum"] .settings-id {
+  border: 1px solid var(--aurum-bronze);
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, rgba(232, 201, 138, .14), transparent 46%),
+    linear-gradient(180deg, var(--aurum-panel-2), var(--aurum-panel));
+  box-shadow:
+    inset 0 0 0 1px rgba(232, 201, 138, .1),
+    inset 0 1px 0 rgba(232, 201, 138, .24),
+    0 14px 34px -24px rgba(0, 0, 0, .9);
+}
+
+html[data-theme="aurum"] .settings-id::before,
+html[data-theme="aurum"] .settings-id::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--aurum-bronze-hi);
+  opacity: .7;
+  pointer-events: none;
+}
+
+html[data-theme="aurum"] .settings-id::before { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
+
+html[data-theme="aurum"] .settings-id::after { right: 6px; bottom: 6px; border-left: 0; border-top: 0; }
+
+html[data-theme="aurum"] .settings-id-avatar {
+  border: 1px solid var(--aurum-bronze-hi);
+  background: radial-gradient(circle at 34% 26%, rgba(232, 201, 138, .3), rgba(0, 0, 0, .3) 70%);
+  color: var(--aurum-bronze-hi);
+  font-family: var(--font-serif);
+}
+
+html[data-theme="aurum"] .settings-id-copy b { color: var(--aurum-text); font-family: var(--font-serif); letter-spacing: .08em; }
+
+html[data-theme="aurum"] .settings-id-copy em { color: var(--aurum-text-dim); }
+
+html[data-theme="aurum"] .settings-id-tags i { border-color: rgba(232, 201, 138, .38); border-radius: 0; color: var(--aurum-bronze-hi); }

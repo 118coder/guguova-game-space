@@ -1,0 +1,220 @@
+/* ============================================================
+   RIOT · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="riot"] { color-scheme: light; }
+
+html[data-theme="riot"] {
+  --menu-bg: #faf6ed;
+  --menu-ink: #111111;
+  --menu-muted: #48443e;
+  --menu-line: #111111;
+  --menu-border: 2px solid #111111;
+  --menu-radius: 0;
+  --menu-option-radius: 0;
+  --menu-hover: #ece3d4;
+  --menu-selected-bg: #111111;
+  --menu-selected-ink: #faf6ed;
+  --menu-mark: #e2001a;
+  --menu-mark-w: 4px;
+  --menu-check: "▶";
+  --menu-scheme: light;
+  --menu-shadow: 5px 5px 0 #e2001a;
+}
+
+html[data-theme="riot"] {
+  --hero-scale-radius: 0;
+  --hs-bg: #faf6ed;
+  --hs-hover-bg: #ece3d4;
+  --hs-border: 2px solid #111111;
+  --hs-hover-line: #e2001a;
+  --hs-ink: #111111;
+  --hs-mark: #e2001a;
+  --hs-mark-w: 5px;
+  --hs-shadow: 3px 3px 0 #e2001a;
+  --hs-label-spacing: .06em;
+}
+
+/* RIOT · gig poster: black frame, red hard shadow, paper stock. */
+html[data-theme="riot"] .engine-shell {
+  --sheet-bg: var(--t-panel);
+  --sheet-ink: var(--t-ink);
+  --sheet-ink-2: var(--t-ink);
+  --sheet-muted: var(--t-ink-2);
+  --sheet-line: var(--t-ink);
+  --sheet-hair: rgba(17, 17, 17, .16);
+  --sheet-well: #faf6ed;
+  --sheet-radius: 0;
+  --sheet-shadow: 6px 6px 0 #e2001a;
+  --sheet-on-accent: #fffaf2;
+  --sheet-title-font: var(--font-ui);
+  --sheet-title-weight: 800;
+  --sheet-title-spacing: -.02em;
+  --sheet-kicker-color: #e2001a;
+  --sheet-kicker-spacing: .26em;
+  --sheet-label-color: var(--t-ink-2);
+  --sheet-label-spacing: .12em;
+  --sheet-control-radius: 0;
+  --sheet-control-bg: #faf6ed;
+  --sheet-control-border: 2px solid #111111;
+  --sheet-btn-radius: 0;
+  --sheet-primary-bg: #111111;
+  --sheet-primary-ink: #faf6ed;
+  --sheet-primary-border: 2px solid #111111;
+  --sheet-primary-shadow: 4px 4px 0 #e2001a;
+  --sheet-ghost-bg: #faf6ed;
+  --sheet-ghost-ink: #111111;
+  --sheet-ghost-border: 2px solid #111111;
+  --sheet-strip-h: 3px;
+  --sheet-strip: #e2001a;
+  --sheet-mark: #e2001a;
+  --sheet-mark-w: 4px;
+  --sheet-active-bg: #ece3d4;
+  color-scheme: light;
+}
+
+html[data-theme="riot"] { --accent-text: #b00014; }
+
+/* RIOT's preview copy sits on a black plate, so its eyebrow stays light. */
+html[data-theme="riot"] .appearance-preview-copy .appearance-eyebrow {
+  color: #f4f1ea;
+  opacity: .82;
+}
+
+html[data-theme="riot"] .appearance-preview-copy .appearance-tagline { color: #e8e1d5; }
+
+/* RIOT keeps its poster red for surfaces; readable text uses the darker pair. */
+html[data-theme="riot"] :is(.row-key, .menu-key) { color: var(--accent-text); }
+
+html[data-theme="riot"] .palette-strip-label em { color: var(--t-ink); }
+
+html[data-theme="riot"] .tile-sub { color: rgba(244, 241, 234, .9); }
+
+html[data-theme="riot"] .launch .launch-status { color: #ff8a95; }
+
+html[data-theme="riot"] .engine-shell { --sheet-kicker-color: var(--accent-text); }
+
+html[data-theme="riot"] .engine-mode-row {
+  --mode-radius: 0;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: #111111;
+  --mode-active-ink: #faf6ed;
+  --mode-active-name: #faf6ed;
+  --mode-active-border: 2px solid #111111;
+  --mode-active-mark: #cf0017;
+  --mode-active-mark-w: 6px;
+  --mode-active-shadow: 4px 4px 0 #cf0017;
+  --mode-active-weight: 800;
+  --mode-missing-border: 1px dashed #111111;
+  --mode-missing-name: #5e594f;
+}
+
+html[data-theme="riot"] .appearance-framing {
+  --af-bg: #faf6ed;
+  --af-ink: #111111;
+  --af-muted: #5e594f;
+  --af-line: #111111;
+  --af-border: 2px solid #111111;
+  --af-radius: 0;
+  --af-shadow: 5px 5px 0 #cf0017;
+  --af-strip-h: 3px;
+  --af-strip: #cf0017;
+  --af-kicker-color: #a00012;
+  --af-kicker-spacing: .18em;
+  --af-value-color: #a00012;
+  --af-key-bg: #faf6ed;
+  --af-key-ink: #111111;
+  --af-key-border: 1px solid #111111;
+  --af-key-radius: 0;
+  --af-key-hover-bg: #111111;
+  --af-key-hover-ink: #faf6ed;
+  --af-key-hover-border: #111111;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #111111;
+  --af-hint-color: #5e594f;
+  --af-done-bg: #111111;
+  --af-done-ink: #faf6ed;
+  --af-done-border: 2px solid #111111;
+  --af-done-radius: 0;
+  --af-done-shadow: 4px 4px 0 #cf0017;
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- RIOT · album sleeve ---------- */
+
+html[data-theme="riot"] .settings-field input,
+html[data-theme="riot"] .settings-field select {
+  background: #fbf7ee;
+  border: 2px solid #111111;
+  border-radius: 0;
+  color: #111111;
+  box-shadow: 4px 4px 0 #e2001a;
+  font-family: var(--font-ui);
+}
+
+html[data-theme="riot"] .settings-field input:focus,
+html[data-theme="riot"] .settings-field select:focus {
+  border-color: #111111;
+  box-shadow: 4px 4px 0 #111111;
+}
+
+html[data-theme="riot"] .settings-field label { color: #a00012; letter-spacing: .14em; }
+
+html[data-theme="riot"] .settings-stat {
+  background: #fbf7ee;
+  border: 2px solid #111111;
+  border-top: 6px solid #e2001a;
+  border-radius: 0;
+}
+
+html[data-theme="riot"] .settings-stat span { color: #a00012; }
+
+html[data-theme="riot"] .settings-stat b { color: #111111; font-family: var(--font-hero, var(--font-display)); }
+
+html[data-theme="riot"] .settings-stat em { color: #4a463f; }
+
+html[data-theme="riot"] .settings-note b { color: #111111; }
+
+html[data-theme="riot"] .session-row { border-color: #ded7c9; }
+
+html[data-theme="riot"] .session-row em { color: #a00012; }
+
+/* ---------- RIOT · stage pass ---------- */
+html[data-theme="riot"] .settings-id {
+  border: 2px solid var(--t-accent);
+  border-radius: 4px;
+  background: var(--t-panel);
+  box-shadow: 6px 6px 0 var(--t-ink);
+}
+
+html[data-theme="riot"] .settings-id-avatar {
+  border: 2px solid var(--t-ink);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--t-ink) 0 30%, var(--t-accent) 31% 36%, var(--t-ink) 37% 100%);
+  color: #fffaf2;
+  font-family: var(--font-hero, var(--font-display));
+}
+
+html[data-theme="riot"] .settings-id-copy b { color: var(--t-ink); text-transform: uppercase; letter-spacing: .04em; }
+
+html[data-theme="riot"] .settings-id-copy em { color: var(--t-muted); }
+
+html[data-theme="riot"] .settings-id-tags i {
+  border: 1px solid var(--t-ink);
+  border-radius: 0;
+  background: var(--t-accent);
+  color: var(--t-on-accent);
+  font-weight: 700;
+}

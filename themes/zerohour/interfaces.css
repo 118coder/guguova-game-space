@@ -1,0 +1,203 @@
+/* ============================================================
+   ZEROHOUR · INTERFACE SLOT MAPPING
+   ------------------------------------------------------------
+   Every value below answers one entry of the interface contract in
+   docs/THEME-INTERFACES.md. The shared sheets own layout and behaviour;
+   this file only maps that theme's material onto each slot.
+   A slot left out falls back to the shared default, so a partial
+   mapping degrades instead of breaking.
+   Generated from the per-theme blocks that used to live in app.css,
+   type.css and settings-themes.css (v1.15.0), split by theme.
+   ============================================================ */
+
+/* ==================== APP CHROME · menus, engine sheet, launch block, framing panel, accent text ==================== */
+
+html[data-theme="zerohour"] {
+  --menu-bg: #111214;
+  --menu-ink: #f1efe7;
+  --menu-muted: #a2a4ab;
+  --menu-line: #c9f73a;
+  --menu-border: 1px solid #c9f73a;
+  --menu-radius: 0;
+  --menu-option-radius: 0;
+  --menu-hover: rgba(198, 255, 46, .12);
+  --menu-selected-bg: rgba(198, 255, 46, .16);
+  --menu-mark: #c9f73a;
+  --menu-mark-w: 4px;
+  --menu-check: "▶";
+  --menu-letter: .04em;
+  --menu-scheme: dark;
+  --menu-shadow: 4px 4px 0 rgba(198, 255, 46, .28);
+}
+
+html[data-theme="zerohour"] {
+  --hero-scale-radius: 0;
+  --hs-bg: var(--zh-panel);
+  --hs-hover-bg: var(--zh-panel-2);
+  --hs-border: 1px solid var(--zh-line);
+  --hs-hover-line: var(--zh-lime, #c9f73a);
+  --hs-ink: #ffffff;
+  --hs-mark: var(--zh-lime, #c9f73a);
+  --hs-mark-w: 4px;
+  --hs-shadow: 3px 3px 0 rgba(201, 247, 58, .22);
+  --hs-label-spacing: .08em;
+  --hs-label-weight: 700;
+  --hs-hint-alpha: .82;
+}
+
+/* ZERO HOUR · street terminal: black panel, lime signal, hard edge. */
+html[data-theme="zerohour"] .engine-shell {
+  --sheet-bg: var(--zh-panel);
+  --sheet-ink: #ffffff;
+  --sheet-ink-2: #d4d6da;
+  --sheet-muted: var(--zh-gray);
+  --sheet-line: var(--zh-line);
+  --sheet-hair: rgba(255, 255, 255, .1);
+  --sheet-well: var(--zh-black);
+  --sheet-radius: 0;
+  --sheet-shadow: 6px 6px 0 rgba(198, 255, 46, .32);
+  --sheet-on-accent: var(--zh-ink);
+  --sheet-title-font: var(--font-ui);
+  --sheet-title-weight: 800;
+  --sheet-title-spacing: -.01em;
+  --sheet-kicker-color: var(--zh-lime, #c9f73a);
+  --sheet-kicker-spacing: .3em;
+  --sheet-label-color: var(--zh-gray);
+  --sheet-label-spacing: .16em;
+  --sheet-label-transform: uppercase;
+  --sheet-control-radius: 0;
+  --sheet-control-bg: var(--zh-black);
+  --sheet-control-border: 1px solid var(--zh-line);
+  --sheet-btn-radius: 0;
+  --sheet-primary-bg: var(--zh-lime, #c9f73a);
+  --sheet-primary-ink: var(--zh-ink);
+  --sheet-primary-border: 1px solid var(--zh-lime, #c9f73a);
+  --sheet-primary-shadow: 4px 4px 0 rgba(198, 255, 46, .25);
+  --sheet-ghost-bg: transparent;
+  --sheet-ghost-ink: var(--zh-white);
+  --sheet-ghost-border: 1px solid var(--zh-line);
+  --sheet-strip-h: 2px;
+  --sheet-strip: var(--zh-lime, #c9f73a);
+  --sheet-mark: var(--zh-lime, #c9f73a);
+  --sheet-mark-w: 4px;
+  --sheet-active-bg: rgba(201, 247, 58, .08);
+  color-scheme: dark;
+}
+
+html[data-theme="zerohour"] { --accent-text: var(--zh-lime, #c9f73a); }
+
+html[data-theme="zerohour"] .engine-mode-row {
+  --mode-radius: 0;
+  --mode-pad: 6px 9px;
+  --mode-active-bg: #17191d;
+  --mode-active-ink: #ffffff;
+  --mode-active-name: #ffffff;
+  --mode-active-border: 1px solid var(--zh-lime, #c9f73a);
+  --mode-active-mark: var(--zh-lime, #c9f73a);
+  --mode-active-mark-w: 4px;
+  --mode-active-shadow: 3px 3px 0 rgba(201, 247, 58, .28);
+  --mode-missing-border: 1px dashed #34373e;
+  --mode-missing-name: #a4a7ae;
+}
+
+html[data-theme="zerohour"] .appearance-framing {
+  --af-bg: #111214;
+  --af-ink: #ffffff;
+  --af-muted: #a2a4ab;
+  --af-line: #c9f73a;
+  --af-border: 1px solid #c9f73a;
+  --af-radius: 0;
+  --af-shadow: 4px 4px 0 rgba(201, 247, 58, .3);
+  --af-strip-h: 2px;
+  --af-strip: #c9f73a;
+  --af-kicker-color: #c9f73a;
+  --af-kicker-spacing: .2em;
+  --af-value-color: #c9f73a;
+  --af-key-bg: #08090a;
+  --af-key-ink: #f1efe7;
+  --af-key-border: 1px solid #2c2e34;
+  --af-key-radius: 0;
+  --af-key-hover-bg: rgba(201, 247, 58, .14);
+  --af-key-hover-ink: #ffffff;
+  --af-key-hover-border: #c9f73a;
+  --af-reset-radius: 0;
+  --af-zoom-ink: #d4d6da;
+  --af-hint-color: #a2a4ab;
+  --af-done-bg: #c9f73a;
+  --af-done-ink: #0a0b0c;
+  --af-done-border: 1px solid #0a0b0c;
+  --af-done-radius: 0;
+  --af-done-shadow: 3px 3px 0 rgba(201, 247, 58, .28);
+}
+
+/* ==================== SETTINGS SURFACES · fields, stat cards, session rows, identity card ==================== */
+
+/* ---------- ZERO HOUR · command deck ---------- */
+
+html[data-theme="zerohour"] .settings-field input,
+html[data-theme="zerohour"] .settings-field select {
+  background: var(--zh-panel);
+  border: 1px solid rgba(201, 247, 58, .34);
+  border-radius: 0;
+  color: var(--zh-white);
+  font-family: var(--mn-mono);
+  box-shadow: inset 0 0 0 1px rgba(201, 247, 58, .06);
+}
+
+html[data-theme="zerohour"] .settings-field input:focus,
+html[data-theme="zerohour"] .settings-field select:focus {
+  border-color: var(--zh-yellow);
+  box-shadow: 0 0 0 1px rgba(201, 247, 58, .28);
+}
+
+html[data-theme="zerohour"] .settings-field label { color: var(--zh-yellow); letter-spacing: .18em; }
+
+html[data-theme="zerohour"] .settings-stat {
+  background: var(--zh-panel);
+  border: 1px solid rgba(201, 247, 58, .28);
+  border-left: 4px solid var(--zh-yellow);
+  border-radius: 0;
+}
+
+html[data-theme="zerohour"] .settings-stat span { color: var(--zh-yellow); }
+
+html[data-theme="zerohour"] .settings-stat b { color: var(--zh-white); font-family: var(--mn-mono); }
+
+html[data-theme="zerohour"] .settings-stat em { color: var(--zh-gray); }
+
+html[data-theme="zerohour"] .settings-note b { color: var(--zh-yellow); }
+
+html[data-theme="zerohour"] .session-row { border-color: rgba(201, 247, 58, .18); }
+
+html[data-theme="zerohour"] .session-row em { color: var(--zh-yellow); }
+
+/* ---------- ZERO HOUR · hazard sticker ---------- */
+html[data-theme="zerohour"] .settings-id {
+  border: 2px solid var(--zh-paper);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, var(--zh-yellow) 0 8px, transparent 8px),
+    repeating-linear-gradient(135deg, rgba(255, 230, 0, .07) 0 10px, transparent 10px 20px),
+    var(--zh-black);
+  box-shadow: 6px 6px 0 rgba(255, 230, 0, .2);
+}
+
+html[data-theme="zerohour"] .settings-id-avatar {
+  border: 2px solid var(--zh-black);
+  border-radius: 0;
+  background: var(--zh-yellow);
+  color: var(--zh-black);
+  font-weight: 800;
+}
+
+html[data-theme="zerohour"] .settings-id-copy b { color: var(--zh-white); letter-spacing: .04em; }
+
+html[data-theme="zerohour"] .settings-id-copy em { color: var(--zh-gray); }
+
+html[data-theme="zerohour"] .settings-id-tags i {
+  border: 1px solid var(--zh-yellow);
+  border-radius: 0;
+  background: transparent;
+  color: var(--zh-yellow);
+  font-weight: 700;
+}

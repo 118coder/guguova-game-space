@@ -10,6 +10,7 @@
   "base": "system",
   "dark": false,
   "intro": "broadcast",
+  "curtainMs": 360,
   "sounds": {
     "bong": "sounds/bong.ogg",
     "click": "sounds/click.ogg",

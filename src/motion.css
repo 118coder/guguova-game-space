@@ -1112,10 +1112,10 @@ html.reduce-motion .theme-curtain .tc-rule {
   transition: none !important;
 }
 
-/* ---------- NOVA launch: anamorphic slit ---------- */
-html[data-theme="nova"] .launch.is-open .launch-art {
-  animation: nvLaunch 720ms cubic-bezier(.2, .8, .3, 1) both;
-}
+/* ---------- NOVA launch: anamorphic slit ----------
+   The rule binding it to the built-in theme lives in theme-nova.css (slot
+   `launch-art`). Keyframes stay global because @keyframes names behaviour,
+   not a theme; every other theme declares its own in its theme.css. */
 @keyframes nvLaunch {
   from { clip-path: inset(49.6% 0 49.6% 0); transform: scale(1.08); filter: brightness(.4) saturate(1.1); }
   to { clip-path: inset(0); transform: none; filter: brightness(.78) saturate(1.08); }

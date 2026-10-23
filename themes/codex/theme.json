@@ -10,6 +10,8 @@
   "base": "system",
   "dark": true,
   "intro": "codex",
+  "curtainMs": 430,
+  "pinned": 4,
   "sounds": {
     "bong": "sounds/bong.ogg",
     "click": "sounds/click.ogg",

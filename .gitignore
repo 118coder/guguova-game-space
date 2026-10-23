@@ -63,3 +63,8 @@ third_party/magpie/*.exe
 third_party/magpie/*.dll
 third_party/magpie/*.pri
 third_party/magpie/effects/
+
+# ---------- Rust / WebAssembly kernel ----------
+# The compiled .wasm is committed (src/assets/nova_palette.wasm) so a plain
+# dotnet build never needs a Rust toolchain; only the build products are ignored.
+wasm/**/target/

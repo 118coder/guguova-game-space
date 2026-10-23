@@ -1,10 +1,10 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.15.0**
-> 交接时间：2026-10-21
+> 交接版本：**1.16.0**
+> 交接时间：2026-10-23
 > 分支：`main`，工作区**有未提交改动**（本轮全部改动）
-> 上一版：1.14.4（流水线式发布，`6652f09` / `bb296d2`）
-> 发行：**v1.15.0 已发布**（PR #27 squash 合并 → `tools/release.sh` 全绿 → GitHub Release）
+> 上一版：1.15.0（多平台入库、首启提示、入库窗口）
+> 发行：**未发布**（本轮只做架构改造，未走 `release.sh --publish`）
 > 产物：`GUGUOVA-1.15.0-single.exe` 9.35 MB（sha256 前 16 位 `5516fc489cddfde8`）、
 > `GUGUOVA-1.15.0-legacy-single.zip` 13.61 MB、`GUGUOVA-1.15.0-legacy-full.zip` 16.94 MB
 > 打包日志：`../_shots/release/1.15.0/pipeline.log`（build → package → verify → smoke 全过）
@@ -14,7 +14,11 @@
 
 ## 0. 一句话状态
 
-应用 **1.15.0**，14 套主题。**入库不再是 Steam 专属**：Steam / Epic / GOG /
+应用 **1.16.0**，14 套主题，**主题已改为接口式映射架构**：
+共享样式表不再出现任何具体主题 id，每套主题用自己的
+`themes/<id>/interfaces.css` 映射全部共享控件；新增主题**不需要改 `src/`**。
+
+其余功能与 1.15.0 一致。**入库不再是 Steam 专属**：Steam / Epic / GOG /
 Ubisoft / EA / Xbox（PC Game Pass）/ 战网 七家统一扫描、分组勾选、一次写入；
 首次启动会问一次要不要自动入库；点「添加游戏」先选「自动扫描」还是「手动添加」。
 入库窗口长在 `.engine-shell` 的 `--sheet-*` 材质上，14 套主题各自成立。
@@ -47,7 +51,122 @@ Ubisoft / EA / Xbox（PC Game Pass）/ 战网 七家统一扫描、分组勾选�
 
 ---
 
-## 2. 本轮做的四件事
+## 1.5 本轮唯一主题：接口式映射架构（1.16.0）
+
+### 问题
+
+1.15.0 之前，主题知识散在共享样式表里：`app.css` 111 处、
+`settings-themes.css` 214 处、`type.css` 30 处 `html[data-theme="…"]`，
+外加 `app.js` 里的 `CURTAIN_HOLD` 与 `THEME_PREFIX` 两张硬编码表。
+**每加一套主题都要动主代码**，而且一次重构就可能悄悄改变某个主题的层叠胜负。
+
+### 做法
+
+| 文件 | 职责 |
+| --- | --- |
+| `src/theme-slots.css` | 新增。共享插槽容器规则 + 引擎弹窗内部令牌重绑 |
+| `themes/<id>/interfaces.css` | 新增 13 份。每套主题的插槽映射（共 313 条规则） |
+| `src/theme-nova.css` | 新增。内置 nova 无主题目录，映射随包分发 |
+| `src/app.css` / `type.css` / `settings-themes.css` | 主题块全部移出，只剩共享规则 |
+
+清单新增三个字段，`app.js` 不再有主题常量表：
+
+| 字段 | 作用 |
+| --- | --- |
+| `interfaces` | 映射文件路径，缺省 `interfaces.css`，缺失则用共享默认 |
+| `curtainMs` | 幕布合拢时长（原 `CURTAIN_HOLD` 表），200–1200，越界取 420 |
+| `pinned` | 外观网格固定位次（原 `THEME_PREFIX`），不写则按使用次数排序 |
+
+### 层叠顺序（**最关键，改动前必读**）
+
+```
+共享表 → theme-slots.css → interfaces.css → 主题自己的 theme.css → compat.css
+```
+
+`interfaces.css` 必须排在主题 `theme.css` **之前**。这不是随意选的：
+历史上这些规则就活在共享表里，本来就排 `theme.css` 之前；
+本轮曾把它放在之后，实测 DUSK 设置卡从 55.5% 像素差异、STEAM 设置页 46.7%
+整体变样。调回之前的位置后差异降到 0.009%（仅备份时间戳文字）。
+
+### 验证
+
+| 项 | 结果 |
+| --- | --- |
+| 像素比对 | 重构前/后各 84 张（14 主题 × 6 界面，PNG）；**58 张逐字节相同**，其余最大 0.078%，全部集中在实时备份时间戳与抗锯齿 |
+| 静态对比度 | 14 主题 × 17 界面，**0 失败**（比 1.15.0 更好：顺带修掉 nova 取景浮层 2 处既有失败） |
+| 悬停对比度 | 14 主题 × 4 界面，**0 失败** |
+| 契约守门 | `node tools/theme-slot-check.js --strict` → 0 finding |
+| 新主题验证 | 临时建 `themes/probe`（只写自己的文件夹）→ 入库/设置/引擎弹窗全部正常，验完删除 |
+| 构建 | `dotnet build -c Debug` 0 错误（4 个既有警告） |
+
+### 顺带修掉的真问题
+
+| 问题 | 位置 | 修法 |
+| --- | --- | --- |
+| nova 取景浮层取色值 **1.95:1**（深封面时） | `src/theme-nova.css` | `--af-value-color` 改用 `var(--accent-text)`（已按对比度提亮） |
+| nova「完成」按钮墨字压深蓝底的 **2.08:1** | `app.js` + `theme-nova.css` | 新增 `readableOn()`，按实际底色在深/白之间选字色，写 `--accent-on` |
+
+> 这两处在 1.15.0 就存在（用重构前代码复跑同一审计复现了相同数值），本轮顺手修好。
+
+---
+
+## 1.6 性能与可选加速层（1.16.0 同轮）
+
+### 先测，再改
+
+本轮第一件事是建立 `tools/perf-baseline.js`，但测量结果**推翻了我的初始假设**：
+
+| 指标 | 实测 | 结论 |
+| --- | --- | --- |
+| 页面首屏（热启动） | 128ms | 健康 |
+| 开屏动画 | 164 FPS，0 掉帧，p95 6.2ms | 健康 |
+| 主题切换（热） | 41–46ms | 在 100ms 预算内 |
+| 换字标 | 5.9ms | 无需优化 |
+| 全文档重算（稳定态） | 8.8–14.8ms | 在一帧内 |
+| **冷启动到 CDP 就绪** | **1620ms** | 真瓶颈 |
+| **启动主线程 `UpdateLayoutTree`** | **334ms** | 一次性样式解析成本 |
+
+曾误判的两处，记录在此避免下轮重走：
+
+1. `intro.css` 有 711 条规则但**首帧 0 条命中**。禁用后重算反而从 20.6ms
+   变 23ms —— 这只是噪声。Chrome 按 selector hash 索引，未命中的规则几乎零成本。
+2. 第一次测到「首屏 1052ms」是 **WebView2 进程冷启动的一次性成本**。
+   热启动下 `domContentComplete` 73ms、首屏 128ms。不要把冷启动算到页面头上。
+
+### 真正改掉的
+
+| 改动 | 位置 | 效果 |
+| --- | --- | --- |
+| `SyncSteamPlaytime()` 移出 WebView 创建前的同步路径，改为首屏后后台执行并推 `playtime-synced` | `MainWindow.xaml.cs` | 冷启动不再等 `localconfig.vdf` 解析 |
+| GPU 进程崩溃自愈（`GpuProcessExited` → 标记 + 通知 + 软件渲染重建） | 同上 | 白窗口变成可用窗口；下次启动直接软件渲染 |
+
+> 之前只处理了 `RenderProcessExited`，GPU 退出无人接管。
+
+### 可选加速层（WebGPU + WebAssembly）
+
+见 [`CAPABILITIES.md`](CAPABILITIES.md)。三档 `gpu / wasm / js`，一条铁律：
+**加速只买速度，不买功能**。
+
+关键实测（三种后端，同一张图）：
+
+| 图像 | JS | WASM | GPU |
+| --- | --- | --- | --- |
+| 192×108 | 1.1ms | **0.3ms** | 3.0ms |
+| 768×432 | 9.6ms | **4.3ms** | 6.6ms |
+| 1920×1080 | 58.6ms | 25.8ms | **20.6ms** |
+
+- **WASM 全尺寸快 2.2–3 倍** → 默认后端；
+- **GPU 有约 3ms 固定往返成本** → 只在 ≥ 1M 像素时接管；
+- 最初的「有 GPU 就用 GPU」让缩略图慢了 8 倍。这类回归不报错、不白屏，
+  所以 `GPU_MIN_PIXELS` 是测出来的常量，不是猜的。
+
+验证：`test-palette.js` 10 组合成图逐案一致（容差 1.5e-3，来自 float32
+累加顺序）；`build-wasm.js --check` 保证 4.3KB 产物与源码同步；三档降级
+（GPU → WASM → JS）逐档实测返回正确结果。
+
+---
+
+## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
 
@@ -378,6 +497,18 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 | 悬停对比度审计 | `tools/audit-hover.js`（视图含 `import`） |
 | 截图 / 布局审计 | `tools/export-all.js`（视图含 `import`） |
 | 完整设计规范 | `docs/THEME-DESIGN-SPEC.md` |
+| **主题插槽契约** | `docs/THEME-INTERFACES.md` §16 |
+| **共享插槽默认** | `src/theme-slots.css` |
+| **每套主题的插槽映射** | `themes/<id>/interfaces.css`（内置 nova 在 `src/theme-nova.css`） |
+| **契约守门** | `tools/theme-slot-check.js`（进 `release.sh`） |
+| **像素比对** | `tools/pixel-diff.js` |
+| **加速能力契约** | `docs/CAPABILITIES.md` |
+| **能力路由 / 降级** | `src/capability/capability.js` |
+| **GPU 取色 kernel** | `src/capability/gpu-palette.js`（WGSL） |
+| **WASM 取色 kernel** | `wasm/palette/src/lib.rs` → `src/assets/nova_palette.wasm` |
+| **性能基准** | `tools/perf-baseline.js` |
+| **三后端一致性** | `tools/test-palette.js` |
+| **GPU 崩溃自愈** | `MainWindow.xaml.cs` `DegradeToSoftwareRendering` |
 
 ---
 
@@ -529,7 +660,8 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 | 1.14.0 | 缩放引擎选项对齐 Magpie、文案清理、hover/focus 白块与图标修复、`audit-hover` |
 | 1.14.1 | 单文件 exe：内嵌主题、前端资源与 Magpie 引擎 |
 | 1.14.4 | 流水线式打包：`release.sh` + verify + smoke + publish；`NOVA_DATA_ROOT` |
-| **1.15.0** | **多平台入库（Epic/GOG/Ubisoft/EA/Xbox/战网）、首次启动提示、添加游戏先选路、入库窗口 14 主题适配、`import` 视图进入三条审计** |
+| 1.15.0 | 多平台入库（Epic/GOG/Ubisoft/EA/Xbox/战网）、首次启动提示、添加游戏先选路、入库窗口 14 主题适配、`import` 视图进入三条审计 |
+| **1.16.0** | **接口式映射架构（主题零主代码改动）；可选加速层 WebGPU+WASM 三档降级；GPU 崩溃自愈；Steam 时长同步移出冷启动；新增 `perf-baseline` / `test-palette` / `theme-slot-check` / `build-wasm` 四个守门工具；修 nova 取色两处对比度** |
 
 ---
 
