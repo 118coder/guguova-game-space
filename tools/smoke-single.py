@@ -148,6 +148,23 @@ def main() -> int:
             failures.append("the launcher never exposed CDP — it did not start cleanly")
         else:
             payload = cdp_eval_node(port, """
+                // Themes load asynchronously (listThemes -> read CSS -> apply),
+                // and the interface layer is injected by theme-engine.js after
+                // that. Querying the moment CDP answers races the boot and
+                // reports 1 theme. Wait for the shell to settle first.
+                const deadline = Date.now() + 20000;
+                const ready = () => {
+                  // app.js, theme-engine.js and the native bridge all have to
+                  // be alive before any of this means anything.
+                  if (!window.nova || !window.NovaTheme) return false;
+                  const themed = (window.NovaTheme.themes || []).length > 1;
+                  const iface = document.getElementById('theme-interfaces');
+                  const hasRules = iface && iface.sheet && iface.sheet.cssRules.length > 0;
+                  return themed && hasRules;
+                };
+                while (!ready() && Date.now() < deadline) {
+                  await new Promise((r) => setTimeout(r, 200));
+                }
                 const status = await window.nova.call('magpieStatus');
                 const themes = (window.NovaTheme.themes || []).length;
                 const broken = [...document.images]
@@ -155,8 +172,23 @@ def main() -> int:
                   .length;
                 const sheets = [...document.querySelectorAll('link[rel=stylesheet]')]
                   .filter((link) => link.getAttribute('href') && !link.sheet).length;
+                // The interface-slot layer is injected by theme-engine.js, not
+                // by a <link>, so a missing interfaces.css would never show up
+                // as a broken stylesheet. Check the sheet actually landed and
+                // carries the active theme's mapping.
+                const iface = document.getElementById('theme-interfaces');
+                const ifaceRules = iface && iface.sheet ? iface.sheet.cssRules.length : 0;
+                const themed = iface && iface.sheet
+                  ? [...iface.sheet.cssRules].some((r) =>
+                      r.selectorText && r.selectorText.includes('data-theme='))
+                  : false;
+                // Optional accelerator layer: present but never required.
+                const cap = window.NovaCapability;
+                const tier = cap ? cap.tier : 'absent';
+                const plan = cap ? cap.plan(96, 54) : 'absent';
                 return { bundled: status.bundled, engine: status.exePath,
-                         available: status.available, themes, broken, badSheets: sheets };
+                         available: status.available, themes, broken, badSheets: sheets,
+                         ifaceRules, ifaceThemed: themed, capTier: tier, capPlan: plan };
             """)
             print("  " + json.dumps(payload, ensure_ascii=False))
             # 14 = 13 folder themes + the built-in "nova" theme, which lives in
@@ -167,6 +199,18 @@ def main() -> int:
                 failures.append(f"{payload['broken']} broken image(s)")
             if payload.get("badSheets"):
                 failures.append(f"{payload['badSheets']} stylesheet(s) failed to load")
+            # The slot mapping must load and be scoped to a theme, otherwise
+            # every shared control silently falls back to the generic default.
+            if not payload.get("ifaceRules"):
+                failures.append("theme interface layer (interfaces.css) did not load")
+            elif not payload.get("ifaceThemed"):
+                failures.append("theme interface layer has no data-theme scoped rule")
+            # The tier is whatever this machine negotiated (gpu / wasm / js)
+            # and the probe runs opportunistically after first paint, so only
+            # presence is asserted here — that it resolved at all is the
+            # contract; which backend won depends on the host.
+            if payload.get("capTier") in (None, "absent"):
+                failures.append("capability layer is not present in the bundle")
             if not payload.get("available"):
                 failures.append("engine not resolvable")
             elif not payload.get("bundled"):
