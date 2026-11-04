@@ -247,6 +247,11 @@ public sealed class NativeBridge
                     args.ValueKind == JsonValueKind.Object && args.TryGetProperty("hidden", out var hidden) && hidden.ValueKind == JsonValueKind.True),
                 "listDrives" => new { ok = true, drives = FileBrowser.Drives() },
                 "readImagePreview" => ReadImagePreview(args),
+                "checkUpdate" => BeginUpdateCheck(),
+                "maybeAutoUpdateCheck" => MaybeAutoUpdateCheck(),
+                "downloadUpdate" => BeginUpdateDownload(args),
+                "cancelUpdateDownload" => CancelUpdateDownload(),
+                "openUpdateFolder" => OpenUpdateFolder(),
                 "windowState" => WindowStatePayload(),
                 _ => new { error = $"unknown method {method}" }
             };
@@ -534,8 +539,17 @@ public sealed class NativeBridge
         return genre.Split(new[] { '·', '/', ',', '，', '、' }, StringSplitOptions.RemoveEmptyEntries).Select(part => part.Trim()).Where(part => part.Length > 0).ToArray();
     }
 
+    /// <summary>
+    /// Media URL with the file's mtime as the cache key. The bytes under
+    /// nova.media/&lt;id&gt;/cover.jpg change when the player swaps artwork
+    /// (cover refresh, icon regeneration, Steam re-import) while the URL
+    /// stays identical — WebView2 then kept serving the cached image until
+    /// a restart, which is exactly the report this stamp answers. Same
+    /// treatment the avatar already gets on the frontend.
+    /// </summary>
     private static string MediaUrl(string path, string gameId, string fallbackName)
     {
+        string candidate = null;
         try
         {
             if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
@@ -544,13 +558,33 @@ public sealed class NativeBridge
                 var mediaRoot = Path.GetFullPath(AppPaths.Media);
                 if (full.StartsWith(mediaRoot, StringComparison.OrdinalIgnoreCase))
                 {
-                    var relative = CompatUtil.RelativePath(AppPaths.Media, full).Replace('\\', '/');
-                    return $"https://nova.media/{relative}";
+                    candidate = full;
                 }
             }
         }
         catch { }
-        return $"https://nova.media/{gameId}/{fallbackName}.jpg";
+
+        if (candidate == null)
+        {
+            // The generated-cover fallback lives at the same media slot; it is
+            // regenerated in place, so it needs the stamp just as much.
+            var fallback = Path.Combine(AppPaths.Media, gameId, fallbackName + ".jpg");
+            if (File.Exists(fallback)) candidate = fallback;
+        }
+
+        if (candidate == null)
+            return $"https://nova.media/{gameId}/{fallbackName}.jpg";
+
+        try
+        {
+            var relative = CompatUtil.RelativePath(AppPaths.Media, candidate).Replace('\\', '/');
+            var stamp = File.GetLastWriteTimeUtc(candidate).Ticks;
+            return $"https://nova.media/{relative}?v={stamp}";
+        }
+        catch
+        {
+            return $"https://nova.media/{gameId}/{fallbackName}.jpg";
+        }
     }
 
     private object SaveSettings(JsonElement args)
@@ -630,9 +664,128 @@ public sealed class NativeBridge
             }
             if (args.TryGetProperty("developerMode", out var developer) && developer.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.DeveloperMode = developer.GetBoolean();
+            if (args.TryGetProperty("autoCheckUpdates", out var autoCheck) && autoCheck.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.AutoCheckUpdates = autoCheck.GetBoolean();
         }
         _store.Save();
         return new { ok = true };
+    }
+
+    /* ---------- update check + package download (GitHub releases) ---------- */
+
+    private object BeginUpdateCheck()
+    {
+        _store.Library.Settings.LastUpdateCheckUtc = DateTime.UtcNow.ToString("o");
+        _store.Save();
+        Task.Run(async () =>
+        {
+            try
+            {
+                Notify("update-status", new { phase = "checking" });
+                var result = await UpdateService.CheckAsync(CancellationToken.None);
+                Notify("update-status", new
+                {
+                    phase = "result",
+                    ok = result.Ok,
+                    error = result.Error,
+                    current = result.Current,
+                    latest = result.Latest,
+                    available = result.Available,
+                    assetName = result.AssetName,
+                    assetSize = result.AssetSize,
+                    assetUrl = result.AssetUrl,
+                    notes = TruncateNotes(result.Notes)
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Error("update check", ex);
+                Notify("update-status", new { phase = "error", error = ex.Message });
+            }
+        });
+        return new { ok = true, checking = true };
+    }
+
+    /// <summary>Runs once after boot when the player opted into daily checks;
+    /// otherwise it is a no-op so the launcher stays fully offline.</summary>
+    private object MaybeAutoUpdateCheck()
+    {
+        var settings = _store.Library.Settings;
+        if (!settings.AutoCheckUpdates) return new { ok = true, skipped = "disabled" };
+        if (DateTime.TryParse(settings.LastUpdateCheckUtc, out var last)
+            && (DateTime.UtcNow - last).TotalHours < 24)
+        {
+            return new { ok = true, skipped = "recent" };
+        }
+        return BeginUpdateCheck();
+    }
+
+    private object BeginUpdateDownload(JsonElement args)
+    {
+        var url = GetString(args, "url");
+        var name = GetString(args, "name");
+        if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
+            return new { ok = false, error = "缺少下载信息，请先检查更新" };
+        var token = UpdateService.BeginDownloadScope();
+        Task.Run(async () =>
+        {
+            try
+            {
+                Notify("update-status", new { phase = "downloading", name });
+                var path = await UpdateService.DownloadAsync(new UpdateCandidate(name, 0, url!),
+                    (received, total) => Notify("update-progress", new
+                    {
+                        percent = total > 0 ? (int)(received * 100 / total) : 0,
+                        receivedBytes = received,
+                        totalBytes = total
+                    }), token);
+                Notify("update-status", new { phase = "done", path, name });
+            }
+            catch (OperationCanceledException)
+            {
+                Notify("update-status", new { phase = "cancelled" });
+            }
+            catch (Exception ex)
+            {
+                Log.Error("update download", ex);
+                Notify("update-status", new { phase = "error", error = ex.Message });
+            }
+        });
+        return new { ok = true };
+    }
+
+    private object CancelUpdateDownload()
+    {
+        UpdateService.CancelDownload();
+        return new { ok = true };
+    }
+
+    private object OpenUpdateFolder()
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(UpdateService.UpdatesDir);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = UpdateService.UpdatesDir,
+                UseShellExecute = true
+            });
+            return new { ok = true };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("open update folder", ex);
+            return new { ok = false, error = "打不开下载文件夹" };
+        }
+    }
+
+    private static string? TruncateNotes(string? notes)
+    {
+        if (string.IsNullOrEmpty(notes)) return null;
+        var line = notes.Replace("\r\n", "\n");
+        var cut = line.IndexOf('\n');
+        if (cut >= 0) line = line.Substring(0, cut);
+        return line.Length > 160 ? line.Substring(0, 160) + "…" : line;
     }
 
     private object SetAvatar(JsonElement args)
@@ -1653,11 +1806,17 @@ public sealed class NativeBridge
             {
                 if (!File.Exists(explicitImage))
                     return new { ok = false, error = $"找不到这张图片：{explicitImage}" };
-                if (_media.ImportImage(game.Id, explicitImage!) == null)
+                // The analysis must come from THIS import: the old code followed
+                // up with ApplyMedia(game, null), whose fallback branch regenerates
+                // the executable-icon composite and clobbers the player's cover —
+                // the typed artwork won the write and lost the file.
+                Log.Write($"create game typed image: {explicitImage}");
+                var typedAnalysis = _media.ImportImage(game.Id, explicitImage!);
+                if (typedAnalysis == null)
                     return new { ok = false, error = "无法读取这张图片（格式不支持或文件已损坏）" };
                 game.HeroPath = Path.Combine(_media.GameMediaDir(game.Id), "hero.jpg");
                 game.CoverPath = Path.Combine(_media.GameMediaDir(game.Id), "cover.jpg");
-                ApplyMedia(game, null);
+                ApplyAnalysis(game, typedAnalysis);
             }
             else
             {

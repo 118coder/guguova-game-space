@@ -860,7 +860,8 @@ html[data-theme="summer"] .detail-art-copy .detail-logo {
 .modal-close:hover { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
 
 .manage-panel { border-top: 1px solid var(--t-line); }
-.manage-kicker { color: var(--t-accent); font-size: 8.5px; }
+/* Sky blue on the white modal was 3.13:1 — accent is a marker, not small text. */
+.manage-kicker { color: var(--t-ink-2); font-size: 8.5px; }
 .manage-head h3 { color: var(--t-ink); font-family: var(--font-display); font-size: 26px; font-weight: 400; }
 .manage-row { color: var(--t-ink); border-bottom: 1px solid var(--t-line); border-radius: calc(var(--r-card) / 2); }
 .manage-row:hover { color: var(--t-accent); background: var(--t-panel-2); }

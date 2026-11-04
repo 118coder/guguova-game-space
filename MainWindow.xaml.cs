@@ -50,7 +50,7 @@ public partial class MainWindow : Window
     private StoreService Store { get; } = new();
     private MediaService Media { get; } = new();
     private LauncherService? Launcher { get; set; }
-    private NativeBridge? Bridge { get; set; }
+    internal NativeBridge? Bridge { get; set; }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
@@ -369,9 +369,14 @@ public partial class MainWindow : Window
         try
         {
             var version = typeof(MainWindow).Assembly.GetName().Version?.ToString() ?? "0";
+            // The asset content stamp rides along: re-releasing the same
+            // version number with different embedded assets must still reset
+            // the renderer cache, or the shell URL (?v=<version>) keeps
+            // serving the previous build's HTML.
+            var key = $"{version}:{Services.AssetBootstrapper.ContentStamp}";
             var root = CacheRoot();
             var marker = Path.Combine(root, ".renderer-version");
-            if (Directory.Exists(root) && File.Exists(marker) && File.ReadAllText(marker) == version)
+            if (Directory.Exists(root) && File.Exists(marker) && File.ReadAllText(marker) == key)
                 return;
 
             var caches = new[]
@@ -389,7 +394,7 @@ public partial class MainWindow : Window
             }
 
             Directory.CreateDirectory(root);
-            File.WriteAllText(marker, version);
+            File.WriteAllText(marker, key);
             Log.Write($"renderer cache reset for {version}");
         }
         catch (Exception ex)

@@ -539,6 +539,70 @@ body.layout-rail .view-home .dock-title {
 
 .settings-card .settings-field { margin-top: 14px; }
 
+/* ---------- update check (about card) ---------- */
+.update-block {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hair, rgba(255, 255, 255, .14));
+}
+
+.update-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.update-state {
+  min-width: 0;
+  font-size: var(--text-label, 12px);
+  color: var(--muted, inherit);
+  overflow-wrap: anywhere;
+}
+
+.update-buttons { display: flex; gap: 8px; flex: none; }
+
+.update-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.update-progress-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--hair, rgba(255, 255, 255, .14));
+}
+
+.update-progress-track i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .25s ease;
+}
+
+.update-progress-pct {
+  flex: none;
+  min-width: 38px;
+  text-align: right;
+  font-size: var(--text-label, 12px);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted, inherit);
+}
+
+.update-note {
+  margin-top: 10px;
+  font-size: var(--text-label, 12px);
+  color: var(--muted, inherit);
+  overflow-wrap: anywhere;
+}
+
 /* The side column is narrower: stack its stat cards 2×2. */
 .settings-card--system .settings-stats {
   grid-template-columns: repeat(2, minmax(0, 1fr));

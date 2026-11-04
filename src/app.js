@@ -111,6 +111,21 @@
           : (payload.reason || '没有可以缩放的游戏'), payload.ok ? 'fullscreen' : 'alert');
         return;
       }
+      if (message.type === 'activated-running') {
+        // An old (pre-takeover) exe forwarded activation to this instance:
+        // explain why "running the old version" shows the current one.
+        const version = message.payload && message.payload.version;
+        toast(`GUGUOVA v${version || '?'} 已在运行 · 要运行旧版请先从托盘退出`, 'info');
+        return;
+      }
+      if (message.type === 'update-status') {
+        onUpdateStatus(message.payload || {});
+        return;
+      }
+      if (message.type === 'update-progress') {
+        onUpdateProgress(message.payload || {});
+        return;
+      }
       if (message.type === 'window-state') {
         syncMaxButton(!!message.payload?.maximized);
         return;
@@ -177,6 +192,8 @@
     // Set while the Steam client owns a launch and no process has appeared yet.
     launchPendingId: null,
     manageOpen: false,
+    manageCollapsed: false,
+    liveSignature: '',
     manageConfirming: false,
     manageConfirmTimer: null,
     removeArmed: false,
@@ -308,6 +325,8 @@
     detailManage: $('#detailManage'),
     detailManageLabel: $('#detailManageLabel'),
     managePanel: $('#managePanel'),
+    manageToggle: $('#manageToggle'),
+    manageBody: $('#manageBody'),
     manageClose: $('#manageClose'),
     manageStats: $('#manageStats'),
     manageSteam: $('#manageSteam'),
@@ -548,6 +567,16 @@
     settingsSessions: $('#settingsSessions'),
     settingsSessionTag: $('#settingsSessionTag'),
     settingsVersion: $('#settingsVersion'),
+    updateCheckBtn: $('#updateCheckBtn'),
+    updateDownloadBtn: $('#updateDownloadBtn'),
+    updateFolderBtn: $('#updateFolderBtn'),
+    updateState: $('#updateState'),
+    updateProgress: $('#updateProgress'),
+    updateProgressFill: $('#updateProgressFill'),
+    updateProgressPct: $('#updateProgressPct'),
+    updateNote: $('#updateNote'),
+    updateAutoRow: $('#updateAutoRow'),
+    updateAutoSwitch: $('#updateAutoSwitch'),
     settingsAvatar: $('#settingsAvatar'),
     settingsAvatarButton: $('#settingsAvatarButton'),
     settingsAvatarImg: $('#settingsAvatarImg'),
@@ -1613,7 +1642,8 @@
         scalingHotkey: state.settings.scalingHotkey || 3137,
         autoStartEngine: state.settings.autoStartEngine === true,
         startupFullscreen: state.settings.startupFullscreen === true,
-        idlePauseMinutes: Number.isFinite(state.settings.idlePauseMinutes) ? state.settings.idlePauseMinutes : 10
+        idlePauseMinutes: Number.isFinite(state.settings.idlePauseMinutes) ? state.settings.idlePauseMinutes : 10,
+        autoCheckUpdates: state.settings.autoCheckUpdates === true
       });
     }, 180);
   }
@@ -2263,6 +2293,25 @@
     });
   }
 
+  /* The per-card live bits, shared by the full render and the 30s live
+     patch so the two can never drift apart. */
+  function libraryBadgesHTML(game, featured) {
+    const badges = [];
+    if (featured) badges.push('<span class="lib-current">CURRENT</span>');
+    if (state.running.has(game.id)) badges.push('<span class="lib-badge live">运行中</span>');
+    else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
+    else if (isPlatformGame(game)) badges.push(`<span class="tile-badge">${esc(platformShort(game))}</span>`);
+    return badges.join('');
+  }
+
+  function librarySubHTML(game) {
+    return `${esc((game.genres && game.genres[0]) || game.genre || '游戏')} · ${state.running.has(game.id) ? '运行中' : formatHoursShort(game.playtimeSeconds)}`;
+  }
+
+  function libraryProgressPct(game) {
+    return Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100));
+  }
+
   function renderLibrary() {
     const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
     const favorites = state.games.filter((game) => game.favorite).length;
@@ -2321,12 +2370,7 @@
 
     els.libGrid.innerHTML = list.map((game, index) => {
       const featured = game.id === featuredId;
-      const badges = [];
-      if (featured) badges.push('<span class="lib-current">CURRENT</span>');
-      if (state.running.has(game.id)) badges.push('<span class="lib-badge live">运行中</span>');
-      else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
-      else if (isPlatformGame(game)) badges.push(`<span class="tile-badge">${esc(platformShort(game))}</span>`);
-      const pct = Math.min(100, Math.round(((game.playtimeSeconds || 0) / 3600 / 40) * 100));
+      const pct = libraryProgressPct(game);
       const displayName = shortName(game);
       const showLatin = !!game.name
         && displayName.trim().toLowerCase() !== game.name.trim().toLowerCase()
@@ -2346,7 +2390,7 @@
           <button class="lib-card${featured ? ' is-featured' : ''}${longName ? ' is-long-name' : ''}" data-game="${game.id}" style="animation-delay:${Math.min(index * 34, 240)}ms" aria-label="${esc(game.zh || game.name)}">
             <div class="lib-art">
               <img src="${esc(game.coverUrl)}" alt="" loading="lazy" draggable="false" style="object-position:${esc(game.coverPosition)}">
-              <div class="lib-badges">${badges.join('')}</div>
+              <div class="lib-badges">${libraryBadgesHTML(game, featured)}</div>
               <span class="lib-open" aria-hidden="true"><svg class="ic"><use href="#i-arrow-up-right"/></svg></span>
               ${game.exists ? `<div class="lib-progress"><i style="width:${pct}%"></i></div>` : ''}
               <span class="lib-fav${game.favorite ? ' is-on' : ''}" data-fav="${game.id}" role="button" tabindex="0"
@@ -2360,7 +2404,7 @@
                 <span class="lib-name${showLatin ? '' : ' is-solo'}">${esc(displayName)}</span>
                 ${showLatin ? `<span class="lib-en">${esc(game.name)}</span>` : ''}
               </div>
-              <div class="lib-sub">${esc((game.genres && game.genres[0]) || game.genre || '游戏')} · ${state.running.has(game.id) ? '运行中' : formatHoursShort(game.playtimeSeconds)}</div>
+              <div class="lib-sub">${librarySubHTML(game)}</div>
             </div>
           </button>
         </div>
@@ -2779,6 +2823,7 @@
     state.manageOpen = true;
     els.detailsOverlay.classList.add('is-managing');
     els.managePanel.hidden = false;
+    setManageBodyCollapsed(false);
     els.detailManageLabel.textContent = '收起';
     els.detailManage.setAttribute('aria-expanded', 'true');
     fillManage();
@@ -2786,6 +2831,14 @@
     setTimeout(() => {
       try { els.managePanel.scrollIntoView({ behavior: state.settings.reduceMotion ? 'auto' : 'smooth', block: 'nearest' }); } catch (error) {}
     }, 40);
+  }
+
+  /** The manage panel folds under its own title bar: the body hides, the
+      header stays as the toggle. Opening via 管理 always expands. */
+  function setManageBodyCollapsed(collapsed) {
+    state.manageCollapsed = !!collapsed;
+    if (els.manageBody) els.manageBody.hidden = state.manageCollapsed;
+    if (els.manageToggle) els.manageToggle.setAttribute('aria-expanded', String(!state.manageCollapsed));
   }
 
   function closeManage(options = {}) {
@@ -3872,6 +3925,8 @@
     els.settingsPlayerName.value = state.settings.playername || '';
     if (els.settingsOsUser) els.settingsOsUser.textContent = state.userName || '—';
     if (els.settingsVersion) els.settingsVersion.textContent = state.version;
+    setPrefSwitch(els.updateAutoRow, els.updateAutoSwitch, state.settings.autoCheckUpdates === true);
+    updateRender();
     if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
     const system = state.system || {};
     const displayName = state.settings.playername || state.userName || '玩家';
@@ -4086,6 +4141,77 @@
     saveSettings();
     audio.toggle();
     toast(state.settings.autoBackup ? '每天自动备份已开启' : '每天自动备份已关闭', 'check');
+  }
+
+  /* ============================================================
+     UPDATE CHECK (GitHub releases — the only feature that goes online)
+     ============================================================ */
+
+  function formatBytes(n) {
+    if (!Number.isFinite(n) || n <= 0) return '';
+    if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+    return `${Math.round(n / 1024)} KB`;
+  }
+
+  function updateRender() {
+    const info = state.update || { phase: 'idle' };
+    const busy = info.phase === 'checking' || info.phase === 'downloading';
+    if (els.updateCheckBtn) {
+      els.updateCheckBtn.hidden = info.phase === 'downloading';
+      els.updateCheckBtn.disabled = busy;
+    }
+    if (els.updateDownloadBtn) els.updateDownloadBtn.hidden = !(info.phase === 'result' && info.available);
+    if (els.updateFolderBtn) els.updateFolderBtn.hidden = info.phase !== 'done';
+    if (els.updateProgress) els.updateProgress.hidden = info.phase !== 'downloading';
+    if (els.updateState) {
+      els.updateState.textContent =
+        info.phase === 'checking' ? '正在检查更新…'
+          : info.phase === 'downloading' ? `正在下载 ${info.name || '更新包'}…`
+            : info.phase === 'result' && info.available ? `发现新版本 v${info.latest} · 当前 v${info.current}`
+              : info.phase === 'result' ? `已是最新 · v${info.current}`
+                : info.phase === 'done' ? `已下载 ${info.name} · 运行它即可升级（新版会接管旧版）`
+                  : info.phase === 'cancelled' ? '下载已取消'
+                    : info.phase === 'error' ? `检查失败：${info.error || '未知错误'}`
+                      : `当前版本 ${state.version}`;
+    }
+    if (els.updateNote) {
+      const text = info.phase === 'result' && info.available
+        ? [info.notes, formatBytes(info.assetSize)].filter(Boolean).join(' · ')
+        : '';
+      els.updateNote.hidden = !text;
+      els.updateNote.textContent = text;
+    }
+  }
+
+  function onUpdateStatus(payload) {
+    state.update = { ...(state.update || {}), ...payload };
+    updateRender();
+    if (payload.phase === 'result' && payload.available) {
+      toast(`发现新版本 v${payload.latest} · 设置里可下载`, 'cloud');
+    } else if (payload.phase === 'done') {
+      toast('更新包已下载', 'check');
+    } else if (payload.phase === 'error') {
+      toast(payload.error || '更新检查失败', 'alert');
+    }
+  }
+
+  function onUpdateProgress(payload) {
+    const percent = Math.max(0, Math.min(100, payload.percent || 0));
+    if (els.updateProgressFill) els.updateProgressFill.style.width = `${percent}%`;
+    if (els.updateProgressPct) els.updateProgressPct.textContent = `${percent}%`;
+  }
+
+  async function checkForUpdates() {
+    const result = await call('checkUpdate');
+    if (result && result.ok === false) toast(result.error || '无法启动检查', 'alert');
+  }
+
+  function toggleUpdateAuto() {
+    state.settings.autoCheckUpdates = !(state.settings.autoCheckUpdates === true);
+    setPrefSwitch(els.updateAutoRow, els.updateAutoSwitch, state.settings.autoCheckUpdates);
+    saveSettings();
+    audio.toggle();
+    toast(state.settings.autoCheckUpdates ? '每天自动检查更新已开启' : '每天自动检查更新已关闭', 'check');
   }
 
   function showExportResult(title, path, detail) {
@@ -4797,11 +4923,84 @@
   }
 
   /* keep "运行中" counters fresh every 30 s */
+  /** Everything the 30s live refresh can change. When the launcher is idle
+      this string does not move, and the refresh must not touch the DOM at
+      all — a full renderLibrary() here replayed every card's entry
+      animation, which read as "the launcher refreshes itself" while parked
+      in the library (user report). */
+  function liveSignature() {
+    const parts = [state.index, state.games.length];
+    for (const game of state.games) {
+      parts.push(
+        game.id,
+        state.running.has(game.id) ? 1 : 0,
+        game.playtimeSeconds || 0,
+        game.exists ? 1 : 0,
+        game.favorite ? 1 : 0,
+        game.lastPlayedUtc || '',
+        game.launchCount || 0,
+        // The mtime-stamped media URL changes whenever the artwork is
+        // rewritten — the live patch must follow it or the card keeps the
+        // old image until the next full render.
+        game.coverUrl || ''
+      );
+    }
+    return parts.join('|');
+  }
+
+  /** In-place patch of the library cards' live bits (badges / favourite /
+      progress / sub line / CURRENT ring). Same content as renderLibrary's
+      template — shared helpers above — but no innerHTML on the grid, so no
+      image repaints and no entry-animation replay. */
+  function refreshLibraryLive() {
+    const featuredId = currentGame()?.id || null;
+    els.libGrid.querySelectorAll('.lib-card[data-game]').forEach((card) => {
+      const game = findGame(card.dataset.game);
+      if (!game) return;
+      const featured = game.id === featuredId;
+      card.classList.toggle('is-featured', featured);
+      const art = $('.lib-art img', card);
+      if (art && art.getAttribute('src') !== game.coverUrl) art.src = game.coverUrl || '';
+      const badges = $('.lib-badges', card);
+      if (badges) badges.innerHTML = libraryBadgesHTML(game, featured);
+      const fav = $('.lib-fav', card);
+      if (fav) {
+        fav.classList.toggle('is-on', !!game.favorite);
+        fav.setAttribute('aria-pressed', String(!!game.favorite));
+      }
+      const progress = $('.lib-progress', card);
+      if (progress) {
+        progress.style.display = game.exists ? '' : 'none';
+        const fill = $('i', progress);
+        if (fill) fill.style.width = `${libraryProgressPct(game)}%`;
+      }
+      const sub = $('.lib-sub', card);
+      if (sub) sub.innerHTML = librarySubHTML(game);
+    });
+    const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
+    const favorites = state.games.filter((game) => game.favorite).length;
+    const platformCount = state.games.filter(isPlatformGame).length;
+    const missingCount = state.games.filter((game) => !game.exists).length;
+    els.libStats.innerHTML = `
+      <span><b>${state.games.length}</b> 款游戏</span>
+      <span class="lib-sep"></span>
+      <span>累计 <b>${formatHoursShort(totalSeconds)}</b></span>
+      <span class="lib-sep"></span>
+      <span><b>${platformCount}</b> 款来自平台</span>
+      <span class="lib-sep"></span>
+      <span><b>${favorites}</b> 款收藏</span>
+      ${missingCount ? `<span class="lib-sep"></span><span><b>${missingCount}</b> 款程序缺失</span>` : ''}
+    `;
+  }
+
   function refreshLive() {
     if (state.overlay === 'details' && currentGame()) updateDetailProgress(currentGame());
-    if (state.view === 'library') renderLibrary();
-    if (!state.overlay && state.view === 'home' && currentGame()) renderHero(currentGame(), false);
+    const signature = liveSignature();
+    if (signature === state.liveSignature) return;
+    state.liveSignature = signature;
     updateRail();
+    if (state.view === 'library') refreshLibraryLive();
+    if (!state.overlay && state.view === 'home' && currentGame()) renderHero(currentGame(), false);
   }
 
   /* ============================================================
@@ -4994,7 +5193,10 @@
     return out;
   }
 
-  function importDossier() {
+  /** Applies dossier text to the form. onlyEmpty fills just the blanks —
+      that is the save-time merge, where a value the player typed wins and
+      the pasted material must never clobber it. */
+  function applyDossierToForm({ onlyEmpty = false } = {}) {
     const parsed = parseDossier(els.dossierText.value);
     const applied = [];
     DOSSIER_FIELDS.forEach((field) => {
@@ -5003,9 +5205,15 @@
       if (value === undefined || !String(value).trim()) return;
       const input = els[field.id];
       if (!input) return;
+      if (onlyEmpty && String(input.value || '').trim()) return;
       input.value = value;
       applied.push(field.keys[0]);
     });
+    return { applied, parsed };
+  }
+
+  function importDossier() {
+    const { applied, parsed } = applyDossierToForm();
     if (!applied.length) {
       toast('没有识别到可导入的资料', 'info');
       return;
@@ -5056,6 +5264,9 @@
     els.fDesc.value = '';
     els.fAge.value = '';
     els.fMode.value = '';
+    // Stale dossier text from a previous session would get merged into the
+    // next game on save — the paste belongs to the game it was written for.
+    els.dossierText.value = '';
     if (els.fTypeRecipe) els.fTypeRecipe.value = '';
     els.editorPreviewImg.classList.remove('is-loaded');
     els.editorPreviewImg.removeAttribute('src');
@@ -5135,6 +5346,19 @@
   }
 
   async function saveEditor() {
+    // Material pasted into the dossier but never imported must not die
+    // silently: a save with "封面：…" still sitting in the textarea used to
+    // add the game with a generated icon cover and no error anywhere. Fill
+    // the blanks from the paste first — typed values always win.
+    const merged = applyDossierToForm({ onlyEmpty: true });
+    if (merged.applied.length) {
+      if (merged.parsed.fImage && !String(els.fImage.value || '').trim()) {
+        previewImageFromPath(merged.parsed.fImage);
+      }
+      syncEditorPreview();
+      toast(`已从格式化资料补全 ${merged.applied.length} 项`, 'check');
+    }
+
     const exePath = cleanPath(els.fExe.value);
     const imagePath = cleanPath(els.fImage.value);
     if (!exePath) {
@@ -5568,6 +5792,16 @@
     if (els.settingsAvatarButton) els.settingsAvatarButton.addEventListener('click', chooseAvatar);
     if (els.settingsClearAvatar) els.settingsClearAvatar.addEventListener('click', clearAvatar);
     if (els.settingsAutoBackupRow) els.settingsAutoBackupRow.addEventListener('click', toggleAutoBackup);
+    if (els.updateCheckBtn) els.updateCheckBtn.addEventListener('click', checkForUpdates);
+    if (els.updateDownloadBtn) {
+      els.updateDownloadBtn.addEventListener('click', () => {
+        const info = state.update || {};
+        if (!info.assetUrl || !info.assetName) return;
+        call('downloadUpdate', { url: info.assetUrl, name: info.assetName });
+      });
+    }
+    if (els.updateFolderBtn) els.updateFolderBtn.addEventListener('click', () => call('openUpdateFolder'));
+    if (els.updateAutoRow) els.updateAutoRow.addEventListener('click', toggleUpdateAuto);
     if (els.settingsStartupRow) els.settingsStartupRow.addEventListener('click', toggleStartup);
     if (els.settingsStartupFullscreenRow) els.settingsStartupFullscreenRow.addEventListener('click', toggleStartupFullscreen);
     if (els.settingsMinimizeRow) els.settingsMinimizeRow.addEventListener('click', toggleMinimizeSetting);
@@ -5757,10 +5991,30 @@
       return items;
     }
 
+    // Right-clicking a library card or a rail tile scopes the game entries to
+    // THAT game: without this the menu answered with the current game, so
+    // every "游戏详情" opened the same title no matter which card was clicked.
+    const libCard = target.closest('.lib-card[data-game]');
+    const railTile = target.closest('.tile[data-index]');
+    const scopedGame = libCard
+      ? findGame(libCard.dataset.game)
+      : railTile
+        ? state.games[Number(railTile.dataset.index)] || null
+        : null;
+    const gameForMenu = scopedGame || currentGame();
+
     const theme = window.NovaTheme && window.NovaTheme.find(state.theme);
     items.push({ label: theme ? `界面主题 · ${theme.name}` : '界面主题', icon: 'spark', action: openAppearance });
-    items.push({ label: '游戏详情', icon: 'info', action: openDetails, disabled: !currentGame() });
-    items.push({ label: '在资源管理器中显示', icon: 'folder', action: () => currentGame() && call('revealGame', { id: currentGame().id }), disabled: !currentGame()?.exists });
+    items.push({
+      label: '游戏详情',
+      icon: 'info',
+      action: () => {
+        if (scopedGame && scopedGame.id !== currentGame()?.id) chooseGameById(scopedGame.id, { sound: false });
+        openDetails();
+      },
+      disabled: !gameForMenu
+    });
+    items.push({ label: '在资源管理器中显示', icon: 'folder', action: () => gameForMenu && call('revealGame', { id: gameForMenu.id }), disabled: !gameForMenu?.exists });
     if (themeId && window.NovaTheme) {
       const card = window.NovaTheme.find(themeId);
       const active = window.NovaTheme.activeId === themeId;
@@ -7188,6 +7442,12 @@
       else openManage();
     });
     els.manageClose.addEventListener('click', () => closeManage());
+    if (els.manageToggle) {
+      els.manageToggle.addEventListener('click', () => {
+        audio.toggle();
+        setManageBodyCollapsed(!state.manageCollapsed);
+      });
+    }
     els.manageDoneBtn.addEventListener('click', () => closeManage());
     els.removeGameBtn.addEventListener('click', handleRemoveGame);
     els.editRow.addEventListener('click', () => {
@@ -7609,7 +7869,8 @@
         ? Math.max(0, boot.settings.idlePauseMinutes) : 10,
       startupFullscreen: boot.settings?.startupFullscreen === true,
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
-      developerMode: boot.settings?.developerMode === true
+      developerMode: boot.settings?.developerMode === true,
+      autoCheckUpdates: boot.settings?.autoCheckUpdates === true
     };
     state.developerMode = boot.developerMode === true;
     state.developerModeEnv = boot.developerModeEnv === true;
@@ -7623,7 +7884,12 @@
     state.storage = boot.storage || null;
     state.dataFolder = boot.dataFolder || '';
     state.backupsFolder = boot.backupsFolder || '';
+    state.liveSignature = liveSignature();
     state.version = boot.version || '1.5.3';
+    // Daily auto-check is opt-in and fires long after boot; the host no-ops
+    // unless the player turned it on. Failures are silent here — a toast on
+    // every startup hiccup would be worse than a missed check.
+    if (hasBridge) setTimeout(() => { call('maybeAutoUpdateCheck'); }, 8000);
     if (els.libSort) els.libSort.value = state.settings.librarySort;
     if (els.profileVersion) els.profileVersion.textContent = `${state.version} · 桌面版`;
     state.running = new Map();

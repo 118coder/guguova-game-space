@@ -453,11 +453,19 @@ base.css → theme.css → … → app.css → views.css → … → theme-slots
 | 全屏缩放行 | `.hero-scale` | `--hs-*` | `app.css` `.hero-scale` |
 | 取景浮层 | `.appearance-framing` | `--af-*` | `app.css` `.appearance-framing` |
 | 算法选择行 | `.engine-mode-row` | `--mode-*` | `app.css` `.engine-mode-row` |
+| 启动方式芯片 | `.steam-mode` | `--sm-*` | `app.css` `.steam-mode`（默认吃 `--hair` / `--accent`，纸面主题不开映射也可读） |
 | 设置控件 | `.settings-field` / `.settings-stat` / `.session-row` | 可读色 | `views.css` 的 `--ink` / `--muted` |
 | 用户卡 | `.settings-id` | 可读色 | `views.css` |
 | 强调文字 | 全局 | `--accent-text` | `app.css` §「accent as a marker」 |
 | 强调底色上的字 | 全局 | `--accent-on` | `app.js` `readableOn()` |
 | 启动动画 | `.launch.is-open .launch-art` | `animation` | `motion.css`（关键帧全局） |
+
+`--sm-*`（1.16.3 新增）成员：`--sm-radius / --sm-border / --sm-ink / --sm-bg /`
+`--sm-hover-border / --sm-hover-bg / --sm-hover-ink / --sm-active-border /`
+`--sm-active-bg / --sm-active-ink / --sm-focus`。默认值从 `--hair` / `--accent`
+派生，所以不映射也能用；endfield 在自己的 `interfaces.css` 里给了
+「选中 = 实心信号黄 + 墨字」的签名配方。激活底色上的字必须用
+`--sm-active-ink`，不得借用 accent 当文字。
 
 **两种合法的映射写法**，插槽检查器都接受：
 

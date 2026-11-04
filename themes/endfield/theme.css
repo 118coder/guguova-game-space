@@ -233,16 +233,32 @@ html.calm .scene-stack { transform: none !important; }
 }
 
 /* Square icon buttons (detail heart / manage) sit on a white modal, so their
-   rest state needs ink too: base.css's translucent-white default was 1:1. */
+   rest state needs ink too: base.css's translucent-white default was 1:1.
+   The shared circle is nova's language — here they take the sheet's cut
+   corners, and the favourited heart switches to signal with an ink glyph
+   (accent-on-accent would vanish on the signal hover fill). */
 html[data-theme="endfield"] .icon-btn.square {
   color: var(--ef-ink);
   background: transparent;
   border-color: var(--ef-ink);
+  border-radius: 0;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
 }
-html[data-theme="endfield"] .icon-btn.square:hover {
+html[data-theme="endfield"] .icon-btn.square:hover,
+html[data-theme="endfield"] .icon-btn.square:focus-visible {
   color: var(--ef-ink);
   background: var(--ef-signal);
-  border-color: var(--ef-signal);
+  border-color: var(--ef-ink);
+  outline: none;
+}
+html[data-theme="endfield"] .icon-btn.heart.active {
+  color: var(--ef-ink);
+  background: var(--ef-signal);
+  border-color: var(--ef-ink);
+}
+html[data-theme="endfield"] .icon-btn.heart.active .ic {
+  fill: var(--ef-ink);
+  stroke: var(--ef-ink);
 }
 
 .icon-btn:active { transform: translateY(1px); }
@@ -1040,10 +1056,31 @@ html[data-theme="endfield"] .lib-search .keycap {
 .lib-name { color: var(--ef-ink); font-weight: 700; }
 .lib-en { color: var(--ef-ink-2); }
 .lib-sub { color: var(--ef-ink-2); font-size: 10px; }
-/* The heart sits on the shared dark scrim over the artwork, so the ink
-   heart of the old name-row marker would vanish here. Signal yellow marks
-   the toggle, ink stays reserved for paper. */
-html[data-theme="endfield"] .lib-fav { color: var(--ef-signal); }
+/* The heart toggle answers the jump arrow's cut-corner plate: paper at rest,
+   signal once the game is favourited. The shared dark glass circle is nova's
+   language and reads as a smudge on this paper theme; ink stays reserved for
+   paper, signal marks the toggle. clip-path clips the focus ring, so focus
+   gets the signal fill instead of an outline. */
+html[data-theme="endfield"] .lib-fav {
+  border-radius: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid var(--ef-ink);
+  background: var(--ef-panel);
+  color: var(--ef-ink);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+}
+html[data-theme="endfield"] .lib-fav:hover,
+html[data-theme="endfield"] .lib-fav:focus-visible {
+  background: var(--ef-signal);
+  color: var(--ef-ink);
+}
+html[data-theme="endfield"] .lib-fav.is-on {
+  background: var(--ef-signal);
+  border-color: var(--ef-ink);
+  color: var(--ef-ink);
+}
+html[data-theme="endfield"] .lib-fav.is-on .ic { fill: var(--ef-ink); }
 
 .lib-current {
   border-radius: 0;

@@ -105,6 +105,21 @@ html[data-theme="endfield"] .engine-mode-row {
   --mode-missing-name: var(--ef-ink-2);
 }
 
+/* Launch-mode chips in the detail manage panel: the active chip is the same
+   solid signal plate the rest of the theme uses for "selected", not a
+   translucent accent wash. */
+html[data-theme="endfield"] .steam-mode {
+  --sm-radius: 0;
+  --sm-border: var(--ef-rule);
+  --sm-ink: var(--ef-ink-2);
+  --sm-hover-border: var(--ef-ink);
+  --sm-hover-ink: var(--ef-ink);
+  --sm-active-border: var(--ef-ink);
+  --sm-active-bg: var(--ef-signal);
+  --sm-active-ink: var(--ef-ink);
+  --sm-focus: var(--ef-ink);
+}
+
 html[data-theme="endfield"] .appearance-framing {
   --af-bg: #ffffff;
   --af-ink: #161616;

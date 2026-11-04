@@ -1060,7 +1060,11 @@ html[data-theme="dusk"] .dialog-mark { color: var(--dk-terra); }
 html[data-theme="dusk"] .detail-path { color: var(--dk-ink-2); }
 html[data-theme="dusk"] .detail-sync { border-color: rgba(106, 87, 64, .24); color: var(--dk-ink-3); }
 html[data-theme="dusk"] .detail-sync .text-btn { color: var(--dk-terra); }
-html[data-theme="dusk"] .manage-panel { border-radius: 2px; border-color: rgba(106, 87, 64, .26); background: rgba(255, 252, 244, .62); }
+html[data-theme="dusk"] .manage-panel { border-radius: 2px; border-color: rgba(106, 87, 64, .26); background: rgba(255, 252, 244, .94); }
+/* The stat cards kept the shared dark plate while the panel text went ink;
+   on that plate the ink measured 1.29:1. Paper plate, ink text. */
+html[data-theme="dusk"] .manage-stat { background: var(--dk-paper-edge); }
+html[data-theme="dusk"] .manage-stats { border-color: rgba(106, 87, 64, .18); background: rgba(106, 87, 64, .18); }
 html[data-theme="dusk"] .manage-row { border-color: rgba(106, 87, 64, .22); color: var(--dk-ink); }
 html[data-theme="dusk"] .manage-row:hover { background: rgba(169, 80, 58, .07); }
 html[data-theme="dusk"] .manage-steam { border-color: rgba(106, 87, 64, .24); background: rgba(255, 252, 244, .6); }

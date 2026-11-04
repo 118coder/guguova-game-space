@@ -1,7 +1,7 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.0**
-> 交接时间：2026-10-23
+> 交接版本：**1.16.1**
+> 交接时间：2026-11-05
 > 分支：`main`，工作区**有未提交改动**（本轮全部改动）
 > 上一版：1.15.0（多平台入库、首启提示、入库窗口）
 > 发行：**未发布**（本轮只做架构改造，未走 `release.sh --publish`）
@@ -328,6 +328,74 @@ shell URL 加 `?v=<程序集版本>`，版本变化后旧缓存按构造不可�
 | 收藏 | 双向切换、详情不再被打开、点卡片仍开详情、键盘 Enter 可切换 |
 | 对比度 | nova/endfield/dusk/summer × library/editor 0 失败 |
 
+### 用户回访 · 手动添加时图标合成覆盖玩家封面（真根因，1.16.4 同轮）
+
+用户要求：手动添加游戏并填入封面路径时，**封面路径必须优先于图标**。
+逐层实测后找到真根因——之前「HeroPath=null、路径没送到」的判断是错的：
+
+**CreateGame 的带图分支先导入玩家封面，随后补了一刀
+`ApplyMedia(game, null)`——它的兜底分支无条件走
+`ImportExecutableIcon`，用 exe 图标重新生成 hero/cover，
+把刚写入的玩家封面整个覆盖掉**（配色分析也换成了图标的）。
+所以无论玩家填什么封面，手动添加的入库结果都是图标合成图。
+
+修法：带图分支与 UpdateGame 对齐——`ImportImage` 返回的 analysis
+直接 `ApplyAnalysis`，不再调用 ApplyMedia。nova.log 增加
+`create game typed image: <路径>` 一行便于以后排查。
+其余 ApplyMedia 调用点（扫描导入候选封面、重置封面回图标）语义正确，保留。
+
+验证（像素级，这次不只看 URL）：
+
+| 项 | 结果 |
+| --- | --- |
+| 直调桥 createGame + 封面 | media/hero.jpg = 玩家封面（134KB，非图标合成） |
+| 完整 UI 添加流 → 库卡片像素 | avg 571 = 封面参考值（图标合成为 ~133） |
+
+**教训**：(1) 验证图片类修复必须看最终像素/文件内容，payload URL 正确
+不代表内容正确；(2) 无头 QA 里新旧 QA 根、残留实例、同名 media 目录会让
+"看图" 读到旧文件——每次验证前先打 ID/时间戳；(3) 构建链里的中文 grep
+在编码抖动下会静默断掉 `&&` 链，后面的步骤根本没执行，还以为跑过了。
+
+### 用户回访三补刀 · 换封面要重启才生效（1.16.4 同轮）
+
+用户更新封面后卡片不刷新，必须重启。根因是缓存键：封面文件被替换后
+URL（`nova.media/<id>/cover.jpg`）不变，WebView2 一直吃 HTTP 缓存里的
+旧图。头像早有同款先例（前端 `avatarFileUrl` 的 `?v=stamp`），这次把
+同样的键给到全部媒体：
+
+- `NativeBridge.MediaUrl`：存在文件的媒体 URL 追加 `?v=<mtime ticks>`；
+  图标合成兜底图（`media/<id>/{hero,cover}.jpg`）同样参与（它也会被
+  「重新生成封面」原地重写）。URL 每次载荷现算，不落库。
+- 生效面：库卡片、首页主视觉/背景、详情主视觉、外观取景——一次修死
+  「换封面 / 重新生成 / Steam 重导」三类原地重写。
+- 验证（真机 CDP + 完整编辑器 UI 流）：加图 A → 编辑换图 B → 同一会话
+  卡片 URL 戳变化且像素变化（avg 133 → 571），无需重启；截图在
+  `_shots/swap/card-{A,B}.png`。
+
+### 用户回访 · 挂机时界面"时不时刷新"（1.16.4 同轮）
+
+用户发现挂机时启动器似乎在周期性刷新。根因：`refreshLive`（30s 定时）
+无条件 `renderLibrary()` + `renderHero()`——**整个库网格 innerHTML 重建**，
+每张卡片的入场动画全部重播，首页则重发封面录制层、重设字标。挂机时数据
+没有任何变化，这些全是白做且可见的重绘。
+
+修法（`app.js`）：
+
+- `liveSignature()`：每款游戏的 running/playtime/exists/favorite/
+  lastPlayed/launchCount + coverUrl（mtime 戳会随换图变化）+ 当前选中。
+- `refreshLive` 先算签名，**没变化就一行 DOM 都不碰**（详情进度条除外，
+  它只在详情打开时走且代价为零）。
+- `refreshLibraryLive()`：数据变化时的**原地修补**——徽标 / 收藏态 /
+  进度条 / 副标题 / CURRENT 环 / 图片 src（配合 mtime 缓存键）逐卡就地
+  更新，不再 innerHTML 重建。徽标与副标题的模板抽成
+  `libraryBadgesHTML / librarySubHTML / libraryProgressPct` 与全量渲染
+  共用，两条路径不会漂移。
+- 签名在 boot 时初始化。
+
+验证：无头宿主挂库视图 36s（跨 ≥1 个 tick），挂钩 libGrid/libStats/rail
+的 innerHTML setter 计数——**0 次写入**（修复前每 30s 各一次）。截图字节
+对比不适用：主题顶部色带等循环动画属设计内的持续变化。
+
 ### 下一轮 P0（用户已点名的方向）
 
 1. **收藏角标主题化深度**：目前心形颜色跟随主题，板式仍是共享暗板；
@@ -338,6 +406,138 @@ shell URL 加 `?v=<程序集版本>`，版本变化后旧缓存按构造不可�
 3. **五平台真机**（延续 1.15.0 P0-1）、README 截图更新（延续）
 4. 发行：v1.16.2 已构建（dist/），**尚未发布**——
    `python tools/publish-release.py --version 1.16.2`
+
+---
+
+## 1.10 用户回访四修 + 检查更新（1.16.1）
+
+用户实机回访（endfield 主题）报了四张截图 + 两条新需求，全部处理：
+
+### 图二 · 任何游戏详情页都显示同一款（真 bug，已修）
+
+**根因**：右键菜单的「游戏详情」固定调用 `openDetails()` → `currentGame()`。
+在游戏库里右键任何卡片 → 详情永远是**当前选中**的游戏（用户的当前游戏是
+DNF，于是"打开任何游戏详情页面都是图二"）。用用户库的隔离副本 + 真机 CDP
+实测复现：右键第 2 张卡 → 详情打开的是当前游戏（Blender）。
+
+**修法**（`app.js contextItemsFor`）：识别指针下的 `.lib-card[data-game]`
+/ `.tile[data-index]`，详情动作先 `chooseGameById` 再 `openDetails`；
+「在资源管理器中显示」同样定位到被右键的游戏。已实测：右键第 2 张卡 →
+详情正确打开第 2 款。
+
+### 图一 · 收藏心形不符合主题（endfield 重绘）
+
+`.lib-fav` 的共享底是 nova 的暗色玻璃圆盘，在纸面主题上像一块污渍。
+endfield 改为切角方块：静置=纸白墨心描边，悬停/聚焦=信号黄，已收藏=信号黄
++墨色实心（与 `.lib-open`/`.lib-current` 同一语言）。clip-path 会裁掉
+focus outline，endfield 的焦点态改用信号黄填充表达。详情页底部的心形
+`.icon-btn.square.heart` 同步从圆形改为切角方块，激活态墨心（避免
+黄上黄隐形）。endfield bump 1.0.18。
+
+### 图三 · 管理面板按钮主题化 + 可折叠
+
+1. **`.steam-mode` 令牌化**：启动方式芯片此前只有共享样式（8px 圆角 +
+   半透明 accent 洗底），从未进主题契约。现在共享侧消费 `--sm-*`
+   （默认从 `--hair`/`--accent` 派生，14 套主题不开映射也可读），
+   endfield 在 `interfaces.css` 给出「选中=实心信号黄+墨字」的签名。
+   插槽清单 §16.4 已登记（未加进 `theme-slot-check` 的必填表：默认值可读）。
+2. **标题栏折叠**：管理面板头部改为 h3 内嵌 `button.manage-toggle`
+   （游戏管理 + 游戏设置 + caret），点击折叠 `#manageBody`（stats/Steam
+   启动/操作行/移除按钮），`aria-expanded` 同步，「管理」按钮打开时总是
+   展开，X 与「完成」行为不变。
+
+### 图四 · 格式化资料占位改架空游戏 + 30% 透明度
+
+占位示例从真实游戏名（DNF-Season1-Act4）换成虚构示例库的「流明谷」，
+`.editor-dossier textarea::placeholder { opacity: .3 }`。
+
+### 用户回访补刀 · 管理面板 Steam 区块对比度（14 主题全查）
+
+用户指出管理面板 Steam 区块的「未检测到…」一行几乎看不见，并要求查所有主题。
+根因是双层盲区：管理面板在标准视图审计里从不展开，Steam 区块还只对平台游戏
+显示——所以三条审计都没测过它。
+
+| 修复 | 位置 | 说明 |
+| --- | --- | --- |
+| `.manage-steam-title/state/note` | `src/type.css` | 固定亮色 tint 与薄荷绿状态色 → `--ink` / `--muted`（状态 ok/warn 都用墨色，语义在文字里；`--accent-text` 在 DUSK 纸面板上实测 3.78:1，弃用） |
+| `.manage-stat span/b` | `src/type.css`（加载序在 theme.css 后，是真正的胜者） | 固定亮 tint → `--muted` / `--ink`。此前 grimoire / mnemo / riot / riso / summer 的统计卡文字在纸底上 1:1 隐形 |
+| `.manage-kicker` / `.manage-head .icon-btn` | `src/theme.css` | 固定 `.26` 白 → `--muted`（nightflight/steam 此前 2.3:1） |
+| summer kicker | `themes/summer/theme.css` | 天蓝小字 3.13:1 → `--t-ink-2`（铁律 1：accent 不做小字），bump 1.0.16 |
+| dusk 管理卡 | `themes/dusk/theme.css` | 统计卡留着共享暗底 `#0c0e14` 而面板文字已改墨 → 卡改 `--dk-paper-edge`；面板底 `.62 → .94`（半透明纸压暮色场景，混色不可控），bump 2.0.11 |
+
+自建一次性审计（14 主题 + nova × 管理面板 14 条文字，canvas 归一化解析
+`color(srgb …)`）逐主题校验条数后全 AA。**教训**：v1 审计的正则没吃到
+`color-mix()` 的计算值格式，静默 0 条还报了「全过」——对比度自建脚本必须
+校验「实际测到的条数」，否则假阴性比没有审计更糟。管理面板（展开态 +
+Steam 区块）应进 `audit-contrast` 的默认视图集（下轮）。
+
+### 检查更新（新功能，唯一的联网功能）
+
+- `Services/UpdateService.cs`：GitHub Releases `latest` 检查 + 包体下载。
+  资产优先级 `.exe` > `legacy-single.zip` > 其余；版本按三段数字比较。
+- 桥接：`checkUpdate` / `maybeAutoUpdateCheck` / `downloadUpdate` /
+  `cancelUpdateDownload` / `openUpdateFolder`，进度经 `update-progress`、
+  状态经 `update-status` 推送；下载落在数据目录的 `updates` 文件夹。
+- 设置 → 关于：版本行 + 检查更新 / 下载最新版 / 打开下载文件夹 +
+  「每天自动检查一次更新」开关（**默认关**，遵守离线承诺；开启后开机
+  8 秒后台查一次，24h 节流）。
+- net48 兼容：无 range/index，`legacy` csproj 补 `System.Net.Http` 引用。
+
+### 旧版本打不开的真相（解释 + 提示）
+
+「运行旧版本，无论如何打开的都是 1.16.1」：1.16.1+ 是新杀旧接管
+（§1.8），但**旧 exe（≤1.16.0）没有接管代码**——它检测到实例在跑就走
+老路径：转发激活信号后自己退出，正在运行的 1.16.1 被唤到前台。托盘常驻
+时尤甚（关窗不等于退出）。要跑旧版：先托盘退出。本轮加了提示：运行实例收到
+激活信号时弹 toast「GUGUOVA vX 已在运行 · 要运行旧版请先从托盘退出」
+（`activated-running` 事件）。
+
+### 验证
+
+| 项 | 结果 |
+| --- | --- |
+| 图二复现 + 修复 | 真机 CDP：修复前详情=当前游戏；修复后=被右键的游戏 |
+| 契约守门 | `theme-slot-check --strict` 0 finding |
+| 无头全量截图 | 294 张（14 主题 × 21 视图）0 截断 0 横向溢出 |
+| 无头悬停审计 | 70 视图遍历，全部 AA（含新 .lib-fav / manage-toggle / steam-mode） |
+| 静态对比度 | 本轮未跑（用户要求实机自测）；新文本均走既有可读令牌（`--muted`/继承墨色） |
+| 构建 | modern net10 + legacy net48 双 0 错误 |
+
+### 用户回访再补刀 · 添加游戏时封面没生效（1.16.1）
+
+用户添加 DNF 第五章时填了封面，入库后卡片却是图标合成图（HeroPath=null、
+无任何报错）。逐条验证后确认：**typed / 带全角括号路径 / 选择器 / 资料
+导入** 四条入口端到端全部正常（真机 CDP 逐一实测）——唯一能无声复现的
+路径是：**资料粘贴进「格式化资料」后没有按回车/没点「导入到表单」，
+直接保存**。textarea 里的「封面：…」被静默忽略，游戏按图标生成封面入库。
+
+修法（`app.js`）：
+
+- `applyDossierToForm({ onlyEmpty })`：资料解析并入表单的唯一实现；
+  `importDossier`（覆盖语义）与保存前的合并共用。
+- `saveEditor` 开头先做 `onlyEmpty` 合并——表单里已填的值永远赢，
+  粘贴资料只补空位；封面经 `previewImageFromPath` 立即可见；有合并时
+  toast「已从格式化资料补全 N 项」。
+- `resetEditorFields` 清空 `dossierText`：上一个游戏的粘贴残留不能再
+  被并进下一个游戏。
+
+验证：真机 CDP，粘贴资料（不导入）→ 保存 → 游戏正确携带名称/类型/封面
+（coverUrl 指向导入的媒体，非图标合成）。
+
+**教训**：用 CDP 驱动 UI 复现时，新数据根会叠「开场仪式 + 首启入库窗」
+两层时序，字段设置会被它们的回调重置——探测前必须等 `is-booted` 并先
+关掉首启窗；探测脚本里的换行一律 `String.fromCharCode(10)`，模板字面量
+的 `
+` 会在 node/CDP/页面三层转义里丢掉。
+
+### 下一轮 P0
+
+1. **用户实机回归**：图二右键路径、endfield 收藏角标/详情心形、管理面板
+   折叠、资料占位、检查更新（设置 → 关于，真实 GitHub）、**添加游戏
+   粘贴资料直接保存**。
+2. 静态对比度全量（`audit-contrast.js` 需实机，本轮跳过）。
+3. 发行：v1.16.1 收编发布——`bash tools/release.sh --version 1.16.1`。
+4. 延续 1.16.2 的 P0：五平台真机、Steam 全流程、README 截图。
 
 ---
 

@@ -127,6 +127,11 @@ public sealed class PlayerSettings
     /// <summary>auto | full | balanced | safe. Auto is the recommended default.</summary>
     public string CompatibilityTier { get; set; } = "auto";
 
+    /// <summary>The launcher is offline by default; a daily update check only
+    /// runs when the player explicitly turns it on.</summary>
+    public bool AutoCheckUpdates { get; set; }
+    public string? LastUpdateCheckUtc { get; set; }
+
     /// <summary>Hide the launcher when a game process is attached, then bring
     /// it back on exit. On by default: the game window, not the overlay, should
     /// be what the player sees after a launch.</summary>

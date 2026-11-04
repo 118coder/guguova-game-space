@@ -14,7 +14,7 @@
     <RootNamespace>NovaGameSpace</RootNamespace>
     <ApplicationManifest>..\app.manifest</ApplicationManifest>
     <ApplicationIcon>..\build\icon.ico</ApplicationIcon>
-    <Version>1.16.2</Version>
+    <Version>1.16.1</Version>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <Product>GUGUOVA (Legacy)</Product>
@@ -67,6 +67,7 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
 </Project>

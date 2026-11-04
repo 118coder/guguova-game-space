@@ -288,6 +288,15 @@ public sealed partial class App : System.Windows.Application
                         if (window.IsHiddenToTray) window.RestoreFromTray();
                         if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
                         window.Activate();
+                        // The activation ping is the fallback path: a NEW build
+                        // would have killed this process and taken over instead.
+                        // In practice it means an old (pre-takeover) exe was
+                        // launched while this one held the profile — say so, or
+                        // the player just sees "the old version opens as 1.16.1".
+                        window.Bridge?.Notify("activated-running", new
+                        {
+                            version = typeof(App).Assembly.GetName().Version?.ToString(3) ?? ""
+                        });
                     });
                 }
             }

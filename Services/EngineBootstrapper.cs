@@ -34,14 +34,19 @@ public static class EngineBootstrapper
         if (assembly.GetManifestResourceInfo(ResourceName) == null)
             return null;
 
-        var version = assembly.GetName().Version?.ToString(3) ?? "1.0.0";
-        var root = Path.Combine(AppPaths.Root, "runtime", version, "engine", "magpie");
+        // The directory key follows AssetBootstrapper's content stamp (one
+        // runtime/<version>-<stamp> per release); the marker carries THIS
+        // zip's own hash, so an engine-only change re-extracts even when the
+        // assets stamp did not move.
+        var engineStamp = AssetBootstrapper.StampEmbeddedZip(ResourceName);
+        var key = $"{assembly.GetName().Version?.ToString(3) ?? "1.0.0"}-{AssetBootstrapper.ContentStamp}";
+        var root = Path.Combine(AppPaths.Root, "runtime", key, "engine", "magpie");
         var marker = Path.Combine(root, ".complete");
-        if (!File.Exists(marker))
+        if (!File.Exists(marker) || File.ReadAllText(marker) != engineStamp)
         {
             Directory.CreateDirectory(root);
             Extract(root);
-            File.WriteAllText(marker, DateTime.UtcNow.ToString("o"));
+            File.WriteAllText(marker, engineStamp);
         }
 
         ScalingEngine.BundledDirOverride = root;

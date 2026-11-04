@@ -685,7 +685,9 @@
   font-family: var(--font-display);
   font-size: 7.5px;
   letter-spacing: .2em;
-  color: rgba(255, 255, 255, .26);
+  /* Shell tokens, not fixed tints: the manage panel sits on every theme's
+     material, and the fixed white tints were 1:1 on the paper ones. */
+  color: var(--muted, rgba(255, 255, 255, .26));
 }
 
 .manage-head h3 {
@@ -693,6 +695,39 @@
   font-size: 14px;
   font-weight: 600;
 }
+
+/* The title bar is the fold toggle: clicking it collapses the panel body
+   (stats / steam modes / rows / actions) under the header. */
+.manage-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.manage-toggle-label { display: block; }
+
+.manage-caret {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  flex: none;
+  opacity: .6;
+  transition: transform .18s var(--ease), opacity .18s ease;
+}
+
+.manage-toggle[aria-expanded="false"] .manage-caret { transform: rotate(-90deg); }
+.manage-toggle:hover .manage-caret,
+.manage-toggle:focus-visible .manage-caret { opacity: 1; }
+.manage-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .manage-head .icon-btn {
   width: 26px;
@@ -722,7 +757,7 @@
 .manage-stat span {
   font-size: 7.5px;
   letter-spacing: .08em;
-  color: rgba(255, 255, 255, .27);
+  color: var(--muted, rgba(255, 255, 255, .27));
 }
 
 .manage-stat b {
@@ -730,7 +765,7 @@
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 500;
-  color: rgba(255, 255, 255, .78);
+  color: var(--ink, rgba(255, 255, 255, .78));
   text-overflow: ellipsis;
   white-space: nowrap;
 }
