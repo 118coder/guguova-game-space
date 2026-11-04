@@ -2107,7 +2107,7 @@ h1, h2, h3, p { margin: 0; }
     background .2s ease, border-color .2s ease, color .2s ease;
 }
 
-.lib-fav .ic { width: 13px; height: 13px; fill: none; stroke: currentColor; }
+.lib-fav .ic { width: 14px; height: 14px; fill: none; stroke: currentColor; }
 
 .lib-cell:hover .lib-fav,
 .lib-fav:focus-visible,
