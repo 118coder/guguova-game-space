@@ -136,7 +136,7 @@ public partial class MainWindow : Window
                 }
             };
 
-            Web.CoreWebView2.Navigate("https://nova.site/index.html");
+            Web.CoreWebView2.Navigate(ShellUrl());
             Splash.Visibility = Visibility.Collapsed;
 
             // Steam's localconfig.vdf can be several megabytes and parsing it
@@ -215,6 +215,22 @@ public partial class MainWindow : Window
     /// then the first writable fixed drive, and only fall back to C: as a last
     /// resort (a single-drive machine).
     /// </summary>
+    /// <summary>
+    /// The renderer entry, versioned on every load.
+    ///
+    /// Everything inside index.html already carries ?v=&lt;version&gt;, but the
+    /// HTML itself was served unversioned — the one link in the chain where a
+    /// stale WebView2 cache entry could outrank the file on disk and open the
+    /// previous build's UI. Versioning the shell URL makes a cached old
+    /// entry unreachable by construction; the disk-cache wipe on version
+    /// change stays as the deeper cleanup.
+    /// </summary>
+    private static string ShellUrl()
+    {
+        var version = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+        return $"https://nova.site/index.html?v={Uri.EscapeDataString(version)}";
+    }
+
     private static string CacheRoot()
     {
         var over = Environment.GetEnvironmentVariable("NOVA_CACHE_ROOT");
@@ -340,7 +356,7 @@ public partial class MainWindow : Window
         await Web.EnsureCoreWebView2Async(env);
         Bridge?.Attach(Web);
         Web.CoreWebView2.ProcessFailed += (_, args) => Log.Write($"webview failed (software): {args.ProcessFailedKind}");
-        Web.CoreWebView2.Navigate("https://nova.site/index.html");
+        Web.CoreWebView2.Navigate(ShellUrl());
     }
 
     /// <summary>
