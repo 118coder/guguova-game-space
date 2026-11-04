@@ -397,6 +397,12 @@ html[data-theme="mnemo"] .type-system::after { height: 2px; background: var(--mn
 .btn > * { position: relative; z-index: 1; }
 .btn:hover::before { transform: translateX(0); }
 
+/* The force-kill hold cover reuses this theme's sweep language. */
+.btn.primary .btn-hold-cover {
+  --hold-fill: var(--mn-plum);
+  --hold-ink: var(--mn-panel);
+}
+
 .btn.primary,
 .btn.primary.cta-adaptive,
 .btn.primary.cta-system {

@@ -452,6 +452,32 @@ CA 链（curl 走 schannel 不受影响）——用
 （endfield 覆盖为信号黄，bump 1.0.20）。选择器用
 `.btn.primary .btn-hold-fill` 压过 `.btn.primary > *` 的 in-flow 化。
 
+### 用户回访 · 管理员模式长按强杀 + 倒退式动画（1.16.1 同轮）
+
+需求修正两处：门禁不是开发者模式，而是**本程序以系统管理员身份运行**
+（任务管理器式强杀，可结束任何游戏进程）；动画不是进度条，而是**主题
+滑动效果的倒放**。
+
+- 门禁：`NativeBridge.IsElevated()`（WindowsPrincipal/Administrator 角色）
+  进 boot payload 的 `elevated`；`canForceKill = 运行中 && elevated`。
+- 动画：`.btn-hold-cover` 全覆盖层，JS 每帧只写一个变量 `--hold-p`
+  （0→1），CSS 同步驱动层位置 `translateX(calc(-103% * var(--hold-p)))`
+  （扫入的倒放：endfield 黄色从满盖退回左缘）与标签墨色
+  `color-mix(--hold-ink, --cta-fg, 按剩余覆盖度)`（覆盖时读扫入色的墨，
+  退回后读按钮前景；`@supports` 回退为静态 `--hold-ink`，legacy 109 的
+  color-mix 缺失只影响标签过渡平滑度）。
+- 主题令牌：`--hold-fill`（倒退层颜色）+ `--hold-ink`（覆盖期标签墨）。
+  万能默认 `fill=--cta-fg / ink=--cta-bg`（前景/背景对天然对比，nova 的
+  墨纱退玫瑰底即此）；四个扫入式主题覆盖为自己的扫入色：
+  endfield 信号黄/墨（1.0.21）、codex 羊皮/墨（1.7.9）、
+  mnemo 梅紫/纸（1.1.15）、zerohour 墨/纸（1.0.16）。
+- 交互：pointerdown 起 3s rAF，pointerup/leave/cancel 取消；填满调
+  `stop`（软关窗 6s → taskkill /T /F）并吞掉随后的 click；按钮 title
+  提示"长按 3 秒强制结束游戏进程"。
+- 验证：endfield/nova/zerohour 在 p=0/0.3/0.6/0.95 四帧截图
+  （`_shots/hold-retreat/`）——倒退方向、标签可读性、切角/药丸形状随
+  按钮裁切全部正确；slot 守门 + 三主题悬停审计 0 失败。
+
 ### 下一轮 P0（用户已点名的方向）
 
 1. **收藏角标主题化深度**：目前心形颜色跟随主题，板式仍是共享暗板；

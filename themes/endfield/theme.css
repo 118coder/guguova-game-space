@@ -880,8 +880,12 @@ html[data-theme="endfield"] .type-system::after {
 .tile.is-active .tile-label { color: var(--ef-ink); }
 .tile.is-active .tile-name { font-weight: 800; }
 
-/* The force-kill hold bar answers the theme's signal language. */
-.btn.primary .btn-hold-fill { background: var(--ef-signal); }
+/* The force-kill hold cover answers the theme's sweep language: signal
+   yellow slides back out of the ink button while the label reads ink. */
+.btn.primary .btn-hold-cover {
+  --hold-fill: var(--ef-signal);
+  --hold-ink: var(--ef-ink);
+}
 .tile.is-active .tile-sub { color: var(--ef-ink); }
 
 .dock-foot { color: var(--ef-ink-2); }

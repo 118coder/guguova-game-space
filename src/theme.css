@@ -226,24 +226,36 @@
   z-index: 2;
 }
 
-/* Long-press force-kill fill (developer mode): a 3px bar rides the button's
-   bottom edge. The colour is the button's own ink (--cta-fg): the adaptive
-   CTA paints the background from the same accent family, so an accent bar
-   vanished on nova — the text colour is the one value guaranteed to contrast
-   with whatever the theme put behind it. Themes re-skin via --hold-fill. The
+/* Long-press force-kill (administrator mode): the theme's own sweep layer
+   starts fully in and RETREATS backwards over the 3s hold — endfield's yellow
+   slides back out of the black button, exactly the reverse of its hover
+   sweep. --hold-p (0→1, set per frame by app.js) drives the layer position
+   AND the label ink, which cross-fades from the covered ink back to the
+   button's own foreground as the layer retreats. Themes without a sweep
+   inherit the universal pair --hold-fill = --cta-fg / --hold-ink = --cta-bg:
+   a foreground/background pair is contrast-correct by construction. The
    selector must out-rank `.btn.primary > *`, which otherwise re-inlines the
-   bar into the flex row. */
-.btn.primary .btn-hold-fill {
+   layer into the flex row. */
+.btn.primary .btn-hold-cover {
   position: absolute;
-  inset: auto 0 0 0;
+  inset: -1px;
   z-index: 1;
-  width: 0%;
-  height: 3px;
   background: var(--hold-fill, var(--cta-fg, var(--accent)));
+  transform: translateX(calc(-103% * var(--hold-p, 0)));
   pointer-events: none;
 }
 
 .btn.primary.is-holding { cursor: progress; }
+
+.btn.primary.is-holding > *:not(.btn-hold-cover) {
+  color: var(--hold-ink, var(--cta-bg, #fff));
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  .btn.primary.is-holding > *:not(.btn-hold-cover) {
+    color: color-mix(in srgb, var(--hold-ink, var(--cta-bg, #fff)) calc((1 - var(--hold-p, 0)) * 100%), var(--cta-fg, #eee));
+  }
+}
 
 .btn.primary:hover {
   transform: translateY(-2px);

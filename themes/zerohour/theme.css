@@ -370,6 +370,12 @@ html[data-theme="zerohour"] .type-system::after {
 .btn > * { position: relative; z-index: 1; }
 .btn:hover::before { transform: translateX(0); }
 
+/* The force-kill hold cover reuses this theme's sweep language. */
+.btn.primary .btn-hold-cover {
+  --hold-fill: var(--zh-ink);
+  --hold-ink: var(--zh-paper);
+}
+
 .btn.primary,
 .btn.primary.cta-adaptive,
 .btn.primary.cta-system {

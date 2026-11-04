@@ -439,6 +439,9 @@ public sealed class NativeBridge
             backupsFolder = AppPaths.Backups,
             developerMode,
             developerModeEnv = envDev == "1" || string.Equals(envDev, "true", StringComparison.OrdinalIgnoreCase),
+            // Administrator mode: the launcher itself runs elevated, so the
+            // long-press force kill can end any game process (Task Manager style).
+            elevated = IsElevated(),
             currentGameId = current?.Id,
             settings = library.Settings,
             // The first-run import prompt is a product decision, not a setting:
@@ -453,6 +456,20 @@ public sealed class NativeBridge
             startedByWindows = Environment.GetCommandLineArgs()
                 .Any(arg => arg.StartsWith("--startup", StringComparison.OrdinalIgnoreCase))
         };
+    }
+
+    private static bool IsElevated()
+    {
+        try
+        {
+            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+            var principal = new System.Security.Principal.WindowsPrincipal(identity);
+            return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private GamePayload ToPayload(GameEntry game)

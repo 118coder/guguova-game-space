@@ -7419,19 +7419,19 @@
   const FORCE_KILL_MS = 3000;
 
   function canForceKill(game) {
-    return !!game
-      && state.running.has(game.id)
-      && (state.developerMode || state.settings.developerMode === true);
+    // Administrator mode: the launcher runs elevated, so the kill can reach
+    // any game process — Task Manager style. No developer flag involved.
+    return !!game && state.running.has(game.id) && state.elevated;
   }
 
-  function ensureHoldBar(button) {
-    let bar = button.querySelector('.btn-hold-fill');
-    if (!bar) {
-      bar = document.createElement('span');
-      bar.className = 'btn-hold-fill';
-      button.appendChild(bar);
+  function ensureHoldCover(button) {
+    let cover = button.querySelector('.btn-hold-cover');
+    if (!cover) {
+      cover = document.createElement('span');
+      cover.className = 'btn-hold-cover';
+      button.appendChild(cover);
     }
-    return bar;
+    return cover;
   }
 
   function cancelForceHold(button) {
@@ -7439,23 +7439,26 @@
     state.forceKill.active = false;
     cancelAnimationFrame(state.forceKill.raf);
     button.classList.remove('is-holding');
-    const bar = button.querySelector('.btn-hold-fill');
-    if (bar) bar.style.width = '0%';
+    button.style.removeProperty('--hold-p');
   }
 
   function beginForceHold(button, game) {
-    const bar = ensureHoldBar(button);
+    ensureHoldCover(button);
     const start = performance.now();
     state.forceKill.active = true;
     button.classList.add('is-holding');
+    button.style.setProperty('--hold-p', '0');
     const step = (now) => {
       if (!state.forceKill.active) return;
       const pct = Math.min(1, (now - start) / FORCE_KILL_MS);
-      bar.style.width = `${Math.round(pct * 100)}%`;
+      // The theme's sweep layer starts fully in and retreats backwards;
+      // the CSS drives both the layer position and the label ink off this
+      // one variable.
+      button.style.setProperty('--hold-p', pct.toFixed(4));
       if (pct >= 1) {
         state.forceKill.active = false;
         button.classList.remove('is-holding');
-        bar.style.width = '0%';
+        button.style.removeProperty('--hold-p');
         // Swallow the click this release will produce: the hold already ran
         // its action, the manage panel should not open on top of it.
         state.forceKill.suppressClick = true;
@@ -8020,9 +8023,11 @@
       startupFullscreen: boot.settings?.startupFullscreen === true,
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
       developerMode: boot.settings?.developerMode === true,
+      elevated: boot.elevated === true,
       autoCheckUpdates: boot.settings?.autoCheckUpdates === true
     };
     state.developerMode = boot.developerMode === true;
+    state.elevated = boot.elevated === true;
     state.developerModeEnv = boot.developerModeEnv === true;
     // The host owns the flag; the prompt itself is a product decision and
     // shows at most once per install.

@@ -417,6 +417,12 @@ html[data-theme="codex"] .type-system::after {
 .btn > * { position: relative; z-index: 1; }
 .btn:hover::before { transform: translateX(0); }
 
+/* The force-kill hold cover reuses this theme's sweep language. */
+.btn.primary .btn-hold-cover {
+  --hold-fill: #f6e7c8;
+  --hold-ink: var(--cx-parchment-ink);
+}
+
 .btn.primary,
 .btn.primary.cta-adaptive,
 .btn.primary.cta-system {
