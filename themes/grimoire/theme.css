@@ -633,7 +633,8 @@ html[data-theme="grimoire"] .type-system::after { height: 3px; background: var(-
 .lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--t-muted); }
 .lib-sub { color: var(--t-muted); }
-.lib-fav { color: var(--t-accent); }
+/* Gold reads on the dark scrim; the wine accent does not. */
+html[data-theme="grimoire"] .lib-fav { color: var(--gs-gold); }
 
 .lib-current { border: 1px solid var(--t-accent); border-radius: 999px; background: var(--t-accent); color: var(--t-on-accent); font-size: 8.5px; font-weight: 800; letter-spacing: .06em; }
 .lib-current::before { display: none; }

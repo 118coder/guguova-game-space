@@ -171,6 +171,58 @@
     if (picker.resolve) picker.resolve(value ?? null);
   }
 
+  /**
+   * The path bar accepts a typed or pasted path. A directory jumps to it; a
+   * file is selected outright and the picker confirms, because a fully typed
+   * path is an unambiguous answer — the caller (editor field) takes it from
+   * there and previews instantly.
+   *
+   * The file is validated by navigating to its folder: the listing proves the
+   * folder exists. A file the current filter excludes is still accepted as a
+   * synthetic entry — the host re-validates existence on import, and the
+   * filter is a suggestion for browsing, not a gate on a hand-typed answer.
+   */
+  async function submitPathInput() {
+    const picker = state.picker;
+    if (!picker) return;
+    const clean = window.NovaPaths && window.NovaPaths.clean
+      ? window.NovaPaths.clean
+      : (value) => String(value || '').trim();
+    const target = clean(els.pickerPath.value);
+    if (!target) return;
+
+    const backslash = String.fromCharCode(92);
+    const trailingSlash = new RegExp('[' + backslash + '/]$');
+    const looksLikeFile = /\.[a-z0-9]{1,5}$/i.test(target) && !trailingSlash.test(target);
+    if (!looksLikeFile) {
+      navigate(target);
+      return;
+    }
+
+    const separator = target.lastIndexOf(backslash) >= 0 ? backslash : '/';
+    const cut = target.lastIndexOf(separator);
+    const dir = cut > 0 ? target.slice(0, cut) : target;
+    const name = target.slice(cut + 1).toLowerCase();
+
+    await navigate(dir);
+    if (!state.picker || !state.picker.entries || !state.picker.entries.length) {
+      els.pickerNote.textContent = '打不开这个文件夹';
+      return;
+    }
+    const entry = state.picker.entries.find((item) => item.name.toLowerCase() === name);
+    if (entry) {
+      if (entry.kind === 'dir') { navigate(entry.path); return; }
+      picker.selected = entry;
+    } else {
+      // Not in the listing (hidden, or excluded by the browse filter).
+      picker.selected = { name: target.slice(cut + 1), path: target, kind: 'file', size: 0, modified: '' };
+    }
+    els.pickerConfirm.disabled = false;
+    els.pickerNote.textContent = picker.selected.path;
+    if (sound) sound.select();
+    pickerConfirmSelection();
+  }
+
   function pickerConfirmSelection() {
     const picker = state.picker;
     if (!picker || !picker.selected) return;
@@ -201,7 +253,7 @@
     picker.path = result.path;
     picker.selected = null;
     els.pickerConfirm.disabled = true;
-    els.pickerPath.textContent = result.path;
+    els.pickerPath.value = result.path;
     els.pickerPath.title = result.path;
     els.pickerUp.disabled = !result.parent;
     els.pickerUp.dataset.parent = result.parent || '';
@@ -297,6 +349,13 @@
       if (event.target === els.pickerOverlay) pickerClose(null);
     });
     els.pickerConfirm.addEventListener('click', pickerConfirmSelection);
+    els.pickerPath.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        event.stopPropagation();
+        submitPathInput();
+      }
+    });
     els.pickerUp.addEventListener('click', () => {
       const parent = els.pickerUp.dataset.parent;
       if (parent) navigate(parent);

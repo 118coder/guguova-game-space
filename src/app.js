@@ -410,6 +410,9 @@
     fLogo: $('#fLogo'),
     fTagline: $('#fTagline'),
     fImage: $('#fImage'),
+    dossierText: $('#dossierText'),
+    dossierImport: $('#dossierImport'),
+    dossierExport: $('#dossierExport'),
     fPickImage: $('#fPickImage'),
     fArgs: $('#fArgs'),
     fWorkDir: $('#fWorkDir'),
@@ -1419,6 +1422,10 @@
     return path;
   }
 
+  // Path normalisation for the other renderer modules (overlays.js picker
+  // path bar): one quote/file-scheme stripper, shared instead of copied.
+  window.NovaPaths = { clean: cleanPath };
+
   const findGame = (id) => state.games.find((game) => game.id === id) || null;
   const fullName = (game) => {
     if (!game) return '';
@@ -2329,23 +2336,32 @@
       const longName = (displayName.length + (game.name || '').length) > 22
         || (game.name || '').length > 16;
 
+      // The card and its favourite toggle are siblings inside one cell: a
+      // button cannot legally contain another button, and the heart must be
+      // its own control anyway.
       return `
-        <button class="lib-card${featured ? ' is-featured' : ''}${longName ? ' is-long-name' : ''}" data-game="${game.id}" style="animation-delay:${Math.min(index * 34, 240)}ms" aria-label="${esc(game.zh || game.name)}">
-          <div class="lib-art">
-            <img src="${esc(game.coverUrl)}" alt="" loading="lazy" draggable="false" style="object-position:${esc(game.coverPosition)}">
-            <div class="lib-badges">${badges.join('')}</div>
-            <span class="lib-open" aria-hidden="true"><svg class="ic"><use href="#i-arrow-up-right"/></svg></span>
-            ${game.exists ? `<div class="lib-progress"><i style="width:${pct}%"></i></div>` : ''}
-          </div>
-          <div class="lib-info">
-            <div class="lib-name-row">
-              <span class="lib-name${showLatin ? '' : ' is-solo'}">${esc(displayName)}</span>
-              ${showLatin ? `<span class="lib-en">${esc(game.name)}</span>` : ''}
-              ${game.favorite ? '<svg class="lib-fav" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg>' : ''}
+        <div class="lib-cell">
+          <button class="lib-card${featured ? ' is-featured' : ''}${longName ? ' is-long-name' : ''}" data-game="${game.id}" style="animation-delay:${Math.min(index * 34, 240)}ms" aria-label="${esc(game.zh || game.name)}">
+            <div class="lib-art">
+              <img src="${esc(game.coverUrl)}" alt="" loading="lazy" draggable="false" style="object-position:${esc(game.coverPosition)}">
+              <div class="lib-badges">${badges.join('')}</div>
+              <span class="lib-open" aria-hidden="true"><svg class="ic"><use href="#i-arrow-up-right"/></svg></span>
+              ${game.exists ? `<div class="lib-progress"><i style="width:${pct}%"></i></div>` : ''}
             </div>
-            <div class="lib-sub">${esc((game.genres && game.genres[0]) || game.genre || '游戏')} · ${state.running.has(game.id) ? '运行中' : formatHoursShort(game.playtimeSeconds)}</div>
-          </div>
-        </button>
+            <div class="lib-info">
+              <div class="lib-name-row">
+                <span class="lib-name${showLatin ? '' : ' is-solo'}">${esc(displayName)}</span>
+                ${showLatin ? `<span class="lib-en">${esc(game.name)}</span>` : ''}
+              </div>
+              <div class="lib-sub">${esc((game.genres && game.genres[0]) || game.genre || '游戏')} · ${state.running.has(game.id) ? '运行中' : formatHoursShort(game.playtimeSeconds)}</div>
+            </div>
+          </button>
+          <button class="lib-fav${game.favorite ? ' is-on' : ''}" data-fav="${game.id}" type="button"
+                  aria-pressed="${!!game.favorite}" aria-label="${game.favorite ? '取消收藏' : '收藏'}"
+                  title="${game.favorite ? '取消收藏' : '收藏'}">
+            <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg>
+          </button>
+        </div>
       `;
     }).join('');
 
@@ -4923,6 +4939,98 @@
       : (els.fExe.value ? '保存后从真实封面或程序图标生成' : '从可执行文件或图片生成封面');
   }
 
+  /* ============================================================
+     FORMAT DOSSIER · import / export
+     One block of labelled text that carries every editor field:
+       名称：DNF-Season1-Act4
+       类型：动作 / RPG
+       详细描述：…（可多行）
+     Import fills only the fields the text actually names — a missing line
+     leaves the form untouched. Lines that do not start with a known label
+     continue the previous field, so a long description can span paragraphs.
+     ============================================================ */
+
+  const DOSSIER_FIELDS = [
+    { keys: ['游戏程序', '程序', 'exe'], id: 'fExe', path: true },
+    { keys: ['名称', '名字', '游戏名'], id: 'fName' },
+    { keys: ['中文名', '中文名称', '中文'], id: 'fZh' },
+    { keys: ['类型', '类别'], id: 'fGenre' },
+    { keys: ['字标文字', '字标', '标题文字'], id: 'fLogo' },
+    { keys: ['年龄分级', '分级', '年龄'], id: 'fAge' },
+    { keys: ['游玩模式', '模式'], id: 'fMode' },
+    { keys: ['一句话介绍', '简介', '介绍'], id: 'fTagline' },
+    { keys: ['详细描述', '描述'], id: 'fDesc' },
+    { keys: ['启动参数', '参数'], id: 'fArgs' },
+    { keys: ['工作目录', '目录'], id: 'fWorkDir', path: true },
+    { keys: ['封面', '封面图片', '图片', '主视觉'], id: 'fImage', path: true }
+  ];
+
+  function parseDossier(text) {
+    const out = {};
+    let current = null;
+    String(text || '').split(/\r?\n/).forEach((rawLine) => {
+      const line = rawLine.trim();
+      if (!line) {
+        if (current && out[current]) out[current] += '\n';
+        return;
+      }
+      // Label = up to the first colon (full or half width). Only a RECOGNISED
+      // label starts a field: an unrecognized line belongs to the previous
+      // field's text, which is what keeps multi-line descriptions intact.
+      const split = line.match(/^([^：:]{1,10})[：:]\s*(.*)$/);
+      const field = split && DOSSIER_FIELDS.find((entry) => entry.keys.includes(split[1].trim()));
+      if (field) {
+        current = field.id;
+        out[current] = (out[current] ? `${out[current]}\n` : '') + split[2].trim();
+      } else if (current) {
+        out[current] += `\n${line}`;
+      }
+    });
+    DOSSIER_FIELDS.forEach((field) => {
+      if (field.path && out[field.id]) out[field.id] = cleanPath(out[field.id]);
+    });
+    return out;
+  }
+
+  function importDossier() {
+    const parsed = parseDossier(els.dossierText.value);
+    const applied = [];
+    DOSSIER_FIELDS.forEach((field) => {
+      const value = parsed[field.id];
+      // A line the text does not name leaves that field exactly as it was.
+      if (value === undefined || !String(value).trim()) return;
+      const input = els[field.id];
+      if (!input) return;
+      input.value = value;
+      applied.push(field.keys[0]);
+    });
+    if (!applied.length) {
+      toast('没有识别到可导入的资料', 'info');
+      return;
+    }
+    syncEditorPreview();
+    if (parsed.fImage) previewImageFromPath(parsed.fImage);
+    toast(`已导入 ${applied.length} 项：${applied.slice(0, 4).join('、')}${applied.length > 4 ? '…' : ''}`, 'check');
+  }
+
+  function exportDossier() {
+    const lines = [];
+    DOSSIER_FIELDS.forEach((field) => {
+      const input = els[field.id];
+      const value = input ? String(input.value || '').trim() : '';
+      if (!value) return;
+      lines.push(`${field.keys[0]}：${value}`);
+    });
+    if (!lines.length) {
+      toast('当前表单还没有内容', 'info');
+      return;
+    }
+    els.dossierText.value = lines.join('\n');
+    els.dossierText.select();
+    try { navigator.clipboard.writeText(els.dossierText.value); } catch (e) { /* selection is the fallback */ }
+    toast('资料已导出到文本框并复制', 'copy');
+  }
+
   function setEditorError(message) {
     if (!message) {
       els.editorError.hidden = true;
@@ -7118,6 +7226,11 @@
       audio.toggle();
     });
     els.libGrid.addEventListener('click', (event) => {
+      const fav = event.target.closest('.lib-fav');
+      if (fav) {
+        toggleFavorite(findGame(fav.dataset.fav));
+        return;
+      }
       const card = event.target.closest('.lib-card');
       if (!card) return;
       closeLibrary({ focus: false, sound: false });
@@ -7283,16 +7396,56 @@
       const value = els.fExe.value.trim();
       if (value) adoptExecutable(value, { quiet: true });
     });
+    // One entry for every way a cover path enters the field: the picker, a
+    // typed path + Enter, or the format dossier. The host thumbnails the file
+    // and returns a data URL, so the preview updates the moment a path is
+    // usable — not after a save round-trip.
+    function previewImageFromPath(rawPath) {
+      const path = cleanPath(rawPath);
+      if (!path) {
+        els.editorPreviewImg.classList.remove('is-loaded');
+        els.editorPreviewImg.removeAttribute('src');
+        els.editorPreviewHint.textContent = els.fExe.value
+          ? '保存后从真实封面或程序图标生成'
+          : '从可执行文件或图片生成封面';
+        return;
+      }
+      els.fImage.value = path;
+      call('readImagePreview', { path }).then((preview) => {
+        if (preview && preview.ok) {
+          els.editorPreviewImg.onload = () => els.editorPreviewImg.classList.add('is-loaded');
+          els.editorPreviewImg.src = preview.url;
+          els.editorPreviewHint.textContent = '拖动画面 / 滚轮缩放 · 保存后应用';
+        } else {
+          els.editorPreviewHint.textContent = (preview && preview.error) || '无法读取这张图片';
+        }
+      });
+    }
+
     els.fPickImage.addEventListener('click', async () => {
       const path = await window.NovaOverlays.pickerOpen({ filter: 'image' });
       if (!path) return;
-      els.fImage.value = path;
-      const preview = await call('readImagePreview', { path });
-      if (preview && preview.ok) {
-        els.editorPreviewImg.onload = () => els.editorPreviewImg.classList.add('is-loaded');
-        els.editorPreviewImg.src = preview.url;
+      previewImageFromPath(path);
+    });
+    // Typing / pasting a path and pressing Enter must behave exactly like the
+    // picker — before this, the field only came alive through the picker and
+    // a hand-typed path silently did nothing until save.
+    els.fImage.addEventListener('change', () => previewImageFromPath(els.fImage.value));
+    els.fImage.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        previewImageFromPath(els.fImage.value);
       }
-      els.editorPreviewHint.textContent = '保存后会生成主视觉与封面';
+    });
+
+    /* format dossier */
+    els.dossierImport.addEventListener('click', importDossier);
+    els.dossierExport.addEventListener('click', exportDossier);
+    els.dossierText.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        importDossier();
+      }
     });
     [els.fName, els.fLogo].forEach((input) => input.addEventListener('input', syncEditorPreview));
     if (els.fTypeRecipe) els.fTypeRecipe.addEventListener('change', syncEditorPreview);

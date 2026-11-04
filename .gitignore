@@ -68,3 +68,6 @@ third_party/magpie/effects/
 # The compiled .wasm is committed (src/assets/nova_palette.wasm) so a plain
 # dotnet build never needs a Rust toolchain; only the build products are ignored.
 wasm/**/target/
+
+# ---------- local test artwork (player-owned, never ship) ----------
+DNF*/
