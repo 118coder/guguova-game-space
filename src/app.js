@@ -2336,9 +2336,11 @@
       const longName = (displayName.length + (game.name || '').length) > 22
         || (game.name || '').length > 16;
 
-      // The card and its favourite toggle are siblings inside one cell: a
-      // button cannot legally contain another button, and the heart must be
-      // its own control anyway.
+      // The favourite toggle lives INSIDE .lib-art (bottom-left of the
+      // artwork, where the player asked for it) as a span[role=button] — a
+      // <button> cannot nest another button, and the grid click delegation
+      // routes .lib-fav to the toggle before the card branch can open
+      // details.
       return `
         <div class="lib-cell">
           <button class="lib-card${featured ? ' is-featured' : ''}${longName ? ' is-long-name' : ''}" data-game="${game.id}" style="animation-delay:${Math.min(index * 34, 240)}ms" aria-label="${esc(game.zh || game.name)}">
@@ -2347,6 +2349,11 @@
               <div class="lib-badges">${badges.join('')}</div>
               <span class="lib-open" aria-hidden="true"><svg class="ic"><use href="#i-arrow-up-right"/></svg></span>
               ${game.exists ? `<div class="lib-progress"><i style="width:${pct}%"></i></div>` : ''}
+              <span class="lib-fav${game.favorite ? ' is-on' : ''}" data-fav="${game.id}" role="button" tabindex="0"
+                    aria-pressed="${!!game.favorite}" aria-label="${game.favorite ? '取消收藏' : '收藏'}"
+                    title="${game.favorite ? '取消收藏' : '收藏'}">
+                <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg>
+              </span>
             </div>
             <div class="lib-info">
               <div class="lib-name-row">
@@ -2355,11 +2362,6 @@
               </div>
               <div class="lib-sub">${esc((game.genres && game.genres[0]) || game.genre || '游戏')} · ${state.running.has(game.id) ? '运行中' : formatHoursShort(game.playtimeSeconds)}</div>
             </div>
-          </button>
-          <button class="lib-fav${game.favorite ? ' is-on' : ''}" data-fav="${game.id}" type="button"
-                  aria-pressed="${!!game.favorite}" aria-label="${game.favorite ? '取消收藏' : '收藏'}"
-                  title="${game.favorite ? '取消收藏' : '收藏'}">
-            <svg class="ic" aria-hidden="true"><use href="#i-heart"/></svg>
           </button>
         </div>
       `;
@@ -7225,12 +7227,24 @@
       renderLibrary();
       audio.toggle();
     });
-    els.libGrid.addEventListener('click', (event) => {
+    const favouriteActivate = (event) => {
       const fav = event.target.closest('.lib-fav');
-      if (fav) {
-        toggleFavorite(findGame(fav.dataset.fav));
-        return;
-      }
+      if (!fav) return false;
+      // The heart sits inside the card <button>: without this the browser
+      // also runs the button's activation for the same click — a synthetic
+      // click at the button — and the detail view opened on every toggle.
+      event.preventDefault();
+      toggleFavorite(findGame(fav.dataset.fav));
+      return true;
+    };
+    els.libGrid.addEventListener('keydown', (event) => {
+      // The heart is a span[role=button]: Enter / Space activate it the way
+      // they would a real button.
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (favouriteActivate(event)) event.preventDefault();
+    });
+    els.libGrid.addEventListener('click', (event) => {
+      if (favouriteActivate(event)) return;
       const card = event.target.closest('.lib-card');
       if (!card) return;
       closeLibrary({ focus: false, sound: false });

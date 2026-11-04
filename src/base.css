@@ -2089,7 +2089,7 @@ h1, h2, h3, p { margin: 0; }
   position: absolute;
   left: 9px;
   bottom: 9px;
-  z-index: 4;
+  z-index: 5;
   display: grid;
   place-items: center;
   width: 26px;
