@@ -238,6 +238,35 @@ hover.json                  与实机审计同 schema，可直接进发布门禁
 
 ---
 
+## 1.8 打开即最新 + 实例接管（1.16.1，PR #29）
+
+### 打开即最新
+
+渲染链唯一无版本键控的环节是 index.html 本身——资源都带 `?v=<版本>`，
+HTML 是裸 URL，WebView2 缓存条目可能压过磁盘新文件。修复：Navigate 的
+shell URL 加 `?v=<程序集版本>`，版本变化后旧缓存按构造不可达。其余环节
+（runtime/<版本>/ 资源与引擎、主题按 manifest 版本播种、版本变化清盘）
+已是键控的。
+
+### 实例接管（新杀旧）
+
+原行为：第二实例转发"激活"信号后退出——换新包再打开被弹回旧版本。
+现行为：新实例终止旧实例并接管 profile。
+
+- PID 文件（`<profile根>/guguova.pid`）优先，进程名清扫兜底（覆盖旧版本
+  无 PID 文件的换包场景）；回收前校验映像名，PID 复用不误杀
+- 只在本 profile 锁被占时清扫；跨数据根实例（QA 沙箱）不受影响，实测共存
+- **互斥量获取用 OpenExisting + WaitOne(0)**：在被杀进程遗弃的互斥量上，
+  一次性构造函数 `new Mutex(true, id, out first)` 返回 first=false 且不抛
+  AbandonedMutexException，接管死锁——被遗弃等待才授予所有权。实测抓出
+- 接管失败退回转发激活；Store.Save 是 temp+Replace 原子写，强杀不损数据
+- net48 同文件编译通过（无 Process.Kill(bool)，WebView2 随宿主退出）
+
+实测：A 启动 → B 启动（同数据根）→ A 进程消失、B 上屏且 URL 带
+`?v=1.16.1`；跨数据根双实例共存。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
