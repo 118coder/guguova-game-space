@@ -1244,7 +1244,9 @@ public sealed class NativeBridge
         var game = ResolveGame(args);
         if (game == null) return new { ok = false, error = "找不到这款游戏" };
         var ok = _launcher.Stop(game.Id);
-        return new { ok };
+        return ok
+            ? new { ok = true }
+            : new { ok = false, error = "无法结束该游戏进程（游戏以管理员权限运行时，请以管理员身份运行启动器后再试）" };
     }
 
     private GameEntry? ResolveGame(JsonElement args)

@@ -141,6 +141,8 @@ public sealed class LauncherService
                 process.Id,
                 DateTime.UtcNow.ToString("o"));
 
+            process = ReopenFullRights(process);
+
             lock (_gate)
             {
                 _processes[game.Id] = process;
@@ -586,6 +588,8 @@ public sealed class LauncherService
             process.Id,
             DateTime.UtcNow.ToString("o"));
 
+        process = ReopenFullRights(process);
+
         lock (_gate)
         {
             _processes[game.Id] = process;
@@ -628,6 +632,32 @@ public sealed class LauncherService
         }
     }
 
+    /// <summary>
+    /// ShellExecute hands back a RESTRICTED handle for a child it elevated
+    /// (requireAdministrator manifests): HasExited / EnableRaisingEvents /
+    /// Kill all throw access-denied on that handle even when this launcher is
+    /// elevated itself — the handle is the limit, not our integrity. That
+    /// stalled the exit watch and made the force kill impossible. Re-opening
+    /// by PID with full rights fixes both when we are elevated; a lower
+    /// integrity caller keeps the limited handle and Stop reports honestly.
+    /// </summary>
+    private static Process ReopenFullRights(Process process)
+    {
+        try
+        {
+            var pid = process.Id;
+            var reopened = Process.GetProcessById(pid);
+            if (string.Equals(reopened.ProcessName, process.ProcessName, StringComparison.OrdinalIgnoreCase))
+                return reopened;
+        }
+        catch
+        {
+            // The PID may already be gone (fast exit) or unreadable; the
+            // original handle still covers the normal path.
+        }
+        return process;
+    }
+
     public bool Stop(string gameId)
     {
         Process? process;
@@ -640,38 +670,63 @@ public sealed class LauncherService
             if (_pendingClient.Remove(gameId)) return true;
             if (!_processes.TryGetValue(gameId, out process)) return false;
         }
+
+        // Soft close is best-effort: an elevated child's restricted handle
+        // throws on HasExited/CloseMainWindow even from an elevated launcher.
         try
         {
-            if (!process.HasExited)
+            if (!process.HasExited && process.CloseMainWindow())
             {
-                // Ask softly first: closing the main window lets the game save.
-                if (process.CloseMainWindow())
-                {
-                    if (process.WaitForExit(6000)) return true;
-                }
-#if NETFRAMEWORK
-                try
-                {
-                    var killer = Process.Start(new ProcessStartInfo("taskkill", $"/PID {process.Id} /T /F")
-                    {
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    });
-                    killer?.WaitForExit(4000);
-                }
-                catch
-                {
-                    try { process.Kill(); } catch { }
-                }
-#else
-                process.Kill(true);
-#endif
-                return true;
+                if (process.WaitForExit(6000)) return true;
             }
         }
         catch (Exception ex)
         {
-            Log.Error($"stop {gameId}", ex);
+            Log.Write($"stop {gameId}: soft close unavailable ({ex.Message})");
+        }
+
+        // Hard kill by PID: taskkill reaches across the elevation boundary
+        // whenever this launcher is elevated, and /T takes the child tree.
+        try
+        {
+            var pid = process.Id;
+            using (var killer = Process.Start(new ProcessStartInfo("taskkill", $"/PID {pid} /T /F")
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false
+            }))
+            {
+                killer?.WaitForExit(4000);
+            }
+            try
+            {
+                if (process.WaitForExit(2000)) return true;
+            }
+            catch
+            {
+                // The restricted handle cannot answer exit queries; taskkill
+                // with /F is terminal, so treat the job as done.
+                return true;
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"stop {gameId}: taskkill failed", ex);
+        }
+
+        try
+        {
+#if NETFRAMEWORK
+            process.Kill();
+#else
+            process.Kill(true);
+#endif
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"stop {gameId}: kill failed", ex);
         }
         return false;
     }
