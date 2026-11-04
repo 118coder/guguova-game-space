@@ -206,10 +206,24 @@ body.is-empty .progress-track { opacity: .55; }
   scrollbar-color: rgba(255, 255, 255, .16) transparent;
 }
 
-.editor-preview {
+/* Left editor column: the sticky surface is the whole column, so the
+   format-dossier block below the preview stays beside the fields too. */
+.editor-side {
   position: sticky;
   top: 0;
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.editor-preview {
+  /* Sticky moved to .editor-side, but the box must stay positioned: the
+     artwork inside is position:absolute, and an overflow:hidden clip does
+     not reach an absolutely positioned child from a static ancestor —
+     without this the hero paints 200px past the box, over the dossier. */
+  position: relative;
   aspect-ratio: 16 / 9;
   border-radius: 18px;
   overflow: hidden;
@@ -281,6 +295,22 @@ body.is-empty .progress-track { opacity: .55; }
 }
 
 .editor-preview { touch-action: none; }
+
+/* ---------- format dossier · import / export ---------- */
+.editor-dossier textarea {
+  width: 100%;
+  min-height: 92px;
+  font-family: var(--font-mono, var(--font-ui));
+  font-size: 10.5px;
+  line-height: 1.65;
+  resize: vertical;
+}
+
+.dossier-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 .editor-preview.is-framing { cursor: grabbing; }
 .editor-preview.is-framing img { cursor: grabbing; }
 
@@ -1040,7 +1070,6 @@ html[data-input="gamepad"] .steam-mode.is-pad-focus {
   padding-left: 2px;
 }
 
-.lib-name-row .lib-fav { flex: none; }
 
 /* A long Chinese name must never be squeezed by its Latin counterpart. */
 .lib-card.is-long-name .lib-en { display: none; }

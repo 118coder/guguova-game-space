@@ -686,7 +686,8 @@ html[data-theme="mnemo"] .type-system::after { height: 2px; background: var(--mn
 .lib-name { color: var(--mn-ink); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--mn-ink-2); }
 .lib-sub { color: var(--mn-violet); font-family: var(--mn-mono); font-size: 9.5px; }
-.lib-fav { color: var(--mn-plum); }
+/* Deep plum vanishes on the dark scrim; the mist tone carries it. */
+html[data-theme="mnemo"] .lib-fav { color: var(--mn-mist); }
 
 .lib-current { border-radius: 0; border: 1px solid var(--mn-plum); background: var(--mn-plum); color: var(--mn-panel); font-family: var(--mn-mono); font-size: 8px; letter-spacing: .06em; }
 .lib-current::before { display: none; }

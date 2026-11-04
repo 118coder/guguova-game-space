@@ -1040,7 +1040,10 @@ html[data-theme="endfield"] .lib-search .keycap {
 .lib-name { color: var(--ef-ink); font-weight: 700; }
 .lib-en { color: var(--ef-ink-2); }
 .lib-sub { color: var(--ef-ink-2); font-size: 10px; }
-.lib-fav { color: var(--ef-ink); }
+/* The heart sits on the shared dark scrim over the artwork, so the ink
+   heart of the old name-row marker would vanish here. Signal yellow marks
+   the toggle, ink stays reserved for paper. */
+html[data-theme="endfield"] .lib-fav { color: var(--ef-signal); }
 
 .lib-current {
   border-radius: 0;

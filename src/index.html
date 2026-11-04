@@ -1088,6 +1088,7 @@
     </header>
 
     <div class="editor-body">
+      <div class="editor-side">
       <div class="editor-preview" id="editorPreview">
         <img id="editorPreviewImg" alt="" draggable="false">
         <div class="editor-preview-shade"></div>
@@ -1108,6 +1109,17 @@
           <button type="button" data-frame="zoom-in" aria-label="放大主视觉">+</button>
           <button type="button" data-frame="reset" aria-label="重置主视觉构图">重置</button>
         </div>
+      </div>
+
+      <div class="editor-dossier field">
+        <span class="field-label">格式化资料 <em>粘贴后回车导入 · 缺少的项不填</em></span>
+        <textarea id="dossierText" rows="5" spellcheck="false"
+          placeholder="名称：DNF-Season1-Act4&#10;类型：动作 / RPG&#10;一句话介绍：…&#10;详细描述：…（可多行）"></textarea>
+        <div class="dossier-actions">
+          <button class="btn ghost compact" id="dossierExport" type="button">导出现有</button>
+          <button class="btn ghost compact" id="dossierImport" type="button">导入到表单</button>
+        </div>
+      </div>
       </div>
 
       <div class="editor-fields">
@@ -1347,7 +1359,8 @@
       <button class="crumb-btn" id="pickerUp" aria-label="上一级">
         <svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>
       </button>
-      <div class="crumb-path" id="pickerPath">—</div>
+      <input id="pickerPath" class="crumb-path" type="text" spellcheck="false"
+             autocomplete="off" aria-label="路径（输入后回车跳转或选中）">
       <label class="picker-toggle">
         <input type="checkbox" id="pickerHidden">
         <span>显示隐藏项</span>

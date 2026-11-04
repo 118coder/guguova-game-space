@@ -29,7 +29,7 @@ const TARGETS = {
   home: ['.cta-row .btn', '#homeScaleRow', '.lib-current'],
   settings: ['.pref-row', '.btn', '.settings-avatar-btn', '.section-tag'],
   detail: ['.detail-actions .btn', '.detail-actions .icon-btn', '.modal-close', '.detail-sync', '.manage-row'],
-  library: ['.lib-card', '.filter', '.lib-back', '.lib-sort .nova-select-hit'],
+  library: ['.lib-card', '.filter', '.lib-back', '.lib-sort .nova-select-hit', '.lib-fav'],
   import: ['.import-choice', '.engine-btn', '.engine-shell .icon-btn'],
   engine: ['.engine-mode-row', '.engine-btn', '.icon-btn', '.pref-row'],
   appearance: ['.theme-card', '.style-choice', '.appearance-edit', '.btn'],

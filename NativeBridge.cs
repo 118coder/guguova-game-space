@@ -386,7 +386,7 @@ public sealed class NativeBridge
     /// </summary>
     private object ReadImagePreview(JsonElement args)
     {
-        var path = GetString(args, "path");
+        var path = GetPath(args, "path");
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
             return new { ok = false, error = "图片不存在" };
         try
