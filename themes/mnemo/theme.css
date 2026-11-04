@@ -1334,3 +1334,18 @@ html[data-theme="mnemo"] .launch.is-open .launch-art {
 html[data-theme="mnemo"] { --row-icon: var(--mn-plum); }
 html[data-theme="mnemo"] .menu-row:hover .row-main .ic,
 html[data-theme="mnemo"] .menu-row:focus-visible .row-main .ic { color: var(--mn-panel); }
+
+/* The picker sheet is this theme's paper, so the shared row ink must be
+   this theme's ink. Without this the file list renders white-on-white
+   (1.0:1) — the row defaults assume the built-in dark sheet. */
+html[data-theme="mnemo"] .picker-shell {
+  --picker-bg: var(--mn-panel);
+  --picker-ink: var(--mn-ink);
+  --picker-ink-strong: var(--mn-ink);
+  --picker-ink-dim: var(--mn-ink-2);
+  --picker-line: var(--mn-line);
+  --picker-hair: var(--mn-line);
+  --picker-well: var(--mn-panel);
+  --picker-hover: color-mix(in srgb, var(--mn-ink) 8%, transparent);
+  --picker-mark: var(--mn-plum);
+}

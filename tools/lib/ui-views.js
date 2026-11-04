@@ -141,6 +141,18 @@ const HELPERS = String.raw`
         click('#libAdd');
         await sleep(800);
         break;
+      case 'picker':
+        // Editor -> browse for the game executable. This is the one surface
+        // that mixes a theme-owned sheet with shared row styles, so it is the
+        // view that catches "ink on ink" regressions (ENDFIELD shipped with
+        // invisible file names because only hover/selected were re-coloured).
+        click('.nav-btn[data-nav="library"]');
+        await sleep(500);
+        click('#libAdd');
+        await sleep(800);
+        click('#fPickExe');
+        await sleep(1400);
+        break;
       case 'dialog':
         if (window.NovaOverlays && window.NovaOverlays.dialog) {
           window.NovaOverlays.dialog({

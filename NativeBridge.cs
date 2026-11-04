@@ -243,7 +243,7 @@ public sealed class NativeBridge
                 "removeTheme" => RemoveTheme(args),
                 "openThemesFolder" => OpenThemesFolder(),
                 "setTheme" => SetTheme(args),
-                "browse" => FileBrowser.List(GetString(args, "path"), GetString(args, "filter"),
+                "browse" => FileBrowser.List(GetPath(args, "path"), GetString(args, "filter"),
                     args.ValueKind == JsonValueKind.Object && args.TryGetProperty("hidden", out var hidden) && hidden.ValueKind == JsonValueKind.True),
                 "listDrives" => new { ok = true, drives = FileBrowser.Drives() },
                 "readImagePreview" => ReadImagePreview(args),
@@ -1484,7 +1484,7 @@ public sealed class NativeBridge
     /// </summary>
     private object ReadManifest(JsonElement args)
     {
-        var exe = GetString(args, "exePath");
+        var exe = GetPath(args, "exePath");
         if (string.IsNullOrWhiteSpace(exe) || !File.Exists(exe))
             return new { ok = false, error = "请先选择一个有效的可执行文件" };
 
@@ -1580,11 +1580,11 @@ public sealed class NativeBridge
         if (args.ValueKind != JsonValueKind.Object) return new { ok = false, error = "参数错误" };
         try
         {
-            var exe = GetString(args, "exePath") ?? "";
+            var exe = GetPath(args, "exePath") ?? "";
             if (string.IsNullOrWhiteSpace(exe) || !File.Exists(exe))
                 return new { ok = false, error = "请选择一个存在的可执行文件" };
 
-            var manifestPath = GetString(args, "manifestPath");
+            var manifestPath = GetPath(args, "manifestPath");
             var suppliedName = GetString(args, "name");
 
             // A manifest is the authoritative source when no field was typed.
@@ -1628,7 +1628,7 @@ public sealed class NativeBridge
                     Mode = GetString(args, "mode") ?? "单人",
                     ExePath = exe,
                     Args = GetString(args, "args") ?? "",
-                    WorkDir = GetString(args, "workDir") ?? Path.GetDirectoryName(exe) ?? "",
+                    WorkDir = GetPath(args, "workDir") ?? Path.GetDirectoryName(exe) ?? "",
                     Source = "manual"
                 };
             }
@@ -1638,14 +1638,32 @@ public sealed class NativeBridge
             if (!string.IsNullOrWhiteSpace(heroPosition)) game.HeroPosition = NormalizeHeroPosition(heroPosition);
             if (TryGetNumber(args, "heroZoom", out var heroZoom)) game.HeroZoom = NormalizeHeroZoom(heroZoom);
 
-            var explicitImage = GetString(args, "imagePath");
-            if (string.IsNullOrWhiteSpace(explicitImage) && manifest != null)
+            var explicitImage = GetPath(args, "imagePath");
+            // A path the player typed is a promise, not a hint: if it cannot be
+            // read we say so instead of quietly replacing their artwork with the
+            // executable icon. A manifest-derived image is different — that one
+            // is a best-effort suggestion, so it may fall through.
+            var typedImage = !string.IsNullOrWhiteSpace(explicitImage);
+            if (!typedImage && manifest != null)
             {
                 explicitImage = ManifestImporter.ResolveRelative(manifest.Hero, manifestPath)
                     ?? ManifestImporter.ResolveRelative(manifest.Cover, manifestPath);
             }
-            ApplyMedia(game, explicitImage);
-            var logo = GetString(args, "logoPath");
+            if (typedImage)
+            {
+                if (!File.Exists(explicitImage))
+                    return new { ok = false, error = $"找不到这张图片：{explicitImage}" };
+                if (_media.ImportImage(game.Id, explicitImage!) == null)
+                    return new { ok = false, error = "无法读取这张图片（格式不支持或文件已损坏）" };
+                game.HeroPath = Path.Combine(_media.GameMediaDir(game.Id), "hero.jpg");
+                game.CoverPath = Path.Combine(_media.GameMediaDir(game.Id), "cover.jpg");
+                ApplyMedia(game, null);
+            }
+            else
+            {
+                ApplyMedia(game, explicitImage);
+            }
+            var logo = GetPath(args, "logoPath");
             if (!string.IsNullOrWhiteSpace(logo) && File.Exists(logo))
             {
                 var copy = _media.CopyCustomLogo(game.Id, logo);
@@ -1714,7 +1732,7 @@ public sealed class NativeBridge
                 game.ExePath = exe;
             }
 
-            var image = GetString(args, "imagePath");
+            var image = GetPath(args, "imagePath");
             if (!string.IsNullOrWhiteSpace(image))
             {
                 if (!File.Exists(image)) return new { ok = false, error = "图片不存在" };
@@ -1906,6 +1924,44 @@ public sealed class NativeBridge
         args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()
             : null;
+
+    /// <summary>
+    /// A path argument, with one layer of surrounding quotes removed.
+    ///
+    /// Explorer's "Copy as path" produces `"E:\Game\DFO 110 登录器.exe"`, and
+    /// players paste that verbatim. Without this the first character is a
+    /// quote, File.Exists says no, and the launcher answers "请选择一个存在的
+    /// 可执行文件" for a file that is plainly there — or, for a cover image,
+    /// silently falls back to the executable icon.
+    ///
+    /// The page strips quotes too (app.js cleanPath). This is the second gate:
+    /// drag-and-drop, manifests and scripted callers never pass through it.
+    /// Interior spaces are preserved; a quoted path is still a legal filename
+    /// on NTFS, so only a *balanced* pair is stripped.
+    /// </summary>
+    private static string? GetPath(JsonElement args, string name) => CleanPath(GetString(args, name));
+
+    /// <summary>Quote characters Explorer and chat apps wrap a copied path in:
+    /// straight quotes plus the curly ones Word/WeChat substitute.</summary>
+    private static readonly char[] Quotes = { '"', '\'', '\u201c', '\u201d', '\u2018', '\u2019' };
+
+    internal static string? CleanPath(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return value;
+        var path = value.Trim();
+        for (var pass = 0; pass < 2; pass++)
+        {
+            var before = path;
+            path = path.Trim().Trim(Quotes).Trim();
+            if (path == before) break;
+        }
+        if (path.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
+        {
+            var stripped = path.Substring("file://".Length).TrimStart('/');
+            try { path = Uri.UnescapeDataString(stripped); } catch { path = stripped; }
+        }
+        return path;
+    }
 
     private static bool TryGetNumber(JsonElement args, string name, out double value)
     {

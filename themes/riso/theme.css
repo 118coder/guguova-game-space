@@ -2443,3 +2443,18 @@ html[data-theme="riso"] .scene-stack::before {
   color: rgba(255, 255, 255, .13);
   -webkit-text-stroke: 2px rgba(47, 63, 212, .5);
 }
+
+/* The picker sheet is this theme's paper, so the shared row ink must be
+   this theme's ink. Without this the file list renders white-on-white
+   (1.0:1) — the row defaults assume the built-in dark sheet. */
+html[data-theme="riso"] .picker-shell {
+  --picker-bg: var(--t-panel);
+  --picker-ink: var(--t-ink);
+  --picker-ink-strong: var(--t-ink);
+  --picker-ink-dim: var(--t-ink-2);
+  --picker-line: var(--t-line);
+  --picker-hair: var(--t-line);
+  --picker-well: var(--t-panel);
+  --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
+  --picker-mark: var(--t-accent);
+}

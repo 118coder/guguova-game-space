@@ -142,16 +142,33 @@
 
 .picker-overlay { z-index: 76; }
 
+/* The picker is a themed surface, so it speaks in tokens like every other
+   sheet: the shell owns the material and the ink, the rows inherit both.
+   Before this, `.picker-row` hard-coded rgba(255,255,255,.72): on any theme
+   that paints the sheet light (ENDFIELD, SUMMER, RISO, RIOT, GRIMOIRE, MNEMO,
+   BROADCAST) every file name was white on white — 1.0:1. Themes now map
+   --picker-* in their interfaces.css, and the fallback below is the built-in
+   dark sheet, which keeps nova and the untouched dark themes correct. */
 .picker-shell {
+  --picker-bg: #0a0c11;
+  --picker-ink: rgba(255, 255, 255, .72);
+  --picker-ink-strong: #fff;
+  --picker-ink-dim: rgba(255, 255, 255, .42);
+  --picker-line: rgba(255, 255, 255, .12);
+  --picker-hair: rgba(255, 255, 255, .06);
+  --picker-well: rgba(255, 255, 255, .035);
+  --picker-hover: rgba(255, 255, 255, .05);
+  --picker-mark: var(--accent);
   display: flex;
   flex-direction: column;
   width: min(720px, 94vw);
   max-height: 88vh;
   overflow: hidden;
   border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, .12);
-  background: #0a0c11;
+  border: 1px solid var(--picker-line);
+  background: var(--picker-bg);
   box-shadow: 0 50px 140px -40px #000;
+  color: var(--picker-ink);
   opacity: 0;
   transform: translateY(18px) scale(.988);
   transition: transform .45s var(--ease), opacity .34s ease;
@@ -171,7 +188,7 @@
   font-family: var(--font-display);
   font-size: 10px;
   letter-spacing: .22em;
-  color: rgba(255, 255, 255, .3);
+  color: var(--picker-ink-dim);
 }
 
 .picker-head h2 { margin-top: 6px; font-size: 21px; font-weight: 600; }
@@ -190,12 +207,12 @@
   height: 30px;
   flex: none;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, .1);
-  color: rgba(255, 255, 255, .6);
+  border: 1px solid var(--picker-line);
+  color: var(--picker-ink);
   transition: color .2s ease, background .2s ease;
 }
 
-.crumb-btn:hover { color: #fff; background: rgba(255, 255, 255, .07); }
+.crumb-btn:hover { color: var(--picker-ink-strong); background: var(--picker-hover); }
 .crumb-btn:disabled { opacity: .3; pointer-events: none; }
 .crumb-btn .ic { width: 14px; height: 14px; }
 
@@ -204,10 +221,10 @@
   min-width: 0;
   padding: 7px 11px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, .08);
-  background: rgba(255, 255, 255, .035);
+  border: 1px solid var(--picker-line);
+  background: var(--picker-well);
   font-size: 11.5px;
-  color: rgba(255, 255, 255, .5);
+  color: var(--picker-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -221,11 +238,11 @@
   gap: 7px;
   flex: none;
   font-size: 11.5px;
-  color: rgba(255, 255, 255, .4);
+  color: var(--picker-ink);
   cursor: pointer;
 }
 
-.picker-toggle input { accent-color: var(--accent); cursor: pointer; }
+.picker-toggle input { accent-color: var(--picker-mark); cursor: pointer; }
 
 .picker-drives {
   display: flex;
@@ -245,17 +262,17 @@
   flex: none;
   padding: 6px 11px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, .09);
+  border: 1px solid var(--picker-line);
   font-size: 11.5px;
-  color: rgba(255, 255, 255, .55);
+  color: var(--picker-ink);
   transition: color .18s ease, background .18s ease, border-color .18s ease;
 }
 
-.drive-chip:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+.drive-chip:hover { color: var(--picker-ink-strong); background: var(--picker-hover); }
 .drive-chip.is-active {
-  border-color: color-mix(in srgb, var(--accent) 46%, transparent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: rgba(255, 255, 255, .9);
+  border-color: color-mix(in srgb, var(--picker-mark) 46%, transparent);
+  background: color-mix(in srgb, var(--picker-mark) 10%, transparent);
+  color: var(--picker-ink-strong);
 }
 
 .drive-chip .ic { width: 13px; height: 13px; opacity: .7; }
@@ -279,21 +296,21 @@
   border-radius: 9px;
   border: 1px solid transparent;
   text-align: left;
-  color: rgba(255, 255, 255, .72);
+  color: var(--picker-ink);
   transition: background .16s ease, border-color .16s ease, color .16s ease;
 }
 
-.picker-row:hover { background: rgba(255, 255, 255, .05); color: #fff; }
+.picker-row:hover { background: var(--picker-hover); color: var(--picker-ink-strong); }
 
 .picker-row.is-selected {
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  color: #fff;
+  border-color: color-mix(in srgb, var(--picker-mark) 40%, transparent);
+  background: color-mix(in srgb, var(--picker-mark) 9%, transparent);
+  color: var(--picker-ink-strong);
 }
 
 .picker-row .ic { width: 16px; height: 16px; flex: none; }
-.picker-row.is-dir .ic { color: color-mix(in srgb, var(--accent) 72%, #fff); }
-.picker-row.is-file .ic { color: rgba(255, 255, 255, .42); }
+.picker-row.is-dir .ic { color: color-mix(in srgb, var(--picker-mark) 72%, var(--picker-ink-strong)); }
+.picker-row.is-file .ic { color: var(--picker-ink-dim); }
 
 .picker-name {
   flex: 1 1 auto;
@@ -308,14 +325,14 @@
   flex: none;
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, .26);
+  color: var(--picker-ink-dim);
 }
 
 .picker-empty {
   padding: 40px 20px;
   text-align: center;
   font-size: 12.5px;
-  color: rgba(255, 255, 255, .34);
+  color: var(--picker-ink-dim);
 }
 
 .picker-foot {
@@ -324,12 +341,12 @@
   justify-content: space-between;
   gap: 14px;
   padding: 13px 26px 17px;
-  border-top: 1px solid rgba(255, 255, 255, .06);
+  border-top: 1px solid var(--picker-hair);
 }
 
 .picker-note {
   font-size: 11.5px;
-  color: rgba(255, 255, 255, .3);
+  color: var(--picker-ink-dim);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

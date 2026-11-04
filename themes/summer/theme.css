@@ -2825,3 +2825,18 @@ html[data-theme="summer"] .style-choice-head em { color: #0d6f9a; }
 html[data-theme="summer"] { --row-icon: var(--su-sky); }
 html[data-theme="summer"] .menu-row:hover .row-main .ic,
 html[data-theme="summer"] .menu-row:focus-visible .row-main .ic { color: #ffffff; }
+
+/* The picker sheet is this theme's paper, so the shared row ink must be
+   this theme's ink. Without this the file list renders white-on-white
+   (1.0:1) — the row defaults assume the built-in dark sheet. */
+html[data-theme="summer"] .picker-shell {
+  --picker-bg: var(--t-panel);
+  --picker-ink: var(--t-ink);
+  --picker-ink-strong: var(--t-ink);
+  --picker-ink-dim: var(--t-ink-2);
+  --picker-line: var(--t-line);
+  --picker-hair: var(--t-line);
+  --picker-well: var(--t-panel);
+  --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
+  --picker-mark: var(--t-accent);
+}

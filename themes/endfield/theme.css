@@ -1780,12 +1780,25 @@ html[data-theme="endfield"] .detail-art-copy .detail-logo {
 .drive-chip { border-radius: 0; border: 1px solid var(--ef-ink); color: var(--ef-ink-2); }
 .drive-chip:hover { border-color: var(--ef-ink); color: var(--ef-ink); }
 .drive-chip.is-active { border-color: var(--ef-ink); background: var(--ef-signal); color: var(--ef-ink); font-weight: 700; }
+/* White paper sheet: the shared row ink assumes a dark sheet, so map the slot.
+   Mapping the shell covers every row state at once — resting, hover and
+   selected — instead of recolouring each state by hand (which is how the
+   resting state ended up white-on-white and the file names vanished). */
+html[data-theme="endfield"] .picker-shell {
+  --picker-bg: var(--ef-panel);
+  --picker-ink: var(--ef-ink);
+  --picker-ink-strong: var(--ef-ink);
+  --picker-ink-dim: var(--ef-ink-2);
+  --picker-line: var(--ef-ink);
+  --picker-hair: var(--ef-rule);
+  --picker-well: var(--ef-paper);
+  --picker-hover: var(--ef-chip);
+  --picker-mark: var(--ef-signal);
+}
 .picker-row { border-radius: 0; }
-.picker-row:hover { background: var(--ef-chip); color: var(--ef-ink); box-shadow: inset 3px 0 0 var(--ef-signal); }
-.picker-row.is-selected { border-color: var(--ef-ink); background: var(--ef-panel); color: var(--ef-ink); box-shadow: inset 3px 0 0 var(--ef-signal); }
-.picker-row.is-dir .ic { color: var(--ef-ink); }
+.picker-row:hover { box-shadow: inset 3px 0 0 var(--ef-signal); }
+.picker-row.is-selected { box-shadow: inset 3px 0 0 var(--ef-signal); }
 .picker-name { color: inherit; }
-.picker-meta { color: var(--ef-ink-2); }
 .picker-foot { border-top: 1px solid var(--ef-ink); }
 .picker-note { color: var(--ef-ink-2); }
 .picker-empty { color: var(--ef-ink-2); }

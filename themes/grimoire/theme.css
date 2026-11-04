@@ -2638,3 +2638,18 @@ html[data-theme="grimoire"] .hero-inner .progress-head .progress-pct {
 html[data-theme="grimoire"] { --row-icon: var(--gs-gold); }
 html[data-theme="grimoire"] .menu-row:hover .row-main .ic,
 html[data-theme="grimoire"] .menu-row:focus-visible .row-main .ic { color: var(--gs-gold-hi); }
+
+/* The picker sheet is this theme's paper, so the shared row ink must be
+   this theme's ink. Without this the file list renders white-on-white
+   (1.0:1) — the row defaults assume the built-in dark sheet. */
+html[data-theme="grimoire"] .picker-shell {
+  --picker-bg: var(--t-panel);
+  --picker-ink: var(--t-ink);
+  --picker-ink-strong: var(--t-ink);
+  --picker-ink-dim: var(--t-ink-2);
+  --picker-line: var(--t-line);
+  --picker-hair: var(--t-line);
+  --picker-well: var(--t-panel);
+  --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
+  --picker-mark: var(--t-accent);
+}

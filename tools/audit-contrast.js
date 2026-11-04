@@ -37,7 +37,7 @@ const THEME_FILTER = flags.themes && flags.themes !== 'all'
 const ALL_VIEWS = [
   'home', 'library', 'library-select', 'appearance', 'appearance-framing', 'settings', 'detail',
   'engine', 'dialog', 'import', 'scanner', 'editor', 'context', 'notif', 'profile',
-  'launching', 'sleep'
+  'launching', 'sleep', 'picker'
 ];
 const VIEWS = flags.views && flags.views !== 'all'
   ? String(flags.views).split(',').map((s) => s.trim()).filter(Boolean)

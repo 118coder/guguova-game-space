@@ -33,7 +33,7 @@ for (const arg of process.argv.slice(2)) {
 const ALL_VIEWS = [
   'home', 'home-row', 'home-stress', 'library', 'library-search', 'library-select',
   'appearance', 'appearance-framing', 'settings', 'detail', 'context', 'import',
-  'scanner', 'editor', 'dialog', 'engine', 'notif', 'profile', 'launching', 'sleep'
+  'scanner', 'editor', 'dialog', 'engine', 'notif', 'profile', 'launching', 'sleep', 'picker'
 ];
 const CORE_VIEWS = ['home', 'library', 'appearance', 'settings', 'detail', 'import', 'scanner'];
 
