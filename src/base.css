@@ -2746,7 +2746,6 @@ body.is-booted .hero-inner {
   .lib-name { font-size: 12px; }
   .lib-sub { font-size: 9.5px; }
   .runtime { display: none; }
-  .launch-foot .launch-demo { display: none; }
 }
 
 @media (max-height: 760px) and (min-width: 761px) {

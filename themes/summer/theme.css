@@ -2617,6 +2617,14 @@ html[data-theme="summer"] .activity-track i { background: #101820 !important; }
 html[data-theme="summer"] .topbar { background: #ffffff !important; border-bottom: 1px solid #101820 !important; }
 html[data-theme="summer"] .win-btn,
 html[data-theme="summer"] .icon-btn { color: #101820 !important; }
+/* The blanket ink-glyph rule above is !important, so it flattens the hover
+   glyph too: the round top-bar buttons read ink-on-ink on the ink plate
+   (user report). Same !important pair the square buttons and sheets use. */
+html[data-theme="summer"] .icon-btn:hover:not(.modal-close):not(.square) {
+  background: var(--su-ink) !important;
+  border-color: var(--su-ink) !important;
+  color: var(--su-lime) !important;
+}
 /* Square icon buttons keep base.css's grey hover plate; paint the lime plate
    so the ink glyph never lands on a light grey disc. */
 html[data-theme="summer"] .icon-btn.square:hover {

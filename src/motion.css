@@ -289,7 +289,6 @@
 
 .launch-foot-item { display: flex; align-items: center; gap: 8px; }
 .launch-foot .ic { width: 12px; height: 12px; opacity: .6; }
-.launch-demo { font-family: var(--font-display); letter-spacing: .16em; }
 
 /* ---------- exit animation shared by overlays ---------- */
 

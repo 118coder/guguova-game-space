@@ -26,13 +26,16 @@ const VIEW_ROOTS = {
 // Interactive text hosts per view. Keep this close to what actually carries a
 // label; a bare decorative node would add noise without covering a real state.
 const TARGETS = {
-  home: ['.cta-row .btn', '#homeScaleRow', '.lib-current'],
-  settings: ['.pref-row', '.btn', '.settings-avatar-btn', '.section-tag'],
+  // '!' = document scope: the top bar sits outside every view root, and its
+  // icon buttons are exactly where SUMMER's ink-on-ink hover hid from the
+  // audit until now.
+  home: ['!.topbar .icon-btn', '.cta-row .btn', '#homeScaleRow', '.lib-current'],
+  settings: ['.pref-row', '.btn', '.settings-avatar-btn', '.section-tag', '!.topbar .icon-btn'],
   detail: ['.detail-actions .btn', '.detail-actions .icon-btn', '.modal-close', '.detail-sync', '.manage-row'],
   library: ['.lib-card', '.filter', '.lib-back', '.lib-sort .nova-select-hit', '.lib-fav'],
   import: ['.import-choice', '.engine-btn', '.engine-shell .icon-btn'],
   engine: ['.engine-mode-row', '.engine-btn', '.icon-btn', '.pref-row'],
-  appearance: ['.theme-card', '.style-choice', '.appearance-edit', '.btn'],
+  appearance: ['.theme-card', '.style-choice', '.appearance-edit', '.btn', '.theme-hint', '!.topbar .icon-btn'],
   // The in-app file browser: rows, drive chips, crumbs, footer actions.
   picker: ['.picker-row', '.drive-chip', '.crumb-btn', '.picker-confirm', '.picker-shell .icon-btn', '.picker-toggle'],
   // The import scan sheet and the manual-entry editor.
@@ -189,7 +192,11 @@ function buildHelpers() {
       const seen = new Set();
       const out = [];
       selectors.forEach((sel) => {
-        $$(sel, root).forEach((el) => {
+        // A leading '!' queries the whole document: the top bar lives outside
+        // every view root, and its icon buttons were exactly where SUMMER's
+        // ink-on-ink hover hid from every audit.
+        const scope = sel.startsWith('!') ? document : root;
+        $$(sel.replace(/^!/, ''), scope).forEach((el) => {
           if (seen.has(el) || !visible(el)) return;
           // Disabled controls are exempt from contrast requirements (WCAG
           // 1.4.3, inactive components) and several themes hide their hover

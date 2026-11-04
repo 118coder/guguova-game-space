@@ -129,7 +129,9 @@
 
 .theme-hint {
   font-size: 11px;
-  color: rgba(255, 255, 255, .28);
+  /* A dark-theme tint was invisible on the paper appearance panels
+     (endfield read it as an empty box). Shell token, theme-adaptive. */
+  color: var(--muted, rgba(255, 255, 255, .28));
   margin-left: auto;
   text-align: right;
 }

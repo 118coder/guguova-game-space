@@ -478,6 +478,27 @@ CA 链（curl 走 schannel 不受影响）——用
   （`_shots/hold-retreat/`）——倒退方向、标签可读性、切角/药丸形状随
   按钮裁切全部正确；slot 守门 + 三主题悬停审计 0 失败。
 
+### 用户回访 · 外观页隐形文字 / “真实启动”文案 / 夏季悬停墨底墨字（1.16.1 同轮）
+
+三连报：
+
+1. **外观页主题操作行右侧一整块空白**：那是 `.theme-hint`（“把主题文件夹或
+   .zip 放进去…”），共享样式写着暗色 tint `rgba(255,255,255,.28)`，endfield
+   纸面板上隐形。改 `var(--muted, …)`（`src/themes.css`）。
+2. **启动页“GUGUOVA 桌面版 · 真实启动”**（用户：AI 味太重）：整个
+   `.launch-demo` 元素与样式删除（index.html / motion.css / base.css 响应式引用）。
+3. **夏季主题顶栏图标悬停墨底墨字**：`html[data-theme="summer"] .icon-btn
+   { color: #101820 !important }`（1.14 的顶栏白底修复）把悬停态的字色也
+   钉死了——2359 行的 `color: var(--su-lime)` 被它压掉，悬停 = 墨盘墨字。
+   补一条 !important 悬停对（墨盘 + 酸柠字，排除 modal-close/square 以免
+   覆盖它们各自的配方），置于毯式规则与方形规则之间保证层叠顺序。
+
+**审计盲区修补**：顶栏在所有视图根之外，悬停审计从没测过它。hover-measure
+新增 `!` 前缀 = 文档级选择器，home/settings/appearance 三个视图加入
+`!.topbar .icon-btn`，appearance 加入 `.theme-hint`。全量 14 主题重跑：
+所有顶栏图标悬停 5.69–17.84:1 全 AA（summer 修复后 lime on ink 14.62:1），
+报告在 `_shots/hover-headless/`。
+
 ### 下一轮 P0（用户已点名的方向）
 
 1. **收藏角标主题化深度**：目前心形颜色跟随主题，板式仍是共享暗板；
