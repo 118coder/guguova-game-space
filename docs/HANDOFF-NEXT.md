@@ -166,6 +166,78 @@ Ubisoft / EA / Xbox（PC Game Pass）/ 战网 七家统一扫描、分组勾选�
 
 ---
 
+## 1.7 无头悬停审计 + 交互态图片（1.16.0 同轮）
+
+### 问题
+
+悬停审计（`audit-hover.js`）必须起实机（`NOVA_CDP_PORT`），且逐元素
+强制伪类、逐个截图；给某个交互态截图要人工在实机上一个一个点。
+`picker` 视图此前完全不在审计里——终末地文件名白字压白底 1.0:1 上屏
+就是从这里漏掉的。
+
+### 做法
+
+| 文件 | 职责 |
+| --- | --- |
+| `tools/lib/hover-measure.js` | 新增。测量契约单一来源：VIEW_ROOTS / TARGETS / 页面助手，实机与无头共用同一份 |
+| `tools/headless-hover.js` | 新增。无头悬停审计 + 交互态图片导出，无需实机 |
+| `tools/audit-hover.js` | 改为引用共享契约（行为不变） |
+| `tools/lib/headless-host.js` | mock 补 `browse`（真实目录清单，只读），picker 在 QA 里终于有行 |
+
+**提速靠批量化**：实机审计每元素一次 CDP 往返链（force→wait→measure→clear）；
+无头版把视图内所有目标一次全部强制，**一次求值测完整个视图**——视图成本
+与元素数无关，固定两次往返。
+
+产物（每主题 × 视图）：
+
+```
+<theme>/<view>@rest.png     无强制——参考帧
+<theme>/<view>@hover.png    所有目标同时 :hover
+<theme>/<view>@focus.png    所有目标同时 :focus
+<theme>/<view>/<element>@<state>.png   失败元素裁剪（--shots=all 导出全部）
+hover.json                  与实机审计同 schema，可直接进发布门禁
+```
+
+实测：14 主题 × 5 视图 = 70 视图遍历 + 210 张图，**约 110 秒**（4 worker）。
+实机同一套视图跑到一半就要 400 秒。
+
+### 审计视图扩到 10 个
+
+`home / library / appearance / settings / detail / import / scanner / editor / engine / picker`
+—— picker、scanner、editor 是本轮新增，正是抓出三处真缺陷的覆盖。
+
+### 顺手抓出并修掉的真缺陷（无头审计第一轮就命中）
+
+| 缺陷 | 根因 | 修法 |
+| --- | --- | --- |
+| 夏季盘符芯片 3.13:1（白字压天空蓝/天空蓝字压白） | `.drive-chip.is-active` 用 `--t-on-accent`(#fff)，hover 用天空蓝作文字 | 天空蓝是中间调：激活板改墨字（5.55:1），hover 文字用印蓝 #0f5f80（7.1:1）——沿用 1.14 启动副标的既有教训 |
+| 夏季弹窗图标按钮 hover 1:1 | `.icon-btn { color:#101820 !important }` 全局压制了墨板+荧光绿的 hover 对（铁律 26 场景） | 表单面（editor/scanner/picker/engine/dialog）内 icon-btn hover 用同强度 !important 对：墨板+荧光绿 |
+| nova 入库按钮 4.08–4.22:1 | `.engine-btn.primary` 板=原始 accent、字=固定墨。中调 accent（CrossCode #8c7142：墨 4.22 / 白 4.4）无解——死区 | `solveSolidPair()`：板保持原始 accent，字按板色选墨/白，落入死区时把板向更好的一侧微调直至 ≥4.5。板色在死区外完全不变 |
+
+> nova 的修复遵循它自己的既有系统：首页 CTA 的注释写着 "Text contrast is
+> computed, never guessed"，sheet 按钮违反了这条。修复把同一解算发布到根级
+> （`--accent-solid` / `--accent-on-solid`），主题化分支照常交还令牌。
+
+### 顺带修的审计盲区
+
+- 禁用控件不再被审计（WCAG 1.4.3 豁免）：终末地 picker 确认按钮在未选中时
+  是 disabled，扫板 `display:none` + opacity .52，强制 hover 测出 1.05:1——
+  测的是玩家看不见的衣服。
+- setup 先复位浮层再开视图：import 浮层此前跨视图残留，picker 在它底下打开，
+  行列表为空。
+
+### 验证
+
+| 项 | 结果 |
+| --- | --- |
+| 无头 vs 实机一致性 | 同一视图集合逐项对照，发现集完全一致（nova 4.08/4.22 与 summer 3.13/1:1 双侧同报） |
+| 无头全量 | 70 视图遍历、全部 AA、0 失败 |
+| 实机抽查 | nova/summer × import/picker/home 全过 |
+| 静态审计 | nova/summer/endfield × import/home/settings 0 失败 |
+| 图片 | 210 张（14×5×3 状态帧），终末地 picker 白纸墨字可见 |
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）

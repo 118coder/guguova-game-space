@@ -437,9 +437,47 @@ function readThemes() {
  * The in-page native host. Returns a script that must be installed with
  * Page.addScriptToEvaluateOnNewDocument so it exists before app.js runs.
  */
+/**
+ * A read-only directory listing for the file-picker QA. The real host lists
+ * the user profile; here the same contract is answered from the QA machine's
+ * home folder (names and sizes only — nothing is opened, written or uploaded),
+ * because a picker with zero rows cannot exercise row hover states: the mock
+ * used to answer {ok:false}, which is why the picker audited empty.
+ */
+function buildBrowsePayload() {
+  const os = require('os');
+  const home = os.homedir();
+  const drives = [];
+  for (const letter of ['C', 'D', 'E', 'F', 'G']) {
+    const root = letter + ':\\';
+    try { if (fs.existsSync(root)) drives.push({ name: `${letter}:`, path: root }); } catch (error) {}
+  }
+  const dirs = [];
+  const files = [];
+  try {
+    const entries = fs.readdirSync(home, { withFileTypes: true });
+    for (const entry of entries) {
+      const full = path.join(home, entry.name);
+      try {
+        if (entry.isDirectory()) {
+          dirs.push({ name: entry.name, path: full, kind: 'dir', size: 0, modified: '' });
+        } else {
+          const stat = fs.statSync(full);
+          files.push({ name: entry.name, path: full, kind: 'file', size: stat.size, modified: '' });
+        }
+      } catch (error) { /* unreadable entry: the real host skips it too */ }
+      if (dirs.length >= 60) break;
+    }
+  } catch (error) { /* unreadable home: the picker will show its empty state */ }
+  dirs.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
+  files.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
+  return { ok: true, path: home, parent: null, drives, dirs, files, error: null };
+}
+
 function mockScript() {
   const themes = readThemes();
   const boot = bootPayload(themes);
+  const browse = buildBrowsePayload();
 
   const scanGroups = [
     {
@@ -512,7 +550,7 @@ function mockScript() {
     ]
   };
 
-  const payload = JSON.stringify({ boot, themes, engineOptions, scanGroups });
+  const payload = JSON.stringify({ boot, themes, engineOptions, scanGroups, browse });
 
   return `(() => {
   if (!window.chrome) window.chrome = {};
@@ -589,7 +627,7 @@ function mockScript() {
       case 'getRunning': return [];
       case 'steamStatus': return { ok: true, installed: true, running: true, signedIn: true, root: DATA.boot.steamRoot };
       case 'readImagePreview': return { ok: false, error: 'headless' };
-      case 'browse': return { ok: false, error: 'headless' };
+      case 'browse': return DATA.browse;
       default: return { ok: true, headless: true };
     }
   }

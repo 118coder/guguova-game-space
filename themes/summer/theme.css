@@ -922,9 +922,13 @@ html[data-theme="summer"] .editor-preview .editor-logo { --logo-color: var(--t-i
 .crumb-btn { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink); }
 .crumb-path { border: 1px solid var(--t-line); border-radius: var(--r-btn); background: var(--t-panel); color: var(--t-muted); font-size: 9px; }
 .picker-toggle { color: var(--t-muted); }
+/* Sky #1a9bd7 is a mid tone: white text on it is 3.13:1 and sky text on the
+   white sheet is the same 3.13. The launch kicker hit this in 1.14 and moved
+   to the print blue #0f5f80 for sky-adjacent text; the chips follow the same
+   rule — hover text uses the print blue, the active plate takes ink. */
 .drive-chip { border: 1px solid var(--t-line); border-radius: 999px; color: var(--t-ink-2); }
-.drive-chip:hover { border-color: var(--t-accent); color: var(--t-accent); }
-.drive-chip.is-active { border-color: var(--t-accent); background: var(--t-accent); color: var(--t-on-accent); }
+.drive-chip:hover { border-color: var(--t-accent); color: #0f5f80; background: #ffffff; }
+.drive-chip.is-active { border-color: var(--t-accent); background: var(--t-accent); color: #101820; }
 .picker-row { border-radius: calc(var(--r-card) / 2); }
 .picker-row:hover { background: var(--t-panel-2); color: var(--t-ink); }
 .picker-row.is-selected { border-color: var(--t-accent); background: var(--t-panel-2); color: var(--t-ink); }
@@ -2616,6 +2620,16 @@ html[data-theme="summer"] .icon-btn.square:hover {
   background: #e8f21f !important;
   border-color: #101820 !important;
   color: #101820 !important;
+}
+
+/* Sheet icon buttons: the blanket ink-glyph rule above is !important, so it
+   also flattens the ink hover plate into ink-on-ink inside every light sheet
+   (the picker close read 1:1). Give the sheets the same !important pair the
+   square buttons use — ink plate, lime glyph. */
+html[data-theme="summer"] :is(.editor-shell, .scanner-shell, .picker-shell, .engine-shell, .dialog) .icon-btn:hover:not(.modal-close) {
+  background: var(--su-ink) !important;
+  border-color: var(--su-ink) !important;
+  color: var(--su-lime) !important;
 }
 
 /* Modal close: the ink hover plate above would also paint this icon, and the

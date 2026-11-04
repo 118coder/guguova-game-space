@@ -1688,8 +1688,13 @@ html { color-scheme: dark; }
   --sheet-ghost-ink: var(--sheet-ink);
   --sheet-ghost-border: 1px solid var(--sheet-line);
   --sheet-ghost-shadow: none;
-  --sheet-primary-bg: var(--accent);
-  --sheet-primary-ink: var(--sheet-on-accent);
+  /* Solid accent plates get a guaranteed-AA pair: the cover accent as the
+     plate, ink/white solved against it, the plate nudged only when the cover
+     sits in the mid-tone dead band (CrossCode measured 4.22 ink / 4.4 white
+     and simply has no passing text). The plate is otherwise the raw accent —
+     the design is untouched. Themes map --sheet-primary-* themselves. */
+  --sheet-primary-bg: var(--accent-solid, var(--accent));
+  --sheet-primary-ink: var(--accent-on-solid, var(--sheet-on-accent));
   --sheet-primary-border: 1px solid transparent;
   --sheet-primary-shadow: none;
   --sheet-primary-weight: 700;

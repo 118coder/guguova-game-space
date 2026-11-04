@@ -100,7 +100,10 @@ run "audit: theme interface slots" node tools/theme-slot-check.js --strict
 
 if [ "$DO_AUDIT" -eq 1 ]; then
   run "audit: static contrast" node tools/audit-contrast.js
-  run "audit: hover/focus contrast" node tools/audit-hover.js
+  # The headless hover audit covers more views (picker/scanner/editor) than
+  # the real-host one and needs no launcher session; it also exports the
+  # rest/hover/focus frames for eyeballing.
+  run "audit: hover/focus contrast" node tools/headless-hover.js --workers=4
   run "audit: layout screenshots" node tools/export-all.js \
       --views=all --sizes=1439x1124,960x600 --stress \
       --out="../_shots/release/$VERSION/layout"

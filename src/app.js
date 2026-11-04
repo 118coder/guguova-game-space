@@ -682,6 +682,27 @@
     return a >= b ? dark : light;
   }
 
+  /**
+   * A solid plate + text pair that is guaranteed to clear AA.
+   *
+   * Covers pass through a narrow mid-tone band (luma ≈ 0.18–0.21) where
+   * neither ink nor white reaches 4.5:1 — CrossCode's #8c7142 measured
+   * 4.22 with ink and 4.4 with white. The plate is therefore nudged toward
+   * whichever side already reads better, one step at a time, until the
+   * winning text clears the threshold. For every accent outside the band
+   * the plate comes back untouched.
+   */
+  function solveSolidPair(plateHex) {
+    let plate = plateHex;
+    for (let step = 0; step < 24; step += 1) {
+      const fg = readableOn(plate);
+      if (contrastRatio(fg, plate) >= 4.5) return { plate, fg };
+      const whiteWins = contrastRatio('#ffffff', plate) >= contrastRatio('#0b0d11', plate);
+      plate = whiteWins ? lighten(plate, .08) : darken(plate, .08);
+    }
+    return { plate, fg: readableOn(plate) };
+  }
+
   function dnaFor(game) {
     const dna = game && game.dna ? game.dna : null;
     return {
@@ -1609,6 +1630,9 @@
         if (tokens[name]) root.style.setProperty(name, tokens[name]);
         else root.style.removeProperty(name);
       });
+      CTA_VARS.forEach((name) => root.style.removeProperty(name));
+      root.style.removeProperty('--accent-solid');
+      root.style.removeProperty('--accent-on-solid');
       root.style.setProperty('--scrim-rgb', game?.scrim || '10, 10, 8');
       return;
     }
@@ -1620,6 +1644,9 @@
       root.style.setProperty('--accent-text', system ? '#e7dcc9' : readableAccentText('#ffb45e'));
       root.style.setProperty('--accent-on', readableOn(system ? '#e7dcc9' : '#ffb45e'));
       root.style.setProperty('--scrim-rgb', '16, 12, 10');
+      CTA_VARS.forEach((name) => root.style.removeProperty(name));
+      root.style.removeProperty('--accent-solid');
+      root.style.removeProperty('--accent-on-solid');
       return;
     }
     root.style.setProperty('--accent', system ? '#e7dcc9' : game.accent);
@@ -1630,6 +1657,17 @@
     root.style.setProperty('--accent-on',
       readableOn(system ? '#e7dcc9' : (game.accent || '#ffb45e')));
     root.style.setProperty('--scrim-rgb', game.scrim || '16, 12, 10');
+    if (!system) {
+      // Solid accent plates (sheet buttons) get a guaranteed-AA pair: the
+      // cover accent as the plate, ink/white solved against it, the plate
+      // nudged only when the accent sits in the mid-tone dead band.
+      const solid = solveSolidPair(game.accent || '#ffb45e');
+      root.style.setProperty('--accent-solid', solid.plate);
+      root.style.setProperty('--accent-on-solid', solid.fg);
+    } else {
+      root.style.removeProperty('--accent-solid');
+      root.style.removeProperty('--accent-on-solid');
+    }
   }
 
   function ctaClassFor(game) {
@@ -1688,6 +1726,30 @@
    * Buttons stay the same capsule; only their colour is derived from the
    * cover palette. Text contrast is computed, never guessed.
    */
+  /**
+   * The cover-directed CTA pair, solved once and reused everywhere a button
+   * carries the game's colour: the plate is the lightened accent, the text is
+   * picked by computed luma. "Text contrast is computed, never guessed."
+   */
+  function ctaVarsFor(game) {
+    const a = game && (game.accent || '#ffd88a');
+    const b = game && (game.accent2 || a);
+    if (!a) return null;
+    const { r, g, b: blue } = parseHex(mixHex(a, b, .35));
+    const luma = (.2126 * r + .7152 * g + .0722 * blue) / 255;
+    const fg = luma > .62 ? '#161008' : '#fff8ee';
+    const border = luma > .62 ? `rgba(20, 14, 10, .18)` : `rgba(255, 250, 240, .42)`;
+    return {
+      '--cta-a': lighten(a, .36),
+      '--cta-b': lighten(b, .16),
+      '--cta-a-hover': lighten(a, .48),
+      '--cta-b-hover': lighten(b, .28),
+      '--cta-fg': fg,
+      '--cta-border': border,
+      '--cta-glow': `rgba(${r}, ${g}, ${blue}, .55)`
+    };
+  }
+
   function applyCtaVars(element, game) {
     if (!element) return;
     // A theme owns its button language; the cover palette must not repaint it.
@@ -1696,26 +1758,13 @@
         .forEach((name) => element.style.removeProperty(name));
       return;
     }
-    if (!game) {
+    const vars = ctaVarsFor(game);
+    if (!vars) {
       element.style.removeProperty('--cta-a');
       element.style.removeProperty('--cta-b');
       return;
     }
-    const a = game.accent || '#ffd88a';
-    const b = game.accent2 || a;
-    const lightA = lighten(a, .28);
-    const lightB = lighten(b, .22);
-    const { r, g, b: blue } = parseHex(mixHex(a, b, .35));
-    const luma = (.2126 * r + .7152 * g + .0722 * blue) / 255;
-    const fg = luma > .62 ? '#161008' : '#fff8ee';
-    const border = luma > .62 ? `rgba(20, 14, 10, .18)` : `rgba(255, 250, 240, .42)`;
-    element.style.setProperty('--cta-a', lighten(a, .36));
-    element.style.setProperty('--cta-b', lighten(b, .16));
-    element.style.setProperty('--cta-a-hover', lighten(a, .48));
-    element.style.setProperty('--cta-b-hover', lighten(b, .28));
-    element.style.setProperty('--cta-fg', fg);
-    element.style.setProperty('--cta-border', border);
-    element.style.setProperty('--cta-glow', `rgba(${r}, ${g}, ${blue}, .55)`);
+    Object.entries(vars).forEach(([name, value]) => element.style.setProperty(name, value));
   }
 
   function updatePrimaryButton(button, labelElement, game) {
