@@ -396,6 +396,26 @@ URL（`nova.media/<id>/cover.jpg`）不变，WebView2 一直吃 HTTP 缓存里�
 的 innerHTML setter 计数——**0 次写入**（修复前每 30s 各一次）。截图字节
 对比不适用：主题顶部色带等循环动画属设计内的持续变化。
 
+### 发布记录 · GUGUOVA 1.16.1（收编发布）
+
+GitHub 发布页原有 v1.16.1 与 v1.16.2 两个 Release 同日（11-04）发布，间距
+难看。按用户决定**收编两版**：两个 Release 与 tag 删除（API 204），本次
+全部修复以 **v1.16.1** 重新发布（3 个资产：single.exe 9.45MB /
+legacy-single 13.67MB / legacy-full 17.05MB），提交 c2deabc 已推送 main。
+
+同版本号重装的暗雷一并修掉：
+
+| 键 | 原状 | 现状 |
+| --- | --- | --- |
+| `runtime/<version>/assets` | 只看 `.complete` 存在 | 目录键 = `<version>-<assets zip SHA-256 前 10 位>`（`AssetBootstrapper.ContentStamp`），同版本不同内容必然重解压；旧同版本兄弟目录自动清理 |
+| `runtime/<version>/engine/magpie` | 同上 | 目录键随 assets 戳；`.complete` 内容 = engine zip 自己的哈希，引擎单独变更也会重解压 |
+| 渲染缓存 `.renderer-version` | 程序集版本 | `<版本>:<ContentStamp>`，同版本重装也会重置渲染缓存（shell URL 的 `?v=` 才不会端旧 HTML） |
+
+发布工具链备注：`publish-release.py` 走裸 urllib，本机 Python 缺 GitHub
+CA 链（curl 走 schannel 不受影响）——用
+`SSL_CERT_FILE="C:\Program Files\Git\mingw64\etc\ssl\certs\ca-bundle.crt"`
+前置即可。
+
 ### 下一轮 P0（用户已点名的方向）
 
 1. **收藏角标主题化深度**：目前心形颜色跟随主题，板式仍是共享暗板；
