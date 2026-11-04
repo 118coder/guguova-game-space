@@ -115,6 +115,16 @@ fi
 # ---------------------------------------------------------------- 3. build
 run "build: legacy net48 (assets + engine + exe)" bash tools/build-legacy.sh "$CONFIG"
 
+# ------------------------------------------------------- 3.5 sign (optional)
+# A code-signing certificate removes the SmartScreen "unknown publisher"
+# warning for new downloads. Wire one via GUGUOVA_CERT_SHA1 (store cert) or
+# GUGUOVA_PFX_PATH + GUGUOVA_PFX_PASSWORD; without either the build ships
+# unsigned and the step is skipped with a notice.
+STAGE="sign"
+echo ""
+echo "== 3.5/7 sign =="
+python tools/sign-release.py || fail
+
 # ---------------------------------------------------------------- 4. package
 STAGE="package"
 echo ""
