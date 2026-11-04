@@ -2170,8 +2170,17 @@
     if (!tile) return;
     const railRect = els.rail.getBoundingClientRect();
     const tileRect = tile.getBoundingClientRect();
+    const behavior = state.settings.reduceMotion ? 'auto' : 'smooth';
+    // The vertical layout scrolls the same rail on Y; scrolling `left` there
+    // did nothing, so the wheel changed the selection without ever revealing
+    // the newly selected tile (user report).
+    if (document.body.classList.contains('layout-rail')) {
+      const delta = (tileRect.top + tileRect.height / 2) - (railRect.top + railRect.height / 2);
+      els.rail.scrollBy({ top: delta, behavior });
+      return;
+    }
     const delta = (tileRect.left + tileRect.width / 2) - (railRect.left + railRect.width / 2);
-    els.rail.scrollBy({ left: delta, behavior: state.settings.reduceMotion ? 'auto' : 'smooth' });
+    els.rail.scrollBy({ left: delta, behavior });
   }
 
   function ensureActiveTileVisible() {
@@ -2180,6 +2189,14 @@
     const railRect = els.rail.getBoundingClientRect();
     const tileRect = tile.getBoundingClientRect();
     const margin = 8;
+    if (document.body.classList.contains('layout-rail')) {
+      if (tileRect.top < railRect.top + margin) {
+        els.rail.scrollBy({ top: tileRect.top - railRect.top - margin, behavior: 'auto' });
+      } else if (tileRect.bottom > railRect.bottom - margin) {
+        els.rail.scrollBy({ top: tileRect.bottom - railRect.bottom + margin, behavior: 'auto' });
+      }
+      return;
+    }
     if (tileRect.left < railRect.left + margin) {
       els.rail.scrollBy({ left: tileRect.left - railRect.left - margin, behavior: 'auto' });
     } else if (tileRect.right > railRect.right - margin) {
@@ -4896,6 +4913,49 @@
     toast(payload.error || 'Steam 没有启动游戏', 'alert');
   }
 
+  /** Reconciles the running set with the host: the session-started/ended
+      pushes can be lost (WebView throttled while minimized, a missed
+      dispatcher turn), and a lost end left the launcher claiming a game was
+      still running forever. The host is the source of truth; onSessionEnded
+      with `reconciled` skips the celebration toast for a session whose
+      length we no longer know. */
+  let runningSyncBusy = false;
+  async function syncRunningFromHost() {
+    if (!hasBridge || runningSyncBusy || state.overlay === 'launch') return;
+    runningSyncBusy = true;
+    try {
+      const rows = await call('getRunning');
+      const hostIds = new Set();
+      for (const row of (Array.isArray(rows) ? rows : [])) {
+        const id = row && row.gameId;
+        if (!id) continue;
+        hostIds.add(id);
+        if (!state.running.has(id)) onSessionStarted(row);
+      }
+      let healed = false;
+      for (const [id, session] of Array.from(state.running.entries())) {
+        if (hostIds.has(id)) continue;
+        onSessionEnded({
+          gameId: id,
+          gameName: session.gameName || (findGame(id) || {}).name || '',
+          seconds: 0,
+          crashed: false,
+          reconciled: true
+        });
+        healed = true;
+      }
+      // The lost end also lost its playtime push: pull the host's numbers.
+      if (healed) {
+        const boot = await call('boot');
+        if (boot && boot.games) applyPlaytimeUpdates(boot.games);
+      }
+    } catch (error) {
+      // Bridge busy or shutting down; the next tick retries.
+    } finally {
+      runningSyncBusy = false;
+    }
+  }
+
   function onSessionEnded(payload) {
     if (!payload) return;
     state.running.delete(payload.gameId);
@@ -4905,17 +4965,19 @@
       game.lastPlayedUtc = new Date().toISOString();
     }
     const spent = formatHours(payload.seconds);
-    pushNotice({
-      icon: payload.crashed ? 'alert' : 'check',
-      color: payload.crashed ? '#ff9d7a' : (game?.accent || '#7fe3c0'),
-      title: `${payload.gameName} 已结束`,
-      sub: payload.crashed ? `进程非正常退出 · 本次 ${spent}` : `本次游玩 ${spent}`,
-      gameId: payload.gameId
-    });
-    if (game && state.overlay !== 'launch') {
-      toast(payload.crashed
-        ? `《${shortName(game)}》非正常退出 · 已记录 ${spent}`
-        : `《${shortName(game)}》已结束 · 本次 ${spent}`, payload.crashed ? 'alert' : 'check');
+    if (!payload.reconciled) {
+      pushNotice({
+        icon: payload.crashed ? 'alert' : 'check',
+        color: payload.crashed ? '#ff9d7a' : (game?.accent || '#7fe3c0'),
+        title: `${payload.gameName} 已结束`,
+        sub: payload.crashed ? `进程非正常退出 · 本次 ${spent}` : `本次游玩 ${spent}`,
+        gameId: payload.gameId
+      });
+      if (game && state.overlay !== 'launch') {
+        toast(payload.crashed
+          ? `《${shortName(game)}》非正常退出 · 已记录 ${spent}`
+          : `《${shortName(game)}》已结束 · 本次 ${spent}`, payload.crashed ? 'alert' : 'check');
+      }
     }
     refreshLive();
     if (state.overlay === 'details') populateDetails(currentGame());
@@ -4994,6 +5056,7 @@
   }
 
   function refreshLive() {
+    syncRunningFromHost();
     if (state.overlay === 'details' && currentGame()) updateDetailProgress(currentGame());
     const signature = liveSignature();
     if (signature === state.liveSignature) return;
@@ -7910,6 +7973,12 @@
     updateClock();
     setInterval(updateClock, 1000);
     setInterval(refreshLive, 30000);
+    // The push events can be lost while the window is hidden; waking up is
+    // the moment a stale "运行中" would be noticed, so reconcile right away.
+    window.addEventListener('focus', syncRunningFromHost);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) syncRunningFromHost();
+    });
     setInterval(() => {
       if (state.overlay === 'launch') {
         const game = currentGame();

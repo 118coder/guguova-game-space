@@ -416,6 +416,29 @@ CA 链（curl 走 schannel 不受影响）——用
 `SSL_CERT_FILE="C:\Program Files\Git\mingw64\etc\ssl\certs\ca-bundle.crt"`
 前置即可。
 
+### 用户回访 · 竖排滚动 / 运行中卡死 / 磁贴文字重叠（1.16.1 同轮）
+
+三连报，三种根因：
+
+1. **竖排（layout-rail）滚轮无效**：滚轮本来就走「改选中 → centerTile」
+   的路径，但 `centerTile` / `ensureActiveTileVisible` 只会 `scrollBy(left)`
+   ——竖排要的是 top。两个函数都加了纵向分支。验证：把窗口压到 340px 令
+   6 张卡真溢出（max 234px），5 次滚轮 activeIndex 0→5、scrollTop 顶满。
+2. **游戏退出后仍显示"运行中"**：session-started/ended 靠 Web推送，
+   事件丢失（窗口最小化被节流等）后前端永远停在旧状态。加
+   `syncRunningFromHost()`：refreshLive 每 30s + 窗口 focus/visibility
+   时调 `getRunning` 对账，多删少补；对账产生的结束不弹"本次游玩"
+   toast（时长已不可知），改从 boot 拉回真实 playtime。宿主是唯一事实源。
+3. **磁贴名与时长/运行中重叠**：`.tile-name` 是 flex 子项，默认
+   `min-width:auto` 拒绝收缩；更深一层是 polish.css 与 endfield 把
+   `.tile-name` 设成 `white-space:normal; overflow:visible`（故意换行，
+   "fx-cards=rule" 变体反而从未接线）。统一回单行省略（min-width:0 +
+   nowrap + hidden + ellipsis），换行变体保留在 `data-fx-cards="rule"`
+   里可显式开启。endfield bump 1.0.19。
+
+验证：无头注入 30 字长名 → clipped ✓ / ellipsis ✓ / 名与时长间距 +8px；
+短窗强制溢出后滚轮纵向滚动 ✓；slot 守门 + endfield 悬停审计 0 失败。
+
 ### 下一轮 P0（用户已点名的方向）
 
 1. **收藏角标主题化深度**：目前心形颜色跟随主题，板式仍是共享暗板；

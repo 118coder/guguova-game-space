@@ -1104,6 +1104,11 @@ h1, h2, h3, p { margin: 0; }
 }
 
 .tile-name {
+  /* min-width: 0 lets the flex item actually shrink: a flex child's default
+     `auto` minimum kept long game names at full width, overlapping the
+     duration text and the running badge on the label row. */
+  min-width: 0;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500;

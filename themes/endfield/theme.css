@@ -863,9 +863,10 @@ html[data-theme="endfield"] .type-system::after {
 }
 
 .tile-name {
-  overflow: visible;
-  text-overflow: clip;
-  white-space: normal;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 600;
 }
 
