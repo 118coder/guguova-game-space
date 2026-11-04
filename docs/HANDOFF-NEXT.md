@@ -439,6 +439,19 @@ CA 链（curl 走 schannel 不受影响）——用
 验证：无头注入 30 字长名 → clipped ✓ / ellipsis ✓ / 名与时长间距 +8px；
 短窗强制溢出后滚轮纵向滚动 ✓；slot 守门 + endfield 悬停审计 0 失败。
 
+### 用户回访 · 长按强制结束游戏（开发者模式，1.16.1 同轮）
+
+开发者模式（Ctrl+Shift+D）下，游戏运行中**长按主按钮 3 秒**强制结束进程：
+按钮底缘出现主题化进度条（rAF 驱动，3 秒线性填满），松手/滑出即取消；
+填满后调 `stop`（宿主先软关窗 6 秒，超时 `taskkill /T /F`），并吞掉随后
+的 click（不再误开管理面板）。按钮 title 提示"长按 3 秒强制结束"。
+
+样式要点：填充条颜色 = `var(--hold-fill, var(--cta-fg, var(--accent)))`——
+**自适应 CTA 的底色就来自封面 accent 家族，accent 条在 nova 上同色隐身**；
+按钮自己的文字色是唯一保证与底色对比的值，主题可经 `--hold-fill` 重铺
+（endfield 覆盖为信号黄，bump 1.0.20）。选择器用
+`.btn.primary .btn-hold-fill` 压过 `.btn.primary > *` 的 in-flow 化。
+
 ### 下一轮 P0（用户已点名的方向）
 
 1. **收藏角标主题化深度**：目前心形颜色跟随主题，板式仍是共享暗板；

@@ -194,6 +194,7 @@
     manageOpen: false,
     manageCollapsed: false,
     liveSignature: '',
+    forceKill: { active: false, raf: 0, suppressClick: false },
     manageConfirming: false,
     manageConfirmTimer: null,
     removeArmed: false,
@@ -1810,6 +1811,7 @@
     const use = button.querySelector('use');
     if (use) use.setAttribute('href', `#i-${info.icon}`);
     button.disabled = info.disabled;
+    button.title = canForceKill(game) ? '长按 3 秒强制结束游戏进程' : '';
     if (labelElement) labelElement.textContent = info.label;
     const className = game && state.settings.styleMode === 'adaptive' ? 'cta-adaptive' : 'cta-system';
     setElementCta(button, className, game);
@@ -7411,10 +7413,94 @@
   }
 
   /* ============================================================
+     FORCE KILL · long-press the running button (developer mode)
+     ============================================================ */
+
+  const FORCE_KILL_MS = 3000;
+
+  function canForceKill(game) {
+    return !!game
+      && state.running.has(game.id)
+      && (state.developerMode || state.settings.developerMode === true);
+  }
+
+  function ensureHoldBar(button) {
+    let bar = button.querySelector('.btn-hold-fill');
+    if (!bar) {
+      bar = document.createElement('span');
+      bar.className = 'btn-hold-fill';
+      button.appendChild(bar);
+    }
+    return bar;
+  }
+
+  function cancelForceHold(button) {
+    if (!state.forceKill.active) return;
+    state.forceKill.active = false;
+    cancelAnimationFrame(state.forceKill.raf);
+    button.classList.remove('is-holding');
+    const bar = button.querySelector('.btn-hold-fill');
+    if (bar) bar.style.width = '0%';
+  }
+
+  function beginForceHold(button, game) {
+    const bar = ensureHoldBar(button);
+    const start = performance.now();
+    state.forceKill.active = true;
+    button.classList.add('is-holding');
+    const step = (now) => {
+      if (!state.forceKill.active) return;
+      const pct = Math.min(1, (now - start) / FORCE_KILL_MS);
+      bar.style.width = `${Math.round(pct * 100)}%`;
+      if (pct >= 1) {
+        state.forceKill.active = false;
+        button.classList.remove('is-holding');
+        bar.style.width = '0%';
+        // Swallow the click this release will produce: the hold already ran
+        // its action, the manage panel should not open on top of it.
+        state.forceKill.suppressClick = true;
+        forceStopGame(game);
+        return;
+      }
+      state.forceKill.raf = requestAnimationFrame(step);
+    };
+    state.forceKill.raf = requestAnimationFrame(step);
+  }
+
+  async function forceStopGame(game) {
+    toast(`正在强制结束《${shortName(game)}》…`, 'stop');
+    const result = await call('stop', { id: game.id });
+    if (!result || !result.ok) {
+      toast(result?.error || '强制结束失败', 'alert');
+    }
+  }
+
+  function bindForceKill() {
+    const button = els.playBtn;
+    if (!button || button.dataset.forceKillBound) return;
+    button.dataset.forceKillBound = '1';
+    button.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      const game = currentGame();
+      if (!canForceKill(game)) return;
+      beginForceHold(button, game);
+    });
+    for (const type of ['pointerup', 'pointerleave', 'pointercancel']) {
+      button.addEventListener(type, () => cancelForceHold(button));
+    }
+  }
+
+  /* ============================================================
      PRIMARY ACTION
      ============================================================ */
 
   async function handlePrimary() {
+    if (state.forceKill.suppressClick) {
+      // The click that follows a completed force-kill hold must not also
+      // open the manage panel.
+      state.forceKill.suppressClick = false;
+      return;
+    }
     const game = currentGame();
     if (!game) {
       openScanner();
@@ -7488,6 +7574,7 @@
     call('windowState').then((result) => { if (result) syncMaxButton(!!result.maximized); });
 
     els.playBtn.addEventListener('click', handlePrimary);
+    bindForceKill();
     els.detailPlay.addEventListener('click', handlePrimary);
     els.detailBtn.addEventListener('click', openDetails);
     if (els.homeEngineBtn) els.homeEngineBtn.addEventListener('click', openEngineDialog);

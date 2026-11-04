@@ -879,6 +879,9 @@ html[data-theme="endfield"] .type-system::after {
 
 .tile.is-active .tile-label { color: var(--ef-ink); }
 .tile.is-active .tile-name { font-weight: 800; }
+
+/* The force-kill hold bar answers the theme's signal language. */
+.btn.primary .btn-hold-fill { background: var(--ef-signal); }
 .tile.is-active .tile-sub { color: var(--ef-ink); }
 
 .dock-foot { color: var(--ef-ink-2); }

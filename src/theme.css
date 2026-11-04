@@ -226,6 +226,25 @@
   z-index: 2;
 }
 
+/* Long-press force-kill fill (developer mode): a 3px bar rides the button's
+   bottom edge. The colour is the button's own ink (--cta-fg): the adaptive
+   CTA paints the background from the same accent family, so an accent bar
+   vanished on nova — the text colour is the one value guaranteed to contrast
+   with whatever the theme put behind it. Themes re-skin via --hold-fill. The
+   selector must out-rank `.btn.primary > *`, which otherwise re-inlines the
+   bar into the flex row. */
+.btn.primary .btn-hold-fill {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  width: 0%;
+  height: 3px;
+  background: var(--hold-fill, var(--cta-fg, var(--accent)));
+  pointer-events: none;
+}
+
+.btn.primary.is-holding { cursor: progress; }
+
 .btn.primary:hover {
   transform: translateY(-2px);
   background: var(--cta-bg-hover, var(--cta-bg, linear-gradient(180deg, #fbf8f0 0%, #e9e4d8 100%)));
