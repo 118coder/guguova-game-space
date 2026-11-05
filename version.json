@@ -1,11 +1,11 @@
 {
-  "version": "1.16.2",
+  "version": "1.16.1",
   "channel": "stable",
-  "legacyVersion": "1.16.2",
+  "legacyVersion": "1.16.1",
   "webView2": {
     "modern": "evergreen",
     "legacy": "109.0.1518.78"
   },
   "notes": "Single version source for the modern and legacy hosts. Run node tools/bump-version.js <version> to update csproj + index.html.",
-  "updatedUtc": "2026-11-05T08:20:09.599Z"
+  "updatedUtc": "2026-11-05T08:36:54.391Z"
 }
