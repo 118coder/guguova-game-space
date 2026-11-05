@@ -265,6 +265,37 @@ shell URL 加 `?v=<程序集版本>`，版本变化后旧缓存按构造不可�
 实测：A 启动 → B 启动（同数据根）→ A 进程消失、B 上屏且 URL 带
 `?v=1.16.1`；跨数据根双实例共存。
 
+#### 1.16.2 起：同一个包不再自杀
+
+「新杀旧」的代价是每次点击图标都付一遍 WebView2 冷启动（~1.5 s），
+而托盘里明明有一个热实例。日志里 14 次 `another instance holds the profile
+— taking over` 就是这 14 次白等的证据。
+
+现在 PID 文件写成 `pid|版本|exe路径|文件长度|写入时间Ticks`（单行，旧版本
+读它 int.TryParse 失败 → 落到进程名清扫，行为不变）。新启动先比对：
+**版本、路径、长度、mtime 全同** → 只发激活信号（`AllowSetForegroundWindow`
++ 事件）然后退出，冷启成本归零；任一项不同（换了新包，或同版本号重发）→
+仍然杀旧接管，因为「打开新 exe 必须看到新界面」的约束没有变。
+
+副作用：转发激活的进程不写 PID 文件、不碰互斥量，`OnExit` 的清 PID 逻辑
+按首字段比对，不会误删正在运行实例的戳。
+
+### 首启解压挪到窗口之后（1.16.2）
+
+`AssetBootstrapper/WebView2Bootstrapper/EngineBootstrapper` 原本在
+`App.OnStartup`、窗口创建之前跑：首启或换版本要写 ~20 MB（assets 370 文件
+6.1 MB + engine 25 文件 13.9 MB），这段时间屏幕上是**什么都没有**。现在改在
+`MainWindow.OnLoaded` 里用 `Task.Run` 跑，闪屏已经可见，解压不占 UI 线程。
+
+`pack-assets.py` 同时改成可复现打包（固定 1980-01-01 时间戳 + 排序）。原实现
+用文件 mtime 当 zip 时间戳，**每次重新打包字节都不同** → ContentStamp 变 →
+重新解压 370 个文件 + 清 HTTP/Code Cache。日志里连续三次
+`renderer cache reset for 1.16.1.0` 就是同版本反复清盘。现在内容不变则字节不变。
+
+`Log.Stage()` 带 `[+Nms]` 前缀，宿主侧时间线（app start / window shown /
+library loaded / payload ready / webview environment ready / webview core ready /
+shell navigate）都进 nova.log，日志时间戳也补到毫秒。
+
 ---
 
 ## 1.9 编辑器补齐：路径即输即预览、格式化资料、路径栏可输入、收藏角标（1.16.2，PR #30/#31/#32）
