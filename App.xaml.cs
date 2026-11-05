@@ -34,28 +34,19 @@ public sealed partial class App : System.Windows.Application
     {
         base.OnStartup(e);
         AppPaths.Ensure();
-#if NETFRAMEWORK
-        try
-        {
-            AssetBootstrapper.Ensure();
-            WebView2Bootstrapper.Ensure();
-            EngineBootstrapper.Ensure();
-        }
-        catch (Exception ex)
-        {
-            Log.Error("legacy bootstrap", ex);
-        }
-#endif
 
-        // Only one process may own the WebView2 user-data folder. When the
-        // player launches THIS exe while an older instance is still running,
-        // the older one retires: it is terminated and this launch takes over
-        // the profile. That is the whole point of opening the new exe — being
-        // told "already running" and bounced to a stale build is the bug.
-        // If the old instance cannot be retired, fall back to forwarding the
-        // activate signal so behaviour never regresses to two WebViews on one
-        // user-data folder.
-        if (!AcquireSingleInstance())
+        // The legacy single-exe payload is no longer unpacked here. It used to
+        // run before the window existed, so a first launch (or any launch after
+        // an update) sat on an invisible process for seconds while ~20 MB of
+        // assets and engine binaries were written. MainWindow unpacks it behind
+        // the splash instead — a window in ~200 ms beats a faster unpack.
+
+        // Only one process may own the WebView2 user-data folder. Two launches
+        // of the SAME build are the common case (double-clicking the icon while
+        // the app sits in the tray): that must cost an activation, not a kill
+        // followed by a full cold start. A different build still retires the
+        // running instance, which is the whole point of opening the new exe.
+        if (StartAsOwner() != StartOutcome.Owner)
         {
             Shutdown();
             return;
@@ -65,47 +56,61 @@ public sealed partial class App : System.Windows.Application
         _activateEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateEventId);
         StartActivationListener();
 
-        Log.Write("app start");
+        Log.Stage("app start");
         var window = new MainWindow();
         MainWindow = window;
         window.Show();
+        Log.Stage("window shown");
+    }
+
+    /// <summary>What this launch ended up doing with the profile.</summary>
+    private enum StartOutcome
+    {
+        /// <summary>This process now owns the profile and will show the window.</summary>
+        Owner,
+
+        /// <summary>The running instance was woken up; this process must exit.</summary>
+        Forwarded
     }
 
     /// <summary>
-    /// Takes the profile lock, retiring a running instance first.
+    /// Takes the profile lock, waking a running instance of the same build and
+    /// retiring one of a different build.
     ///
-    /// Returns true when this process owns the profile. A dead owner's mutex
-    /// comes back as abandoned — the kernel hands ownership over as part of
-    /// that wait, so it counts as acquired. When the lock cannot be taken
-    /// (an old build refuses to die), the caller falls back to forwarding the
-    /// activate signal.
+    /// The distinction matters for perceived start-up speed: activating a
+    /// window that already exists takes a few milliseconds, while the old
+    /// "always retire and take over" rule paid a full WebView2 cold start
+    /// (~1.5 s) every time the player clicked the icon while the app was in
+    /// the tray. Retiring is still what happens when the build differs —
+    /// opening a freshly downloaded exe must never bounce the player back to
+    /// the old UI.
     /// </summary>
-    private bool AcquireSingleInstance()
+    private StartOutcome StartAsOwner()
     {
-        if (TryAcquireMutex()) return true;
+        if (TryAcquireMutex()) return StartOutcome.Owner;
+
+        var stamp = ReadInstanceStamp();
+        if (stamp != null && IsSameBuildOnDisk(stamp) && ForwardActivation(stamp.Pid))
+        {
+            Log.Write("same build already running — activation forwarded");
+            return StartOutcome.Forwarded;
+        }
 
         Log.Write("another instance holds the profile — taking over");
         TerminatePreviousInstance();
 
         for (var attempt = 0; attempt < 20; attempt++)
         {
-            if (TryAcquireMutex()) return true;
+            if (TryAcquireMutex()) return StartOutcome.Owner;
             Thread.Sleep(150);
         }
 
-        try
-        {
-            if (EventWaitHandle.TryOpenExisting(ActivateEventId, out var existing))
-            {
-                existing.Set();
-                existing.Dispose();
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error("single instance activate", ex);
-        }
-        return false;
+        // The lock could not be taken (an old build refuses to die). Waking it
+        // is better than ending up with two WebViews on one user-data folder.
+        if (ReadInstanceStamp() is { } live && ForwardActivation(live.Pid))
+            return StartOutcome.Forwarded;
+
+        return StartOutcome.Forwarded;
     }
 
     private bool TryAcquireMutex()
@@ -158,6 +163,97 @@ public sealed partial class App : System.Windows.Application
     }
 
     /// <summary>
+    /// The identity a running instance writes for later launches: pid, build,
+    /// image path, image size and write time. Size + timestamp are what catch
+    /// a re-released exe that kept the version number — the file on disk is
+    /// then not the file the running process started from, so it retires.
+    /// </summary>
+    private sealed record InstanceStamp(int Pid, string Version, string ExePath, long Length, long WriteTicks);
+
+    private static string InstanceStampFile => Path.Combine(AppPaths.Root, "guguova.pid");
+
+    /// <summary>True when the running instance is this very build on disk.</summary>
+    private static bool IsSameBuildOnDisk(InstanceStamp stamp)
+    {
+        try
+        {
+            var self = CurrentExePath();
+            if (string.IsNullOrWhiteSpace(self) || string.IsNullOrWhiteSpace(stamp.ExePath)) return false;
+            if (!string.Equals(self, stamp.ExePath, StringComparison.OrdinalIgnoreCase)) return false;
+            if (!string.Equals(BuildVersion, stamp.Version, StringComparison.OrdinalIgnoreCase)) return false;
+
+            var info = new FileInfo(self);
+            if (!info.Exists) return false;
+            return info.Length == stamp.Length && info.LastWriteTimeUtc.Ticks == stamp.WriteTicks;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("compare instance stamp", ex);
+            return false;
+        }
+    }
+
+    private static string BuildVersion =>
+        typeof(App).Assembly.GetName().Version?.ToString() ?? "0.0.0.0";
+
+    private static string? CurrentExePath()
+    {
+        try
+        {
+            return Process.GetCurrentProcess().MainModule?.FileName;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>A malformed or legacy stamp simply means "unknown instance":
+    /// the caller falls back to the retire-and-take-over path.</summary>
+    private static InstanceStamp? ReadInstanceStamp()
+    {
+        try
+        {
+            if (!File.Exists(InstanceStampFile)) return null;
+            var parts = File.ReadAllText(InstanceStampFile).Trim().Split('|');
+            if (parts.Length < 3) return null;
+            if (!int.TryParse(parts[0], out var pid) || pid <= 0) return null;
+
+            long.TryParse(parts.Length > 3 ? parts[3] : "0", out var length);
+            long.TryParse(parts.Length > 4 ? parts[4] : "0", out var ticks);
+            return new InstanceStamp(pid, parts[1], parts[2], length, ticks);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("read instance stamp", ex);
+            return null;
+        }
+    }
+
+    /// <summary>Wakes the running instance. AllowSetForegroundWindow is the
+    /// part that actually works: the instance being woken up is not the
+    /// foreground process, so Windows would only flash its taskbar button.</summary>
+    private static bool ForwardActivation(int pid)
+    {
+        try
+        {
+            if (pid > 0) AllowSetForegroundWindow(pid);
+            if (!EventWaitHandle.TryOpenExisting(ActivateEventId, out var existing)) return false;
+            existing.Set();
+            existing.Dispose();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("forward activation", ex);
+            return false;
+        }
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool AllowSetForegroundWindow(int dwProcessId);
+
+    /// <summary>
     /// Ends the instance standing between the player and this launch.
     ///
     /// Preferred target: the PID file the running instance writes (it follows
@@ -173,10 +269,7 @@ public sealed partial class App : System.Windows.Application
         {
             var self = Process.GetCurrentProcess().Id;
 
-            var stampedPid = 0;
-            var pidFile = Path.Combine(AppPaths.Root, "guguova.pid");
-            if (File.Exists(pidFile))
-                int.TryParse(File.ReadAllText(pidFile).Trim(), out stampedPid);
+            var stampedPid = ReadInstanceStamp()?.Pid ?? 0;
             if (stampedPid != 0 && stampedPid != self && KillGuguova(stampedPid))
             {
                 killed++;
@@ -239,15 +332,22 @@ public sealed partial class App : System.Windows.Application
         proc.WaitForExit(5000);
     }
 
-    /// <summary>The PID stamp a later launch reads to find this instance.
+    /// <summary>The identity a later launch reads to find this instance.
     /// Lives under the profile root, so NOVA_DATA_ROOT sandboxes never cross.
-    /// </summary>
+    /// Format: pid|version|exePath|length|writeTicks (see InstanceStamp).</summary>
     private static void WriteInstancePid()
     {
         try
         {
-            File.WriteAllText(Path.Combine(AppPaths.Root, "guguova.pid"),
-                Process.GetCurrentProcess().Id.ToString());
+            var exe = CurrentExePath() ?? "";
+            var info = string.IsNullOrWhiteSpace(exe) ? null : new FileInfo(exe);
+            var line = string.Join("|",
+                Process.GetCurrentProcess().Id.ToString(),
+                BuildVersion,
+                exe,
+                (info != null && info.Exists ? info.Length : 0).ToString(),
+                (info != null && info.Exists ? info.LastWriteTimeUtc.Ticks : 0).ToString());
+            File.WriteAllText(InstanceStampFile, line);
         }
         catch (Exception ex)
         {
@@ -259,11 +359,11 @@ public sealed partial class App : System.Windows.Application
     {
         try
         {
-            var file = Path.Combine(AppPaths.Root, "guguova.pid");
+            var file = InstanceStampFile;
             // Only remove our own stamp: a successor that took over has
             // already written its own.
             if (File.Exists(file)
-                && File.ReadAllText(file).Trim() == Process.GetCurrentProcess().Id.ToString())
+                && File.ReadAllText(file).Trim().Split('|')[0] == Process.GetCurrentProcess().Id.ToString())
             {
                 File.Delete(file);
             }

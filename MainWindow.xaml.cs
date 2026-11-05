@@ -56,7 +56,32 @@ public partial class MainWindow : Window
     {
         try
         {
+            // Legacy single-exe payload: src/, themes/, WebView2Loader and the
+            // bundled engine are embedded and unpacked once per content stamp.
+            // This used to run in App.OnStartup, before the window existed, so
+            // the first launch after an install or an update was an invisible
+            // process writing ~20 MB (370 files) with nothing on screen. Here
+            // the splash is already visible and the unpack runs off the UI
+            // thread, so time-to-window no longer depends on disk speed.
+#if NETFRAMEWORK
+            await Task.Run(() =>
+            {
+                try
+                {
+                    AssetBootstrapper.Ensure();
+                    WebView2Bootstrapper.Ensure();
+                    EngineBootstrapper.Ensure();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("legacy bootstrap", ex);
+                }
+            });
+            Log.Stage("payload ready");
+#endif
+
             Store.Load();
+            Log.Stage("library loaded");
             Launcher = new LauncherService(Store);
             Bridge = new NativeBridge(Store, Media, Launcher);
 
@@ -112,7 +137,9 @@ public partial class MainWindow : Window
             var fixedRuntime = Path.Combine(AppContext.BaseDirectory, "WebView2Runtime");
             var browserFolder = Directory.Exists(fixedRuntime) && File.Exists(Path.Combine(fixedRuntime, "msedgewebview2.exe")) ? fixedRuntime : null;
             var env = await CoreWebView2Environment.CreateAsync(browserFolder, CacheRoot(), options);
+            Log.Stage("webview environment ready");
             await Web.EnsureCoreWebView2Async(env);
+            Log.Stage("webview core ready");
             Bridge.Attach(Web);
             ApplyStartupFullscreen();
             Web.CoreWebView2.ProcessFailed += (_, args) =>
@@ -137,6 +164,7 @@ public partial class MainWindow : Window
             };
 
             Web.CoreWebView2.Navigate(ShellUrl());
+            Log.Stage("shell navigate");
             Splash.Visibility = Visibility.Collapsed;
 
             // Steam's localconfig.vdf can be several megabytes and parsing it

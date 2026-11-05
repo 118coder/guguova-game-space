@@ -51,6 +51,23 @@ public static class Log
 {
     private static readonly object Gate = new();
 
+    /// <summary>Wall-clock start of this process, used for the +Nms prefix.
+    /// Process.StartTime is the real anchor (a static field would only mark
+    /// the first touch of this class).</summary>
+    private static readonly DateTime StartedAt = ResolveStartedAt();
+
+    private static DateTime ResolveStartedAt()
+    {
+        try
+        {
+            return System.Diagnostics.Process.GetCurrentProcess().StartTime;
+        }
+        catch
+        {
+            return DateTime.Now;
+        }
+    }
+
     public static void Write(string message)
     {
         try
@@ -58,13 +75,31 @@ public static class Log
             lock (Gate)
             {
                 File.AppendAllText(AppPaths.LogFile,
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}");
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}{Environment.NewLine}");
             }
         }
         catch
         {
             // Logging must never take the app down.
         }
+    }
+
+    /// <summary>A start-up milestone, prefixed with milliseconds since the
+    /// process started. Start-up work is spread over three processes (host,
+    /// WebView2 browser, renderer) and this is the only place where the host
+    /// side is measured at all — "it feels slow" needs a number to argue with.</summary>
+    public static void Stage(string message)
+    {
+        double elapsed;
+        try
+        {
+            elapsed = (DateTime.Now - StartedAt).TotalMilliseconds;
+        }
+        catch
+        {
+            elapsed = 0;
+        }
+        Write($"[+{elapsed:0}ms] {message}");
     }
 
     public static void Error(string context, Exception ex) => Write($"ERROR {context}: {ex}");
