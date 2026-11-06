@@ -138,6 +138,10 @@
         askClose();
         return;
       }
+      if (message.type === 'screenshot-done') {
+        finishExport(message.payload || {});
+        return;
+      }
     });
   }
 
@@ -160,6 +164,9 @@
       autoBackup: true,
       unifiedSfx: false,
       librarySort: 'recent',
+      // '' means "this mode's own reading order", so a mode the player never
+      // flipped still behaves the way its name implies. See SORT_DEFAULT_DIR.
+      librarySortDir: '',
       minimizeOnLaunch: true,
       scalingEngine: 'auto',
       magpiePath: null,
@@ -497,6 +504,8 @@
     profileVersion: $('#profileVersion'),
     settingsRow: $('#settingsRow'),
     libSort: $('#libSort'),
+    libSortDir: $('#libSortDir'),
+    shotBtn: $('#shotBtn'),
     settingsPlayerName: $('#settingsPlayerName'),
     settingsSaveName: $('#settingsSaveName'),
     settingsUseSystemName: $('#settingsUseSystemName'),
@@ -1456,6 +1465,298 @@
   // path bar): one quote/file-scheme stripper, shared instead of copied.
   window.NovaPaths = { clean: cleanPath };
 
+  /* ============================================================
+     NAME ORDER — natural, and literate in Chinese numerals
+     ============================================================ */
+
+  // Sorting by plain localeCompare puts 第八季 after 第九季 and 第十章 before
+  // 第四章: a Chinese numeral is a character, so the collator orders it by
+  // glyph, not by value. Versioned titles (DNF 第N季 第M章) are exactly where
+  // that is unusable, so a name is split into numbers and words, numbers are
+  // compared by value and words by the usual collator.
+  const CN_DIGIT = {
+    零: 0, 〇: 0, 一: 1, 壹: 1, 二: 2, 两: 2, 贰: 2, 三: 3, 叁: 3, 四: 4, 肆: 4,
+    五: 5, 伍: 5, 六: 6, 陆: 6, 七: 7, 柒: 7, 八: 8, 捌: 8, 九: 9, 玖: 9
+  };
+  const CN_UNIT = {
+    十: 10, 拾: 10, 百: 100, 佰: 100, 千: 1000, 仟: 1000,
+    万: 10000, 億: 100000000, 亿: 100000000
+  };
+
+  /** 十八 → 18, 二十三 → 23, 一百零五 → 105, 十 → 10, 一万 → 10000. */
+  function chineseNumber(text) {
+    // 零五 is how this library writes "Act 0.5" (第一季 第零五章 = Act0.5):
+    // a leading 零 followed by digits only is a fraction, not the 零
+    // placeholder inside 一百零五.
+    if (text.length > 1 && (text[0] === '零' || text[0] === '〇')
+        && !/[十拾百佰千仟万亿億]/.test(text)) {
+      const fraction = [...text.slice(1)].map((char) => CN_DIGIT[char]).join('');
+      return Number(`0.${fraction}`);
+    }
+
+    let total = 0;
+    let section = 0;
+    let digit = 0;
+    for (const char of text) {
+      if (char in CN_DIGIT) {
+        digit = CN_DIGIT[char];
+        continue;
+      }
+      const unit = CN_UNIT[char];
+      if (unit == null) continue;
+      if (unit >= 10000) {
+        // 万/亿 close a section: 十二万 = (12) * 10000.
+        section = (section + digit) * unit;
+        total += section;
+        section = 0;
+      } else {
+        // A bare 十/百/千 means one of them: 十八 is 18, not 08.
+        section += (digit || 1) * unit;
+      }
+      digit = 0;
+    }
+    return total + section + digit;
+  }
+
+  // Arabic digits and Chinese numerals are the only runs that become numbers;
+  // everything else stays text so word order is untouched.
+  const NAME_TOKEN = /(\d+)|([零〇一壹二两贰三叁四肆五伍六陆七柒八捌九玖十拾百佰千仟万亿億]+)/g;
+
+  /** "DNF第八季 第十八章：…" → [[1,'DNF第'],[0,8],[1,'季 第'],[0,18],[1,'章：…']] */
+  function nameParts(value) {
+    const text = String(value == null ? '' : value);
+    const parts = [];
+    let last = 0;
+    for (const match of text.matchAll(NAME_TOKEN)) {
+      if (match.index > last) parts.push([1, text.slice(last, match.index)]);
+      let number = match[1] != null ? Number(match[1]) : chineseNumber(match[2]);
+      let end = match.index + match[0].length;
+      // 半 is half of the unit just named: 第四半章 is Act 4.5, so it has to
+      // land between 第四章 and 第五章 instead of tying with 第四章.
+      if (text[end] === '半') {
+        number += 0.5;
+        end += 1;
+      }
+      parts.push([0, number]);
+      last = end;
+    }
+    if (last < text.length) parts.push([1, text.slice(last)]);
+    return parts;
+  }
+
+  const nameCollator = new Intl.Collator('zh-Hans-CN');
+
+  /**
+   * Total order over names: compare part by part, numbers by value and words
+   * by the collator. Kind is compared first so the result stays transitive
+   * (numbers before text at the same position) — a comparator that mixes the
+   * two orders can leave Array#sort with an unstable layout.
+   */
+  function compareNames(a, b) {
+    const left = nameParts(a);
+    const right = nameParts(b);
+    const limit = Math.min(left.length, right.length);
+    for (let i = 0; i < limit; i += 1) {
+      const [kindA, valueA] = left[i];
+      const [kindB, valueB] = right[i];
+      if (kindA !== kindB) return kindA - kindB;
+      const order = kindA === 0 ? valueA - valueB : nameCollator.compare(valueA, valueB);
+      if (order) return order;
+    }
+    if (left.length !== right.length) return left.length - right.length;
+    return nameCollator.compare(String(a), String(b));
+  }
+
+  /**
+   * The direction a mode reads in when nobody has flipped it: names go A→Z
+   * (一→二→三), everything else is a time or a count, where "most recent /
+   * most played first" is what the option name promises.
+   */
+  const SORT_DEFAULT_DIR = {
+    recent: 'desc', name: 'asc', playtime: 'desc', added: 'desc', launches: 'desc'
+  };
+
+  /** Effective direction for a mode: the player's choice, else the default. */
+  function sortDir(mode) {
+    const value = state.settings.librarySortDir;
+    if (value === 'asc' || value === 'desc') return value;
+    return SORT_DEFAULT_DIR[mode] || 'asc';
+  }
+
+  /**
+   * One button, two states. It reflects the direction currently applied to the
+   * list — including the mode's default — so the arrow never disagrees with
+   * the order on screen.
+   */
+  function syncSortDirection(dir) {
+    if (!els.libSortDir) return;
+    const desc = dir === 'desc';
+    els.libSortDir.dataset.dir = desc ? 'desc' : 'asc';
+    els.libSortDir.setAttribute('aria-label', desc ? '当前降序，点击切换为升序' : '当前升序，点击切换为降序');
+    els.libSortDir.title = desc ? '降序 · 点击切换为升序' : '升序 · 点击切换为降序';
+  }
+
+  /* ============================================================
+     PAGE EXPORT — one image, the whole page
+     ============================================================ */
+
+  // The interface is a fixed-viewport shell: every view scrolls inside its own
+  // box and the document itself never grows, so "the whole page" is not
+  // something the host can ask for. For the length of one capture the height
+  // chain is released instead — the active view leaves absolute positioning and
+  // every box between <html> and the scroll container drops its fixed height,
+  // max-height and overflow clip. The host then screenshots the resulting size
+  // through the DevTools protocol, which is the only WebView2 surface that can
+  // paint past the viewport. Everything is restored afterwards, down to the
+  // inline priority, so the interface comes back exactly as it was.
+  let exportJob = null;
+
+  /** The element that actually scrolls the current view. */
+  function exportScroller(root) {
+    let best = root;
+    let bestOverflow = 0;
+    root.querySelectorAll('*').forEach((node) => {
+      const overflow = node.scrollHeight - node.clientHeight;
+      if (overflow <= bestOverflow + 4) return;
+      const style = getComputedStyle(node);
+      if (style.overflowY !== 'auto' && style.overflowY !== 'scroll') return;
+      best = node;
+      bestOverflow = overflow;
+    });
+    return best;
+  }
+
+  function releaseForExport(view) {
+    const saved = [];
+    const scroller = exportScroller(view);
+    const chain = [];
+    for (let node = scroller; node; node = node.parentElement) chain.unshift(node);
+
+    const set = (node, prop, value) => {
+      saved.push([node, prop, node.style.getPropertyValue(prop), node.style.getPropertyPriority(prop)]);
+      node.style.setProperty(prop, value, 'important');
+    };
+
+    chain.forEach((node) => {
+      set(node, 'height', 'auto');
+      set(node, 'max-height', 'none');
+      set(node, 'overflow', 'visible');
+    });
+    // In flow the view is what gives the document its height; absolute and
+    // inset:0 it would report zero.
+    set(view, 'position', 'static');
+
+    const scrollTops = chain.map((node) => node.scrollTop);
+    // The document really is that tall while the capture runs, so the root
+    // scrollbar would be painted down the right edge of the image.
+    document.documentElement.dataset.exporting = '1';
+
+    const restore = () => {
+      for (let i = saved.length - 1; i >= 0; i -= 1) {
+        const [node, prop, value, priority] = saved[i];
+        if (value) node.style.setProperty(prop, value, priority);
+        else node.style.removeProperty(prop);
+      }
+      chain.forEach((node, index) => { node.scrollTop = scrollTops[index] || 0; });
+      delete document.documentElement.dataset.exporting;
+    };
+    return { restore, scroller };
+  }
+
+  /**
+   * Waits until the released layout has stopped growing. Covers are <img>
+   * elements: the grid is shorter until each decode lands, and a height
+   * measured too early leaves the last row cut in half — exactly one frame of
+   * difference, in the one place nobody looks until the file is open.
+   */
+  async function settleForExport(root) {
+    const fonts = document.fonts && document.fonts.ready ? document.fonts.ready.catch(() => {}) : Promise.resolve();
+    const images = Array.from(root.querySelectorAll('img'))
+      .filter((img) => !img.complete)
+      .map((img) => new Promise((resolve) => {
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      }));
+    await Promise.race([
+      Promise.all([fonts, ...images]),
+      new Promise((resolve) => setTimeout(resolve, 1500))
+    ]);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+
+  function finishExport(payload) {
+    if (!exportJob) return;
+    clearTimeout(exportJob.timer);
+    try { exportJob.restore(); } catch (error) { console.warn('export restore', error); }
+    exportJob = null;
+
+    if (!payload || payload.ok === false) {
+      const reason = payload && payload.error ? ` · ${payload.error}` : '';
+      toast(`导出失败${reason}`, 'alert');
+      return;
+    }
+    toast(`已导出 ${payload.width}×${payload.height} · ${payload.folder}`, 'camera');
+  }
+
+  async function exportScreenshot() {
+    if (!hasBridge || exportJob) return;
+    if (state.overlay) {
+      toast('先关闭当前窗口再导出', 'info');
+      return;
+    }
+    const view = document.querySelector('.view.is-current');
+    if (!view) return;
+    audio.select();
+
+    const { restore, scroller } = releaseForExport(view);
+    // One frame for the layout pass, then wait for the covers to finish
+    // decoding — the grid gets taller as they land.
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await settleForExport(view);
+
+    // The capture frame is the app surface itself, not the document. The
+    // document is bigger than what the player sees: the backdrop layers hang
+    // outside the shell on purpose (`.scene-stack` is inset -3%), so asking for
+    // the document hands back a ring of background art around the interface.
+    const app = document.querySelector('.app');
+    const appBox = app ? app.getBoundingClientRect() : null;
+    const viewBox = view.getBoundingClientRect();
+    const scrollerBox = scroller.getBoundingClientRect();
+    const scrollTop = window.scrollY || 0;
+    const width = Math.ceil(Math.max(appBox ? appBox.width : 0, document.documentElement.clientWidth));
+    // Four candidates, because every one of them can be the shortest on some
+    // view: the flex child bottom, the shell box, the scrolled content, and the
+    // scroll container's own content height.
+    const height = Math.ceil(Math.max(
+      viewBox.bottom + scrollTop,
+      appBox ? appBox.height : 0,
+      view.scrollHeight,
+      scrollerBox.top + scroller.scrollHeight + scrollTop
+    ));
+    if (width < 2 || height < 2) {
+      restore();
+      toast('没有可导出的内容', 'info');
+      return;
+    }
+
+    // 1 = one image pixel per CSS pixel, times the display scale factor, which
+    // Chromium applies on its own. Passing devicePixelRatio here as well
+    // multiplies it twice: a 125% display came back at 1.5625x, 56% more pixels
+    // than the screen has.
+    const scale = 1;
+    const background = getComputedStyle(document.body).backgroundColor;
+    exportJob = {
+      restore,
+      timer: setTimeout(() => finishExport({ ok: false, error: '导出超时' }), 25000)
+    };
+    try {
+      const result = await call('capturePage', { view: view.id || 'page', width, height, scale, background });
+      if (result && result.ok === false) finishExport(result);
+    } catch (error) {
+      finishExport({ ok: false, error: '无法连接宿主' });
+    }
+  }
+
   const findGame = (id) => state.games.find((game) => game.id === id) || null;
   const fullName = (game) => {
     if (!game) return '';
@@ -1637,6 +1938,7 @@
         autoBackup: state.settings.autoBackup,
         unifiedSfx: !!state.settings.unifiedSfx,
         librarySort: state.settings.librarySort,
+        librarySortDir: state.settings.librarySortDir || '',
         minimizeOnLaunch: state.settings.minimizeOnLaunch !== false,
         scalingEngine: state.settings.scalingEngine || 'auto',
         magpiePath: state.settings.magpiePath || null,
@@ -2355,21 +2657,26 @@
 
     const list = filterGames();
     const sort = state.settings.librarySort || 'recent';
-    const byRecent = (a, b) => {
-      const at = a.lastPlayedUtc ? new Date(a.lastPlayedUtc).getTime() : 0;
-      const bt = b.lastPlayedUtc ? new Date(b.lastPlayedUtc).getTime() : 0;
-      return bt - at;
-    };
+    const dir = sortDir(sort);
+    const sign = dir === 'desc' ? -1 : 1;
+    syncSortDirection(dir);
+
+    // Every comparator below is written ascending; `sign` turns it around.
+    // Ties return 0 in both directions and Array#sort is stable, so entries a
+    // field cannot tell apart keep the library's own order — flipping the
+    // arrow never reshuffles the ties.
+    const timeOf = (value) => (value ? new Date(value).getTime() : 0);
     if (sort === 'name') {
-      list.sort((a, b) => String(a.zh || a.name || '').localeCompare(String(b.zh || b.name || ''), 'zh-Hans-CN'));
+      // Natural order: 第二季 → 第三季 → … → 第十季, 第四章 before 第十章.
+      list.sort((a, b) => sign * compareNames(a.zh || a.name || '', b.zh || b.name || ''));
     } else if (sort === 'playtime') {
-      list.sort((a, b) => (b.playtimeSeconds || 0) - (a.playtimeSeconds || 0));
+      list.sort((a, b) => sign * ((a.playtimeSeconds || 0) - (b.playtimeSeconds || 0)));
     } else if (sort === 'added') {
-      list.sort((a, b) => String(b.addedUtc || '').localeCompare(String(a.addedUtc || '')));
+      list.sort((a, b) => sign * String(a.addedUtc || '').localeCompare(String(b.addedUtc || '')));
     } else if (sort === 'launches') {
-      list.sort((a, b) => (b.launchCount || 0) - (a.launchCount || 0));
+      list.sort((a, b) => sign * ((a.launchCount || 0) - (b.launchCount || 0)));
     } else {
-      list.sort(byRecent);
+      list.sort((a, b) => sign * (timeOf(a.lastPlayedUtc) - timeOf(b.lastPlayedUtc)));
     }
     if (state.games.length === 0) {
       els.libGrid.style.display = 'none';
@@ -5919,6 +6226,19 @@
     if (els.libSort) {
       els.libSort.addEventListener('change', () => {
         state.settings.librarySort = els.libSort.value;
+        // A newly chosen field starts at its own reading order instead of
+        // inheriting the previous field's arrow: "名称 倒序" by itself would
+        // look like a bug the first time a player picks 名称.
+        state.settings.librarySortDir = SORT_DEFAULT_DIR[els.libSort.value] || 'asc';
+        saveSettings();
+        renderLibrary();
+        audio.select();
+      });
+    }
+    if (els.libSortDir) {
+      els.libSortDir.addEventListener('click', () => {
+        const mode = state.settings.librarySort || 'recent';
+        state.settings.librarySortDir = sortDir(mode) === 'desc' ? 'asc' : 'desc';
         saveSettings();
         renderLibrary();
         audio.select();
@@ -7700,6 +8020,7 @@
 
     els.allBtn.addEventListener('click', () => openLibrary());
     els.searchBtn.addEventListener('click', () => openLibrary({ search: true }));
+    if (els.shotBtn) els.shotBtn.addEventListener('click', () => exportScreenshot());
     els.addBtn.addEventListener('click', () => openImport());
     els.railAddCard.addEventListener('click', () => openImport());
     els.brandBtn.addEventListener('click', () => {
@@ -8011,6 +8332,8 @@
       autoBackup: boot.settings?.autoBackup !== false,
       unifiedSfx: boot.settings?.unifiedSfx === true,
       librarySort: boot.settings?.librarySort || 'recent',
+      librarySortDir: boot.settings?.librarySortDir === 'asc' || boot.settings?.librarySortDir === 'desc'
+        ? boot.settings.librarySortDir : '',
       minimizeOnLaunch: boot.settings?.minimizeOnLaunch !== false,
       scalingEngine: ['auto', 'native', 'off'].includes(boot.settings?.scalingEngine)
         ? boot.settings.scalingEngine : 'auto',
