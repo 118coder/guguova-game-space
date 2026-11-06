@@ -798,6 +798,46 @@ body.layout-rail .view-home .dock-title {
 }
 .lib-sort select option { color: #111; background: #f4f2ec; }
 
+/* Ascending / descending for whichever field the select names. It sits next to
+   the themed select rather than inside it, so it repeats the same hairline +
+   ink treatment: a second control language in the toolbar would read as a
+   different widget. Themes that recolour `.lib-sort select` cover `.lib-dir`
+   in the same rule. */
+.lib-dir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--hair, rgba(255, 255, 255, .16));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink, #f5f2ea) 6%, transparent);
+  color: var(--ink, #f5f2ea);
+  cursor: pointer;
+  outline: none;
+}
+.lib-dir .ic {
+  width: 13px;
+  height: 13px;
+  transition: transform .16s var(--ease, ease);
+}
+/* Up = ascending, down = descending. The glyph is one asset; the flip is CSS
+   so a theme cannot accidentally ship a second, differently-drawn arrow. */
+.lib-dir[data-dir="desc"] .ic { transform: rotate(180deg); }
+.lib-dir:hover { background: color-mix(in srgb, var(--ink, #f5f2ea) 12%, transparent); }
+.lib-dir:active { transform: translateY(1px); }
+.lib-dir:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 2px; }
+
+/* Page export: while the capture runs the document is as tall as its content,
+   so the root scrollbar would be painted down the right edge of the image.
+   Both spellings are needed — `scrollbar-width` only exists from Chromium 121,
+   and the Windows 7 runtime is pinned at 109. */
+html[data-exporting] { scrollbar-width: none; }
+html[data-exporting]::-webkit-scrollbar,
+html[data-exporting] ::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
+
 @media (max-width: 1240px) {
   .settings-hero {
     grid-template-columns: minmax(0, 1fr);

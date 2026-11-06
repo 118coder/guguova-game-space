@@ -124,6 +124,9 @@ public sealed class PlayerSettings
     public bool DeveloperMode { get; set; }
     public string? LastBackupUtc { get; set; }
     public string LibrarySort { get; set; } = "recent";
+    /// <summary>asc | desc for <see cref="LibrarySort"/>. Null means "the
+    /// mode's own reading order": names ascend, time/count fields descend.</summary>
+    public string? LibrarySortDir { get; set; }
     /// <summary>auto | full | balanced | safe. Auto is the recommended default.</summary>
     public string CompatibilityTier { get; set; } = "auto";
 

@@ -819,7 +819,8 @@ html[data-theme="dusk"] .filter.is-active {
 }
 
 html[data-theme="dusk"] .lib-sort span { color: var(--dk-ink-3); font-family: var(--font-serif); }
-html[data-theme="dusk"] .lib-sort select {
+html[data-theme="dusk"] .lib-sort select,
+html[data-theme="dusk"] .lib-sort .lib-dir {
   border-radius: 1px;
   border-color: rgba(106, 87, 64, .32);
   background: rgba(255, 251, 240, .7);

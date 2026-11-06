@@ -811,7 +811,8 @@ html[data-theme="steam"] .filter.is-active {
 }
 
 html[data-theme="steam"] .lib-sort span { color: var(--st-dim); }
-html[data-theme="steam"] .lib-sort select {
+html[data-theme="steam"] .lib-sort select,
+html[data-theme="steam"] .lib-sort .lib-dir {
   border-radius: 3px;
   border-color: var(--st-line);
   background: var(--st-panel);

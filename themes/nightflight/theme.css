@@ -849,7 +849,8 @@ html[data-theme="nightflight"] .filter:hover { color: #ffffff; background: rgba(
 html[data-theme="nightflight"] .filter.is-active { color: var(--nf-ink); background: var(--nf-lime); font-weight: 700; }
 
 html[data-theme="nightflight"] .lib-sort span { color: var(--nf-dim); font-family: var(--font-mono); }
-html[data-theme="nightflight"] .lib-sort select {
+html[data-theme="nightflight"] .lib-sort select,
+html[data-theme="nightflight"] .lib-sort .lib-dir {
   border-radius: 0;
   border-color: var(--nf-line);
   background: var(--nf-panel);
