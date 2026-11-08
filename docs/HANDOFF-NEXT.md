@@ -1,40 +1,44 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.1**
-> 交接时间：2026-11-05
-> 分支：`main`，工作区**有未提交改动**（本轮全部改动）
-> 上一版：1.15.0（多平台入库、首启提示、入库窗口）
-> 发行：**未发布**（本轮只做架构改造，未走 `release.sh --publish`）
-> 产物：`GUGUOVA-1.15.0-single.exe` 9.35 MB（sha256 前 16 位 `5516fc489cddfde8`）、
-> `GUGUOVA-1.15.0-legacy-single.zip` 13.61 MB、`GUGUOVA-1.15.0-legacy-full.zip` 16.94 MB
-> 打包日志：`../_shots/release/1.15.0/pipeline.log`（build → package → verify → smoke 全过）
+> 交接版本：**1.16.2**
+> 交接时间：2026-11-09
+> 分支：`main`（远端 `5b0825e` 的 merge 提交；本地在 `4141e77` 之上多一个
+> docs 提交，两边代码一致。网络恢复后 `git pull --ff-only` 会自动快进）；工作区**干净**
+> 上一版：1.16.1（编辑器补齐、用户回访四修、实例接管）
+> 发行：**已发布** `v1.16.2`（`release.sh --publish --skip-smoke`）
+> 产物：`GUGUOVA-1.16.2-single.exe` 9.47 MB（sha256 前 12 位 `224e0b07e500`）、
+> `GUGUOVA-1.16.2-legacy-single.zip` 13.68 MB（`e05055066cf3`）、
+> `GUGUOVA-1.16.2-legacy-full.zip` 17.07 MB（`664487c38a5d`）
+> 打包日志：`../_shots/release/1.16.2/pipeline.log`（build → package → verify → publish；
+> **smoke 阶段按约定跳过**，实机验收由 Owner 完成）
 > 仓库：`https://github.com/118coder/guguova-game-space`
+> Release：`https://github.com/118coder/guguova-game-space/releases/tag/v1.16.2`
 
 ---
 
 ## 0. 一句话状态
 
-应用 **1.16.0**，14 套主题，**主题已改为接口式映射架构**：
-共享样式表不再出现任何具体主题 id，每套主题用自己的
-`themes/<id>/interfaces.css` 映射全部共享控件；新增主题**不需要改 `src/`**。
+应用 **1.16.2**，14 套主题，接口式映射架构不变。本轮只做两件事：
 
-其余功能与 1.15.0 一致。**入库不再是 Steam 专属**：Steam / Epic / GOG /
-Ubisoft / EA / Xbox（PC Game Pass）/ 战网 七家统一扫描、分组勾选、一次写入；
-首次启动会问一次要不要自动入库；点「添加游戏」先选「自动扫描」还是「手动添加」。
-入库窗口长在 `.engine-shell` 的 `--sheet-*` 材质上，14 套主题各自成立。
+1. **游戏库排序补全**：名称改为自然序（中文数字按值比较），新增 ↑/↓ 方向
+   切换，任意字段可正序/倒序，方向持久化；
+2. **整页长截图导出**：顶栏相机按钮，把当前界面连滚动部分一起导出成 PNG，
+   存到 `图片\GUGUOVA\`。
 
-静态对比度（14 主题 × 18 界面，含新增 `import`）与悬停/聚焦对比度（14 × 4）
-都是 **0 失败**。**没有真机验证的部分**：Epic / Ubisoft / EA / Xbox / 战网的
-真实安装在**本机不存在**，只验证了 GOG（本机有 1 款）与 Steam（24 个清单）。
+另有一个**启动性能修复**（PR #33）随 1.16.2 一起发布：同一个包再次点击不再
+杀掉托盘里的热实例重启，首启解压从"窗口之前"挪到"闪屏之后"。
+
+**本轮没有做主题相关改动**，唯一视觉增量是排序控件右侧多了一个 32×32 的
+方向按钮（dusk / nightflight / steam 三套主题同步适配并 bump patch 版本）。
 
 ### 先读什么
 
-1. 本文 §2–§6 —— 本轮改了什么、平台怎么识别、现在什么状态；
-2. `docs/THEME-DESIGN-SPEC.md` §5.5 —— **入库窗口 `.import-shell` 的控件契约**；
-3. `docs/STEAM-LAUNCH.md` §3.1 —— 四种启动方式（`auto` / `steam` / `platform` / `direct`）；
-4. `tools/headless-shots.js` —— 改完样式后一条命令导出 280 张截图（§2.5）；
-4. `docs/LAUNCHER-FEATURES.md` §2.1 —— 多平台入库能力表；
-5. `.agents/skills/guguova-theme-design/SKILL.md` —— 改主题时照着执行。
+1. 本文 §1.11 —— **本轮改了什么**（排序 + 截图，含三个踩过的坑）；
+2. 本文 §1.12 —— 启动性能修复（PR #33）与**下一轮真正该做的"秒开"路线**；
+3. 本文 §7 P0 —— 下一轮的优先级（启动提速排第一，平台真机仍在列）；
+4. `docs/THEME-DESIGN-SPEC.md` §5.5 —— 入库窗口控件契约；
+5. `docs/STEAM-LAUNCH.md` §3.1 —— 四种启动方式；
+6. `.agents/skills/guguova-theme-design/SKILL.md` —— 改主题时照着执行。
 
 ---
 
@@ -42,11 +46,13 @@ Ubisoft / EA / Xbox（PC Game Pass）/ 战网 七家统一扫描、分组勾选�
 
 | 项 | 值 |
 | --- | --- |
-| 应用版本 | **1.15.0**（`version.json` 是唯一版本源，`tools/bump-version.js` 同步 csproj / index.html） |
-| 资源版本 | `src/index.html` 全部 `?v=1.15.0` |
+| 应用版本 | **1.16.2**（`version.json` 是唯一版本源，`tools/bump-version.js` 同步 csproj / index.html） |
+| 资源版本 | `src/index.html` 全部 `?v=1.16.2`（30 处） |
 | 主题数 | 14（`nova` 内置 + 13 个文件夹） |
-| 主题版本变动 | 只有 `endfield` 1.0.14 → **1.0.15**（修 keycap 1:1） |
-| 打包产物 | 未重新打包；`dist/` 里仍是 1.14.4 的 exe/zip |
+| 主题版本变动 | `dusk` 2.0.11 → **2.0.12**、`nightflight` 1.0.11 → **1.0.12**、`steam` 2.0.10 → **2.0.11**（三套都把 `.lib-dir` 并入各自 `.lib-sort select` 规则） |
+| 打包产物 | `dist/` 下 1.16.2 的 exe 与两个 zip，已发布到 `v1.16.2` |
+| 本地编译缓存 | 已清空（`bin` / `obj` / `legacy/bin` / `legacy/obj` / `.cache`，共 896 MB）；下次构建是冷编译 |
+| QA 数据根 | `D:/tmp/guguova-import`（`NOVA_DATA_ROOT`，空库 + 已置 `firstRunDone`） |
 | QA 数据根 | `D:/tmp/guguova-import`（`NOVA_DATA_ROOT`，空库 + 已置 `firstRunDone`） |
 
 ---
@@ -298,7 +304,7 @@ shell navigate）都进 nova.log，日志时间戳也补到毫秒。
 
 ---
 
-## 1.9 编辑器补齐：路径即输即预览、格式化资料、路径栏可输入、收藏角标（1.16.2，PR #30/#31/#32）
+## 1.9 编辑器补齐：路径即输即预览、格式化资料、路径栏可输入、收藏角标（PR #30/#31/#32）
 
 ### 一、封面路径输入 + 回车，预览即刻更新
 
@@ -703,16 +709,182 @@ Steam 区块）应进 `audit-contrast` 的默认视图集（下轮）。
 的 `
 ` 会在 node/CDP/页面三层转义里丢掉。
 
-### 下一轮 P0
+### 下一轮 P0（1.16.1 当时的清单，已被 §7 取代，保留作历史）
 
 1. **用户实机回归**：图二右键路径、endfield 收藏角标/详情心形、管理面板
    折叠、资料占位、检查更新（设置 → 关于，真实 GitHub）、**添加游戏
    粘贴资料直接保存**。
 2. 静态对比度全量（`audit-contrast.js` 需实机，本轮跳过）。
 3. 发行：v1.16.1 收编发布——`bash tools/release.sh --version 1.16.1`。
-4. 延续 1.16.2 的 P0：五平台真机、Steam 全流程、README 截图。
+4. 延续的 P0：五平台真机、Steam 全流程、README 截图。
 
 ---
+
+## 1.11 本轮（1.16.2，PR #34）：排序补全 + 整页长截图
+
+> **版本号有个撞车，先说清楚**：上一轮文档 §1.9 的标题写着「1.16.2，PR
+> #30/#31/#32」，那批编辑器补齐当时并未发布，实际发出去的是 1.16.1。
+> **真正的 1.16.2 = 本轮 PR #33（启动）+ #34（排序与截图）**。以后引用请以
+> `version.json` 与 git tag 为准，不要以文档小节标题为准。
+
+### 1.11.1 名称排序：自然序 + 非数字交给中文排序
+
+改前「名称」是 `localeCompare(…, 'zh-Hans-CN')`。中文数字是**字符**，
+比较器按字形排，于是 21 个 DNF 版本排成「第八季、第二季、第九季、第六季、
+第三季」这种谁也看不懂的顺序。
+
+改后把名字切成「数字段 / 文字段」，数字按值比、文字仍按中文排序：
+
+| 位置 | 职责 |
+| --- | --- |
+| `src/app.js` `chineseNumber()` | 中文数字转数值：`十`=10、`十八`=18、`二十三`=23、`一百零五`=105、`一万`=10000 |
+| `src/app.js` `NAME_TOKEN` | 词法：阿拉伯数字串，或 `零〇一壹二两贰三叁四肆五伍六陆七柒八捌九玖十拾百佰千仟万亿億` 的连续串 |
+| `src/app.js` `nameParts()` | 产出 `[[1,'DNF第'],[0,8],[1,'季 第'],[0,18],[1,'章：…']]` |
+| `src/app.js` `compareNames()` | 逐段比较：**先比类型**（数字 0 / 文字 1），再比值；尾部用整串兜底 |
+
+两条为这个库专门加的规则，删了会立刻退化：
+
+1. **`第零五章` = 0.5**：以 `零/〇` 开头且不含单位的数字串按小数处理。
+   库里第一季确实有 Act0.5（`DNF-Season1-Act0.5`），按常规中文数字会算成 5，
+   和 `第五章` 并列。
+2. **`第四半章` = 4.5**：数字段后面紧跟 `半` 时 +0.5。库里第一季有 Act4.5。
+
+排序结果（本机 21 条 DNF）：第一季 0.5 → 1 → 4 → 4.5 → 5 → 12 → 13，
+然后第二季 → 第三季 → 第四季 → 第五季 → 第六季 → **第八季** → 第九季 →
+**第十二季**。
+
+### 1.11.2 方向切换（正序 / 倒序）
+
+| 项 | 实现 |
+| --- | --- |
+| 控件 | `src/index.html` `#libSortDir`，`.lib-sort` 内、下拉右侧，32×32 |
+| 图标 | 复用 `#i-up`，`[data-dir="desc"]` 时 CSS 旋转 180°，不新增第二个图标 |
+| 状态 | `state.settings.librarySortDir`：`asc` / `desc` / `''`（空 = 该字段默认） |
+| 字段默认 | `SORT_DEFAULT_DIR`：名称 `asc`，最近游玩 / 时长 / 添加时间 / 启动次数均 `desc` |
+| 持久化 | 桥 `saveSettings` 新增 `librarySortDir`；宿主 `PlayerSettings.LibrarySortDir`，`NativeBridge.SaveSettings` 只接受 `asc`/`desc`，其余落 `null` |
+| 换字段 | 回到该字段默认方向（避免一选「名称」就撞上倒序） |
+
+**稳定性论证**（这是本轮唯一需要"证明"的地方）：
+
+- 所有比较器按**升序**书写，方向用 `sign = dir === 'desc' ? -1 : 1` 相乘；
+- 并列项返回 0，`Array#sort` 稳定，所以翻转方向**不会重排并列项**；
+- 名称比较是**全序**（先类型后值），不会出现 A<B、B<C 但 A>C 的抖动。
+  用「混合比值 / 混字符串」的写法就会有这个问题，别改回去。
+
+### 1.11.3 整页长截图
+
+顶栏放大镜右边新增相机按钮（`#shotBtn`，任意界面可用）。导出的是**当前视图
+连滚动部分**，不是视口截图。
+
+流程（前端 `exportScreenshot()`）：
+
+1. `releaseForExport(view)`：从当前视图真正在滚动的元素一路向上到 `<html>`，
+   逐层把 `height` / `max-height` / `overflow` 设为行内 `!important`；
+   视图本身从 `position:absolute` 改回 `static`（否则它不贡献高度）。
+   每条改动都记了原值与原 `!important` 优先级，用于逆序还原；
+2. 等一帧布局 + `settleForExport()`（字体 `ready`、视图内未完成的 `<img>`
+   decode，上限 1.5s）；
+3. 量宽度与高度（见下），`call('capturePage', {view,width,height,scale,background})`；
+4. 宿主回包后异步截图，完成后发 `screenshot-done` 通知，前端收到后还原 DOM
+   并 toast；25 秒没回音也走还原（不会把界面卡在展开状态）。
+
+宿主 `NativeBridge.CapturePageAsync`：`Page.getLayoutMetrics` 取参考值 →
+按 4000 CSS px 切片 `Page.captureScreenshot`（`captureBeyondViewport:true`）→
+后台线程解码拼接 → 存 PNG。
+
+**三个坑，踩过就要记住：**
+
+1. **裁剪框取 `.app` 的矩形，绝对不要取文档。** `.scene-stack` 是
+   `inset:-3%`，文档比窗口大，按 `documentElement.scrollWidth` 截会多出一圈
+   背景画（第一版就是这个症状：界面只占画面 85%，右边一圈大图）。
+2. **`clip.scale` 传 1。** Chromium 自己会乘设备缩放；再传
+   `devicePixelRatio` 等于乘两次——125% 屏幕上 1671 CSS 的裁剪出了 2611 像素
+   （1.5625 倍），多出来的全是插值。
+3. **高度要在图片 decode 之后量。** 封面没加载完时网格是矮的，早一帧就切掉
+   最后一行卡片。高度取四者最大值：视图底边 / `.app` 盒子 / 视图
+   `scrollHeight` / 滚动容器内容底边。
+
+保存位置：`%USERPROFILE%\Pictures\GUGUOVA\GUGUOVA-<view>-<yyyyMMdd-HHmmss>.png`；
+没有「图片」文件夹时回退 `<数据根>\screenshots`。**时间戳只到秒，同一秒内
+连续导出两次会覆盖前一张**（`Bitmap.Save` 直接写，没有查重）——若要并行导出
+或做自动化批量，先给文件名加毫秒或序号。
+
+限制：页面 > 20000 CSS px 直接报错（不给你半张图）；有弹窗/浮层打开时拒绝
+导出并提示先关闭。
+
+### 1.11.4 主题适配
+
+`.lib-dir` 的基础样式在 `src/views.css`，与 `.lib-sort select` 同一套
+`--hair` / `--ink` 令牌。dusk（1px 圆角）、nightflight（0）、steam（3px）
+原本单独定义过排序下拉的圆角与配色，本轮把 `.lib-dir` 并入它们原有那条
+选择器（`html[data-theme="X"] .lib-sort select, … .lib-dir`），三套
+`theme.json` patch +1。其余 11 套走基础样式。
+
+新增的 `#i-camera` 是一个 `<symbol>`，插在 sprite 里 `#i-download` 之后。
+
+### 1.11.5 本轮的验证边界
+
+- 双目标编译 0 错误（net10 + net48）；
+- 截图功能**实机验证过**（Owner 授权）：1439×899 / 125% 缩放 → 导出
+  1800×4015；右边缘与窗口截图逐像素对齐；关闭按钮在、最后一行卡片完整；
+  导出后文档高度 3783 → 899，窗口截图前后差异仅时钟与颗粒噪点；
+- 排序**只做了静态推理 + 真实数据核对**（21 条 DNF 逐条推演），没有做
+  逐条点击回归——下一轮 P1 里补一次人工确认即可。
+
+---
+
+## 1.12 启动性能（PR #33）与"秒开"的真实路线
+
+### 1.12.1 已合并的改动
+
+| 改动 | 说明 |
+| --- | --- |
+| 同包启动不再杀热实例 | PID 文件改为 `pid\|版本\|exe路径\|长度\|mtimeTicks`；四项全同只发激活信号（`AllowSetForegroundWindow` + 事件）后退出；换包或同版本号重发仍杀旧接管 |
+| 首启解压后置 | 三个 Bootstrapper 从 `App.OnStartup` 移到 `MainWindow.OnLoaded` 的 `Task.Run`，闪屏先出，20 MB 解压不再挡在窗口前面 |
+| 打包可复现 | `pack-assets.py` 固定 1980-01-01 时间戳 + 排序，内容不变则 zip 字节不变；此前每次重新打包都会重新解压 370 个文件并清 HTTP/Code Cache |
+| 宿主侧计时 | `Log.Stage()` 输出 `[+Nms]`，日志时间戳补毫秒 |
+
+证据：`nova.log` 里 14 次 `another instance holds the profile — taking over`
+就是 14 次"点图标先把热实例杀了再冷启"；同版本连续三次
+`renderer cache reset for 1.16.1.0` 是不可复现打包导致的重复清盘。
+
+### 1.12.2 剩余成本构成（实测/估算）
+
+| 段 | 量级 | 能否优化 |
+| --- | --- | --- |
+| 进程 → 窗口可见（net48 CLR + WPF） | 250–400ms | 能，但只值这么多 |
+| WebView2 浏览器进程冷启 | **~1050ms** | 不能（Chromium 自身） |
+| 导航 → 首帧（550KB CSS + `UpdateLayoutTree`） | **334ms** | 能，靠裁 CSS |
+| 主题 CSS 二次注入 | 100–200ms | 能，靠预编译 |
+| 开场动画 | **2150–2600ms** | 产品决定，不是性能 |
+
+冷启到 CDP 就绪 1620ms；用户能点 ≈ 3.8–4.0s。
+
+### 1.12.3 结论（已与 Owner 对齐，别再重新论证）
+
+**换语言（Rust / C++）重写宿主只值 15%–25%，解决不了"秒开"。**
+Chromium 那 1 秒换谁写都省不掉；自绘 UI（D2D/DComp）能到 300ms，但要重写
+550KB CSS 与 14 套主题的层叠契约，等于毁掉产品身份。
+
+真正的路线只有一条：**让进程在你要点的时候已经在了。**
+
+1. **关窗口 = 收托盘（默认）+ 开机自启（首次启动问一次）** ← 收益最大、
+   不动任何视觉。点击 → 0.1 秒窗口回来，动画照播；
+2. **冷启那 1.6 秒用"主题首帧"填满**：把现在通用的 NOVA 闪屏换成当前主题的
+   开场画面（14 张静止图，用现有截图工具批量出），到点交叉淡入接上 CSS 动画；
+3. **CSS 预算**：critical 首屏 ~120–150KB + 其余延迟；`intro.css`（157KB）
+   按需加载；主题 CSS 预编译成单文件（interfaces → theme → compat 顺序固定）。
+   334ms → ~130ms。**这一项必须与第 4 项同批做**；
+4. **开场动画快速模式**：首次或换主题播完整版、其余 500–700ms。
+   注意：现在那 2.2 秒正好盖着"主题 CSS 注入后的第二次全量重算"，先砍动画
+   会先看到卡顿。
+
+原生预热器（1–2MB 小进程，登录时起、同一 UDF 预建 environment）能把冷启压到
+600–800ms，但那是在前面四项做完之后才值得评估的选项，且必须先用
+`Log.Stage` 采到几轮真数据。
+
+---
+
 
 ## 2. 1.15.0 做的四件事（背景）
 
@@ -946,7 +1118,26 @@ QA 产物（仓库外）：
 
 ## 7. 下一轮 P0
 
-### P0-1 · 五个平台的真机验证（本轮最大的空白）
+### P0-1 · 本轮功能的实机回归（排序 + 截图）
+
+**排序**（只做过静态推理，没逐条点过）：
+
+1. 14 套主题下看方向按钮的观感——本轮只把 `.lib-dir` 并进了 dusk /
+   nightflight / steam 三条已有规则，其余 11 套走基础样式，**没有逐套截图**；
+2. 五个字段各切一次正序/倒序，确认方向按钮显示的方向与列表实际顺序一致；
+3. 换字段时方向是否回到该字段默认（名称升序、其余降序）；
+4. 重启后方向是否保持（`library.json` 的 `librarySortDir`）；
+5. 并列项在正序/倒序下是否保持库内相对顺序（第六季第七章的两款是天然样本）。
+
+**截图**：
+
+1. 首页 / 外观 / 设置三个视图各导一次——本轮的实机验证只覆盖了游戏库，
+   另外三个视图的滚动容器不是同一个元素，靠 `exportScroller()` 自动判定，
+   如果哪个视图导出为空或只截到一屏，问题在这里；
+2. 窗口最大化、拉到半屏、切竖排布局后再导，确认宽度跟随；
+3. 长页面（>4000 CSS px，会走多切片）拼接处是否有 1px 缝。
+
+### P0-2 · 五个平台的真机验证（沿用，本轮未动）
 
 代码路径都对，但**本机没有 Epic / Ubisoft / EA / Xbox / 战网的安装**：
 
@@ -959,32 +1150,37 @@ QA 产物（仓库外）：
 
 判定标准：条目能导入、能启动、退出后时长进库、管理面板能切「直接启动」。
 
-### P0-2 · 首次启动提示的边界
+### P0-3 · 首次启动提示的边界
 
 - 老玩家升级（库里已有游戏、`firstRunDone=false`）→ 只弹一次；
 - 弹窗打开时按 Esc / 点遮罩 / 关窗口 → 下次启动不再弹；
 - 空库且没装任何平台 → 默认落在「手动添加」，副标题为「没有检测到已安装的平台」；
 - `NOVA_DATA_ROOT` 演示实例每次新数据根都会问一次（预期行为）。
 
-### P0-3 · Steam 全流程（沿用上一轮的阻塞项）
+### P0-4 · Steam 全流程（沿用上一轮的阻塞项）
 
 登录态、SteamStub 与普通游戏各一次、`launchMode` 三种、退出后 2.5s 的
 `playtime-synced`、无 UAC。详见 1.14.4 交接文档 §8 P0-1。
 
-### P0-4 · 缩放引擎真机（另一台没有 Magpie 的机器）
+### P0-5 · 缩放引擎真机（另一台没有 Magpie 的机器）
 
 单 exe 首启解压、自动拉起、快捷键、退出后自动关闭；光标「跟随画面」、
 帧率留空=无上限。
 
-### P0-5 · 全主题回归 + 布局
+### P0-6 · 全主题回归 + 布局
 
 ```bash
 bash tools/release.sh --audit
 node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280x800 --stress
 ```
 
-重点看新入库窗口在 `960x600` 下两张卡是否挤（≤620px 已降为单列），
-以及 30 字标题 + 平台徽标那一行是否溢出。
+重点看入库窗口在 `960x600` 下两张卡是否挤（≤620px 已降为单列），
+30 字标题 + 平台徽标那一行是否溢出，以及 `.lib-sort` 加了一个 32px 按钮后
+在 `960x600` / `620px` 断点下是否挤到换行。
+
+> **启动"秒开"不在本轮 P0**：Owner 在 2026-11-06 决定推到最终版再做。
+> 方案已完整存档在 §1.12.3，届时按"常驻/自启 → 主题首帧 → CSS 预算 +
+> 动画快速模式"的顺序执行即可，不需要重新论证。
 
 ---
 
@@ -992,6 +1188,13 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 
 ### P1
 
+- **启动"秒开"（最终版再做）**：方案见 §1.12.3，顺序是常驻/开机自启 →
+  冷启填主题首帧 → CSS 预算 + 动画快速模式。**不要单独先砍开场动画**。
+- **截图的可发现性**：现在只有一条 3 秒的 toast 带路径，导出完就消失。
+  建议在 toast 里给一个"打开文件夹"动作，或复用已有的 `revealPath` 桥，
+  否则玩家得自己去「图片」里翻。
+- **截图的第二个出口**：目前只存 PNG。如果要做"复制到剪贴板"或 JPG
+  （分享用），入口应继续放在 `#shotBtn` 的长按或右键菜单，不要再占顶栏位置。
 - **封面**：Epic / Ubisoft / Xbox 目前只有图标生成的封面；如果要截图级的观感，
   得让玩家手动选图，或读取各客户端自己的本地缓存（离线、不下载）。
 - **战网代码表**：`Call of Duty` 系列没有稳定 code，目前走直接 exe。
@@ -1003,8 +1206,11 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 - **`audit-hover` 视图扩展**：把 library / engine / appearance / scanner 纳入默认集。
 - **无头截图提速**：现在 280 张 212 秒；可把 `setup()` 里的固定 sleep 改成
   「等目标元素出现」的轮询，预计能再快一半。
-- **README**：截图仍是 1.9.0 的，功能列表也没有平台入库。
+- **README**：截图仍是 1.9.0 的，功能列表也没有平台入库与截图导出。
 - **Magpie profile `autoScale`**：把「全屏缩放」映射成按 exe 自动缩放。
+- **排序的记忆粒度**：现在只有一个全局 `librarySortDir`，换字段会丢上一次的
+  方向。若玩家反馈，可以改成按字段记（`{name:'asc', recent:'desc', …}`），
+  注意 `PlayerSettings` 要加字典字段并保持旧值兼容。
 
 ### P2
 
@@ -1057,6 +1263,13 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 | **性能基准** | `tools/perf-baseline.js` |
 | **三后端一致性** | `tools/test-palette.js` |
 | **GPU 崩溃自愈** | `MainWindow.xaml.cs` `DegradeToSoftwareRendering` |
+| **名称自然序** | `src/app.js` `chineseNumber` / `nameParts` / `compareNames`（`NAME_TOKEN` 是词法） |
+| **排序方向** | `src/index.html#libSortDir` → `app.js` `sortDir` / `syncSortDirection` / `SORT_DEFAULT_DIR`；落盘 `PlayerSettings.LibrarySortDir` |
+| **排序控件样式** | `src/views.css` `.lib-dir`（三套主题在同名 `.lib-sort select` 规则里） |
+| **整页截图（前端）** | `app.js` `exportScreenshot` / `releaseForExport` / `settleForExport` / `finishExport` |
+| **整页截图（宿主）** | `NativeBridge.QueuePageCapture` / `CapturePageAsync` / `ScreenshotFolder` |
+| **启动阶段计时** | `Log.Stage()`（`[+Nms]`），锚点 `Process.StartTime` |
+| **单实例接管** | `App.xaml.cs` `StartAsOwner` / `ReadInstanceStamp` / `IsSameBuildOnDisk` |
 
 ---
 
@@ -1124,6 +1337,25 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 46. **首次启动提示只问一次**：任何出口都要写 `firstRunDone`；
 47. **平台扫描只读**：不写注册表、不下载封面、不发网络请求；
 48. **启动器本体不是游戏**：快捷方式扫描与拖拽都走 `ClientExeNames` 黑名单；
+
+### 排序与截图（1.16.2）
+
+49. **排序比较器一律按升序书写，方向用 `±1` 相乘**；不要写成"正序一个
+    函数、倒序另一个函数"，也不要混用"数字比值 / 字符串比较"——那会破坏
+    传递性，导致 `Array#sort` 结果抖动；
+50. **名称排序的两条特殊规则不能删**：`第零五章`=0.5（以 `零` 开头且无单位
+    的数字串按小数）、`第四半章`=4.5（数字段后紧跟 `半` 时 +0.5）。库里
+    确实存在 Act0.5 与 Act4.5；
+51. **换排序字段必须回到该字段的默认方向**，不要继承上一个字段的箭头；
+52. **截图裁剪框取 `.app` 的矩形，永不取 `documentElement`**：背景层
+    `.scene-stack` 故意 `inset:-3%`，按文档截会带上一圈背景画；
+53. **`clip.scale` 传 1**：Chromium 自己乘设备缩放，传 `devicePixelRatio`
+    是二次放大；
+54. **导出用的临时样式必须是行内 `!important`，并逐条记录原值与优先级逆序
+    还原**；不要用"加一个 class 再删"的做法，主题里 `html[data-theme] …
+    !important` 会压过它；
+55. **测量高度前必须等字体与图片 decode**（`settleForExport`），否则最后
+    一行卡片会被切半。
 49. **挂机暂停是默认行为**（`IdlePauseMinutes` 默认 10）：结算用 `EffectiveSeconds`，
     不要回退成裸墙钟；0 = 关；
 50. **扫描/托盘/拖拽里拒绝启动器客户端**；Xbox 条目不提供「直接启动」。
@@ -1165,7 +1397,14 @@ NOVA_CDP_PORT=9333 node tools/export-all.js --views=all --sizes=1439x1124,960x60
 NOVA_CDP_PORT=9333 node tools/drive.js "return await window.nova.call('platformSummary');"
 NOVA_CDP_PORT=9333 node tools/drive.js "return await window.nova.call('scanLibrary');"
 
-bash tools/release.sh --version 1.16.0 --publish
+# 整页截图功能的实机验证（legacy 单文件包的 WebView2 SDK 不接受 CDP 端口，
+# 必须用现代构建；GUI 子进程会被 shell 结束时回收，所以 spawn + 驱动要在
+# 同一个进程里做）
+NOVA_CDP_PORT=9223 NOVA_CACHE_ROOT="$(pwd)/.cache/webview2" \
+  ./bin/Release/net10.0-windows/win-x64/GUGUOVA.exe &
+# 然后 CDP：点击 #shotBtn → 看 nova.log 的 capture 行 → 看 图片\GUGUOVA\*.png
+
+bash tools/release.sh --version 1.16.2 --publish --skip-smoke
 ```
 
 Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 PR / 合并 / 发 Release。
@@ -1193,6 +1432,19 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - **Steam 时长是分钟粒度**；刚启动/刚退出的几分钟可能滞后。
 - **全屏缩放只对窗口化游戏有效**；Magpie 需要 Win10 1903+。
 - 本轮未在 Win7、真实 Steam 登录态、另一台无 Magpie 机器上验证。
+- **整页截图只在游戏库视图做过实机验证**（1439×899 / 125%）。首页 / 外观 /
+  设置走的是同一套 `exportScroller()` 自动判定，但滚动容器不同，未逐一验证。
+- **截图上限 20000 CSS px**，超过直接报错；`scale` 固定 1，125% 屏幕输出
+  1.25 倍像素，200% 屏幕就是 2 倍——像素总量随屏幕缩放增长，超长页面在
+  4K + 200% 下可能接近内存上限（60 MP 阈值会把它降到 1 倍，但那时是
+  1 CSS px : 1 px，会偏软）。
+- **`capturePage` 是"立即回包 + 异步通知"**：桥的返回只表示"已排队"，
+  真正的结果在 `screenshot-done` 里。别在 `call()` 之后直接读结果。
+- **legacy 单文件包（WebView2 SDK 1.0.1774）不接受 `--remote-debugging-port`**，
+  调试截图功能要用 `bin/Release/net10.0-windows/win-x64/GUGUOVA.exe`。
+- **两个不同文件名的包无法互相接管**（`KillGuguova` 会校验映像名），
+  做 A/B 测试时先 `taskkill` 再启动，否则会卡在"another instance holds the
+  profile"然后自己退出。
 
 ---
 
@@ -1210,24 +1462,32 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 | 1.14.4 | 流水线式打包：`release.sh` + verify + smoke + publish；`NOVA_DATA_ROOT` |
 | 1.15.0 | 多平台入库（Epic/GOG/Ubisoft/EA/Xbox/战网）、首次启动提示、添加游戏先选路、入库窗口 14 主题适配、`import` 视图进入三条审计 |
 | **1.16.0** | **接口式映射架构（主题零主代码改动）；可选加速层 WebGPU+WASM 三档降级；GPU 崩溃自愈；Steam 时长同步移出冷启动；新增 `perf-baseline` / `test-palette` / `theme-slot-check` / `build-wasm` 四个守门工具；修 nova 取色两处对比度** |
+| 1.16.1 | 编辑器补齐（路径即输即预览、资料格式化、路径栏可输入、收藏角标，PR #30/#31/#32）；用户回访四修 + 检查更新（PR #29）；实例接管策略 |
+| **1.16.2** | **名称自然序 + 升降序切换（PR #34）；整页长截图导出（PR #34）；同包启动不再杀热实例、首启解压移到闪屏之后、`pack-assets` 可复现、`Log.Stage` 宿主计时（PR #33）** |
 
 ---
 
 ## 14. 交接清单
 
-- [x] 应用 1.15.0 构建通过（0 错误）；
-- [x] 静态对比度 0 失败（14 × 18，含 `import`）；
-- [x] 悬停/聚焦对比度 0 失败（14 × 4，含 `import`）；
-- [x] 首次启动提示出现 / 只出现一次 / 三分支可走通；
-- [x] GOG 条目端到端导入并正确显示来源与启动方式；
-- [x] 入库窗口 14 套主题渲染正常（截图 + 审计）；
-- [x] 设计规范 §5.5、`LAUNCHER-FEATURES` §2.1、`STEAM-LAUNCH` §3.1 已更新；
-- [x] `tools/headless-shots.js` 可用：280 张 / 212 秒 / 0 布局告警；
-- [x] 扫描行缩略图修复：缓存封面经 `nova.cacheN` 加载，无缓存走唱片兜底，0 破图；
+本轮（1.16.2）：
+
+- [x] 双目标编译通过（net10 + net48，0 错误）；
+- [x] 版本号 1.16.2 全链同步（`version.json` / 两个 csproj / `index.html` 30 处 `?v=`）；
+- [x] 三套受影响主题 `theme.json` patch +1（dusk / nightflight / steam）；
+- [x] PR #34 合并（排序 + 截图），PR #33 已包含在本版（启动）；
+- [x] 发布 `v1.16.2`：single.exe 9.47 MB / legacy-single 13.68 MB / legacy-full 17.07 MB；verify 通过，**smoke 跳过**；
+- [x] 整页截图实机验证（游戏库视图，1439×899 / 125% → 1800×4015，右边缘逐像素对齐，末行完整，导出后 DOM 完全还原）；
+- [x] 名称排序按真实库 21 条 DNF 逐条推演，顺序与预期一致；
+- [x] 本地编译缓存清理（896 MB）。
+
+未完成（下一轮）：
+
+- [ ] 14 套主题下的排序方向按钮观感（只改了三套，其余 11 套未截图）；
+- [ ] 首页 / 外观 / 设置三个视图的整页导出；
+- [ ] 超过 4000 CSS px 的多切片拼接（本轮样本只切了 1 片）；
 - [ ] Epic / Ubisoft / EA / Xbox / 战网真机；
 - [ ] Steam 登录态全流程；
 - [ ] 另一台无 Magpie 机器的引擎真机；
-- [ ] Win7 + WebView2 109；
-- [ ] 重新打包 1.15.0 并发布（本轮未做）。
+- [ ] Win7 + WebView2 109。
 
-下一轮从 **§7 P0-1（五个平台的真机验证）** 开始。
+下一轮从 **§7 P0-1（本轮功能的实机回归）** 开始，平台真机（P0-2）仍是最大的空白。
