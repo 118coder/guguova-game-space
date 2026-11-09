@@ -578,6 +578,18 @@ function mockScript() {
   const DATA = ${payload};
   const listeners = [];
 
+  // QA knob: ?novaTierHours=<n> overrides the selected game's playtime so the
+  // playtime-ladder colours can be exercised without touching any default
+  // (headless-shots and the contrast audits never pass the parameter).
+  try {
+    const tierHours = parseFloat(new URLSearchParams(location.search).get('novaTierHours'));
+    if (Number.isFinite(tierHours) && tierHours >= 0) {
+      const target = DATA.boot.games.find((game) => game.id === DATA.boot.currentGameId) || DATA.boot.games[0];
+      target.playtimeSeconds = Math.round(tierHours * 3600);
+      DATA.boot.stats.totalSeconds = DATA.boot.games.reduce((sum, game) => sum + game.playtimeSeconds, 0);
+    }
+  } catch (error) {}
+
   // The renderer expects the host to answer on the same channel it posts on.
   window.chrome.webview = {
     addEventListener(type, handler) { if (type === 'message') listeners.push(handler); },

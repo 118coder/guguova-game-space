@@ -20,6 +20,17 @@
   --t-danger: #d92b2b;
   --t-ease: cubic-bezier(.2, .8, .3, 1);
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     蓝版 →(青绿弧) 酸黄 →(回印更深) 深蓝 →(套印新色) 玫红 →(褪纸) 纸白
+     → 酸黄（本主题自己的 hero 就用酸黄压纸面）。锚点间 90°+ 弧。
+     tier 0 不发布变量，各表面保持自己的基色 ---- */
+  --prog-l0: #2f3fd4;
+  --prog-l1: #e8ff2a;
+  --prog-l2: #1c2492;
+  --prog-l3: #d44f7a;
+  --prog-l4: #f4f2e9;
+  --prog-l5: #e8ff2a;
+
   --ink: var(--t-ink);
   --muted: var(--t-muted);
   --faint: var(--t-faint);
@@ -446,7 +457,7 @@ html[data-theme="riso"] .type-system::after { height: 3px; background: var(--t-a
 .manage-progress-track i,
 .launch-track i {
   border-radius: 999px;
-  background: var(--t-accent);
+  background: var(--prog-fill, var(--t-accent));
   box-shadow: none;
 }
 
@@ -570,8 +581,8 @@ html[data-theme="riso"] .type-system::after { height: 3px; background: var(--t-a
 .tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); transform: translateY(-4px); }
 
 .tile-progress { height: 3px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.tile-progress i { border-radius: 999px; background: var(--t-accent); }
-.tile.is-active .tile-progress i { background: var(--t-accent); }
+.tile-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--t-accent)); }
 
 .tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--t-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
 .tile-name { overflow: visible; white-space: normal; text-overflow: clip; color: var(--t-ink); }
@@ -642,7 +653,7 @@ html[data-theme="riso"] .type-system::after { height: 3px; background: var(--t-a
 .lib-card:hover .lib-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
 .lib-open { border: 1px solid var(--t-accent); border-radius: var(--r-btn); background: var(--t-accent); color: var(--t-on-accent); }
 .lib-progress { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.lib-progress i { border-radius: 999px; background: var(--t-accent); }
+.lib-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
 .lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--t-muted); }
 .lib-sub { color: var(--t-muted); }
@@ -1097,7 +1108,7 @@ body::after { height: 8px; background: linear-gradient(90deg, var(--t-accent) 0 
 }
 .btn.ghost { border: 2px solid var(--t-accent); color: var(--t-accent); }
 .btn.ghost:hover { background: var(--t-accent); color: var(--t-on-accent); }
-.progress-track i { background: var(--t-accent); }
+.progress-track i { background: var(--prog-fill, var(--t-accent)); }
 .activity-strip { border: 2px solid var(--t-ink); box-shadow: 6px 6px 0 var(--t-accent-2); }
 .activity-strip:hover { box-shadow: 8px 8px 0 var(--t-accent-2); transform: translate(-1px, -1px); }
 .activity-icon { border-color: var(--t-ink); background: var(--t-accent-2); color: var(--t-ink); }
@@ -1202,7 +1213,7 @@ html[data-theme="riso"] .hero-logo::before {
 .activity-title { color: var(--t-accent-2); }
 .activity-pct { color: var(--t-accent-2); text-shadow: 2px 2px 0 rgba(16, 16, 20, .35); }
 .activity-track { border-color: var(--t-ink); background: rgba(16, 16, 20, .3); }
-.activity-track i { background: var(--t-accent-2); }
+.activity-track i { background: var(--prog-fill, var(--t-accent-2)); }
 
 /* cards: yellow shard at the corner */
 .tile-art::after {
@@ -1412,7 +1423,7 @@ html[data-theme="riso"] .progress-block { border-top: 2px solid var(--rs-blue); 
 html[data-theme="riso"] .progress-head { color: var(--rs-blue-deep); font-family: var(--font-condensed); letter-spacing: .1em; }
 html[data-theme="riso"] .progress-pct { color: var(--rs-blue); font-family: var(--font-serif); font-weight: 700; }
 html[data-theme="riso"] .progress-track { height: 6px; border: 1px solid var(--rs-blue); border-radius: 0; background: rgba(47, 63, 212, .1); }
-html[data-theme="riso"] .progress-track i { border-radius: 0; background: var(--rs-blue); box-shadow: 3px 3px 0 var(--rs-acid); }
+html[data-theme="riso"] .progress-track i { border-radius: 0; background: var(--prog-fill, var(--rs-blue)); box-shadow: 3px 3px 0 var(--rs-acid); }
 html[data-theme="riso"] .progress-sub { color: var(--rs-blue-deep); font-family: var(--font-condensed); letter-spacing: .06em; }
 
 /* ---- activity: acid block with blue frame ---- */
@@ -1434,7 +1445,7 @@ html[data-theme="riso"] .activity-pct { color: var(--rs-blue); font-family: var(
 html[data-theme="riso"] .activity-meta { color: rgba(28, 36, 146, .55); }
 html[data-theme="riso"] .activity-arrow { color: var(--rs-blue); }
 html[data-theme="riso"] .activity-track { border: 1px solid var(--rs-blue); background: rgba(255, 255, 255, .4); }
-html[data-theme="riso"] .activity-track i { background: var(--rs-blue); }
+html[data-theme="riso"] .activity-track i { background: var(--prog-fill, var(--rs-blue)); }
 
 /* ---- dock: duotone photo cards ---- */
 
@@ -1658,7 +1669,7 @@ html[data-theme="riso"] .activity-meta,
 html[data-theme="riso"] .activity-arrow,
 html[data-theme="riso"] .activity-pct { color: var(--rs-acid); }
 html[data-theme="riso"] .activity-track { border-color: rgba(232, 255, 42, .5); background: rgba(232, 255, 42, .18); }
-html[data-theme="riso"] .activity-track i { background: var(--rs-acid); }
+html[data-theme="riso"] .activity-track i { background: var(--prog-fill, var(--rs-acid)); }
 
 /* the nav pill and current filter also carry blue */
 html[data-theme="riso"] .nav-glide { background: var(--rs-blue); }
@@ -1706,7 +1717,7 @@ html[data-theme="riso"] .hero-inner .progress-head,
 html[data-theme="riso"] .hero-inner .progress-sub { color: rgba(232, 255, 42, .82); }
 html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-acid); }
 html[data-theme="riso"] .hero-inner .progress-track { border-color: rgba(232, 255, 42, .6); background: rgba(232, 255, 42, .16); }
-html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-acid); box-shadow: none; }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--prog-fill, var(--rs-acid)); box-shadow: none; }
 html[data-theme="riso"] .hero-inner .age-badge { background: transparent; }
 
 /* the title flips to acid-on-blue with a white overprint */
@@ -1753,7 +1764,7 @@ html[data-theme="riso"] .hero-inner .age-badge { border-color: var(--rs-blue); c
 html[data-theme="riso"] .hero-inner .progress-block { border-top: 2px solid var(--rs-blue); padding-top: 8px; padding-bottom: 6px; }
 html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-blue); }
 html[data-theme="riso"] .hero-inner .progress-track { border-color: var(--rs-blue); background: rgba(47, 63, 212, .12); }
-html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-blue); }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--prog-fill, var(--rs-blue)); }
 
 /* ---- one continuous white paper well instead of per-element bars ---- */
 html[data-theme="riso"] .hero-inner::before {
@@ -1874,7 +1885,7 @@ html[data-theme="riso"] .hero-inner .progress-head,
 html[data-theme="riso"] .hero-inner .progress-sub { color: rgba(232, 255, 42, .85); }
 html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-acid); }
 html[data-theme="riso"] .hero-inner .progress-track { border-color: rgba(232, 255, 42, .55); background: rgba(232, 255, 42, .16); }
-html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--prog-fill, var(--rs-acid)); }
 
 /* ============================================================
    v1.2.7 — 参考图是「蓝底海报」：蓝铺满版面，白只是字井
@@ -1977,7 +1988,7 @@ html[data-theme="riso"] .activity-kicker,
 html[data-theme="riso"] .activity-pct,
 html[data-theme="riso"] .activity-arrow { color: #fff; }
 html[data-theme="riso"] .activity-track { border-color: rgba(232, 255, 42, .5); background: rgba(232, 255, 42, .16); }
-html[data-theme="riso"] .activity-track i { background: var(--rs-acid); }
+html[data-theme="riso"] .activity-track i { background: var(--prog-fill, var(--rs-acid)); }
 
 /* 酸黄斜带：参考图的黄是两条大斜楔，不是小色块。带子压在字井**下面**
    （图层序：先写的画在上层），所以它只吃蓝底的面积，不碰文字。 */
@@ -2016,7 +2027,7 @@ html[data-theme="riso"] .hero-inner .progress-head,
 html[data-theme="riso"] .hero-inner .progress-sub { color: rgba(232, 255, 42, .85); }
 html[data-theme="riso"] .hero-inner .progress-pct { color: var(--rs-acid); }
 html[data-theme="riso"] .hero-inner .progress-track { border-color: rgba(232, 255, 42, .55); background: rgba(232, 255, 42, .16); }
-html[data-theme="riso"] .hero-inner .progress-track i { background: var(--rs-acid); }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--prog-fill, var(--rs-acid)); }
 
 /* ============================================================
    v1.2.9 — 参考图的「白」是冷白，「紫」是双色油墨叠印
@@ -2289,7 +2300,7 @@ html[data-theme="riso"] .hero-inner .progress-track {
   border-radius: 0 !important;
   background: #ffffff !important;
 }
-html[data-theme="riso"] .hero-inner .progress-track i { background: #e8ff2a !important; border-radius: 0 !important; }
+html[data-theme="riso"] .hero-inner .progress-track i { background: var(--prog-fill, #e8ff2a) !important; border-radius: 0 !important; }
 
 html[data-theme="riso"] .btn { border-radius: 0; }
 html[data-theme="riso"] :is(.btn.primary, .btn.primary.cta-adaptive, .btn.primary.cta-system) {
@@ -2317,7 +2328,7 @@ html[data-theme="riso"] .activity-desc,
 html[data-theme="riso"] .activity-meta { color: #4a4a55 !important; }
 html[data-theme="riso"] .activity-pct { color: #2b2fa8 !important; font-family: var(--font-serif); }
 html[data-theme="riso"] .activity-track { height: 3px; border: 0; border-radius: 0; background: #ddd9c9; }
-html[data-theme="riso"] .activity-track i { background: #2b2fa8; border-radius: 0; }
+html[data-theme="riso"] .activity-track i { background: var(--prog-fill, #2b2fa8); border-radius: 0; }
 html[data-theme="riso"] .activity-arrow { color: #2b2fa8 !important; }
 
 html[data-theme="riso"] .dock { border-top: 2px solid #101014; background: #efece0; }

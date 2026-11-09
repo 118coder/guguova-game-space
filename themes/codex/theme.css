@@ -30,6 +30,17 @@
   --cx-parchment-2: #c7b189;
   --cx-parchment-ink: #2a1d12;
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     金与红宝石交替淬火 —— 金 →(沉) 红宝石 →(提亮) 鎏金 →(沉) 深红宝石
+     →(亮) 淡金 → 鎏金封顶。明度大起大落让每段一眼可辨（双色族主题靠
+     明度节奏区分）。tier 0 不发布变量，各表面保持自己的基色 ---- */
+  --prog-l0: #e2c78e;
+  --prog-l1: #8f2f3a;
+  --prog-l2: #f6e3bb;
+  --prog-l3: #6f1f2a;
+  --prog-l4: #ffd98a;
+  --prog-l5: #fff1cc;
+
   --cx-ease: cubic-bezier(.2, .8, .3, 1);
 
   --ink: var(--cx-cream);
@@ -537,7 +548,7 @@ html[data-theme="codex"] .type-system::after {
 .launch-track i {
   border-radius: 0;
   background: repeating-linear-gradient(90deg,
-    var(--cx-gold) 0 7px,
+    var(--prog-fill, var(--cx-gold)) 0 7px,
     var(--cx-maroon) 7px 9px,
     transparent 9px 12px);
   box-shadow: 0 0 10px rgba(226, 199, 142, .25);
@@ -690,8 +701,8 @@ html[data-theme="codex"] .type-system::after {
 }
 
 .tile-progress { height: 3px; border-radius: 0; background: rgba(16, 11, 7, .8); box-shadow: inset 0 0 0 1px var(--cx-gold-line-soft); }
-.tile-progress i { border-radius: 0; background: linear-gradient(90deg, var(--cx-gold-deep), var(--cx-gold)); box-shadow: none; }
-.tile.is-active .tile-progress i { background: linear-gradient(90deg, var(--cx-maroon-hi), var(--cx-gold)); }
+.tile-progress i { border-radius: 0; background: var(--prog-fill, linear-gradient(90deg, var(--cx-gold-deep), var(--cx-gold))); box-shadow: none; }
+.tile.is-active .tile-progress i { background: var(--prog-fill, linear-gradient(90deg, var(--cx-maroon-hi), var(--cx-gold))); }
 
 .tile-label {
   align-items: flex-start;
@@ -829,7 +840,7 @@ kbd.key {
 .lib-card:hover .lib-art { border-color: var(--cx-gold-deep); box-shadow: 0 0 24px -12px rgba(226, 199, 142, .5), inset 0 0 0 4px rgba(22, 15, 10, .6); }
 .lib-open { border-radius: 1px; border: 1px solid var(--cx-gold-line); background: rgba(16, 11, 7, .85); color: var(--cx-gold); }
 .lib-progress { border-radius: 0; background: rgba(16, 11, 7, .75); }
-.lib-progress i { border-radius: 0; background: linear-gradient(90deg, var(--cx-gold-deep), var(--cx-gold)); }
+.lib-progress i { border-radius: 0; background: var(--prog-fill, linear-gradient(90deg, var(--cx-gold-deep), var(--cx-gold))); }
 .lib-name { color: var(--cx-cream); font-family: var(--font-display); font-size: 15px; font-weight: 600; }
 .lib-en { color: var(--cx-cream-3); }
 .lib-sub { color: var(--cx-gold-deep); }
@@ -1773,7 +1784,7 @@ html[data-theme="codex"] .progress-track {
   background: #100b07;
   box-shadow: none;
 }
-html[data-theme="codex"] .progress-track i { border-radius: 0; background: var(--codex-gold); box-shadow: none; }
+html[data-theme="codex"] .progress-track i { border-radius: 0; background: var(--prog-fill, var(--codex-gold)); box-shadow: none; }
 html[data-theme="codex"] .progress-track i::after { content: ""; display: block; position: absolute; inset: 0; background-image: repeating-linear-gradient(90deg, transparent 0 11px, rgba(23, 19, 15, .55) 11px 12px); }
 html[data-theme="codex"] .progress-pct { color: var(--codex-paper); font-family: var(--font-serif); }
 html[data-theme="codex"] .progress-head { color: rgba(232, 220, 194, .6); }
@@ -1803,7 +1814,7 @@ html[data-theme="codex"] .activity-pct { color: var(--codex-gold); font-family: 
 html[data-theme="codex"] .activity-meta { white-space: normal; overflow: visible; text-overflow: clip; color: rgba(232, 220, 194, .4); }
 html[data-theme="codex"] .activity-arrow { color: rgba(201, 169, 97, .55); }
 html[data-theme="codex"] .activity-track { border-radius: 0; background: rgba(201, 169, 97, .18); }
-html[data-theme="codex"] .activity-track i { border-radius: 0; background: var(--codex-gold); box-shadow: none; }
+html[data-theme="codex"] .activity-track i { border-radius: 0; background: var(--prog-fill, var(--codex-gold)); box-shadow: none; }
 
 /* cards: gold hairline, ruby only as the current marker */
 html[data-theme="codex"][data-fx-cards="rule"] :is(.tile-art, .lib-art) {
@@ -1817,8 +1828,8 @@ html[data-theme="codex"] .tile.is-active .tile-art {
   box-shadow: inset 0 -3px 0 var(--codex-ruby) !important;
 }
 html[data-theme="codex"] .tile.is-active .tile-sub { color: var(--codex-gold) !important; }
-html[data-theme="codex"] .tile-progress i { background: var(--codex-gold); box-shadow: none; }
-html[data-theme="codex"] .tile.is-active .tile-progress i { background: var(--codex-ruby); }
+html[data-theme="codex"] .tile-progress i { background: var(--prog-fill, var(--codex-gold)); box-shadow: none; }
+html[data-theme="codex"] .tile.is-active .tile-progress i { background: var(--prog-fill-deep, var(--codex-ruby)); }
 html[data-theme="codex"][data-fx-cards="rule"] :is(.theme-card, .style-choice) { background: var(--codex-plate) !important; border-color: rgba(201, 169, 97, .32) !important; border-radius: 0 !important; }
 html[data-theme="codex"] :is(.theme-card, .style-choice).is-active { border-color: var(--codex-gold) !important; box-shadow: inset 0 -2px 0 var(--codex-ruby) !important; }
 html[data-theme="codex"] :is(.filter.is-active, .lib-current, .theme-active-tag) { background: transparent !important; color: var(--codex-gold) !important; border-color: rgba(201, 169, 97, .72) !important; box-shadow: inset 0 -2px 0 var(--codex-ruby) !important; text-shadow: none !important; }

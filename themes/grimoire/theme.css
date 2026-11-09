@@ -20,6 +20,17 @@
   --t-danger: #8f1b22;
   --t-ease: cubic-bezier(.2, .8, .3, 1);
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     酒红与金交替锻打 —— 酒红 →(提亮) 金 →(更亮) 亮金 →(沉) 亮酒红 →
+     (跳亮) 羊皮金 → 饱和金封顶。明度大摆幅让每段一眼可辨。
+     tier 0 不发布变量，各表面保持基色 ---- */
+  --prog-l0: #7a1f2b;
+  --prog-l1: #b08a3e;
+  --prog-l2: #e3c076;
+  --prog-l3: #9b2836;
+  --prog-l4: #f0dca0;
+  --prog-l5: #ffcf5c;
+
   --ink: var(--t-ink);
   --muted: var(--t-muted);
   --faint: var(--t-faint);
@@ -433,7 +444,7 @@ html[data-theme="grimoire"] .type-system::after { height: 3px; background: var(-
 .manage-progress-track i,
 .launch-track i {
   border-radius: 999px;
-  background: var(--t-accent);
+  background: var(--prog-fill, var(--t-accent));
   box-shadow: none;
 }
 
@@ -557,8 +568,8 @@ html[data-theme="grimoire"] .type-system::after { height: 3px; background: var(-
 .tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); transform: translateY(-4px); }
 
 .tile-progress { height: 3px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.tile-progress i { border-radius: 999px; background: var(--t-accent); }
-.tile.is-active .tile-progress i { background: var(--t-accent); }
+.tile-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--t-accent)); }
 
 .tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--t-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
 .tile-name { overflow: visible; white-space: normal; text-overflow: clip; color: var(--t-ink); }
@@ -629,7 +640,7 @@ html[data-theme="grimoire"] .type-system::after { height: 3px; background: var(-
 .lib-card:hover .lib-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
 .lib-open { border: 1px solid var(--t-accent); border-radius: var(--r-btn); background: var(--t-accent); color: var(--t-on-accent); }
 .lib-progress { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.lib-progress i { border-radius: 999px; background: var(--t-accent); }
+.lib-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
 .lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--t-muted); }
 .lib-sub { color: var(--t-muted); }
@@ -1077,7 +1088,7 @@ body::after { height: 4px; background: linear-gradient(90deg, var(--t-accent) 0 
   box-shadow: inset 0 0 0 2px rgba(176, 138, 62, .42);
 }
 .btn.ghost { border-color: var(--t-accent); color: var(--t-accent); }
-.progress-track i { background: var(--t-accent-2); }
+.progress-track i { background: var(--prog-fill, var(--t-accent-2)); }
 .activity-strip { border-color: var(--t-accent-2); box-shadow: inset 3px 0 0 var(--t-accent); }
 .activity-icon { border-color: var(--t-accent-2); }
 .tile-art, .lib-art { border-color: var(--t-accent-2); }
@@ -1206,7 +1217,7 @@ body::after { height: 4px; background: linear-gradient(90deg, var(--t-accent) 0 
 .activity-meta { color: rgba(244, 230, 200, .62); }
 .activity-arrow { color: var(--t-accent-2); }
 .activity-track { border-color: rgba(176, 138, 62, .5); background: rgba(42, 27, 18, .24); }
-.activity-track i { background: var(--t-accent-2); }
+.activity-track i { background: var(--prog-fill, var(--t-accent-2)); }
 
 /* card frames */
 .tile-art, .lib-art {
@@ -1443,7 +1454,7 @@ html[data-theme="grimoire"] .progress-block { border-top: 1px solid rgba(122, 31
 html[data-theme="grimoire"] .progress-head { color: var(--gs-ink); font-family: var(--font-serif); }
 html[data-theme="grimoire"] .progress-pct { color: var(--gs-maroon); font-family: var(--font-serif); font-weight: 600; }
 html[data-theme="grimoire"] .progress-track { border-color: rgba(176, 138, 62, .6); background: rgba(58, 39, 26, .12); }
-html[data-theme="grimoire"] .progress-track i { background: linear-gradient(90deg, var(--gs-maroon), var(--gs-gold)); }
+html[data-theme="grimoire"] .progress-track i { background: var(--prog-fill, linear-gradient(90deg, var(--gs-maroon), var(--gs-gold))); }
 html[data-theme="grimoire"] .progress-sub { color: var(--gs-ink); font-family: var(--font-serif); }
 
 /* ---- activity: a maroon section strip with a gold label ---- */
@@ -1482,7 +1493,7 @@ html[data-theme="grimoire"] .activity-pct { color: var(--gs-maroon); }
 html[data-theme="grimoire"] .activity-meta { color: rgba(58, 39, 26, .5); }
 html[data-theme="grimoire"] .activity-arrow { color: var(--gs-maroon); }
 html[data-theme="grimoire"] .activity-track { border-color: rgba(176, 138, 62, .5); background: rgba(58, 39, 26, .12); }
-html[data-theme="grimoire"] .activity-track i { background: var(--gs-maroon); }
+html[data-theme="grimoire"] .activity-track i { background: var(--prog-fill, var(--gs-maroon)); }
 
 /* ---- dock: framed mini portraits with a crimson caption ---- */
 
@@ -1866,7 +1877,7 @@ html[data-theme="grimoire"] .hero-inner .progress-track {
   border-color: rgba(176, 138, 62, .7);
   background: rgba(20, 13, 7, .3);
 }
-html[data-theme="grimoire"] .hero-inner .progress-track i { background: var(--gs-gold); }
+html[data-theme="grimoire"] .hero-inner .progress-track i { background: var(--prog-fill, var(--gs-gold)); }
 
 html[data-theme="grimoire"] .hero-inner .activity-strip {
   background: var(--gs-maroon);
@@ -1881,7 +1892,7 @@ html[data-theme="grimoire"] .hero-inner .activity-pct,
 html[data-theme="grimoire"] .hero-inner .activity-arrow { color: var(--gs-gold); }
 html[data-theme="grimoire"] .hero-inner .activity-icon { border-color: var(--gs-gold); background: transparent; color: var(--gs-gold-hi); }
 html[data-theme="grimoire"] .hero-inner .activity-track { border-color: rgba(176, 138, 62, .6); background: rgba(20, 13, 7, .3); }
-html[data-theme="grimoire"] .hero-inner .activity-track i { background: var(--gs-gold); }
+html[data-theme="grimoire"] .hero-inner .activity-track i { background: var(--prog-fill, var(--gs-gold)); }
 
 /* ---- measured: black is 0.8% vs reference 12%. The frame is clipped by the
    panel's own bounds, so paint the black surround on the outer wrapper. ---- */
@@ -2266,7 +2277,7 @@ html[data-theme="grimoire"] .hero-inner .progress-block {
 html[data-theme="grimoire"] .progress-head { color: #6b4c2e !important; font-size: 9px; letter-spacing: .14em; }
 html[data-theme="grimoire"] .progress-pct { color: #7a1f2b; font-family: var(--font-serif); font-size: 26px; line-height: 1; }
 html[data-theme="grimoire"] .progress-track { height: 4px; border: 1px solid #8a6a3a; border-radius: 0; background: #dcc79b !important; }
-html[data-theme="grimoire"] .progress-track i { background: #7a1f2b; border-radius: 0; }
+html[data-theme="grimoire"] .progress-track i { background: var(--prog-fill, #7a1f2b); border-radius: 0; }
 html[data-theme="grimoire"] .progress-sub { color: #6b4c2e !important; }
 
 html[data-theme="grimoire"] .activity-strip {
@@ -2280,7 +2291,7 @@ html[data-theme="grimoire"] .activity-kicker { color: #7a1f2b; letter-spacing: .
 html[data-theme="grimoire"] .activity-title { color: #2a1b12; font-family: var(--font-serif); font-size: 16px; }
 html[data-theme="grimoire"] .activity-pct { color: #7a1f2b; font-family: var(--font-serif); }
 html[data-theme="grimoire"] .activity-track { height: 3px; border: 0; border-radius: 0; background: #dcc79b; }
-html[data-theme="grimoire"] .activity-track i { background: #7a1f2b; border-radius: 0; }
+html[data-theme="grimoire"] .activity-track i { background: var(--prog-fill, #7a1f2b); border-radius: 0; }
 html[data-theme="grimoire"] .activity-arrow { color: #7a1f2b; }
 
 html[data-theme="grimoire"] .dock { border-top: 1px solid #2a1b12; background: #dcc9a2; }
@@ -2537,7 +2548,7 @@ html[data-theme="grimoire"] .hero-inner .progress-track {
   border: 1px solid #8a6a3a !important;
   background: #dcc79b !important;
 }
-html[data-theme="grimoire"] .hero-inner .progress-track i { background: #7a1f2b !important; }
+html[data-theme="grimoire"] .hero-inner .progress-track i { background: var(--prog-fill, #7a1f2b) !important; }
 html[data-theme="grimoire"] .hero-inner .progress-sub {
   padding: 6px 9px 8px !important;
   color: #5a3a25 !important;

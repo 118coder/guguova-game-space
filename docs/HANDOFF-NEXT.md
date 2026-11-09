@@ -1,44 +1,30 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.2**
+> 交接版本：**1.16.3**（未发行，待 Owner 实机验收后走 `tools/release.sh`）
 > 交接时间：2026-11-09
-> 分支：`main`（远端 `5b0825e` 的 merge 提交；本地在 `4141e77` 之上多一个
-> docs 提交，两边代码一致。网络恢复后 `git pull --ff-only` 会自动快进）；工作区**干净**
-> 上一版：1.16.1（编辑器补齐、用户回访四修、实例接管）
-> 发行：**已发布** `v1.16.2`（`release.sh --publish --skip-smoke`）
-> 产物：`GUGUOVA-1.16.2-single.exe` 9.47 MB（sha256 前 12 位 `224e0b07e500`）、
-> `GUGUOVA-1.16.2-legacy-single.zip` 13.68 MB（`e05055066cf3`）、
-> `GUGUOVA-1.16.2-legacy-full.zip` 17.07 MB（`664487c38a5d`）
-> 打包日志：`../_shots/release/1.16.2/pipeline.log`（build → package → verify → publish；
-> **smoke 阶段按约定跳过**，实机验收由 Owner 完成）
+> 分支：`main`（1.16.2 的 `5b0825e` 之上，本轮改动**未提交未推送**）
+> 上一版：1.16.2（名称自然序 + 升降序、整页长截图、启动性能修复，已发布）
 > 仓库：`https://github.com/118coder/guguova-game-space`
-> Release：`https://github.com/118coder/guguova-game-space/releases/tag/v1.16.2`
 
 ---
 
 ## 0. 一句话状态
 
-应用 **1.16.2**，14 套主题，接口式映射架构不变。本轮只做两件事：
+应用 **1.16.3**（未发行），14 套主题，接口式映射架构不变。本轮只做一件事：
 
-1. **游戏库排序补全**：名称改为自然序（中文数字按值比较），新增 ↑/↓ 方向
-   切换，任意字段可正序/倒序，方向持久化；
-2. **整页长截图导出**：顶栏相机按钮，把当前界面连滚动部分一起导出成 PNG，
-   存到 `图片\GUGUOVA\`。
-
-另有一个**启动性能修复**（PR #33）随 1.16.2 一起发布：同一个包再次点击不再
-杀掉托盘里的热实例重启，首启解压从"窗口之前"挪到"闪屏之后"。
-
-**本轮没有做主题相关改动**，唯一视觉增量是排序控件右侧多了一个 32×32 的
-方向按钮（dusk / nightflight / steam 三套主题同步适配并 bump patch 版本）。
+**游玩时长进度条 · 里程碑变色**：21 个变色节点（50 → 10000 小时，Owner 的
+心理学规划表），填充色在节点之间保持、到节点跳变；填充宽度改为「指向下一
+变色节点的区间进度」；详情页预告「下一阶段 · X 小时」。每套主题用自己
+调色板里的 6 个锚点（`--prog-l0..l5`）表达整条阶梯，JS（`src/app.js`
+PLAYTIME LADDER 区块）按区间插值并把结果发布到每条轨道上。
 
 ### 先读什么
 
-1. 本文 §1.11 —— **本轮改了什么**（排序 + 截图，含三个踩过的坑）；
-2. 本文 §1.12 —— 启动性能修复（PR #33）与**下一轮真正该做的"秒开"路线**；
-3. 本文 §7 P0 —— 下一轮的优先级（启动提速排第一，平台真机仍在列）；
+1. 本文 §1.13 —— **本轮改了什么**（阶梯机制 + 14 主题锚点表 + 验证）；
+2. `docs/THEME-INTERFACES.md` §14/§16.4 —— `--prog-*` 插槽契约（本轮新增）；
+3. 本文 §7 P0 —— 下一轮优先级（实机验收本轮 + 平台真机仍在列）；
 4. `docs/THEME-DESIGN-SPEC.md` §5.5 —— 入库窗口控件契约；
-5. `docs/STEAM-LAUNCH.md` §3.1 —— 四种启动方式；
-6. `.agents/skills/guguova-theme-design/SKILL.md` —— 改主题时照着执行。
+5. `.agents/skills/guguova-theme-design/SKILL.md` —— 改主题时照着执行。
 
 ---
 
@@ -46,14 +32,12 @@
 
 | 项 | 值 |
 | --- | --- |
-| 应用版本 | **1.16.2**（`version.json` 是唯一版本源，`tools/bump-version.js` 同步 csproj / index.html） |
-| 资源版本 | `src/index.html` 全部 `?v=1.16.2`（30 处） |
+| 应用版本 | **1.16.3**（`version.json` 是唯一版本源，`tools/bump-version.js` 同步 csproj / index.html） |
+| 资源版本 | `src/index.html` 全部 `?v=1.16.3`（30 处） |
 | 主题数 | 14（`nova` 内置 + 13 个文件夹） |
-| 主题版本变动 | `dusk` 2.0.11 → **2.0.12**、`nightflight` 1.0.11 → **1.0.12**、`steam` 2.0.10 → **2.0.11**（三套都把 `.lib-dir` 并入各自 `.lib-sort select` 规则） |
-| 打包产物 | `dist/` 下 1.16.2 的 exe 与两个 zip，已发布到 `v1.16.2` |
-| 本地编译缓存 | 已清空（`bin` / `obj` / `legacy/bin` / `legacy/obj` / `.cache`，共 896 MB）；下次构建是冷编译 |
-| QA 数据根 | `D:/tmp/guguova-import`（`NOVA_DATA_ROOT`，空库 + 已置 `firstRunDone`） |
-| QA 数据根 | `D:/tmp/guguova-import`（`NOVA_DATA_ROOT`，空库 + 已置 `firstRunDone`） |
+| 主题版本变动 | **13 套全部 patch +1**（本轮都写了 `--prog-l0..l5` 锚点 + 轨道消费）：endfield 1.0.22、dusk 2.0.13、nightflight 1.0.13、steam 2.0.12、summer 1.0.17、riot 1.5.12、riso 1.4.11、codex 1.7.10、mnemo 1.1.16、grimoire 1.5.13、broadcast 1.4.11、aurum 1.0.16、zerohour 1.0.17；内置 nova `BUILT_IN.version` 2.0.0 → **2.0.1**（`src/theme-engine.js`） |
+| 打包产物 | 未打包（待实机验收后 `bash tools/release.sh --version 1.16.3 --publish`） |
+| QA 产物 | `../_shots/tier/`（14 主题 × 7 档 × 3 视图 = 294 张 + `report.json`） |
 
 ---
 
@@ -885,6 +869,150 @@ Chromium 那 1 秒换谁写都省不掉；自绘 UI（D2D/DComp）能到 300ms�
 
 ---
 
+## 1.13 本轮（1.16.3）：游玩时长进度条 · 里程碑变色
+
+### 1.13.1 需求与两个已确认的产品决策
+
+Owner 给了 21 个变色节点（小时）：`50 75 100 150 200 300 400 500 650 800
+1000 1500 2000 3000 4000 5000 6000 7000 8000 9000 10000`，四个阶段的心理学
+依据（固定间隔强化 → 分块里程碑 → 沉没成本 → 目标梯度）。动手前问过两个
+问题，Owner 的回答：
+
+1. **填充宽度语义**：从「累计 ÷ 40h 封顶」改为**「指向下一变色节点的区间
+   进度」**——`[0,50)` 向 50h 渐满；之后每跨一个节点归零重填（如 120h 在
+   100→150 之间显示 40%）；10000h 后恒满；**运行中仍强制 100%**（上游
+   `progressInfo` 不变）。
+2. **节点预告**：**只在详情页**显示——`dp-sub` 变成
+   「可随时启动 · 下一阶段 · 6000 小时」（仅 `playtimeSeconds > 0` 时追加；
+   10000h 后是「已达最终阶段」；运行中/缺失的文案不变）。首页保持干净。
+
+### 1.13.2 机制：6 锚点阶梯，JS 解算、CSS 消费
+
+22 个状态（基色 + 21 节点）不由主题逐个手写。每套主题在**自己 `theme.css`
+的根选择器**声明 6 个锚点，21 个节点按区间均分插值：
+
+| 小时区间 | 阶梯位置 |
+| --- | --- |
+| `[0, 50)` | tier 0 —— **不发布任何变量**，各表面保持自己的基色 |
+| 50 / 75 / 100 / 150 / 200 | l0→l1 均分 5 档（200h 恰达 l1） |
+| 300 / 400 / 500 / 650 / 800 / 1000 | l1→l2 均分 6 档（1000h 达 l2） |
+| 1500 / 2000 / 3000 / 4000 / 5000 | l2→l3 均分 5 档（5000h 达 l3） |
+| 6000 / 7000 / 8000 / 9000 | l3→l4 均分 4 档（9000h 达 l4） |
+| **10000** | l5（终局锚点 + `is-tier-max` 类，主题可加签名态） |
+
+关键实现事实（改这里之前先读）：
+
+- **单一实现**：`src/app.js` 的 `PLAYTIME LADDER` 区块（HERO 区块之前）——
+  `PLAYTIME_TIERS` / `PLAYTIME_ERAS` / `playtimeTierIndex()` /
+  `playtimePct()` / `tierVarsFor()` / `applyTier(track, game)` /
+  `progTierAttrs(game)`（模板用）/ `nextTierText()`。
+- **发布方式**：JS 在每条轨道**容器**上内联写 `--prog-fill`（主色）、
+  `--prog-fill-soft`（向白混 34%）、`--prog-fill-deep`（向黑混 34%）、
+  `--prog-glow`（rgba .35）+ `data-prog-tier="0..21"` + `is-tier-max`。
+  tier 0 **移除**全部变量（这是「[0,50) 保持原色」的保证——endfield 的
+  大轨道基色是墨、库卡片基色是信号黄，同一主题不同表面基色不同，tier 0
+  统一回落才不会互相污染）。
+- **颜色数学全在 JS**（sRGB 手工混合，复用既有 `parseHex`/`mixHex`/
+  `toHex`），**不用 color-mix**——legacy WebView2 109 不需要 @supports
+  回退；主题锚点用 `getComputedStyle` 读取（var() 链会解析），按主题 id
+  缓存在 `progLadderCache`。
+- **阶梯来源**：主题声明了 `--prog-l0..l5` 就用主题的；没声明（以及
+  nova）走 `deriveLadder(accent对)` 通用弧线（accent → accent-2 → 暖金 →
+  亮金 → 白热）。nova 保持「封面取色」身份：每款游戏用自己的
+  `game.accent/accent2` 现场派生；system 模式用米白对派生。
+- **消费面**：`src/base.css` 的 `.progress-track i` / `.tile-progress i` /
+  `.dp-track i` / `.lib-progress i` 与 `src/theme.css` 的 `.activity-track i`
+  全部改为 `var(--prog-fill, 原表达式)` 系列——**变量不在时代码路径与
+  1.16.2 逐像素一致**。13 套主题 + nova 的既有轨道覆盖同步把主色位换成
+  消费写法（纹理不动，只换颜色位）。
+- **五处渲染点接线**（旧的 40h 公式已全部删除）：`progressInfo`（hero +
+  详情共用）、`renderHero`、`renderActivity`、`updateRail`、
+  `renderLibrary` 模板（`progTierAttrs` 内联）+ `refreshLibraryLive`
+  原地补丁（配合 `liveSignature` 已含 playtimeSeconds，签名不用改）、
+  `updateDetailProgress`（+ 下一阶段文案）、`renderAppearance`。
+- `.manage-progress-track` / `.launch-track` 是孤儿选择器（无 JS 驱动），
+  本轮未动。
+
+### 1.13.3 14 套主题的锚点
+
+**现行锚点表见 §1.13.4a**（历经两轮 Owner 回访修订：先纯色化、再 HSL
+宽弧重排，以 §1.13.4a 的表为准，本节初版表已删除避免双表漂移）。
+终局签名态仍只有三套：endfield 三色条带、dusk 日出渐变、riot 白+红硬
+阴影（`[data-prog-tier="21"]` 规则）。
+
+锚点写法契约（`docs/THEME-INTERFACES.md` §14/§16.4 已登记为**可选插槽**，
+照 `--hold-fill` 模式，未进 `REQUIRED_SLOTS`）：值必须能被
+`getComputedStyle` 解析成纯色（hex / rgb() / 引用自家令牌均可）；六个一起
+声明（少一个就整组回落到派生阶梯）。
+
+### 1.13.4 验证
+
+| 项 | 结果 |
+| --- | --- |
+| `tools/tier-shots.js`（本轮新工具） | **14 主题 × 7 档（2.5/60/120/320/1200/5400/11000h）× 3 视图 = 98 组检查 / 294 张截图，0 失败**；断言内容：发布的 `--prog-fill` 与工具内镜像的阶梯数学逐 hex 一致、`data-prog-tier` 正确、宽度符合区间语义、详情页含下一阶段文案、11000h 带 `is-tier-max` |
+| 视觉抽查 | endfield 60h（橄榄黄分段）/ 5400h（薄荷）/ 11000h（三色条带）；dusk 11000h 日出渐变；broadcast 1200h REC 砖红；zerohour 320h 青柠；summer 1200h 海绿——全部符合各自语言 |
+| `theme-slot-check --strict` | 0 finding（未新增必填插槽） |
+| 构建 | modern net10 + legacy net48 双 0 错误（警告为既有数量） |
+| `headless-shots --views=all` 全量回归 | 280 张；**唯一警告是 aurum 磁贴名 5px 裁切，已用 `git stash` 基线对照确认是 1.16.2 既有问题**（`.tile-name` "噩梦摇篮：献花于你"，与阶梯无关） |
+| 静态/悬停对比度 | 未跑（本轮不改任何文字颜色；新令牌只做条色，铁律 21 不受影响）——下轮如要跑，照 §11 命令 |
+
+### 1.13.4a 纯色 + 鲜明修订（Owner 两轮回访）
+
+**回访一：双色渐变丑，改纯色。** 共享 `.progress-track i` / `.dp-track i`
+/ `.activity-track i`、nova system 变体、以及 dusk / steam / nightflight /
+summer / grimoire / aurum / codex 的全部渐变消费点，统一改成
+`var(--prog-fill, 原渐变表达式)`——**点亮即纯色平涂，未点亮（tier 0）
+回落原始渐变**。`--prog-fill-soft` / `-deep` 保留发布，但只给 `is-active`
+等状态变体用。
+
+**回访二：每阶段颜色不够鲜明。** 两个结构修改：
+
+1. **插值算法从 RGB 混合换成 HSL 最短弧**（`mixHsl`，app.js 内
+   `hexToHsl`/`hslToHex`/`mixHsl`）：RGB 混合会把两个锚点抵消成浊色，
+   HSL 让每一步都是真正不同的色相；`tools/tier-shots.js` 的镜像数学已
+   同步（断言逐 hex 一致）；
+2. **14 套锚点全部重排为宽弧设计**：相邻锚点拉开 90°+ 色相弧（或大
+   S/L 摆幅），节点间 15°–30° 一跳，阶段边界大跳。依据 ui-ux-pro-max
+   的 color-dark-mode（暗底用更亮的色调变体）与游戏类深底高饱和惯例：
+
+| 主题 | 阶梯走向（l0 → l5） |
+| --- | --- |
+| nova | 封面对派生，逐级提亮（accent → 提亮 secondary → 暖琥珀 → 金 → 亮金 → 白热） |
+| endfield | 信号黄 →(绿弧) 薄荷 →(蓝紫弧) 品红 →(粉红弧) 金 →(橙红弧) 亮粉 → 终局三色条带 |
+| dusk | 陶土 → 暮紫 → 金 → 靛 → 兰粉 → 日光（一整个黄昏的天色） |
+| nightflight | 荧光黄绿 → 蓝 → 珊瑚 → 奶油 → 回充荧光 → 白（满月） |
+| steam | 蓝 →(逐级提亮) 浅蓝 → 冰蓝 →(低饱和沙弧，避开绿红语义) 琥珀 → 亮琥珀 → 白 |
+| summer | 天空蓝 → 青柠 → 珊瑚 → 日落紫 → 夜海墨 → 破晓金（海边一整天） |
+| riot | 红 → 黄 → 墨（断墨）→ 亮红（血色回归）→ 白（漂白）→ 终局白+红硬阴影 |
+| riso | 蓝 → 酸黄 → 深蓝（回印）→ 玫红（套印新色）→ 纸白 → 酸黄 |
+| codex | 金 → 红宝石 → 鎏金 → 深红宝石 → 淡金 → 鎏金（明度大摆幅，双色族） |
+| mnemo | 紫 → 琥珀 → 淡紫 → 梅 → 琥珀 → 烫金 |
+| grimoire | 酒红 → 金 → 亮金 → 亮酒红 → 羊皮金 → 饱和金（明度锻打） |
+| broadcast | 灰噪点 → 墨 → 砖红 → REC 渐强 ×2 → 最亮 REC（明度/饱和大摆幅） |
+| aurum | 深青蓝 → 青 →(翡翠弧) 青铜 → 亮铜 → 淡金 → 白金 |
+| zerohour | 黄 →(过主色青柠) 青 →(半个色轮) 橙 → 青柠主色 → 白 → 黄 |
+
+锚点选取规则已写进 `docs/THEME-INTERFACES.md` §14/§16.4：相邻锚点 90°+
+弧（双色族靠明度摆幅），不允许"五档几乎同一个色"。
+
+### 1.13.5 已知限制
+
+- **分段纹理主题的变色只换主色位**：endfield 的墨色缝、codex 的栗红缝、
+  mnemo 的琥珀/梅缝、zerohour 的青色缝保持固定——这是刻意的（缝隙是纹理
+  身份），但意味着这些主题的「颜色跳变」幅度比纯色主题小。
+- **`data-prog-tier` 目前只有 endfield / dusk / riot 做了终局签名态**，其余
+  11 套的 10000h 与 9000h 只差锚点颜色。要给某套加终局态，照 endfield
+  `theme.css` 的 `[data-prog-tier="21"]` 规则抄。
+- **`--prog-glow` 固定 rgba .35**；主题如果嫌光晕强，可以在自己的轨道覆盖
+  里写 `box-shadow: none`（endfield 本来就是 none）。
+- **工具镜像**：`tools/tier-shots.js` 里复制了一份阶梯数学（文件头注明
+  keep-in-sync）——改 `app.js` 的区间表/插值时必须同步改工具，否则断言
+  会假红。
+- **aurum 磁贴名 5px 裁切**是既有问题（本轮基线对照确认），修法见 1.16.1
+  的 `.tile-name` 省略号条目，疑似 aurum 字体度量边缘，留给下轮。
+
+---
+
 
 ## 2. 1.15.0 做的四件事（背景）
 
@@ -1118,7 +1246,18 @@ QA 产物（仓库外）：
 
 ## 7. 下一轮 P0
 
-### P0-1 · 本轮功能的实机回归（排序 + 截图）
+### P0-0 · 1.16.3 实机验收（本轮功能，未发行）
+
+1. 实机看 3–4 套常用主题下进度条变色的观感（重点：endfield 三色条带终局、
+   dusk 日出终局、broadcast 的 REC 红是否可接受——单色系是唯一没有标准
+   答案的一套，备选纯灰阶）；
+2. 玩一款游戏跨过 50h 节点（或用 dev 手段改 playtime）确认变色瞬间 +
+   详情页「下一阶段」文案；
+3. 确认 40h 内的老游戏观感不变（tier 0 不发布变量，理应逐像素一致）；
+4. 验收通过后发行：`bash tools/release.sh --version 1.16.3 --publish`
+   （改了数据层无关代码，smoke 可按约定跳过，但排序/截图两条旧 P0 仍在）。
+
+### P0-1 · 1.16.2 功能的实机回归（排序 + 截图，沿用）
 
 **排序**（只做过静态推理，没逐条点过）：
 
@@ -1270,6 +1409,8 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 | **整页截图（宿主）** | `NativeBridge.QueuePageCapture` / `CapturePageAsync` / `ScreenshotFolder` |
 | **启动阶段计时** | `Log.Stage()`（`[+Nms]`），锚点 `Process.StartTime` |
 | **单实例接管** | `App.xaml.cs` `StartAsOwner` / `ReadInstanceStamp` / `IsSameBuildOnDisk` |
+| **游玩时长阶梯（1.16.3）** | `src/app.js` PLAYTIME LADDER 区块（`PLAYTIME_TIERS` / `playtimePct` / `applyTier` / `progTierAttrs`）；主题锚点 `themes/<id>/theme.css` 的 `--prog-l0..l5`；插槽契约 `docs/THEME-INTERFACES.md` §14/§16.4 |
+| **阶梯验证工具** | `tools/tier-shots.js`（`?novaTierHours` 注入在 `tools/lib/headless-host.js`）；报告 `../_shots/tier/report.json` |
 
 ---
 
@@ -1389,6 +1530,10 @@ node tools/headless-shots.js --views=all --workers=4
 node tools/headless-shots.js --themes=endfield,dusk --views=import,settings --sizes=960x600
 node tools/headless-shots.js --format=png --open
 
+# 游玩时长阶梯验证（1.16.3）：14 主题 × 7 档 × 3 视图 + 色值断言
+node tools/tier-shots.js                            # 全量
+node tools/tier-shots.js --themes=endfield --hours=60,11000 --shots=false
+
 # 对比度审计（仍走真实宿主，因为要读实际渲染色）
 NOVA_CDP_PORT=9333 node tools/audit-contrast.js
 NOVA_CDP_PORT=9333 node tools/audit-hover.js --views=home,settings,detail,import
@@ -1464,30 +1609,40 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 | **1.16.0** | **接口式映射架构（主题零主代码改动）；可选加速层 WebGPU+WASM 三档降级；GPU 崩溃自愈；Steam 时长同步移出冷启动；新增 `perf-baseline` / `test-palette` / `theme-slot-check` / `build-wasm` 四个守门工具；修 nova 取色两处对比度** |
 | 1.16.1 | 编辑器补齐（路径即输即预览、资料格式化、路径栏可输入、收藏角标，PR #30/#31/#32）；用户回访四修 + 检查更新（PR #29）；实例接管策略 |
 | **1.16.2** | **名称自然序 + 升降序切换（PR #34）；整页长截图导出（PR #34）；同包启动不再杀热实例、首启解压移到闪屏之后、`pack-assets` 可复现、`Log.Stage` 宿主计时（PR #33）** |
+| **1.16.3** | **游玩时长进度条里程碑变色：21 节点（50→10000h）× 每主题 6 锚点（`--prog-l0..l5`）JS 插值；填充宽度改「指向下一节点」；详情页下一阶段预告；`tools/tier-shots.js` 验证工具（98 组检查 0 失败）；13 套主题 + nova 全部 bump** |
 
 ---
 
 ## 14. 交接清单
 
-本轮（1.16.2）：
+本轮（1.16.3）：
 
-- [x] 双目标编译通过（net10 + net48，0 错误）；
-- [x] 版本号 1.16.2 全链同步（`version.json` / 两个 csproj / `index.html` 30 处 `?v=`）；
-- [x] 三套受影响主题 `theme.json` patch +1（dusk / nightflight / steam）；
-- [x] PR #34 合并（排序 + 截图），PR #33 已包含在本版（启动）；
-- [x] 发布 `v1.16.2`：single.exe 9.47 MB / legacy-single 13.68 MB / legacy-full 17.07 MB；verify 通过，**smoke 跳过**；
-- [x] 整页截图实机验证（游戏库视图，1439×899 / 125% → 1800×4015，右边缘逐像素对齐，末行完整，导出后 DOM 完全还原）；
-- [x] 名称排序按真实库 21 条 DNF 逐条推演，顺序与预期一致；
-- [x] 本地编译缓存清理（896 MB）。
+- [x] `src/app.js` PLAYTIME LADDER 区块（里程碑表 / 区间填充 / 阶梯解析 / 发布），五处渲染点接线，40h 旧公式清零；
+- [x] `src/base.css` + `src/theme.css` 五条轨道消费 `--prog-*`（fallback 原值）；`theme-nova.css` 消费 + `BUILT_IN` 2.0.1；
+- [x] 13 套主题锚点声明 + 轨道颜色位替换 + `theme.json` 全部 patch +1；
+- [x] docs 登记（`THEME-INTERFACES.md` §14/§16.4、`THEME-DESIGN-SPEC.md` §3.1）；
+- [x] `tools/tier-shots.js` 新工具 + headless-host `?novaTierHours` 注入；
+- [x] tier-shots 98 组检查 0 失败（294 张截图在 `../_shots/tier/`）；
+- [x] `theme-slot-check --strict` 0 finding；双目标构建 0 错误；
+- [x] `headless-shots --views=all` 回归：唯一警告（aurum 磁贴名 5px）经基线对照确认为既有问题；
+- [x] 版本 1.16.3 全链同步（version.json / 两个 csproj / index.html 30 处）。
 
 未完成（下一轮）：
 
-- [ ] 14 套主题下的排序方向按钮观感（只改了三套，其余 11 套未截图）；
-- [ ] 首页 / 外观 / 设置三个视图的整页导出；
-- [ ] 超过 4000 CSS px 的多切片拼接（本轮样本只切了 1 片）；
+- [ ] **1.16.3 实机验收 + 发行**（§7 P0-0，broadcast 的 REC 红要 Owner 拍板）；
+- [ ] 1.16.2 的排序 / 截图实机回归（§7 P0-1，沿用）；
+- [ ] 14 套主题下的排序方向按钮观感（1.16.2 沿用）；
 - [ ] Epic / Ubisoft / EA / Xbox / 战网真机；
 - [ ] Steam 登录态全流程；
 - [ ] 另一台无 Magpie 机器的引擎真机；
-- [ ] Win7 + WebView2 109。
+- [ ] Win7 + WebView2 109；
+- [ ] aurum 磁贴名 5px 裁切（既有，基线已确认）。
 
-下一轮从 **§7 P0-1（本轮功能的实机回归）** 开始，平台真机（P0-2）仍是最大的空白。
+上一轮（1.16.2，已发布）留存：
+
+- [x] 双目标编译通过；版本号 1.16.2 全链同步；dusk / nightflight / steam bump；
+- [x] PR #34（排序 + 截图）与 PR #33（启动）合并，发布 `v1.16.2`（smoke 按约定跳过）；
+- [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
+- [ ] 未了项已并入上面「未完成（下一轮）」清单。
+
+下一轮从 **§7 P0-0（1.16.3 实机验收）** 开始，平台真机（P0-2）仍是最大的空白。

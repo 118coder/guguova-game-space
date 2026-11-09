@@ -20,6 +20,17 @@
   --t-danger: #e05a4f;
   --t-ease: cubic-bezier(.2, .8, .3, 1);
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     海边的一整天 —— 天空蓝 →(绿弧) 青柠 →(暖化) 珊瑚 →(日落) 暮紫 →
+     (入夜) 夜海墨 → 破晓金。锚点间 90°+ 弧。tier 0 不发布变量，各表面
+     保持基色（hero 天空蓝 / 纸面变体墨色） ---- */
+  --prog-l0: #1a9bd7;
+  --prog-l1: #d8f24a;
+  --prog-l2: #ff6f61;
+  --prog-l3: #8a5fb8;
+  --prog-l4: #17345a;
+  --prog-l5: #ffd24a;
+
   --ink: var(--t-ink);
   --muted: var(--t-muted);
   --faint: var(--t-faint);
@@ -433,7 +444,7 @@ html[data-theme="summer"] .type-system::after { height: 3px; background: var(--t
 .manage-progress-track i,
 .launch-track i {
   border-radius: 999px;
-  background: var(--t-accent);
+  background: var(--prog-fill, var(--t-accent));
   box-shadow: none;
 }
 
@@ -557,8 +568,8 @@ html[data-theme="summer"] .type-system::after { height: 3px; background: var(--t
 .tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); transform: translateY(-4px); }
 
 .tile-progress { height: 3px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.tile-progress i { border-radius: 999px; background: var(--t-accent); }
-.tile.is-active .tile-progress i { background: var(--t-accent); }
+.tile-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--t-accent)); }
 
 .tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--t-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
 .tile-name { overflow: visible; white-space: normal; text-overflow: clip; color: var(--t-ink); }
@@ -629,7 +640,7 @@ html[data-theme="summer"] .type-system::after { height: 3px; background: var(--t
 .lib-card:hover .lib-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
 .lib-open { border: 1px solid var(--t-accent); border-radius: var(--r-btn); background: var(--t-accent); color: var(--t-on-accent); }
 .lib-progress { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.lib-progress i { border-radius: 999px; background: var(--t-accent); }
+.lib-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
 .lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--t-muted); }
 .lib-sub { color: var(--t-muted); }
@@ -1083,7 +1094,7 @@ body::after { height: 3px; background: linear-gradient(90deg, var(--t-accent-2) 
 .btn.primary:hover, .btn.primary.cta-adaptive:hover, .btn.primary.cta-system:hover { background: var(--t-accent-3); color: #fff; }
 .btn.ghost { border-color: var(--t-line); background: rgba(255, 255, 255, .8); color: var(--t-ink); }
 .btn.ghost:hover { border-color: var(--t-accent); color: var(--t-accent); background: #fff; }
-.progress-track i { background: linear-gradient(90deg, var(--t-accent), var(--t-accent-2)); }
+.progress-track i { background: var(--prog-fill, linear-gradient(90deg, var(--t-accent), var(--t-accent-2))); }
 .activity-strip { border-color: var(--t-line); background: rgba(255, 255, 255, .94); box-shadow: 6px 6px 0 var(--t-accent-2); }
 .activity-strip:hover { box-shadow: 8px 8px 0 var(--t-accent-2); }
 .activity-icon { border: 0; background: var(--t-accent); color: #fff; }
@@ -1416,7 +1427,7 @@ html[data-theme="summer"] .progress-block { border-top: 1px solid rgba(26, 155, 
 html[data-theme="summer"] .progress-head { color: var(--su-sky-deep); font-family: var(--font-condensed); letter-spacing: .1em; }
 html[data-theme="summer"] .progress-pct { color: var(--su-sky); font-family: var(--font-serif); font-weight: 700; }
 html[data-theme="summer"] .progress-track { height: 5px; border: 0; border-radius: 999px; background: rgba(26, 155, 215, .16); }
-html[data-theme="summer"] .progress-track i { border-radius: 999px; background: linear-gradient(90deg, var(--su-sky), var(--su-lime)); }
+html[data-theme="summer"] .progress-track i { border-radius: 999px; background: var(--prog-fill, linear-gradient(90deg, var(--su-sky), var(--su-lime))); }
 html[data-theme="summer"] .progress-sub { color: var(--su-sky-deep); font-family: var(--font-condensed); }
 
 /* ---- activity: white card with an acid tab ---- */
@@ -1450,7 +1461,7 @@ html[data-theme="summer"] .activity-pct { color: var(--su-sky); }
 html[data-theme="summer"] .activity-meta { color: rgba(23, 52, 90, .5); }
 html[data-theme="summer"] .activity-arrow { color: var(--su-sky); }
 html[data-theme="summer"] .activity-track { border: 0; border-radius: 999px; background: rgba(26, 155, 215, .16); }
-html[data-theme="summer"] .activity-track i { border-radius: 999px; background: var(--su-sky); }
+html[data-theme="summer"] .activity-track i { border-radius: 999px; background: var(--prog-fill, var(--su-sky)); }
 
 /* ---- dock: photo prints ---- */
 
@@ -2282,7 +2293,7 @@ html[data-theme="summer"] .progress-track {
   background: #cfdad7;
 }
 
-html[data-theme="summer"] .progress-track i { border-radius: 0; background: var(--su-ink); }
+html[data-theme="summer"] .progress-track i { border-radius: 0; background: var(--prog-fill, var(--su-ink)); }
 html[data-theme="summer"] .progress-sub { color: #5c6b76; font-size: 9.5px; }
 
 /* ---- 活动条：黑框白卡 ---- */
@@ -2313,7 +2324,7 @@ html[data-theme="summer"] .activity-desc { color: #5c6b76; }
 html[data-theme="summer"] .activity-pct { color: var(--su-ink); font-family: var(--font-serif); font-size: 17px; }
 html[data-theme="summer"] .activity-meta { color: #5c6b76; }
 html[data-theme="summer"] .activity-track { height: 2px; border: 0; border-radius: 0; background: #cfdad7; }
-html[data-theme="summer"] .activity-track i { border-radius: 0; background: var(--su-ink); }
+html[data-theme="summer"] .activity-track i { border-radius: 0; background: var(--prog-fill, var(--su-ink)); }
 html[data-theme="summer"] .activity-arrow { color: var(--su-sky); }
 
 /* ---- 顶栏：单行导航，墨块当前项 ---- */
@@ -2594,7 +2605,7 @@ html[data-theme="summer"] .hero-inner .progress-head,
 html[data-theme="summer"] .hero-inner .progress-sub { color: #1f93c8 !important; font-size: 9px !important; }
 html[data-theme="summer"] .hero-inner .progress-pct { color: #101820 !important; font-family: var(--font-serif); font-size: 24px; }
 html[data-theme="summer"] .hero-inner .progress-track { height: 3px !important; border: 0 !important; background: #d8e2e4 !important; border-radius: 0 !important; }
-html[data-theme="summer"] .hero-inner .progress-track i { background: #101820 !important; border-radius: 0 !important; }
+html[data-theme="summer"] .hero-inner .progress-track i { background: var(--prog-fill, #101820) !important; border-radius: 0 !important; }
 
 /* 活动卡：白纸墨框 + 黄块图标 */
 html[data-theme="summer"] .activity-strip {
@@ -2611,7 +2622,7 @@ html[data-theme="summer"] .activity-desc,
 html[data-theme="summer"] .activity-meta { color: #4a5a66 !important; }
 html[data-theme="summer"] .activity-pct { color: #101820 !important; font-family: var(--font-serif) !important; }
 html[data-theme="summer"] .activity-track { height: 2px !important; border: 0 !important; background: #d8e2e4 !important; }
-html[data-theme="summer"] .activity-track i { background: #101820 !important; }
+html[data-theme="summer"] .activity-track i { background: var(--prog-fill, #101820) !important; }
 
 /* 顶栏/窗口按钮：白底上必须是墨色，不能白字白底 */
 html[data-theme="summer"] .topbar { background: #ffffff !important; border-bottom: 1px solid #101820 !important; }

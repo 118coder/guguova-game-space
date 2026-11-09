@@ -97,6 +97,7 @@ theme-fx → fx-layers → theme-kit → polish → intro → compat → setting
 | 强调 | 当前位置、主操作、可点击 | `--accent` | **只做填充/轨道/描边** |
 | 强调文字 | 小字号强调文字 | `--accent-text` | 每主题一个“可读版强调色” |
 | 危险 | 删除/失败 | 主题 danger | 红色不做普通提醒 |
+| 游玩时长阶梯（1.16.3） | 进度条填充随时长变色 | `--prog-fill`（JS 发布）+ `--prog-l0..l5`（主题锚点） | 填充/轨道用途，与 accent 同级；**锚点只做条色不做文字**；tier 0 不发布变量，各表面保持基色。详见 `docs/THEME-INTERFACES.md` §14/§16.4 |
 
 ### 3.2 `--accent-text` 对照表（1.13.0 新增）
 
