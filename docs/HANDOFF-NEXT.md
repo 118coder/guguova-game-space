@@ -1,10 +1,19 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.3**（未发行，待 Owner 实机验收后走 `tools/release.sh`）
-> 交接时间：2026-11-09
-> 分支：`main`（1.16.2 的 `5b0825e` 之上，本轮改动**未提交未推送**）
-> 上一版：1.16.2（名称自然序 + 升降序、整页长截图、启动性能修复，已发布）
+> 交接版本：**1.16.3**
+> 交接时间：2026-11-10
+> 分支：`main`（`5dd0421` = PR #35 合并提交；本地与远端一致）
+> 上一版：1.16.2（名称自然序 + 升降序、整页长截图、启动性能修复）
+> 发行：**已发布** `v1.16.3`（Owner 指示直接发行，实机验收后置）
+> 产物：`GUGUOVA-1.16.3-single.exe` 9.48 MB（sha256 前 12 位 `2cd14296eedc`）、
+> `GUGUOVA-1.16.3-legacy-single.zip` 13.69 MB（`3d9c3df4bdc0`）、
+> `GUGUOVA-1.16.3-legacy-full.zip` 17.09 MB（`c7c0c8b20400`）
+> 打包日志：`../_shots/release/1.16.3/pipeline.log`（**smoke 按约定跳过**：
+> 本轮未改数据层；verify 通过）
+> PR：[#35](https://github.com/118coder/guguova-game-space/pull/35)（feat
+> 分支 merge 进 main，40 文件 +1190/−224，并入了本地滞留的 1.16.2 交接文档）
 > 仓库：`https://github.com/118coder/guguova-game-space`
+> Release：`https://github.com/118coder/guguova-game-space/releases/tag/v1.16.3`
 
 ---
 
@@ -1246,16 +1255,19 @@ QA 产物（仓库外）：
 
 ## 7. 下一轮 P0
 
-### P0-0 · 1.16.3 实机验收（本轮功能，未发行）
+### P0-0 · 1.16.3 实机回访（已发行，回访改为正式验收）
+
+1.1.16.3 已按 Owner 指示直接发行（PR #35 → v1.16.3）。回访要点不变：
 
 1. 实机看 3–4 套常用主题下进度条变色的观感（重点：endfield 三色条带终局、
    dusk 日出终局、broadcast 的 REC 红是否可接受——单色系是唯一没有标准
-   答案的一套，备选纯灰阶）；
+   答案的一套，备选纯灰阶；HSL 宽弧后各主题的弧线走向见 §1.13.4a 表，
+   单调某条弧只需改该主题 `--prog-l*` 两行）；
 2. 玩一款游戏跨过 50h 节点（或用 dev 手段改 playtime）确认变色瞬间 +
    详情页「下一阶段」文案；
 3. 确认 40h 内的老游戏观感不变（tier 0 不发布变量，理应逐像素一致）；
-4. 验收通过后发行：`bash tools/release.sh --version 1.16.3 --publish`
-   （改了数据层无关代码，smoke 可按约定跳过，但排序/截图两条旧 P0 仍在）。
+4. 若有颜色回访：改锚点 → bump theme.json → `node tools/tier-shots.js
+   --themes=<id> --shots=false` 断言 → 视需要补丁版本发行。
 
 ### P0-1 · 1.16.2 功能的实机回归（排序 + 截图，沿用）
 
@@ -1609,7 +1621,7 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 | **1.16.0** | **接口式映射架构（主题零主代码改动）；可选加速层 WebGPU+WASM 三档降级；GPU 崩溃自愈；Steam 时长同步移出冷启动；新增 `perf-baseline` / `test-palette` / `theme-slot-check` / `build-wasm` 四个守门工具；修 nova 取色两处对比度** |
 | 1.16.1 | 编辑器补齐（路径即输即预览、资料格式化、路径栏可输入、收藏角标，PR #30/#31/#32）；用户回访四修 + 检查更新（PR #29）；实例接管策略 |
 | **1.16.2** | **名称自然序 + 升降序切换（PR #34）；整页长截图导出（PR #34）；同包启动不再杀热实例、首启解压移到闪屏之后、`pack-assets` 可复现、`Log.Stage` 宿主计时（PR #33）** |
-| **1.16.3** | **游玩时长进度条里程碑变色：21 节点（50→10000h）× 每主题 6 锚点（`--prog-l0..l5`）JS 插值；填充宽度改「指向下一节点」；详情页下一阶段预告；`tools/tier-shots.js` 验证工具（98 组检查 0 失败）；13 套主题 + nova 全部 bump** |
+| **1.16.3** | **游玩时长进度条里程碑变色：21 节点（50→10000h）× 每主题 6 锚点（`--prog-l0..l5`）HSL 最短弧插值；填充宽度改「指向下一节点」；纯色平涂 + 宽弧重排（Owner 两轮回访）；详情页下一阶段预告；`tools/tier-shots.js` 验证工具（98 组检查 0 失败）；13 套主题 + nova 全部 bump；PR #35，已发布 v1.16.3** |
 
 ---
 
@@ -1625,11 +1637,13 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] tier-shots 98 组检查 0 失败（294 张截图在 `../_shots/tier/`）；
 - [x] `theme-slot-check --strict` 0 finding；双目标构建 0 错误；
 - [x] `headless-shots --views=all` 回归：唯一警告（aurum 磁贴名 5px）经基线对照确认为既有问题；
-- [x] 版本 1.16.3 全链同步（version.json / 两个 csproj / index.html 30 处）。
+- [x] 版本 1.16.3 全链同步（version.json / 两个 csproj / index.html 30 处）；
+- [x] PR [#35](https://github.com/118coder/guguova-game-space/pull/35) 合并（`5dd0421`，含滞留的 1.16.2 交接文档）；
+- [x] 发行 `v1.16.3`：single.exe 9.48 MB / legacy-single 13.69 MB / legacy-full 17.09 MB；verify 通过，smoke 按约定跳过（未改数据层）。
 
 未完成（下一轮）：
 
-- [ ] **1.16.3 实机验收 + 发行**（§7 P0-0，broadcast 的 REC 红要 Owner 拍板）；
+- [ ] **1.16.3 实机回访**（§7 P0-0，已发行；broadcast 的 REC 红要 Owner 拍板）；
 - [ ] 1.16.2 的排序 / 截图实机回归（§7 P0-1，沿用）；
 - [ ] 14 套主题下的排序方向按钮观感（1.16.2 沿用）；
 - [ ] Epic / Ubisoft / EA / Xbox / 战网真机；

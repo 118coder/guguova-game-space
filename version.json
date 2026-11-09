@@ -7,5 +7,5 @@
     "legacy": "109.0.1518.78"
   },
   "notes": "Single version source for the modern and legacy hosts. Run node tools/bump-version.js <version> to update csproj + index.html.",
-  "updatedUtc": "2026-11-08T21:43:52.418Z"
+  "updatedUtc": "2026-11-09T18:20:19.765Z"
 }
