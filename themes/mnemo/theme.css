@@ -1366,3 +1366,18 @@ html[data-theme="mnemo"] .picker-shell {
   --picker-hover: color-mix(in srgb, var(--mn-ink) 8%, transparent);
   --picker-mark: var(--mn-plum);
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Violet keyline, mono label, square corners — the chip language again. */
+html[data-theme="mnemo"] .lib-sort select,
+html[data-theme="mnemo"] .lib-genre select,
+html[data-theme="mnemo"] .lib-sort .lib-dir {
+  border: 1px solid var(--mn-violet);
+  border-radius: 0;
+  background: var(--mn-panel);
+  color: var(--mn-ink-2);
+  font-family: var(--mn-mono);
+  letter-spacing: .04em;
+}
+html[data-theme="mnemo"] .lib-dir:hover,
+html[data-theme="mnemo"] .lib-genre select:hover { border-color: var(--mn-plum); color: var(--mn-plum); }

@@ -1,39 +1,68 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.3**
-> 交接时间：2026-11-10
-> 分支：`main`（`5dd0421` = PR #35 合并提交；本地与远端一致）
-> 上一版：1.16.2（名称自然序 + 升降序、整页长截图、启动性能修复）
-> 发行：**已发布** `v1.16.3`（Owner 指示直接发行，实机验收后置）
-> 产物：`GUGUOVA-1.16.3-single.exe` 9.48 MB（sha256 前 12 位 `2cd14296eedc`）、
-> `GUGUOVA-1.16.3-legacy-single.zip` 13.69 MB（`3d9c3df4bdc0`）、
-> `GUGUOVA-1.16.3-legacy-full.zip` 17.09 MB（`c7c0c8b20400`）
-> 打包日志：`../_shots/release/1.16.3/pipeline.log`（**smoke 按约定跳过**：
-> 本轮未改数据层；verify 通过）
-> PR：[#35](https://github.com/118coder/guguova-game-space/pull/35)（feat
-> 分支 merge 进 main，40 文件 +1190/−224，并入了本地滞留的 1.16.2 交接文档）
+> 交接版本：**1.16.5**（1.16.4 六项功能 + 缩放加固 + **倍数缩放 / 算法生效**，全部在工作区待提交）
+> 交接时间：2026-11-10（同日第三轮，见 §1.17）
+> 分支：`main`（基于 `03d6c81`，本轮改动全部在工作区）
+> 上一版：1.16.3（游玩时长里程碑变色，**已发布** `v1.16.3`，PR #35）
+> 发行：待 Owner 确认后 `bash tools/release.sh --version 1.16.5 --publish`
+> ✅ **实机验收已跑通**（§1.17）：真实 DNF 分别以全屏 / 2.5 倍 / 像素算法三种
+> 配置启动，`scaled=True` 全部成立并有窗口像素尺寸为证；孤儿服务端清理也验过三次。
+> ✅ 环境干净：7001 空闲，隔离数据根已删，Magpie 配置已还原成 Owner 原值。
+> ⚠ Owner 的提权旧实例 PID 29332 仍在跑（用的是改名后的 `.old.dll`）；因此
+> `bin/Debug/.../GUGUOVA.old.exe` 与 `.old.dll` 暂时删不掉，等它退出后直接删除即可。
 > 仓库：`https://github.com/118coder/guguova-game-space`
-> Release：`https://github.com/118coder/guguova-game-space/releases/tag/v1.16.3`
 
 ---
 
 ## 0. 一句话状态
 
-应用 **1.16.3**（未发行），14 套主题，接口式映射架构不变。本轮只做一件事：
+应用 **1.16.4**（未发行），14 套主题，接口式映射架构不变。本轮按 Owner 清单做六件事：
 
-**游玩时长进度条 · 里程碑变色**：21 个变色节点（50 → 10000 小时，Owner 的
-心理学规划表），填充色在节点之间保持、到节点跳变；填充宽度改为「指向下一
-变色节点的区间进度」；详情页预告「下一阶段 · X 小时」。每套主题用自己
-调色板里的 6 个锚点（`--prog-l0..l5`）表达整条阶梯，JS（`src/app.js`
-PLAYTIME LADDER 区块）按区间插值并把结果发布到每条轨道上。
+1. **格式化资料导出补全**（需求中途澄清：不是导出 txt，而是编辑器原有的
+   「导出现有」文本不全）——14 个字段全量导出（含空的，可当填空模板），
+   新增「游戏启动器」「字标方案」两项，字标方案按人话导出/导回；
+2. **游戏本体 / 启动器路径分离**——编辑器新增「游戏启动器（可选）」，填了它
+   就先启动启动器 exe、轮询等本体进程出现，**缩放（Magpie）与计时全部作用
+   于本体**（Steam/平台游戏不受影响）；
+3. **隐藏游戏**——详情页管理面板开关；游戏库筛选栏新增「隐藏」按钮看全部
+   隐藏游戏；隐藏游戏在其它视图与搜索里完全不可见；数据包导出/导入自动携带
+   （整对象序列化），合并模式白名单已补；
+4. **排序下拉 + 方向按钮的主题化收口**（图一绿框）——此前 13 套主题里只有
+   3 套覆写了它们，其余 10 套保持 nova 默认观感（图一截图的 endfield 是硬边
+   工业风所以一眼假）；本轮 13 套全部按各自材料语言覆写，新加的类型筛选下拉
+   同规则覆盖；
+5. **类型筛选**——搜索框右侧下拉，选项取自库内真实类型；编辑器「类型」字段
+   改可输可选 combo（自由输入保留 + 下拉选已有类型）；
+6. **磁贴封面标签**——平台徽章后跟「类型 / 模式」标签芯片，数量 1–3 可配
+   （设置页新卡「游戏库显示」，默认 3；手动游戏没有平台标记自动少一个）。
+
+**后半轮（Owner 实测反馈 Magpie 无效 → 排查，§1.15）**：真实 DNF 基准
+实测定位「缩放从未被请求」（游戏没开全屏缩放 + 引擎自动启动关着），随之
+落地三修：明确缩放请求强制拉起引擎、引擎未运行时明确报错（不再静默降级）、
+游戏退出连带关闭启动器进程树（孤儿服务端占端口的根因）。真实 DNF 窗口的
+Magpie 缩放最后一步被环境卡住（提权僵尸服务端），Owner 叫停调试，全部线索
+在 §1.15，下一步清单在 §7 P0-0。
+
+**同日追加第二轮（「继续修复问题」）**：§1.15.5 的三个怀疑点已全部落成
+`GameDisplay.cs` 的代码加固（进程树里挑真实渲染窗口 / 窗口重建后安全重试 /
+前台精确判定），并补了诊断日志和「引擎起不来明确报错」。双目标完整构建
+0 错误，主题契约、六项功能、时长阶梯三组回归全过，Toolhelp32 布局自检通过。
+真实 DNF 缩放仍待实机验收，`bin/Debug` 仍被运行实例锁住，详见 §1.16。
+
+**同日第三轮（Owner 授权全自动测试，随后追加「倍数缩放」与「算法生效」）**：
+真实 DNF 首次跑通 `scale=True engine=magpie scaled=True`；随后把 Magpie 原生的
+窗口化倍数缩放接进启动器（1.25–3× 可配），并让「缩放算法」成为设置项、保存即
+生效、每次启动游戏前再校验一次。实机量到源窗口 640×480 → 缩放窗口 1618×1209
+（2.5×），算法从索引 6 切到「像素缩放」(7) 且引擎重启加载。另修掉
+`taskkill /T` 在 cmd 退出后带不走孤儿服务端的真 bug。全部证据与剩余项见 §1.17。
 
 ### 先读什么
 
-1. 本文 §1.13 —— **本轮改了什么**（阶梯机制 + 14 主题锚点表 + 验证）；
-2. `docs/THEME-INTERFACES.md` §14/§16.4 —— `--prog-*` 插槽契约（本轮新增）；
-3. 本文 §7 P0 —— 下一轮优先级（实机验收本轮 + 平台真机仍在列）；
-4. `docs/THEME-DESIGN-SPEC.md` §5.5 —— 入库窗口控件契约；
-5. `.agents/skills/guguova-theme-design/SKILL.md` —— 改主题时照着执行。
+0. 本文 §1.17 —— **最新一轮**（实机验收、倍数缩放、算法生效、环境状态与剩余项）；
+1. 本文 §1.14 —— 1.16.4 六件事的实现与验证；
+2. 本文 §1.13 —— 上一轮时长阶梯（未动，tier-shots 断言仍在守）；
+3. 本文 §7 P0 —— 实机验收清单（本轮六项 + 1.16.3 颜色回访）；
+4. `.agents/skills/guguova-theme-design/SKILL.md` —— 改主题时照着执行。
 
 ---
 
@@ -41,12 +70,13 @@ PLAYTIME LADDER 区块）按区间插值并把结果发布到每条轨道上。
 
 | 项 | 值 |
 | --- | --- |
-| 应用版本 | **1.16.3**（`version.json` 是唯一版本源，`tools/bump-version.js` 同步 csproj / index.html） |
-| 资源版本 | `src/index.html` 全部 `?v=1.16.3`（30 处） |
+| 应用版本 | **1.16.4**（`version.json` 是唯一版本源，`tools/bump-version.js` 同步 csproj / index.html） |
+| 资源版本 | `src/index.html` 全部 `?v=1.16.4` |
 | 主题数 | 14（`nova` 内置 + 13 个文件夹） |
-| 主题版本变动 | **13 套全部 patch +1**（本轮都写了 `--prog-l0..l5` 锚点 + 轨道消费）：endfield 1.0.22、dusk 2.0.13、nightflight 1.0.13、steam 2.0.12、summer 1.0.17、riot 1.5.12、riso 1.4.11、codex 1.7.10、mnemo 1.1.16、grimoire 1.5.13、broadcast 1.4.11、aurum 1.0.16、zerohour 1.0.17；内置 nova `BUILT_IN.version` 2.0.0 → **2.0.1**（`src/theme-engine.js`） |
-| 打包产物 | 未打包（待实机验收后 `bash tools/release.sh --version 1.16.3 --publish`） |
-| QA 产物 | `../_shots/tier/`（14 主题 × 7 档 × 3 视图 = 294 张 + `report.json`） |
+| 主题版本变动 | **13 套全部 patch +1**（本轮都写了库工具栏控件覆写）：endfield 1.0.23、dusk 2.0.14、nightflight 1.0.14、steam 2.0.13、summer 1.0.18、riot 1.5.13、riso 1.4.12、codex 1.7.11、mnemo 1.1.17、grimoire 1.5.14、broadcast 1.4.12、aurum 1.0.17、zerohour 1.0.18 |
+| 打包产物 | 未打包（待实机验收后 `bash tools/release.sh --version 1.16.4 --publish`） |
+| 构建状态 | 双目标 0 错误；`bin/Debug` 是**含延迟缩放但不含 §1.15.2 三修**的版本（被 Owner 运行中的实例锁住，清障后重新 build 即可）；未提交改动约 40 文件（`git status` 可见，含新 `tools/feature-checks.js`） |
+| QA 产物 | `node tools/feature-checks.js`（本轮新增的六项功能断言脚本，29 项检查） |
 
 ---
 
@@ -1022,6 +1052,440 @@ summer / grimoire / aurum / codex 的全部渐变消费点，统一改成
 
 ---
 
+## 1.14 本轮（1.16.4，工作区待提交）：六项功能更新
+
+### 1.14.1 格式化资料导出补全（需求①，中途澄清过）
+
+Owner 原话澄清：**不是导出 txt 文件**，是编辑器里原有的「格式化资料 ·
+导出现在有」导出的文本不全。改动全在 `src/app.js` FORMAT DOSSIER 区块：
+
+- `DOSSIER_FIELDS` 新增两行：`游戏启动器`（fLauncher，新字段）与
+  `字标方案`（fTypeRecipe，此前select 字段从不参与导入导出）；
+- `exportDossier` 改为**每个标签都写**（空的也写 `标签：`）——导出文本同时
+  是一份填空模板；导入侧对空值本来就跳过（`applyDossierToForm` 的
+  `!String(value).trim()`），不会反向清空表单；
+- `字标方案` 导出为**选项的人话标签**（如「描金衬线 · GILDED」），导入时按
+  标签或值反查 option，查不到就丢弃该行（绝不写坏 select）；
+- 现有 14 标签顺序：游戏程序 → 游戏启动器 → 名称 → 中文名 → 类型 →
+  字标文字 → 字标方案 → 年龄分级 → 游玩模式 → 一句话介绍 → 详细描述 →
+  启动参数 → 工作目录 → 封面。
+
+### 1.14.2 游戏本体 / 启动器路径分离（需求②）
+
+**数据层**：`GameEntry.LauncherPath`（空 = 不分离）。`ExePath` 永远指**本体**；
+`LauncherPath` 指「必须先用它拉起游戏的启动器/登录器」。桥接全链路接通：
+`GamePayload` 尾部 +2 参数（LauncherPath/Hidden，位置 record 只有 `ToPayload`
+一处构造）→ `CreateGame`/`UpdateGame` 接收（UpdateGame 空串=清除，非空校验
+File.Exists）→ `exists` 判定改为「本体存在 && (无启动器 || 启动器存在)」
+（`NativeBridge.cs` ToPayload 内）。
+
+**启动链路**（`Services/LauncherService.cs`，照 Steam/平台游戏的 pending
+模式写）：
+
+1. 直启分支遇到 `LauncherPath` 有效时：本体进程若已在跑（按 exe 全路径匹配）
+   → **直接接管**（AttachProcess，不重复拉启动器，提示「已接管计时与缩放」）；
+2. 否则启动**启动器 exe**（工作目录=启动器所在目录，`_pendingLauncher` 挂起，
+   启动次数照计），`LaunchResult` 以 `pending=true + Hint` 返回；
+3. `WatchLauncherBody` 后台轮询（1.5s 间隔，预算 5 分钟）等本体进程出现：
+   全路径匹配优先，提权进程（MainModule 拒访）退化为「进程名 + 全新启动时间」；
+   轮询前先快照已有本体 PID（`BodyProcessPids`）避免抓错旧实例；
+4. 本体出现 → `AttachProcess`（会话、退出跟踪、前台、`GameStarted`）——
+   **PID 从这一步起就是本体的**，所以 `PresentGameWindow → GameDisplay.Present`
+   的找窗、前台、Magpie 热键、游玩计时全部天然作用于本体，下游零改动；
+5. 超时 → `GameFailed` 提示（可能要在启动器里手动点开始，或「游戏程序」填的
+   不是本体 exe）；`Stop()` 会连 `_pendingLauncher` 一起取消；
+6. 仅直启（manual）游戏生效；Steam/平台游戏的 launchMode 分支完全不看该字段。
+
+**UI**：编辑器 fExe 行下新增「游戏启动器（可选）」（fLauncher + 浏览
+`pickerOpen({filter:'exe'})`）；`openEditor`/`saveEditor`/`resetEditorFields`
+同步；启动覆盖层的 pending 文案按 Hint 区分「等待游戏本体… / 交给启动器」。
+
+### 1.14.3 隐藏游戏（需求③）
+
+- `GameEntry.Hidden`（bool）透传到 payload 的 `game.hidden`；
+- **管理面板开关**：`#manageHiddenRow`（pref-row + switch，`#i-eye` 图标），
+  `toggleManageHidden` 走 `updateGame {id, hidden}`，失败回滚；开关文案随
+  状态切换；`populateDetails` 统一同步；
+- **游戏库入口**：`#libFilters` 里「程序缺失」后新增 `<button class="filter"
+  data-filter="hidden">隐藏</button>`（图一红框位），事件委托零改动；
+- **过滤语义**（`filterGames`）：hidden 视图只显示隐藏游戏；**其余一切视图
+  （全部/最近游玩/已收藏/平台/程序缺失 + 搜索 + 类型筛选）隐藏游戏完全不
+  参与**。首页 hero/横排磁贴不受影响（显式假设：隐藏只管游戏库列表）；
+- **数据包**：导出/替换导入是整对象序列化（`BackupService` 直接搬
+  library.json），Hidden/LauncherPath 自动携带——Owner 的要求天然满足；
+  合并模式 `MergeInto` 白名单已补两字段（LauncherPath 空则补、Hidden 只置
+  true 不取消）。
+
+### 1.14.4 排序控件主题化收口（需求④，图一绿框）
+
+根因：`views.css:788` 的 `.lib-sort select` + `.lib-dir` 只有 nova 基础样式
+（8px 圆角 ink 半透明底），13 套主题里只有 dusk/nightflight/steam 覆写过
+（views.css:801 注释约定：覆写 select 必须同规则带上 `.lib-dir`）。图一
+截图是 endfield——硬边工业风配默认圆角浅底，一眼假。
+
+本轮收口：
+
+- **10 套新增覆写**（追加在各 theme.css 文件尾、统一 `html[data-theme]`
+  前缀、注释标 1.16.4）：endfield（方角 + `--ef-rule` 边 + `--ef-panel`
+  底）、riot（2px #111 硬边 + `#faf8f3` 底 + hover 反白）、riso（2px 蓝边
+  + hover 酸黄）、zerohour（纸白边 + 黑底 + hover 信号黄）、broadcast（方
+  角灰边纸底）、summer（白底青边胶囊 + condensed）、grimoire（金边羊皮纸胶
+  囊 + serif）、codex（金 hairline + cream 字）、mnemo（紫边方角 mono）、
+  aurum（青铜 hairline + hover 亮铜）；
+- **3 套既有覆写**（dusk/nightflight/steam）选择器扩出
+  `.lib-genre select`；
+- **新控件同规则**：`.lib-genre select`（类型筛选，见 1.14.5）基础样式与
+  `.lib-sort select` 完全同族（views.css），约定注释已更新为「select +
+  `.lib-dir` + `.lib-genre select` 三件套」；
+- 每套 `theme.json` patch +1（铁律 41）。
+
+### 1.14.5 类型筛选 + 类型下拉输入（需求⑤）
+
+- **工具栏**：`.lib-search` 右侧新增 `<label class="lib-genre">` 包
+  `<select id="libGenre">`（首个选项「全部类型」）。`initThemedSelects`
+  自动把它升级成 nova-select——关闭态就是原生 select、弹层走 `--menu-*`
+  主题槽位，14 套主题零额外适配；
+- `syncLibraryGenreFilter`（app.js）：选项集 = 库内全部真实类型
+  （`gameTypes` 过滤掉平台伪类型如 "Steam"），**只在集合变化时重建**
+  （signature 比对，不搅乱打开中的弹层）；选中的类型消失时自动重置为
+  「全部类型」；`state.libGenre` 不持久化（重启回到全部，与 libFilter 一致）；
+- `filterGames` 管线：hidden → tab → **类型** → 搜索 → 排序，类型筛选叠加
+  在当前 tab 上（隐藏视图里也能按类型筛）；
+- **编辑器 combo**：fGenre input 保留自由输入（原版行为）+ `#fGenrePick`
+  小箭头按钮 → `.genre-menu` 弹层（复用 `.nova-select-menu` 类 =
+  `--menu-*` 主题化；锚点 `#genreCombo` relative）。列表按当前输入过滤，
+  点击回填；不用原生 datalist（弹层无法主题化）。
+
+### 1.14.6 磁贴封面标签（需求⑥，图二红框）
+
+- `libraryBadgesHTML`：状态徽章（CURRENT/运行中/程序缺失）之后，按
+  `settings.libraryTagCount`（1–3，默认 3）追加标签芯片：**平台 → 类型 →
+  模式**。平台徽章本身就是第 1 个标签（手动游戏没有 → 自动少一个）；类型取
+  `gameTypes(game)[0]`（过滤平台伪类型）；模式 = `game.mode`；
+- 芯片复用 `.tile-badge` + `.tag` 修饰——13 套主题的 `.tile-badge` 覆写
+  自动生效，`.tag` 只加宽度封顶（92px 省略号，类型名可能很长）；
+- **设置**：设置页主列新卡「游戏库显示」（`settings-card--library`），
+  `#settingsTagCount` select → `settings.libraryTagCount` → saveSettings
+  （180ms 防抖）→ C# `PlayerSettings.LibraryTagCount`（1–3 夹紧）→
+  library.json；boot 回填同链路；改完即时 `renderLibrary()`；
+- 只做库卡片（图二即库卡片）；首页横排磁贴不加（避免首页拥挤，可后补）。
+
+### 1.14.7 验证记录
+
+| 检查 | 结果 |
+| --- | --- |
+| `dotnet build -c Debug` 双目标 | **0 错误**（5 个警告全部为既有） |
+| `node tools/theme-slot-check.js --strict` | 0 finding |
+| `node tools/feature-checks.js`（本轮新增） | **29/29 过**：隐藏视图互斥/搜索排除/跨视图类型筛选/标签数量档位/nova 8px 与 endfield 0px、dusk 1px 指纹/隐藏开关桥接往返/启动器路径保存回读/类型 combo 弹层/格式化资料 14 标签全导出 |
+| `node tools/headless-shots.js --views=all` | 294 张，仅 dusk(2px)/aurum(5px) 的 `.tile-name` 既有裁切（stash 基线对照确认 1.16.3 就有），0 新增 |
+| `node tools/tier-shots.js --shots=false` | 98 组检查全过（时长阶梯零回归） |
+
+`tools/feature-checks.js` 与 `?novaHidden=1` / `?novaTags=<1-3>` QA 旋钮
+（`tools/lib/headless-host.js`）为本轮新增，不动任何默认 mock 数据。
+
+### 1.14.8 启动后延迟缩放（Owner 实机回访补上的）
+
+Owner 实测发现：有的游戏要先加载，本体窗口一出现就发缩放会**无效**。新增
+全局设置「启动后延迟缩放」（设置 → 启动与关闭，`#settingsScaleDelay`：
+立即 / 3 / 5 / 10 / 15 秒，默认立即）：
+
+- `PlayerSettings.ScaleDelaySeconds`（0–120 夹紧，boot 序列化自动带回
+  `scaleDelaySeconds`）→ `saveSettings` / `applyBoot` / `renderSettings`
+  标准链路（回显时吸附到 0/3/5/10/15 选项，手改值不会把下拉弄空白）；
+- 生效点在 `NativeBridge.PresentGameWindow`：`Task.Run` 内
+  `Task.Delay(delay)` 后再 `GameDisplay.Present`。**延迟只作用于缩放请求**
+  ——`scale=false`（没开缩放/引擎关）时零延迟，最小化等其它步骤不受影响；
+- `GameDisplay.AllowForeground` 仍在启动瞬间调用：加载期间游戏窗口照常
+  自己浮到前台，只是 Magpie 热键等满 N 秒才发；
+- 延迟与 Present 内部的「等窗口出现（15s）」预算是叠加关系：先等 N 秒、
+  再等窗口（通常已就绪）、再 BringToFront + 热键 + 6s 生效校验，失败仍回退
+  原生无边框。
+
+### 1.14.9 已知限制
+
+- 隐藏当前游戏时 hero 照常显示（隐藏只管游戏库列表）——若 Owner 觉得首页
+  也该藏，加一行过滤即可；
+- 类型 combo 的弹层在编辑器滚动容器内打开向下，贴底时可能被裁（实测未见，
+  弹层 max-height 280px 自滚动）；
+- `merge` 模式导入对 Hidden 只置 true——不能靠合并导入「取消隐藏」（replace
+  模式可以）。
+
+---
+
+## 1.15 实测排查记录：DNF 基准测出「Magpie 没有正确启动」（本轮后半，Owner 指令停止调试）
+
+Owner 用真实游戏 **DNF-Season1-Act4**（`E:\Game\DNF-ACT4\ACT4\`，本体
+`DNF.exe` + 启动器 `1一键启动（…）.bat`）实机测试后反馈：缩放无效、Magpie
+没有正确启动。用 Owner 日志 + 隔离实例（`NOVA_DATA_ROOT` + `NOVA_CDP_PORT`
++ CDP 驱动）做了完整排查。**Owner 已叫停调试，本节是全部证据与下一步。**
+
+### 1.15.1 结论：缩放链路断在「缩放从未被请求」，不是分离链路断了
+
+Owner 实例日志（`%LOCALAPPDATA%\NOVA Game Space\nova.log`）04:06–04:20 的
+四次 `launched via launcher` 全部以
+`present pid=… scale=False engine=none scaled=False` 收尾——**scale=False，
+Magpie 压根没被要求**。两个叠加原因（都已处理）：
+
+1. 该游戏 `fullscreenScale=None`（详情页「全屏缩放」没开）+ 窗口模式启动
+   （非沉浸）→ `fullscreen=false` → 不缩放。**Owner 需要给游戏打开全屏
+   缩放开关**（既定设计：per-game 显式开关）。
+2. 设置里 `autoStartEngine=False` → 旧逻辑 `EnsureRunning(force:false)`
+   不会拉起引擎 → 即使 scale=True，Magpie 也起不来 → 静默降级原生无边框。
+   **已修**（见 1.15.2-①）：明确缩放请求 = 授权拉起引擎。
+
+### 1.15.2 本轮随之落地的三个修复（已构建通过，未提交）
+
+| # | 修复 | 位置 |
+| --- | --- | --- |
+| ① | **明确缩放请求强制拉起引擎**：`LaunchOptions` 加 `ScaleExplicit`（=详情页勾选传入的 `requested==true` 或 `game.FullscreenScale==true`），`GameDisplay.Present` 用它作 `EnsureRunning` 的 `force`；沉浸默认不算显式、维持 force=false 旧语义 | `Services/LibraryModels.cs`（LaunchOptions）、`NativeBridge.cs`（LaunchGame/PresentGameWindow）、`Services/GameDisplay.cs`（Present） |
+| ② | **引擎没在跑时明确报错**：scale=True 且引擎未运行时，present 结果带「缩放引擎没有在运行（可在设置开启「自动启动内置缩放引擎」），已改用无边框全屏」——不再无声降级 | `Services/GameDisplay.cs`（Present 的 scale 分支） |
+| ③ | **游戏退出连带关闭启动器进程树**：分离启动时记录启动器 PID（`_launcherTreePids`），本体退出/手动停止/等待超时三条路径都 `taskkill /PID <pid> /T /F`。动机见 1.15.3 的孤儿服务端 | `Services/LauncherService.cs` |
+
+### 1.15.3 游戏环境侧的真凶：孤儿服务端占端口（应用已修，环境残留还在）
+
+DNF 的 `.bat` 链路：`start` 分离启动服务端 `DNF60ACT4ServerV1.0.0\DF60ACT4.exe`
+（进程名 **DfoServer**）→ 2 秒后 `run.bat` 带参启动客户端 `DNF.exe`。
+游戏退出后**服务端不死**（分离启动），占住 7001/17001：
+
+- 服务端日志（`E:\Game\DNF-ACT4\ACT4\DNF60ACT4ServerV1.0.0\logs\server.log`）
+  实录：11-03、11-07、11-10 04:06 三次 `[READY]` 正常；**04:07/04:17/04:18/
+  04:19/04:20 五次全部 `10048 端口占用`异常退出**（上一次的孤儿服务端占着）。
+- 排查时仍有一个 **DfoServer（PID 38896）提权运行中、独占 7001**，普通权限
+  `Stop-Process` 拒绝访问杀不掉。**需要 Owner 手动处理**（管理员
+  PowerShell：`Stop-Process -Id 38896 -Force`，或直接重启机器）。
+- 修复 ③ 就是为这个：本体退出时把 `.bat` 整棵树带走（cmd 还在等 run.bat
+  返回的窗口期大多能连树杀掉；提权幸存者无解，如实记录）。
+- 我的隔离测试运行：新服务端 `10013`（绑定被提权僵尸独占）、客户端 18 秒
+  非零退出 → TryMagpie 没等到活窗口。**「真实 DNF 窗口被 Magpie 成功缩放」
+  这最后一步仍未验证**——被环境卡住，不是代码证据。
+
+### 1.15.4 已验证的部分（不用重测）
+
+| 环节 | 证据 |
+| --- | --- |
+| `.bat` 启动器链路 | Owner 日志 5 次 `launched via launcher`（含中文全角括号路径）✓ |
+| 本体进程按 exe 全路径解析 | Owner 日志 `game body attached pid=`（3–4 秒）✓ |
+| 延迟缩放设置 | 隔离实例 scaleDelaySeconds=3，present 在延迟后触发 ✓ |
+| **引擎强制拉起（修复①）** | 隔离实例 autoStartEngine=False + 明确缩放请求 → 日志 `scaling engine released (auto-started)`（Magpie 被拉起）✓ |
+| TryMagpie 热键 + 6 秒校验执行 | 隔离实例 present 日志 `engine=none scaled=False 缩放引擎没有接管这个窗口`（客户端先死了，机制本身跑到了）✓ |
+
+### 1.15.5 给下一轮（更强的 AI）：待办与怀疑点排序
+
+**第一步（环境清障，Owner 配合）**：
+1. 管理员杀掉 DfoServer 38896（或重启机器），确认 `netstat -ano | findstr :7001` 为空；
+2. 给 DNF-Season1-Act4 打开详情页「全屏缩放」；设置开「自动启动内置缩放引擎」；「启动后延迟缩放」选 5–10 秒；
+3. 重跑：设置 → 启动与关闭确认；点启动；看 nova.log 的 `present` 行——
+   目标是 `scale=True engine=magpie scaled=True`。
+
+**若 TryMagpie 仍失败，按此顺序怀疑**：
+1. **本体 exe 选错**：`DNF.exe` 的主窗口未必是实际渲染窗口（目录里另有
+   `DF60ACT4.exe`——那是服务端的）。用 Spy++/窗口枚举确认 DNF.exe 的
+   FindMainWindow 结果是否玩家看到的窗口；若游戏真窗口属于别的子进程，
+   需要把「本体进程解析」升级为「本体进程**树**里挑有主窗口的那个」；
+2. **窗口句柄重建**：加载完成后游戏重建窗口 → Magpie 缩放被丢弃。对策：
+   延迟加大，或 TryMagpie 失败后隔几秒重试一次（Present 里加一次 retry）；
+3. **前台判定**：TryMagpie 要求前台属于目标窗口（GameDisplay.cs:410），
+   可能被启动器/服务端窗口抢占——检查 `BringToFront` 返回值与时序；
+4. 热键 `registered=false` 是常态（Magpie 自己注册了同一个键），不是问题。
+
+**测试基建经验（省下一个 AI 半小时）**：
+- 隔离实例：`NOVA_DATA_ROOT=<空目录>` + `NOVA_CDP_PORT=9233` 起 exe，
+  库 JSON 先种好（camelCase，`currentGameId` 指向条目），CDP 用
+  `tools/lib/cdp.js` 连接，**驱动启动用页面 `window.nova.call('launch',
+  {id, fullscreenScale:true})`**——UI 点击会被自动弹出的扫描器等遮挡；
+- **本体 exe 千万别选 System32/Windows 下的程序**（notepad 也算）：
+  `StoreService.IsDeveloperTestEntry`（:370）会把它们标记 DeveloperOnly
+  并从 boot 载荷过滤 → 页面 is-empty、扫描器自动弹，看起来像「库没加载」；
+- 从 Git Bash 启动测试实例会把 Git 的 PATH 传给子进程：.bat 里的
+  `timeout /t 3` 会解析到 GNU timeout 直接报错。测试 .bat 里写
+  `%SystemRoot%\System32\timeout.exe` 绝对路径，且内容用纯 ASCII
+  （中文 UTF-8 的 .bat 会被 cmd 按系统代码页解码错乱）；
+- 本轮测试产物已清理（`_nova-e2e*` 目录已删），按上面配方两分钟可重建。
+
+**顺带未完成的验收**：§7 P0-0 的 UI 观感清单 + 提交/PR/发版流程都还没走
+（1.16.4 全部改动在工作区待提交）。
+
+---
+
+
+## 1.16 追加一轮：把 §1.15.5 的怀疑点落成代码（2026-11-10，未提交）
+
+Owner 说「查看交接文档，继续修复问题」。本轮只动 `Services/GameDisplay.cs`
+一个文件（+289 / −72 行），不碰 UI、不碰用户数据、没有重启程序、没有再拉起
+隔离 DNF 实例（上一轮 Owner 已叫停调试）。§1.15.5 列的三个怀疑点全部落地：
+
+| # | 修的是什么 | 位置 |
+| --- | --- | --- |
+| ① | **本体进程树里挑真实渲染窗口**：新增 `ProcessFamily(pid)`，用 Toolhelp32 一次快照收集本体及其三代子进程（上限 64 个）；`FindMainWindow(HashSet<int>)` 按可见窗口面积挑最大的，`ApplyBorderless` 同样接受整组 PID，原生无边框回退也能作用于子进程窗口。快照失败就退化成 `{pid}`，等于旧行为 | `ProcessFamily` / `FindMainWindow` / `ApplyBorderless` |
+| ② | **窗口重建后安全重试**：`TryMagpie` 最多两次，第一次失败等 2 秒重新找窗（句柄变了就换新的）再发一次热键。Magpie 热键是「切换」，所以第二次只在「Magpie 没有在缩放任何窗口」时才发，否则直接停手，绝不会把已生效的缩放按掉 | `TryMagpie` / `MagpieSource` |
+| ③ | **前台判定不再骗自己**：`ForegroundBelongsTo` 原本把同进程的登录/浮层窗口也算「在前台」；现在先对选中的精确句柄 `SetForegroundWindow` + `BringWindowToTop`，仍不精确才走 `BringToFront` 全套兜底。`BringToFront` 末尾补了合成 Alt 键解锁前台锁（真实日志里有两次 `foreground=False`） | `TryMagpie` / `BringToFront` |
+| ④ | **误判修复**：`IsMagpieScaling` 原来要求 `Magpie.SrcHWND` 严格等于我们挑的句柄，游戏一旦重建窗口就永远判失败。现在改成「src 窗口仍存在且属于游戏进程树」即算成功，并返回实际被缩放的句柄 | `ScaledWindowIn` |
+| ⑤ | **引擎起不来也要说清楚**：`Supported=false` 或 `EnsureRunning` 失败时，以前会静默降级成无边框；现在统一带 `engineReason`，把 `Status.Note` 也带出来 | `Present` |
+| ⑥ | **日志能定位**：`present` 行新增 `owner=` `family=` `cls=`，缩放失败再带 `try=N hwnd= fg=/exact= src= rebuilt=`。Owner 下次实机跑一次就能看出窗口挑错没挑错、前台有没有拿到、Magpie 到底缩了哪个窗口 | `Present` / `TryMagpie` |
+
+### 验证（本轮全部可复跑）
+
+| 检查 | 结果 |
+| --- | --- |
+| `dotnet build NovaGameSpace.csproj -c Debug`（完整构建，输出到临时目录） | **0 错误**，5 个既有警告 |
+| `dotnet build legacy/NovaGameSpace.Legacy.csproj -c Debug` | **0 错误**，47 个既有可空性警告（新代码 net48 兼容） |
+| `node tools/theme-slot-check.js --strict` | 0 finding |
+| `node tools/feature-checks.js` | 29/29 全过（六项功能零回归） |
+| `node tools/tier-shots.js --shots=false` | 98 组检查全过 |
+| Toolhelp32 结构体布局自检（一次性临时项目，跑完即删） | `sizeof(PROCESSENTRY32W)=568`、枚举 360 个进程、找到自己拉起的子进程 `cmd.exe` 且 ParentProcessId 正确 → 64 位布局与 Unicode 名都对 |
+| 末尾补上 `usedWindow = rebuilt`（回退也用新窗口）后复跑 | modern `-t:Compile` 0 错误、legacy 完整 build 0 错误；modern 完整 build 唯一的失败仍是复制被锁的 apphost（MSB3027），与代码无关 |
+
+> 构建坑记一笔：`dotnet build -t:Compile` 单独跑会跳过 XAML 生成，报
+> `MainWindow.xaml.cs: RootBorder 不存在` 一类 18 个**假错误**；验证编译必须跑
+> 完整 build。运行实例锁 exe 时用 `-p:BaseOutputPath=<临时目录>/` 绕开，别去杀
+> 用户的程序。本轮临时输出目录（182 MB）已直接删除，没进回收站。
+
+### 仍然没验证、也没动的部分
+
+- **真实 DNF 窗口被 Magpie 成功缩放仍未验证**。代码加固只是把可疑路径堵死，
+  最后一步必须实机看日志；本轮遵守上一轮「叫停调试」，没有动
+  `%LOCALAPPDATA%\NOVA Game Space` 的真实库。
+- **`bin/Debug` 还是旧的**：`GUGUOVA.exe` 被运行中的实例 PID 29332 锁住，
+  完整 build 复制 apphost 时重试 10 次失败（MSB3027）。本轮改用临时输出目录
+  验证编译，没有擅自关用户的程序、也没有覆盖运行中的 exe。
+- 1.16.4 全部改动仍在工作区未提交；提交 / PR / 发行按 §7 P0-0 第 5 条等验收。
+
+### 下一步（Owner 三步，日志就能给结论）
+
+1. 关掉当前 GUGUOVA 实例 → `dotnet build -c Debug`（这次不会被锁）→ 重新打开；
+2. 给 DNF-Season1-Act4 打开详情页「全屏缩放」；设置里开「自动启动内置缩放引擎」，
+   「启动后延迟缩放」选 5–10 秒。7001 端口本轮复查**已空闲**，提权僵尸
+   DfoServer 38896 已不在，不必再清障；
+3. 启动游戏，看 `nova.log` 的 `present` 行：目标是
+   `scale=True engine=magpie scaled=True`，且 `family>1` / `cls=` 能看出挑中的
+   是渲染窗口；若仍失败，`try=1/2`、`fg=/exact=`、`src=`、`rebuilt=` 会直接
+   指出卡在前台、窗口重建，还是 Magpie 压根没接管。
+
+---
+
+## 1.17 第三轮：全自动实机验收 + 倍数缩放 + 算法生效（1.16.5，未提交）
+
+Owner 先授权「全自动测试，默认全部权限」，随后连续追加两条需求：**除了全屏缩放，
+倍数缩放也要实现**；**缩放设定里的算法（尤其像素算法）也要生效**。本轮全部实机
+闭环，版本从 1.16.4 bump 到 **1.16.5**（`tools/bump-version.js`，同步两个 csproj
+与 `src/index.html` 的 `?v=` 缓存戳）。
+
+### 1.17.1 安全边界与环境处置
+
+| 项 | 处置 |
+| --- | --- |
+| 用户真实库 | **没有改动**。整体备份在 `03-归档备份\NOVA-data-20261110-0531`（3355 文件 / 372 MB，含 library + media + backups）；测试库只写在 `E:\nova-e2e-app`，已删除 |
+| Magpie 全局配置 | `%LOCALAPPDATA%\Magpie\config\v5\config.json` 先备份为该归档下的 `magpie-config-before-factor.json`；测试完**已还原**成 Owner 原值（scalingMode=6 / initialWindowedScaleFactor=0 / custom=1.25） |
+| 提权旧实例 PID 29332 | `Stop-Process` 与 `taskkill` 都拒绝访问。改用**重命名** `GUGUOVA.exe→GUGUOVA.old.exe`、`GUGUOVA.dll→GUGUOVA.old.dll`，让 `dotnet build -c Debug` 绕开文件锁刷新 `bin/Debug`；旧实例继续正常运行，不影响 Owner |
+| 隔离实例启动配方 | `NOVA_DATA_ROOT=E:\nova-e2e-app` + `NOVA_CDP_PORT=9233`，**PATH 覆盖成纯 Windows 系统路径**——否则 Git Bash 的 GNU `timeout` 会让 DNF 的 `.bat` 里 `timeout /t 2` 解析错；CDP 用 `tools/lib/cdp.js`，驱动 `window.nova.call('launch',{id,fullscreenScale:true})` |
+| 收尾 | 隔离数据根直接删除（没进回收站）；7001 端口空闲；`bin/Debug` 里两个 `.old` 文件因旧实例仍映射而删不掉，等它退出后 `del GUGUOVA.old.*` 即可 |
+
+### 1.17.2 实机证据（真实 DNF-Season1-Act4，不是 mock）
+
+| 场景 | 日志关键行 | 窗口实测 |
+| --- | --- | --- |
+| 全屏缩放 | `present … mode=fullscreen factor=- engine=magpie scaled=True try=1 fg=True/exact=True` | 源 640×480 → Magpie 窗口 **2560×1600**（整块屏幕） |
+| 倍数缩放 2.5× | `present … mode=factor factor=2.5 engine=magpie-factor scaled=True` | 源 640×480 → **1618×1209**，比例 **2.528 / 2.519**，明显没铺满屏幕 |
+| 像素算法 + 2.5× | `magpie algorithm written 像素缩放 index=7` → `magpie restarted for scale profile …` → `present … algo=像素缩放 factor=2.5 engine=magpie-factor scaled=True` | 仍是 1618×1209；配置 `scalingMode=7`（像素缩放）+ Custom=6 / 2.5 同时成立 |
+
+证据文件：`_shots/nova-e2e-magpie-20261110.log`、`_shots/nova-e2e-pixel-algo-20261110.log`。
+窗口尺寸由一次性 Win32 探针（枚举顶层窗口 + GetWindowRect + 类名）量出，探针随
+隔离目录一起删了；**没有把任何真实游戏画面截图存进仓库或 `_shots/`**。
+
+### 1.17.3 倍数缩放：方案与实现
+
+调研结论：Magpie 官方 README 明确「Supports both fullscreen and windowed scaling」，
+本机配置里就有 `shortcuts.windowedModeScale=3153`（Alt+Shift+Q）、
+`profiles[0].initialWindowedScaleFactor`（枚举，**Custom=6**）与
+`customInitialWindowedScaleFactor`（1.1–10×）。两个候选做法：
+
+- **A · 用 Magpie 原生窗口化缩放**：画质走 Magpie 算法、倍率精确、与全屏共用引擎；
+  代价是要写引擎配置并重启一次。
+- **B · 启动器自己 SetWindowPos 把窗口乘倍数**：零依赖，但只是系统拉伸，画质糊，
+  等于没用引擎。
+
+选 **A**。实现落在：`PlayerSettings.ScaleMode`（fullscreen / factor）与
+`ScaleFactor`（1.1–10，默认 2）；`ScalingEngine.ReadWindowedHotkey()` /
+`WriteWindowedFactor()`（Custom 枚举与自定义值必须**两个字段联动**，写前备份、
+返回 changed）；`GameDisplay.Present` 按模式发不同热键、成功时 `engine=magpie-factor`；
+设置页「启动与关闭」新增「缩放方式」「放大倍数」两个 `nova-select`（自动继承 14
+套主题槽位，没改任何主题 CSS）。倍数行在全屏模式下隐藏。
+
+### 1.17.4 缩放算法：从"能选"到"一定生效"
+
+现状排查：引擎设置弹窗早就有「缩放算法」下拉，`SaveEngineOptions` 保存后也**已经**
+重启引擎——所以问题不是"配置写了没加载"，而是：算法只在弹窗里能选、启动器自己的
+缩放设定里没有它，而且引擎弹窗与启动器设置可能不一致，下次启动游戏会把旧算法改回去。
+
+实现：`PlayerSettings.ScaleAlgorithm` 存**算法名称**（不存索引，Magpie 增模式或数据
+包换机器都不会串）；`ScalingEngine.ApplyAlgorithm()` 按名称在 `scalingModes` 里找
+索引、写 `profiles[0].scalingMode`、备份并返回 changed；`ReadAlgorithmName()` 回显。
+三条生效路径：① 设置页改算法 → `SaveSettings` 立即写配置并重启运行中的引擎；
+② 每次启动游戏 → `Present` 在引擎起来后把算法与倍率**合并写入、只重启一次**；
+③ 引擎设置弹窗保存 → 原生侧把名称同步回 `PlayerSettings`，避免两处打架。
+设置页新增「缩放算法」下拉，选项来自 `engineOptions.modes`，带「跟随引擎当前设置」。
+本机像素算法清单：索引 6 `Integer Scale 2x`(Nearest 2x)、7 `像素缩放`(Nearest)、
+8 `像素超清`(Anime4K 组合)。
+
+文案按人话收口：per-game 开关由「全屏缩放」改叫**「启动时缩放」**（方式由设置页决定），
+引擎弹窗的「全屏缩放方式」改叫**「缩放引擎」**，toast / 失败提示同步。
+
+### 1.17.5 顺带修掉的真 bug：孤儿服务端带不走
+
+上一轮的修复③ 写的是 `taskkill /PID <cmd> /T /F`，日志写了 `launcher tree killed`
+但服务端仍占 7001。根因实测：`.bat` 用 `start` 拉起服务端，cmd 在本体退出前就
+结束了，服务端 `ParentProcessId` 指向已死的 PID，**/T 的父链断了，谁也带不走**。
+
+修法（`LauncherService.cs`）：新增 `LauncherTreeScope`，启动分离启动器前记下
+「启动器目录 + 该目录下已存在的 PID」；退出时除原 `taskkill /T` 外，再扫一次该
+目录，只结束**本次新出现**的进程，排除自身、启动器 PID 和其它正在进行的会话；
+提权幸存者记 `launcher orphan kept` 如实留证。三次实机退出都得到
+`launcher orphan killed …`，7001 每次都释放。
+
+### 1.17.6 验证清单
+
+| 检查 | 结果 |
+| --- | --- |
+| `dotnet build -c Debug` 双目标 | 0 错误（现代 5 个、legacy 47 个既有警告） |
+| `node tools/theme-slot-check.js --strict` | 0 finding（14 套主题槽位没被新控件破坏） |
+| `node tools/feature-checks.js` | **41/41 全过**；[7] 组 8 项（倍数模式回填/显隐/保存往返、算法下拉、像素算法往返）+ [8] 组 4 项（主页勾选框、点击切换、引擎弹窗同一状态） |
+| `node tools/tier-shots.js --shots=false` | 98 组检查全过（294 张截图 / 304s） |
+| `node tools/headless-shots.js --views=all` | 294 张；26 条警告全是既有 aurum(5px) / dusk(2px) 磁贴名裁切，**0 新增**，新控件没把文字挤断或撑破布局 |
+| 隔离实机 | 全屏 / 2.5 倍 / 像素算法三种配置全部 `scaled=True`，窗口像素尺寸为证（§1.17.2） |
+| 退出清理 | 三次 `launcher orphan killed`，7001 均释放 |
+
+### 1.17.6a 主页「缩放设置」里的开启缩放勾选框
+
+Owner 第三次追加：「在游戏主页的缩放设置里面，加入新的勾选框，要不要开启缩放，
+免得到游戏详情里面缩放」。查证后发现主页 `#homeEngineBtn` 打开的是**引擎设置弹窗**，
+里面只有引擎 / 算法 / 捕获等项，确实没有「这局开不开缩放」的入口；主页 hero 里
+虽有一个 switch，但不是勾选框。两处一起补：
+
+- 主页 `.hero-scale` 行 `role="switch"` → `role="checkbox"`，右侧换成
+  `.hero-scale-check` 方形勾选框（沿用 `homeScaleSwitch` id，`setPrefSwitch` 照常
+  加/删 `.on`）；文案改「开启缩放」，hint 说清「方式在设置页选」。
+- 引擎弹窗 `.engine-body` 顶部新增 `engineScaleRow` 勾选行，与主页、详情页共用
+  `fullscreenScaleFor(game)` / `toggleHeroScale()`；新增 `syncEngineScaleRow()`，
+  由两个 sync 函数和 `fillEngineDialog()` 统一调用，三处永远是同一个值。
+- 勾选框只认 `.on` 出勾，边框与勾用 `var(--accent)`、圆角用
+  `var(--hero-scale-radius, 9px)`，各主题自己决定硬边还是圆角；**没有改任何主题
+  CSS，也没有做一套统一的"绿勾选框"**。
+- 断言：[8] 组 4 项（主页有勾选框 / 点击能切换 / 弹窗有同一勾选框 / 状态镜像）。
+
+### 1.17.7 仍没做 / 下一步
+
+1. **提交、PR、发行**：1.16.5 全部改动仍在工作区，按铁律等 Owner 确认后再走
+   `bash tools/release.sh --version 1.16.5 --publish`。
+2. **`.old` 文件**：Owner 的提权旧实例退出后，直接删除
+   `bin/Debug/net10.0-windows/win-x64/GUGUOVA.old.exe` 与 `.old.dll`（不要进回收站）。
+3. **真实库设置**：没有替 Owner 改 `library.json`。新版本里默认是
+   「全屏缩放 / 2 倍 / 跟随引擎当前算法」；要用倍数或指定像素算法，在
+   **设置 → 启动与关闭 → 缩放方式 / 放大倍数 / 缩放算法** 里选一次即可，
+   选完立即写进引擎，启动游戏时还会校验。单款游戏开不开缩放，直接在
+   **主页勾选框**或主页「缩放设置」弹窗顶部勾选，不必再进详情页。
+4. §7 的 1.16.3 颜色回访、五平台真机、Steam 全流程、UI 观感清单沿用，未受影响。
+
+---
 
 ## 2. 1.15.0 做的四件事（背景）
 
@@ -1255,7 +1719,23 @@ QA 产物（仓库外）：
 
 ## 7. 下一轮 P0
 
-### P0-0 · 1.16.3 实机回访（已发行，回访改为正式验收）
+### P0-0 · 收官 1.16.5（实机验收已完成，全部证据在 §1.17）
+
+1. ✅ **真实 DNF 缩放实机验收已完成**：全屏 / 2.5 倍 / 像素算法三种配置都是
+   `scaled=True`，并有窗口像素尺寸为证（§1.17.2）。7001 空闲，隔离环境已删干净。
+2. ✅ `bin/Debug` 已刷新到 1.16.5：Owner 的提权旧实例 PID 29332 杀不掉，改用
+   重命名 `.old.exe/.old.dll` 绕过文件锁，旧实例照常运行。**等它退出后把这两个
+   `.old` 文件直接删掉**（不要进回收站）。
+3. ✅ 回归全过：双目标编译 0 错误、`theme-slot-check` 0 finding、
+   `feature-checks` 41/41、`tier-shots` 98 组、`headless-shots --views=all`
+   26 条警告全是既有 aurum/dusk 磁贴名裁切（0 新增）。
+4. **只剩对外动作**：提交（feat: 1.16.5 倍数缩放 / 算法生效 / 主页勾选框 +
+   缩放链路加固与孤儿清理）→ PR → 发行
+   `bash tools/release.sh --version 1.16.5 --publish`，按铁律等 Owner 确认。
+5. UI 观感清单沿用：库工具栏 14 主题扫一眼、类型筛选 + combo、隐藏开关 +
+   数据包往返、封面标签 1/2/3 档位、格式化资料 14 行导出。
+
+### P0-0b · 1.16.3 实机回访（已发行，与上面一并做）
 
 1.1.16.3 已按 Owner 指示直接发行（PR #35 → v1.16.3）。回访要点不变：
 
@@ -1273,8 +1753,10 @@ QA 产物（仓库外）：
 
 **排序**（只做过静态推理，没逐条点过）：
 
-1. 14 套主题下看方向按钮的观感——本轮只把 `.lib-dir` 并进了 dusk /
-   nightflight / steam 三条已有规则，其余 11 套走基础样式，**没有逐套截图**；
+1. 14 套主题下看方向按钮的观感——1.16.2 只并进了 dusk / nightflight /
+   steam 三条已有规则；**1.16.4 已把其余 10 套全部按各自材料语言覆写**
+   （§1.14.4），头less 截图按圆角指纹抽验过 endfield/dusk/nova 三档，
+   全量观感仍在 §7 P0-0 第 7 条实机确认；
 2. 五个字段各切一次正序/倒序，确认方向按钮显示的方向与列表实际顺序一致；
 3. 换字段时方向是否回到该字段默认（名称升序、其余降序）；
 4. 重启后方向是否保持（`library.json` 的 `librarySortDir`）；
@@ -1391,6 +1873,7 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 | 数据根 / 隔离 | `Services/StoreService.cs` `AppPaths`（`NOVA_DATA_ROOT`） |
 | Steam 时长 | `Services/SteamPlaytime.cs`、`StoreService.SyncSteamPlaytime` |
 | 单 exe 引擎解压 | `Services/EngineBootstrapper.cs`、`ScalingEngine.BundledDirOverride` |
+| **缩放窗口定位 / Magpie** | `Services/GameDisplay.cs` `ProcessFamily` / `FindMainWindow` / `TryMagpie` / `ScaledWindowIn`（§1.16）；延迟在 `NativeBridge.PresentGameWindow` |
 | 发版流水线 | `tools/release.sh` + `verify-release.py` + `smoke-single.py` + `publish-release.py` |
 | 无头截图 | `tools/headless-shots.js` + `tools/lib/headless-host.js` + `tools/lib/ui-views.js` |
 | 扫描封面 URL | `NativeBridge.FileUrl` / `MapFileHost` / `CoverUrlFor`、`GameScanner.CacheRoots` |
@@ -1641,6 +2124,16 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] PR [#35](https://github.com/118coder/guguova-game-space/pull/35) 合并（`5dd0421`，含滞留的 1.16.2 交接文档）；
 - [x] 发行 `v1.16.3`：single.exe 9.48 MB / legacy-single 13.69 MB / legacy-full 17.09 MB；verify 通过，smoke 按约定跳过（未改数据层）。
 
+本轮（1.16.5，工作区待提交，详见 §1.17）：
+
+- [x] 真实 DNF 实机验收：全屏 / 2.5 倍 / 像素算法三场景全部 `scaled=True`，窗口像素尺寸为证；
+- [x] 倍数缩放（Magpie 窗口化缩放 1.25–3×）、缩放算法按名称生效、主页与引擎弹窗勾选框；
+- [x] 孤儿服务端清理（`launcher orphan killed` 连验三次，7001 每次释放）；
+- [x] 双目标编译 0 错误、theme-slot-check 0 finding、feature-checks 41/41、tier-shots 98 组、headless-shots 0 新增警告；
+- [x] 版本 1.16.5 全链同步；用户数据整体备份登记；Magpie 配置测试后还原；隔离数据根直接删除；
+- [ ] 提交 / PR / 发行（等 Owner 确认）；
+- [ ] Owner 提权旧实例退出后删除 `GUGUOVA.old.exe` / `GUGUOVA.old.dll`。
+
 未完成（下一轮）：
 
 - [ ] **1.16.3 实机回访**（§7 P0-0，已发行；broadcast 的 REC 红要 Owner 拍板）；
@@ -1659,4 +2152,5 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
-下一轮从 **§7 P0-0（1.16.3 实机验收）** 开始，平台真机（P0-2）仍是最大的空白。
+下一轮从 **§1.17** 开始：实机验收与三类回归都已收官，只剩提交 / PR / 发行，
+以及 Owner 旧实例退出后删掉两个 `.old` 文件；平台真机（P0-2）仍是最大的空白。

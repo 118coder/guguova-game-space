@@ -262,6 +262,8 @@ function gamePayload(game) {
     scrim: game.scrim,
     colors: [game.accent, game.accent2, '#f3e3c3', '#251318'],
     favorite: game.id === 'demo-emberwaltz' || game.id === 'demo-sunroom',
+    hidden: false,
+    launcherPath: '',
     autoUpdate: true,
     playtimeSeconds: game.playtime,
     lastPlayedUtc: isoDaysAgo(game.lastPlayed),
@@ -305,6 +307,8 @@ function bootPayload(themes) {
     firstRun: false,
     currentGameId: games[0].id,
     settings: {
+      scaleMode: 'fullscreen',
+      scaleFactor: 2,
       playername: 'Yuki',
       playerNameCustom: true,
       avatarFile: null,
@@ -322,6 +326,7 @@ function bootPayload(themes) {
       autoBackup: true,
       developerMode: false,
       librarySort: 'recent',
+      libraryTagCount: 3,
       compatibilityTier: 'auto',
       minimizeOnLaunch: true,
       scalingEngine: 'auto',
@@ -590,7 +595,28 @@ function mockScript() {
     }
   } catch (error) {}
 
-  // The renderer expects the host to answer on the same channel it posts on.
+  // QA knob: ?novaHidden=1 hides two non-favourite demo games so the library
+  // 隐藏 view can be exercised; ?novaTags=<1-3> sets the cover tag count.
+  // Neither touches any default (headless-shots and the audits never pass
+  // these parameters).
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get('novaHidden') === '1') {
+      DATA.boot.games.filter((game) => !game.favorite).slice(0, 2).forEach((game) => { game.hidden = true; });
+    }
+    const tagCount = parseInt(params.get('novaTags'), 10);
+    if (Number.isFinite(tagCount) && tagCount >= 1 && tagCount <= 3) {
+      DATA.boot.settings.libraryTagCount = tagCount;
+    }
+    // QA knob: ?novaScaleMode=factor&novaScaleFactor=2.5 exercises the
+    // windowed (factor) scaling controls without changing default mocks.
+    const scaleMode = params.get('novaScaleMode');
+    if (scaleMode === 'factor' || scaleMode === 'fullscreen') DATA.boot.settings.scaleMode = scaleMode;
+    const scaleFactor = parseFloat(params.get('novaScaleFactor'));
+    if (Number.isFinite(scaleFactor) && scaleFactor >= 1.1 && scaleFactor <= 10) {
+      DATA.boot.settings.scaleFactor = scaleFactor;
+    }
+  } catch (error) {}
   window.chrome.webview = {
     addEventListener(type, handler) { if (type === 'message') listeners.push(handler); },
     removeEventListener(type, handler) {
@@ -640,6 +666,16 @@ function mockScript() {
       case 'steamStatus': return { ok: true, installed: true, running: true, signedIn: true, root: DATA.boot.steamRoot };
       case 'readImagePreview': return { ok: false, error: 'headless' };
       case 'browse': return DATA.browse;
+      case 'updateGame': {
+        const game = DATA.boot.games.find((entry) => entry.id === args.id);
+        if (!game) return { ok: false, error: 'no such game' };
+        if ('launcherPath' in args) game.launcherPath = String(args.launcherPath || '');
+        if ('hidden' in args) game.hidden = !!args.hidden;
+        return { ok: true, game };
+      }
+      case 'saveSettings':
+        Object.assign(DATA.boot.settings, args || {});
+        return { ok: true };
       default: return { ok: true, headless: true };
     }
   }

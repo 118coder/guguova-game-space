@@ -26,7 +26,11 @@ public static class ScalingEngine
         bool Supported,
         string Note);
 
-    public const int DefaultHotkey = 3137; // Alt+Shift+A, also Magpie's default.
+    public const int DefaultHotkey = 3137;        // Alt+Shift+A, Magpie's fullscreen scale key.
+    public const int DefaultWindowedHotkey = 3153; // Alt+Shift+Q, Magpie's windowed (factor) scale key.
+    /// <summary>Magpie honours customInitialWindowedScaleFactor only when the
+    /// InitialWindowedScaleFactor enum is Custom.</summary>
+    private const int CustomWindowedScaleFactor = 6;
 
     private const string MagpieWindowClass = "Window_Magpie_967EB565-6F73-4E94-AE53-00CC42592A22";
     private const int SwMinimize = 6;
@@ -473,6 +477,164 @@ public static class ScalingEngine
             Log.Error("read magpie hotkey", ex);
         }
         return DefaultHotkey;
+    }
+
+    /// <summary>Magpie's own shortcut for windowed (factor) scaling. It is a
+    /// different key from the fullscreen one, so the two modes never fight.</summary>
+    public static int ReadWindowedHotkey()
+    {
+        var file = ActiveConfigFile();
+        if (file == null) return DefaultWindowedHotkey;
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(file));
+            if (document.RootElement.TryGetProperty("shortcuts", out var shortcuts) &&
+                shortcuts.TryGetProperty("windowedModeScale", out var windowed) &&
+                windowed.TryGetInt32(out var code) && code > 0)
+                return code;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("read magpie windowed hotkey", ex);
+        }
+        return DefaultWindowedHotkey;
+    }
+
+    /// <summary>Magpie reads initialWindowedScaleFactor and
+    /// customInitialWindowedScaleFactor from the default profile when it
+    /// starts. Custom (6) is the only enum value that uses our exact number,
+    /// so both fields are written together and a running engine is restarted.
+    /// Returns changed=true when the on-disk config actually differed.</summary>
+    public static bool WriteWindowedFactor(double factor, out string message, out bool changed)
+    {
+        message = "";
+        changed = false;
+        factor = Math.Max(1.1, Math.Min(10, factor));
+        var file = ActiveConfigFile();
+        if (file == null)
+        {
+            message = "引擎还没有生成配置；启动一次缩放引擎后才能设置倍数";
+            return false;
+        }
+
+        try
+        {
+            var text = File.ReadAllText(file);
+            var root = JsonNode.Parse(text) as JsonObject;
+            if (root == null) { message = "引擎配置格式无法识别"; return false; }
+            if (root["profiles"] is not JsonArray profiles || profiles.Count == 0 || profiles[0] is not JsonObject profile)
+            {
+                message = "引擎配置里没有可用的缩放配置";
+                return false;
+            }
+
+            var oldMode = -1;
+            double oldFactor = 0;
+            try { oldMode = profile["initialWindowedScaleFactor"]?.GetValue<int>() ?? -1; } catch { }
+            try { oldFactor = profile["customInitialWindowedScaleFactor"]?.GetValue<double>() ?? 0; } catch { }
+            if (oldMode == CustomWindowedScaleFactor && Math.Abs(oldFactor - factor) < 0.001)
+            {
+                message = "放大倍数已是当前值";
+                return true;
+            }
+
+            profile["initialWindowedScaleFactor"] = CustomWindowedScaleFactor;
+            profile["customInitialWindowedScaleFactor"] = factor;
+
+            AppPaths.Ensure();
+            var backup = Path.Combine(AppPaths.Backups, $"magpie-windowed-factor-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+            File.WriteAllText(backup, text);
+            File.WriteAllText(file, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+
+            changed = true;
+            Log.Write($"magpie windowed factor written {factor:0.##} backup={backup}");
+            message = "放大倍数已写入缩放引擎";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("write magpie windowed factor", ex);
+            message = "写入放大倍数失败：" + ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>The algorithm currently selected in Magpie's default profile,
+    /// by name. Used to show the player what the engine is actually using.</summary>
+    public static string ReadAlgorithmName()
+    {
+        var file = ActiveConfigFile();
+        if (file == null) return "";
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(file));
+            var root = document.RootElement;
+            if (!root.TryGetProperty("profiles", out var profiles) || profiles.GetArrayLength() == 0) return "";
+            var index = profiles[0].TryGetProperty("scalingMode", out var mode) && mode.TryGetInt32(out var value)
+                ? value : -1;
+            if (index < 0 || !root.TryGetProperty("scalingModes", out var modes) || index >= modes.GetArrayLength()) return "";
+            return modes[index].TryGetProperty("name", out var name) ? name.GetString() ?? "" : "";
+        }
+        catch (Exception ex)
+        {
+            Log.Error("read magpie algorithm", ex);
+            return "";
+        }
+    }
+
+    /// <summary>Forces Magpie's default profile onto the algorithm the player
+    /// picked in the launcher. Saving the name (not the index) keeps pixel
+    /// presets such as "Integer Scale 2x" and "像素缩放" stable across config
+    /// changes. Empty names leave the engine's own choice alone.</summary>
+    public static bool ApplyAlgorithm(string? name, out string message, out bool changed)
+    {
+        message = "";
+        changed = false;
+        if (string.IsNullOrWhiteSpace(name)) { message = "跟随引擎当前算法"; return true; }
+
+        var file = ActiveConfigFile();
+        if (file == null) { message = "引擎还没有生成配置"; return false; }
+        try
+        {
+            var text = File.ReadAllText(file);
+            var root = JsonNode.Parse(text) as JsonObject;
+            if (root == null) { message = "引擎配置格式无法识别"; return false; }
+            if (root["scalingModes"] is not JsonArray modes || root["profiles"] is not JsonArray profiles ||
+                profiles.Count == 0 || profiles[0] is not JsonObject profile)
+            {
+                message = "引擎配置里没有可用的算法或配置档";
+                return false;
+            }
+
+            var index = -1;
+            for (var i = 0; i < modes.Count; i++)
+            {
+                var candidate = (modes[i] as JsonObject)?["name"]?.GetValue<string>();
+                if (string.Equals(candidate, name, StringComparison.OrdinalIgnoreCase)) { index = i; break; }
+            }
+            if (index < 0) { message = $"引擎里找不到算法「{name}」"; return false; }
+
+            var current = -1;
+            try { current = profile["scalingMode"]?.GetValue<int>() ?? -1; } catch { }
+            if (current == index) { message = $"算法已是 {name}"; return true; }
+
+            profile["scalingMode"] = index;
+            AppPaths.Ensure();
+            var backup = Path.Combine(AppPaths.Backups, $"magpie-algorithm-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+            File.WriteAllText(backup, text);
+            File.WriteAllText(file, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+
+            changed = true;
+            Log.Write($"magpie algorithm written {name} index={index} backup={backup}");
+            message = $"缩放算法已设为 {name}";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("write magpie algorithm", ex);
+            message = "写入缩放算法失败：" + ex.Message;
+            return false;
+        }
     }
 
     public static bool WriteHotkey(int code, out string message)

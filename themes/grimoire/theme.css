@@ -2665,3 +2665,17 @@ html[data-theme="grimoire"] .picker-shell {
   --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
   --picker-mark: var(--t-accent);
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Gold keyline and serif label on parchment, matching the chips. */
+html[data-theme="grimoire"] .lib-sort select,
+html[data-theme="grimoire"] .lib-genre select,
+html[data-theme="grimoire"] .lib-sort .lib-dir {
+  border-color: var(--gs-gold);
+  border-radius: 999px;
+  background: rgba(255, 250, 235, .6);
+  color: var(--gs-ink);
+  font-family: var(--font-serif);
+}
+html[data-theme="grimoire"] .lib-dir:hover,
+html[data-theme="grimoire"] .lib-genre select:hover { border-color: var(--gs-maroon); color: var(--gs-maroon); }

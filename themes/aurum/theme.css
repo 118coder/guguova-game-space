@@ -1702,3 +1702,16 @@ html[data-theme="aurum"] .nav-glide::after {
 html[data-theme="aurum"] .nav-glide {
   position: absolute;
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Bronze keyline on the gilded ground; hover deepens to the highlight. */
+html[data-theme="aurum"] .lib-sort select,
+html[data-theme="aurum"] .lib-genre select,
+html[data-theme="aurum"] .lib-sort .lib-dir {
+  border: 1px solid rgba(232, 201, 138, .28);
+  border-radius: 2px;
+  background: rgba(232, 201, 138, .08);
+  color: var(--aurum-text);
+}
+html[data-theme="aurum"] .lib-dir:hover,
+html[data-theme="aurum"] .lib-genre select:hover { border-color: rgba(232, 201, 138, .52); color: var(--aurum-bronze-hi); }

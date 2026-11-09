@@ -2485,3 +2485,17 @@ html[data-theme="codex"] .type-readout-kicker { color: var(--cx-gold-hi); }
 /* 外观说明文字提亮，避免小字在深褐底上过暗 */
 html[data-theme="codex"] .appearance-head p,
 html[data-theme="codex"] .section-head p { color: var(--cx-cream-2); }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Gold hairline on the parchment ground; the ink stays cream. */
+html[data-theme="codex"] .lib-sort select,
+html[data-theme="codex"] .lib-genre select,
+html[data-theme="codex"] .lib-sort .lib-dir {
+  border: 1px solid var(--cx-gold-line-soft);
+  border-radius: 1px;
+  background: rgba(226, 199, 142, .06);
+  color: var(--cx-cream-3);
+  letter-spacing: .06em;
+}
+html[data-theme="codex"] .lib-dir:hover,
+html[data-theme="codex"] .lib-genre select:hover { border-color: var(--cx-gold-line); color: var(--cx-cream); }
