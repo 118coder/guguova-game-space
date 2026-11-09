@@ -20,6 +20,18 @@
   --t-danger: #6a2b2b;
   --t-ease: cubic-bezier(.2, .8, .3, 1);
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     REC 灯叙事，四段大反差 —— 灰噪点 →(压黑) 信号锁定 →(点亮) 砖红 →
+     (渐强 ×2) → 最亮 REC。红在广电语境是"录制中" tally 灯，不是危险色。
+     单色系以明度/饱和大摆幅代替色相变化。tier 0 不发布变量，各表面
+     保持自己的基色 ---- */
+  --prog-l0: #8c8c88;
+  --prog-l1: #141414;
+  --prog-l2: #6a2b2b;
+  --prog-l3: #a83f35;
+  --prog-l4: #c94a3a;
+  --prog-l5: #e8614d;
+
   --ink: var(--t-ink);
   --muted: var(--t-muted);
   --faint: var(--t-faint);
@@ -433,7 +445,7 @@ html[data-theme="broadcast"] .type-system::after { height: 3px; background: var(
 .manage-progress-track i,
 .launch-track i {
   border-radius: 999px;
-  background: var(--t-accent);
+  background: var(--prog-fill, var(--t-accent));
   box-shadow: none;
 }
 
@@ -557,8 +569,8 @@ html[data-theme="broadcast"] .type-system::after { height: 3px; background: var(
 .tile.is-active .tile-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); transform: translateY(-4px); }
 
 .tile-progress { height: 3px; border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.tile-progress i { border-radius: 999px; background: var(--t-accent); }
-.tile.is-active .tile-progress i { background: var(--t-accent); }
+.tile-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--t-accent)); }
 
 .tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--t-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
 .tile-name { overflow: visible; white-space: normal; text-overflow: clip; color: var(--t-ink); }
@@ -629,7 +641,7 @@ html[data-theme="broadcast"] .type-system::after { height: 3px; background: var(
 .lib-card:hover .lib-art { border-color: var(--t-accent); box-shadow: 0 0 0 1px var(--t-accent); }
 .lib-open { border: 1px solid var(--t-accent); border-radius: var(--r-btn); background: var(--t-accent); color: var(--t-on-accent); }
 .lib-progress { border: 1px solid var(--t-line); border-radius: 999px; background: var(--t-paper-2); }
-.lib-progress i { border-radius: 999px; background: var(--t-accent); }
+.lib-progress i { border-radius: 999px; background: var(--prog-fill, var(--t-accent)); }
 .lib-name { color: var(--t-ink); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--t-muted); }
 .lib-sub { color: var(--t-muted); }
@@ -1081,7 +1093,7 @@ body::after { height: 2px; background: var(--t-ink); }
 .btn.primary:hover, .btn.primary.cta-adaptive:hover, .btn.primary.cta-system:hover { background: var(--t-ink-2); }
 .btn.ghost { border-color: var(--t-ink); color: var(--t-ink); background: transparent; }
 .btn.ghost:hover { color: var(--t-paper); background: var(--t-ink); }
-.progress-track i { background: var(--t-ink); }
+.progress-track i { background: var(--prog-fill, var(--t-ink)); }
 .activity-strip { border-color: var(--t-ink); background: rgba(243, 243, 240, .94); }
 .activity-strip::after { background: var(--t-ink); }
 .activity-icon { border-color: var(--t-ink); background: transparent; color: var(--t-ink); }
@@ -1182,7 +1194,7 @@ body::after { height: 2px; background: var(--t-ink); }
 .activity-title { font-family: var(--font-serif); font-weight: 600; }
 .activity-pct { color: var(--t-ink); }
 .activity-track { border: 0; border-radius: 0; background: rgba(20, 20, 20, .12); }
-.activity-track i { border-radius: 0; background: var(--t-ink); }
+.activity-track i { border-radius: 0; background: var(--prog-fill, var(--t-ink)); }
 
 /* square cards, 1px rules */
 .tile-art, .lib-art { border: 1px solid var(--t-ink); border-radius: 0; box-shadow: none; }
@@ -1397,7 +1409,7 @@ html[data-theme="broadcast"] .progress-block { border-top: 1px solid rgba(20, 20
 html[data-theme="broadcast"] .progress-head { color: rgba(20, 20, 20, .6); font-family: var(--font-ui); font-size: 9px; letter-spacing: .08em; }
 html[data-theme="broadcast"] .progress-pct { color: var(--bc-ink); font-family: var(--font-serif); font-weight: 600; }
 html[data-theme="broadcast"] .progress-track { height: 2px; border: 0; border-radius: 0; background: rgba(20, 20, 20, .18); }
-html[data-theme="broadcast"] .progress-track i { border-radius: 0; background: var(--bc-ink); }
+html[data-theme="broadcast"] .progress-track i { border-radius: 0; background: var(--prog-fill, var(--bc-ink)); }
 html[data-theme="broadcast"] .progress-sub { color: rgba(20, 20, 20, .55); font-family: var(--font-ui); font-size: 9px; }
 
 /* ---- activity: a broadcast log line ---- */
@@ -1422,7 +1434,7 @@ html[data-theme="broadcast"] .activity-pct { color: var(--bc-ink); }
 html[data-theme="broadcast"] .activity-meta { color: rgba(20, 20, 20, .45); font-family: var(--font-ui); }
 html[data-theme="broadcast"] .activity-arrow { color: var(--bc-ink); }
 html[data-theme="broadcast"] .activity-track { border: 0; border-radius: 0; background: rgba(20, 20, 20, .16); }
-html[data-theme="broadcast"] .activity-track i { border-radius: 0; background: var(--bc-ink); }
+html[data-theme="broadcast"] .activity-track i { border-radius: 0; background: var(--prog-fill, var(--bc-ink)); }
 
 /* ---- dock: contact-sheet frames ---- */
 
@@ -1807,7 +1819,7 @@ html[data-theme="broadcast"] .progress-block {
 html[data-theme="broadcast"] .progress-head { color: #55544e; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; }
 html[data-theme="broadcast"] .progress-pct { color: var(--bc-ink); font-family: var(--font-serif); font-size: 26px; line-height: 1; }
 html[data-theme="broadcast"] .progress-track { height: 3px; border: 0; border-radius: 0; background: #d5d2c9; }
-html[data-theme="broadcast"] .progress-track i { background: var(--bc-ink); border-radius: 0; }
+html[data-theme="broadcast"] .progress-track i { background: var(--prog-fill, var(--bc-ink)); border-radius: 0; }
 html[data-theme="broadcast"] .progress-sub { color: #55544e; }
 
 html[data-theme="broadcast"] .activity-strip {
@@ -1822,7 +1834,7 @@ html[data-theme="broadcast"] .activity-kicker { color: #55544e; letter-spacing: 
 html[data-theme="broadcast"] .activity-title { color: var(--bc-ink); font-family: var(--font-serif); font-size: 16px; }
 html[data-theme="broadcast"] .activity-pct { color: var(--bc-ink); font-family: var(--font-serif); }
 html[data-theme="broadcast"] .activity-track { height: 2px; border: 0; border-radius: 0; background: #d5d2c9; }
-html[data-theme="broadcast"] .activity-track i { background: var(--bc-ink); border-radius: 0; }
+html[data-theme="broadcast"] .activity-track i { background: var(--prog-fill, var(--bc-ink)); border-radius: 0; }
 html[data-theme="broadcast"] .activity-arrow { color: var(--bc-ink); }
 
 html[data-theme="broadcast"] .dock { border-top: 1px solid var(--bc-ink); background: #e3e1da; }

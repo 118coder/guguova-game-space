@@ -24,6 +24,18 @@
   --ef-mark: #ff00f0;
   --ef-mint: #00ffa2;
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     相邻锚点拉开 90°+ 色相弧，让每个节点一跳就认得出来。
+     信号黄 →(绿弧) 薄荷 →(蓝紫弧) 品红 →(粉红弧) 金 →(橙红弧) 亮粉 →
+     10000h 终局换三色条带（见 tier 21）。tier 0 不发布变量，各表面保持
+     自己的基色 ---- */
+  --prog-l0: var(--ef-signal);
+  --prog-l1: var(--ef-mint);
+  --prog-l2: var(--ef-mark);
+  --prog-l3: #ffc93c;
+  --prog-l4: #ff4fa8;
+  --prog-l5: var(--ef-signal);
+
   /* ---- motion tokens ---- */
   --ef-snap: cubic-bezier(.16, 1, .3, 1);
   --ef-mech: cubic-bezier(.7, 0, .2, 1);
@@ -623,7 +635,7 @@ html[data-theme="endfield"] .type-system::after {
 .manage-progress-track i,
 .launch-track i {
   border-radius: 0;
-  background: repeating-linear-gradient(90deg, var(--ef-ink) 0 7px, transparent 7px 9px);
+  background: repeating-linear-gradient(90deg, var(--prog-fill, var(--ef-ink)) 0 7px, transparent 7px 9px);
   box-shadow: none;
 }
 
@@ -632,6 +644,21 @@ html[data-theme="endfield"] .type-system::after {
 .dp-track i::after,
 .manage-progress-track i::after,
 .launch-track i::after { display: none; }
+
+/* 10000h finale: the bar assembles the tri-colour band. */
+.progress-track[data-prog-tier="21"] i,
+.activity-track[data-prog-tier="21"] i,
+.dp-track[data-prog-tier="21"] i,
+.manage-progress-track[data-prog-tier="21"] i,
+.launch-track[data-prog-tier="21"] i,
+.lib-progress[data-prog-tier="21"] i,
+.tile-progress[data-prog-tier="21"] i {
+  background: repeating-linear-gradient(90deg,
+    var(--ef-mark) 0 7px,
+    var(--ef-signal) 7px 14px,
+    var(--ef-mint) 14px 21px,
+    transparent 21px 23px);
+}
 
 .progress-sub {
   color: var(--ef-ink-2);
@@ -845,11 +872,11 @@ html[data-theme="endfield"] .type-system::after {
 
 .tile-progress i {
   border-radius: 0;
-  background: var(--ef-paper);
+  background: var(--prog-fill, var(--ef-paper));
   box-shadow: none;
 }
 
-.tile.is-active .tile-progress i { background: var(--ef-signal); }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--ef-signal)); }
 
 .tile-label {
   align-items: flex-start;
@@ -1059,7 +1086,7 @@ html[data-theme="endfield"] .lib-search .keycap {
   background: rgba(22, 22, 22, .5);
 }
 
-.lib-progress i { border-radius: 0; background: var(--ef-signal); box-shadow: none; }
+.lib-progress i { border-radius: 0; background: var(--prog-fill, var(--ef-signal)); box-shadow: none; }
 
 .lib-name { color: var(--ef-ink); font-weight: 700; }
 .lib-en { color: var(--ef-ink-2); }
@@ -1232,7 +1259,7 @@ html[data-theme="endfield"] .appearance-preview-copy .appearance-logo {
   left: 0;
   bottom: 0;
   height: 3px;
-  background: var(--ef-ink);
+  background: var(--prog-fill, var(--ef-ink));
 }
 
 .live-pill {

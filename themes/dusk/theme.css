@@ -37,6 +37,18 @@ html[data-theme="dusk"] {
   --dk-gold-hi: #d9b57c;
   --dk-danger: #8e2f26;
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     一整个黄昏的天色变化 —— 陶土 →(玫瑰→紫) 暮紫 →(品红→红) 金 →
+     (橙红→紫) 靛 →(紫→粉·提亮) 兰粉 → 日光。锚点间 90°+ 弧，节点一跳
+     一个天色。tier 0 不发布变量，各表面保持基色；10000h 终局换日出
+     渐变（见 tier 21 规则） ---- */
+  --prog-l0: #c87a52;
+  --prog-l1: #8a5f85;
+  --prog-l2: var(--dk-gold);
+  --prog-l3: #55489c;
+  --prog-l4: #e8b4c8;
+  --prog-l5: var(--dk-sun);
+
   --ink: var(--dk-ink);
   --muted: var(--dk-ink-2);
   --faint: var(--dk-ink-3);
@@ -543,9 +555,18 @@ html[data-theme="dusk"] .progress-track {
 html[data-theme="dusk"] .progress-track i {
   position: relative;
   border-radius: 0;
-  background: linear-gradient(90deg, #b06a4e, var(--dk-terra));
+  background: var(--prog-fill, linear-gradient(90deg, #b06a4e, var(--dk-terra)));
   box-shadow: none;
   transition: width 1s var(--ease);
+}
+
+/* 10000h finale: the whole dusk burns down to a sunrise. */
+html[data-theme="dusk"] .progress-track[data-prog-tier="21"] i,
+html[data-theme="dusk"] .activity-track[data-prog-tier="21"] i,
+html[data-theme="dusk"] .dp-track[data-prog-tier="21"] i,
+html[data-theme="dusk"] .lib-progress[data-prog-tier="21"] i,
+html[data-theme="dusk"] .tile-progress[data-prog-tier="21"] i {
+  background: linear-gradient(90deg, var(--dk-terra), var(--dk-gold), var(--dk-sun));
 }
 
 html[data-theme="dusk"] .progress-track i::after {
@@ -707,7 +728,7 @@ html[data-theme="dusk"] .tile.is-active .tile-label { color: #fff0d4; }
 html[data-theme="dusk"] .tile.is-active .tile-sub { color: var(--dk-gold-hi); }
 
 html[data-theme="dusk"] .tile-progress { height: 2px; border-radius: 0; background: rgba(255, 240, 210, .18); }
-html[data-theme="dusk"] .tile-progress i { border-radius: 0; background: var(--dk-gold-hi); box-shadow: none; }
+html[data-theme="dusk"] .tile-progress i { border-radius: 0; background: var(--prog-fill, var(--dk-gold-hi)); box-shadow: none; }
 html[data-theme="dusk"] .tile-badge { border-radius: 1px; border-color: rgba(217, 181, 124, .4); background: rgba(26, 19, 13, .78); color: #f0dfc0; }
 
 html[data-theme="dusk"] .dock-foot {
@@ -849,7 +870,7 @@ html[data-theme="dusk"] .lib-card:hover .lib-art {
 html[data-theme="dusk"] .lib-name { color: var(--dk-ink); font-family: var(--font-serif); font-weight: 500; }
 html[data-theme="dusk"] .lib-en { color: var(--dk-ink-3); font-family: var(--font-serif); }
 html[data-theme="dusk"] .lib-sub { color: var(--dk-ink-3); font-family: var(--font-serif); }
-html[data-theme="dusk"] .lib-progress i { background: var(--dk-terra); box-shadow: none; }
+html[data-theme="dusk"] .lib-progress i { background: var(--prog-fill, var(--dk-terra)); box-shadow: none; }
 html[data-theme="dusk"] .lib-card .lib-open {
   border-radius: 2px;
   border-color: rgba(181, 138, 75, .5);
@@ -1043,7 +1064,7 @@ html[data-theme="dusk"] .detail-meta { color: var(--dk-ink-2); }
 html[data-theme="dusk"] .detail-progress .dp-head { color: var(--dk-ink-3); font-family: var(--font-serif); }
 html[data-theme="dusk"] .detail-progress .dp-head b { color: var(--dk-ink); }
 html[data-theme="dusk"] .dp-track { background: rgba(106, 87, 64, .18); }
-html[data-theme="dusk"] .dp-track i { background: var(--dk-terra); }
+html[data-theme="dusk"] .dp-track i { background: var(--prog-fill, var(--dk-terra)); }
 html[data-theme="dusk"] .dp-sub { color: var(--dk-ink-3); }
 html[data-theme="dusk"] .detail-stats .stat-cell,
 html[data-theme="dusk"] .detail-stats > div {
@@ -1448,7 +1469,7 @@ html[data-theme="dusk"] .appearance-preview-copy .appearance-progress {
   background: rgba(106, 87, 64, .16);
 }
 html[data-theme="dusk"] .appearance-preview-copy .appearance-progress i {
-  background: linear-gradient(90deg, var(--dk-terra), var(--dk-gold-hi));
+  background: var(--prog-fill, linear-gradient(90deg, var(--dk-terra), var(--dk-gold-hi)));
 }
 
 html[data-theme="dusk"] .appearance-preview-top .live-pill {
@@ -1872,7 +1893,7 @@ html[data-theme="dusk"] .appearance-preview-copy .appearance-tagline { color: rg
 html[data-theme="dusk"] .appearance-preview-copy .preview-cta-note { color: rgba(247, 234, 208, .55); }
 html[data-theme="dusk"] .appearance-preview-copy .appearance-progress { background: rgba(247, 234, 208, .2); }
 html[data-theme="dusk"] .appearance-preview-copy .appearance-progress span { color: rgba(247, 234, 208, .7); }
-html[data-theme="dusk"] .appearance-preview-copy .appearance-progress i { background: linear-gradient(90deg, #a9503a, #e8b478); }
+html[data-theme="dusk"] .appearance-preview-copy .appearance-progress i { background: var(--prog-fill, linear-gradient(90deg, #a9503a, #e8b478)); }
 html[data-theme="dusk"] .appearance-preview-copy .live-pill { color: #f7ead0; }
 
 

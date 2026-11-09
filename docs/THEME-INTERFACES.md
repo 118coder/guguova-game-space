@@ -384,6 +384,34 @@ Win7 需要 Legacy `net48` 宿主 + WebView2 109，详见 [`COMPATIBILITY.md`](C
 | 取景浮层 `.appearance-framing` | `--af-*` | `themes/<id>/interfaces.css` | §5.4 |
 | 算法选择行 `.engine-mode-row` | `--mode-*` | `themes/<id>/interfaces.css` | §5.5 |
 | 可读强调文字 | `--accent-text` | `themes/<id>/interfaces.css` | §3.2 |
+| 游玩时长阶梯（1.16.3） | `--prog-*` | `themes/<id>/theme.css`（主题根选择器声明锚点） | §16.4 末段 |
+
+> 1.16.0 起这些令牌不再写在共享表里，改由各主题的 `interfaces.css` 提供，
+> 详见 §16。共享表只保留消费方（`.engine-shell` 等结构规则）与默认值。
+
+> 新增主题必须同时提供 `--menu-*`、`--sheet-*`、`--hs-*`、`--af-*`、
+> `--mode-*`、`--accent-text`；只写 `theme.css` 会让这些控件退回共享默认外观。
+> `node tools/theme-slot-check.js` 会逐个主题列出缺失项。
+
+> **`--prog-*`（1.16.3）是可选插槽**（照 `--hold-fill` 模式）：JS
+> （`src/app.js` PLAYTIME LADDER 区块）按 21 个游玩时长里程碑在每条进度
+> 轨道容器上内联发布 `--prog-fill`（主色，**纯色**——Owner 定版：双色
+> 渐变在 2px 条上显脏，点亮后一律平涂）/ `--prog-fill-soft`（向白混
+> 34%，只给 `is-active` 等状态变体提亮用）/ `--prog-fill-deep`（向黑混
+> 34%）/ `--prog-glow`（rgba 光晕）与 `data-prog-tier="0..21"`；**tier 0
+> 不发布变量**，各表面回落到自己的基色（[0, 50h) 视觉与历史版本逐像素
+> 一致，原始渐变照旧）。主题在自己 `theme.css` 的根选择器声明
+> `--prog-l0..l5` 六个锚点（21 个节点按区间均分插值：50–200 → l0→l1，
+> 300–1000 → l1→l2，1500–5000 → l2→l3，6000–9000 → l3→l4，10000 → l5），
+> 并在既有轨道覆盖里把填充写成 `var(--prog-fill, 原表达式)`——fallback
+> 放原渐变或原色，点亮即纯色。
+>
+> **插值在 HSL 最短弧上进行**（色相走短弧、饱和度/明度线性），相邻锚点
+> 必须拉开 **90°+ 色相弧**（或大饱和度/明度摆幅）——Owner 定版：节点间
+> 颜色必须一眼可辨，不允许"五档几乎同一个色"。双色族主题（金/红宝石、
+> 酒红/金）靠明度大摆幅代替色相。未声明锚点的主题由 JS 从 `--accent` /
+> `--accent-2`（nova 则从封面色对，逐级提亮）派生整条阶梯。锚点值必须是
+> 能被 `getComputedStyle` 解析为纯色的写法（hex / rgb()，可引用自家令牌）。
 
 > 1.16.0 起这些令牌不再写在共享表里，改由各主题的 `interfaces.css` 提供，
 > 详见 §16。共享表只保留消费方（`.engine-shell` 等结构规则）与默认值。

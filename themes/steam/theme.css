@@ -31,6 +31,18 @@ html[data-theme="steam"] {
   --st-red: #d94126;
   --st-amber: #e5c07b;
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     蓝 →(逐级提亮) 浅蓝 →(去饱和过沙) 琥珀 →(提亮) 亮琥珀 → 白。
+     绿/红是语义色（就绪/缺失），阶梯刻意绕开（铁律 13）——冰蓝到琥珀
+     之间以低饱和的沙色过渡，不会出现鲜绿。tier 0 不发布变量，各表面
+     保持自己的基色 ---- */
+  --prog-l0: var(--st-blue);
+  --prog-l1: #7ac7ff;
+  --prog-l2: #cfe8ff;
+  --prog-l3: var(--st-amber);
+  --prog-l4: #f2d9a8;
+  --prog-l5: #ffffff;
+
   --ink: var(--st-text);
   --muted: var(--st-text-2);
   --faint: var(--st-dim);
@@ -496,7 +508,7 @@ html[data-theme="steam"] .progress-track {
 
 html[data-theme="steam"] .progress-track i {
   border-radius: 1px;
-  background: linear-gradient(90deg, #3f7f9e, var(--st-blue));
+  background: var(--prog-fill, linear-gradient(90deg, #3f7f9e, var(--st-blue)));
   box-shadow: 0 0 12px rgba(102, 192, 244, .55);
 }
 
@@ -674,7 +686,7 @@ html[data-theme="steam"] .tile-progress {
 
 html[data-theme="steam"] .tile-progress i {
   border-radius: 1px;
-  background: var(--st-blue);
+  background: var(--prog-fill, var(--st-blue));
 }
 
 html[data-theme="steam"] .tile-badge {
@@ -848,7 +860,7 @@ html[data-theme="steam"] .lib-card .lib-open {
 html[data-theme="steam"] .lib-name { color: #ffffff; font-weight: 600; }
 html[data-theme="steam"] .lib-en { color: var(--st-dim); font-family: var(--font-mono); font-size: 9.5px; }
 html[data-theme="steam"] .lib-sub { color: var(--st-text-2); }
-html[data-theme="steam"] .lib-progress i { background: var(--st-blue); }
+html[data-theme="steam"] .lib-progress i { background: var(--prog-fill, var(--st-blue)); }
 
 html[data-theme="steam"] .lib-empty h3 { color: #ffffff; }
 html[data-theme="steam"] .lib-empty p { color: var(--st-text-2); }
@@ -885,7 +897,7 @@ html[data-theme="steam"] .appearance-preview-copy .appearance-progress {
   background: rgba(26, 159, 255, .14);
 }
 html[data-theme="steam"] .appearance-preview-copy .appearance-progress i {
-  background: linear-gradient(90deg, var(--st-blue), #6fd0ff);
+  background: var(--prog-fill, linear-gradient(90deg, var(--st-blue), #6fd0ff));
 }
 
 html[data-theme="steam"] .appearance-eyebrow { color: var(--st-blue); }
@@ -1097,7 +1109,7 @@ html[data-theme="steam"] .detail-meta { color: var(--st-text-2); }
 html[data-theme="steam"] .detail-progress .dp-head { color: var(--st-dim); }
 html[data-theme="steam"] .detail-progress .dp-head b { color: #ffffff; }
 html[data-theme="steam"] .dp-track { background: rgba(102, 192, 244, .12); }
-html[data-theme="steam"] .dp-track i { background: var(--st-blue); }
+html[data-theme="steam"] .dp-track i { background: var(--prog-fill, var(--st-blue)); }
 html[data-theme="steam"] .dp-sub { color: var(--st-dim); }
 
 html[data-theme="steam"] .detail-stats .stat-cell,
@@ -1409,7 +1421,7 @@ html[data-theme="steam"] .appearance-preview-copy .appearance-tagline { color: r
 html[data-theme="steam"] .appearance-preview-copy .preview-cta-note { color: rgba(243, 244, 246, .48); }
 html[data-theme="steam"] .appearance-preview-copy .appearance-progress { background: rgba(26, 159, 255, .18); }
 html[data-theme="steam"] .appearance-preview-copy .appearance-progress span { color: rgba(243, 244, 246, .7); }
-html[data-theme="steam"] .appearance-preview-copy .appearance-progress i { background: linear-gradient(90deg, #1a9fff, #6fd0ff); }
+html[data-theme="steam"] .appearance-preview-copy .appearance-progress i { background: var(--prog-fill, linear-gradient(90deg, #1a9fff, #6fd0ff)); }
 
 
 /* 2.6 · 参考其他主题：外观预览只留标题，不要 CTA 与时长 */

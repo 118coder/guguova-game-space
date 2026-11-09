@@ -26,6 +26,17 @@
   --aurum-cyan-deep: #237f76;
   --aurum-cyan-glow: rgba(95, 214, 198, .4);
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     青金淬火 —— 深青蓝 →(提亮) 青 →(翡翠弧) 青铜 →(提亮) 亮铜 →
+     淡金 → 白金封顶。青→铜之间的翡翠绿是"帝王玉"，属鎏金语言。
+     tier 0 不发布变量，各表面保持基色 ---- */
+  --prog-l0: #1f7ea6;
+  --prog-l1: var(--aurum-cyan);
+  --prog-l2: var(--aurum-bronze);
+  --prog-l3: var(--aurum-bronze-hi);
+  --prog-l4: #f2ddb0;
+  --prog-l5: #fff3d6;
+
   --aurum-text: #ede3cd;
   --aurum-text-soft: rgba(237, 227, 205, .8);
   --aurum-text-dim: rgba(237, 227, 205, .66);
@@ -324,7 +335,7 @@ body::after {
 .launch-track i {
   position: relative;
   border-radius: 1px;
-  background: linear-gradient(90deg, #1f7ea6 0%, var(--aurum-cyan) 72%, #d9fff7 100%);
+  background: var(--prog-fill, linear-gradient(90deg, #1f7ea6 0%, var(--aurum-cyan) 72%, #d9fff7 100%));
   box-shadow: 0 0 12px rgba(95, 214, 198, .55), inset 0 1px 0 rgba(255, 255, 255, .4);
 }
 
@@ -465,7 +476,7 @@ body::after {
 
 .tile-progress i {
   border-radius: 0;
-  background: linear-gradient(90deg, #1f8f84, var(--aurum-cyan));
+  background: var(--prog-fill, linear-gradient(90deg, #1f8f84, var(--aurum-cyan)));
   box-shadow: 0 0 8px rgba(95, 214, 198, .5);
 }
 
@@ -724,7 +735,7 @@ kbd.key {
 
 .lib-progress i {
   border-radius: 0;
-  background: linear-gradient(90deg, #1f8f84, var(--aurum-cyan));
+  background: var(--prog-fill, linear-gradient(90deg, #1f8f84, var(--aurum-cyan)));
   box-shadow: 0 0 8px rgba(95, 214, 198, .5);
 }
 

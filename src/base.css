@@ -695,8 +695,11 @@ h1, h2, h3, p { margin: 0; }
   width: 0%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 14px var(--accent);
+  /* --prog-* = the playtime-ladder tier colour (app.js): a FLAT solid fill
+     once lit (user call: two-stop gradients read muddy on a 2px bar). The
+     fallback keeps the original accent gradient while unlit (tier 0). */
+  background: var(--prog-fill, linear-gradient(90deg, var(--accent), var(--accent-2)));
+  box-shadow: 0 0 14px var(--prog-glow, var(--accent));
   transition: width 1s var(--ease), background .6s ease;
 }
 
@@ -709,7 +712,7 @@ h1, h2, h3, p { margin: 0; }
   height: 5px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 8px var(--accent), 0 0 2px rgba(255, 255, 255, .85);
+  box-shadow: 0 0 8px var(--prog-glow, var(--accent)), 0 0 2px rgba(255, 255, 255, .85);
   transform: translateY(-50%);
 }
 
@@ -1059,8 +1062,8 @@ h1, h2, h3, p { margin: 0; }
   display: block;
   width: 0%;
   height: 100%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  background: var(--prog-fill, var(--accent));
+  box-shadow: 0 0 8px var(--prog-glow, var(--accent));
   transition: width .8s var(--ease), background .6s ease;
 }
 
@@ -1673,8 +1676,8 @@ h1, h2, h3, p { margin: 0; }
   display: block;
   width: 0%;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 10px var(--glow);
+  background: var(--prog-fill, linear-gradient(90deg, var(--accent), var(--accent-2)));
+  box-shadow: 0 0 10px var(--prog-glow, var(--glow));
   transition: width .9s var(--ease);
 }
 
@@ -2045,8 +2048,8 @@ h1, h2, h3, p { margin: 0; }
 .lib-progress i {
   display: block;
   height: 100%;
-  background: var(--accent);
-  box-shadow: 0 0 7px var(--accent);
+  background: var(--prog-fill, var(--accent));
+  box-shadow: 0 0 7px var(--prog-glow, var(--accent));
 }
 
 .lib-info { padding: 11px 2px 0; }

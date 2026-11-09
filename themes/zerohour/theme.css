@@ -18,6 +18,17 @@
   --zh-orange: #ff5a2e;
   --zh-cyan: #59e3ff;
   --zh-line: #0a0b0c;
+
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     黄 →(绿弧·过主色青柠) 青 →(整整半个色轮) 橙 →(回拉) 青柠主色 →
+     (过曝) 白 → 黄封顶。锚点间 90°+ 弧。tier 0 不发布变量，各表面保持
+     自己的基色 ---- */
+  --prog-l0: #ffe600;
+  --prog-l1: #59e3ff;
+  --prog-l2: #ff5a2e;
+  --prog-l3: #c6ff2e;
+  --prog-l4: #ffffff;
+  --prog-l5: #ffe600;
   --zh-ease: cubic-bezier(.16, 1, .3, 1);
   --zh-mech: cubic-bezier(.7, 0, .2, 1);
 
@@ -474,7 +485,7 @@ html[data-theme="zerohour"] .type-system::after {
 .manage-progress-track i,
 .launch-track i {
   border-radius: 0;
-  background: repeating-linear-gradient(-45deg, var(--zh-yellow) 0 7px, var(--zh-ink) 7px 10px, var(--zh-cyan) 10px 13px, transparent 13px 16px);
+  background: repeating-linear-gradient(-45deg, var(--prog-fill, var(--zh-yellow)) 0 7px, var(--zh-ink) 7px 10px, var(--zh-cyan) 10px 13px, transparent 13px 16px);
   box-shadow: none;
 }
 
@@ -607,8 +618,8 @@ html[data-theme="zerohour"] .type-system::after {
 }
 
 .tile-progress { height: 3px; border-radius: 0; background: rgba(8, 9, 10, .6); border: 1px solid var(--zh-paper); }
-.tile-progress i { border-radius: 0; background: var(--zh-yellow); box-shadow: none; }
-.tile.is-active .tile-progress i { background: var(--zh-cyan); }
+.tile-progress i { border-radius: 0; background: var(--prog-fill, var(--zh-yellow)); box-shadow: none; }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--zh-cyan)); }
 
 .tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--zh-gray); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
 .tile-name { overflow: visible; white-space: normal; text-overflow: clip; }
@@ -695,7 +706,7 @@ html[data-theme="zerohour"] .type-system::after {
 .lib-card:hover .lib-art { border-color: var(--zh-yellow); box-shadow: 5px 5px 0 var(--zh-paper); }
 .lib-open { border-radius: 0; border: 2px solid var(--zh-ink); background: var(--zh-yellow); color: var(--zh-ink); }
 .lib-progress { border-radius: 0; background: rgba(8, 9, 10, .6); border: 1px solid var(--zh-paper); }
-.lib-progress i { border-radius: 0; background: var(--zh-yellow); }
+.lib-progress i { border-radius: 0; background: var(--prog-fill, var(--zh-yellow)); }
 .lib-name { color: var(--zh-paper); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--zh-gray); }
 .lib-sub { color: var(--zh-gray); }
@@ -1845,7 +1856,7 @@ html[data-theme="zerohour"] .type-system::after { height: 3px; background: var(-
 .manage-progress-track i,
 .launch-track i {
   border-radius: 999px;
-  background: repeating-linear-gradient(90deg, var(--zh-lime) 0 13px, #0b0c0e 13px 15px);
+  background: repeating-linear-gradient(90deg, var(--prog-fill, var(--zh-lime)) 0 13px, #0b0c0e 13px 15px);
 }
 
 .progress-sub { color: #8b8e96; }
@@ -1958,8 +1969,8 @@ html[data-theme="zerohour"] .type-system::after { height: 3px; background: var(-
 }
 
 .tile-progress { height: 3px; border: 1px solid #34373e; border-radius: 999px; background: #17181c; }
-.tile-progress i { border-radius: 999px; background: var(--zh-lime); }
-.tile.is-active .tile-progress i { background: var(--zh-lime); }
+.tile-progress i { border-radius: 999px; background: var(--prog-fill, var(--zh-lime)); }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--zh-lime)); }
 
 .tile-label { color: #a4a7ae; }
 .tile-name { color: var(--zh-paper); }
@@ -2009,7 +2020,7 @@ html[data-theme="zerohour"] .type-system::after { height: 3px; background: var(-
 .lib-card::before { background: var(--zh-lime); }
 .lib-open { border: 1px solid var(--zh-lime); border-radius: 999px; background: var(--zh-lime); color: var(--zh-ink); }
 .lib-progress { border: 1px solid #34373e; border-radius: 999px; background: #17181c; }
-.lib-progress i { border-radius: 999px; background: var(--zh-lime); }
+.lib-progress i { border-radius: 999px; background: var(--prog-fill, var(--zh-lime)); }
 .lib-name { color: var(--zh-paper); }
 .lib-en { color: #8b8e96; }
 .lib-sub { color: #8b8e96; }
@@ -2394,7 +2405,7 @@ html.perf-low .grain { display: none; }
 
 .activity-strip::after { top: 12px; bottom: 12px; width: 2px; }
 .progress-track i, .activity-track i, .dp-track i, .manage-progress-track i, .launch-track i {
-  background: repeating-linear-gradient(90deg, var(--zh-lime) 0 12px, #0b0c0e 12px 14px);
+  background: repeating-linear-gradient(90deg, var(--prog-fill, var(--zh-lime)) 0 12px, #0b0c0e 12px 14px);
 }
 
 

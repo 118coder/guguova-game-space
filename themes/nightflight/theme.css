@@ -30,6 +30,17 @@ html[data-theme="nightflight"] {
   --nf-coral: #ff6b4a;
   --nf-blue: #6fa8ff;
 
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     夜航信号灯换色 —— 荧光黄绿 →(青蓝弧) 蓝 →(紫→红弧) 珊瑚 →(提亮
+     充电) 奶油 →(回充 lime) 荧光 → 白（满月圆满）。锚点间 90°+ 弧。
+     tier 0 不发布变量，各表面保持基色 ---- */
+  --prog-l0: var(--nf-lime);
+  --prog-l1: var(--nf-blue);
+  --prog-l2: var(--nf-coral);
+  --prog-l3: var(--nf-cream);
+  --prog-l4: #c9ff56;
+  --prog-l5: #ffffff;
+
   --ink: var(--nf-text);
   --muted: var(--nf-muted);
   --faint: var(--nf-dim);
@@ -544,7 +555,7 @@ html[data-theme="nightflight"] .progress-track {
 
 html[data-theme="nightflight"] .progress-track i {
   border-radius: 0;
-  background: var(--nf-lime);
+  background: var(--prog-fill, var(--nf-lime));
   box-shadow: none;
 }
 
@@ -725,7 +736,7 @@ html[data-theme="nightflight"] .tile.is-active .tile-label::before { color: var(
 html[data-theme="nightflight"] .tile.is-active .tile-sub { color: var(--nf-lime); }
 
 html[data-theme="nightflight"] .tile-progress { left: 8px; right: 8px; bottom: 5px; height: 3px; border-radius: 0; background: rgba(217, 255, 69, .16); }
-html[data-theme="nightflight"] .tile-progress i { border-radius: 0; background: var(--nf-lime); box-shadow: none; }
+html[data-theme="nightflight"] .tile-progress i { border-radius: 0; background: var(--prog-fill, var(--nf-lime)); box-shadow: none; }
 html[data-theme="nightflight"] .tile-badge { border-radius: 0; border-color: rgba(217, 255, 69, .3); background: rgba(4, 7, 13, .8); color: var(--nf-lime); font-family: var(--font-mono); }
 
 html[data-theme="nightflight"] .dock-foot {
@@ -977,7 +988,7 @@ html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress {
   background: rgba(217, 255, 69, .14);
 }
 html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress i {
-  background: linear-gradient(90deg, var(--nf-lime), #9fbf24);
+  background: var(--prog-fill, linear-gradient(90deg, var(--nf-lime), #9fbf24));
 }
 
 /* 右键菜单：离港屏 */
@@ -1115,7 +1126,7 @@ html[data-theme="nightflight"] .detail-meta { color: var(--nf-muted); }
 html[data-theme="nightflight"] .detail-progress .dp-head { color: var(--nf-dim); font-family: var(--font-mono); }
 html[data-theme="nightflight"] .detail-progress .dp-head b { color: #ffffff; }
 html[data-theme="nightflight"] .dp-track { background: rgba(217, 255, 69, .12); }
-html[data-theme="nightflight"] .dp-track i { background: var(--nf-lime); }
+html[data-theme="nightflight"] .dp-track i { background: var(--prog-fill, var(--nf-lime)); }
 html[data-theme="nightflight"] .dp-sub { color: var(--nf-dim); }
 html[data-theme="nightflight"] .detail-stats .stat-cell,
 html[data-theme="nightflight"] .detail-stats > div { border-color: var(--nf-line); background: #07121d; }
@@ -1393,7 +1404,7 @@ html[data-theme="nightflight"] .appearance-preview-copy .appearance-tagline { co
 html[data-theme="nightflight"] .appearance-preview-copy .preview-cta-note { color: rgba(233, 237, 242, .48); }
 html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress { background: rgba(217, 255, 69, .16); }
 html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress span { color: rgba(233, 237, 242, .72); }
-html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress i { background: linear-gradient(90deg, #d9ff45, #9fbf24); }
+html[data-theme="nightflight"] .appearance-preview-copy .appearance-progress i { background: var(--prog-fill, linear-gradient(90deg, #d9ff45, #9fbf24)); }
 
 
 /* 2.6 · 参考其他主题：外观预览只留标题，不要 CTA 与时长 */

@@ -411,8 +411,8 @@
   display: block;
   width: 0%;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  box-shadow: 0 0 8px var(--glow);
+  background: var(--prog-fill, linear-gradient(90deg, var(--accent), var(--accent-2)));
+  box-shadow: 0 0 8px var(--prog-glow, var(--glow));
   transition: width .8s var(--ease);
 }
 

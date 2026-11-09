@@ -22,6 +22,16 @@
   --mn-amber: #c99b3f;
   --mn-line: rgba(36, 31, 51, .2);
   --mn-hair: rgba(91, 74, 140, .26);
+
+  /* ---- playtime ladder (app.js --prog-*，HSL 最短弧插值，纯色填充):
+     记忆淬染 —— 紫 →(梅红弧) 琥珀 →(回紫·提亮) 淡紫 →(沉) 梅 →(暖化)
+     琥珀 → 烫金。锚点间 90°+ 弧。tier 0 不发布变量，各表面保持基色 ---- */
+  --prog-l0: #5b4a8c;
+  --prog-l1: #c99b3f;
+  --prog-l2: #9a89c4;
+  --prog-l3: #9b3550;
+  --prog-l4: #e2b95c;
+  --prog-l5: #f2dfae;
   --mn-mono: "思源黑体 CN Medium", "Source Han Sans CN Medium", "Noto Sans SC Medium", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 
   --ink: var(--mn-ink);
@@ -495,7 +505,7 @@ html[data-theme="mnemo"] .type-system::after { height: 2px; background: var(--mn
 .manage-progress-track i,
 .launch-track i {
   border-radius: 0;
-  background: repeating-linear-gradient(90deg, var(--mn-violet) 0 7px, var(--mn-amber) 7px 10px, var(--mn-plum) 10px 12px, transparent 12px 15px);
+  background: repeating-linear-gradient(90deg, var(--prog-fill, var(--mn-violet)) 0 7px, var(--mn-amber) 7px 10px, var(--mn-plum) 10px 12px, transparent 12px 15px);
 }
 
 .progress-track i::after,
@@ -611,8 +621,8 @@ html[data-theme="mnemo"] .type-system::after { height: 2px; background: var(--mn
 .tile.is-active .tile-art { border-color: var(--mn-plum); box-shadow: inset 0 -3px 0 var(--mn-amber), 0 0 0 1px rgba(155, 53, 80, .12); transform: translateY(-4px); }
 
 .tile-progress { height: 3px; border-radius: 0; background: rgba(240, 237, 246, .5); box-shadow: inset 0 0 0 1px var(--mn-hair); }
-.tile-progress i { border-radius: 0; background: var(--mn-violet); }
-.tile.is-active .tile-progress i { background: var(--mn-amber); }
+.tile-progress i { border-radius: 0; background: var(--prog-fill, var(--mn-violet)); }
+.tile.is-active .tile-progress i { background: var(--prog-fill-soft, var(--mn-amber)); }
 
 .tile-label { align-items: flex-start; gap: 8px; padding-top: 9px; color: var(--mn-ink-2); font-size: 11.5px; font-weight: 600; line-height: 1.3; white-space: normal; }
 .tile-name { overflow: visible; white-space: normal; text-overflow: clip; }
@@ -688,7 +698,7 @@ html[data-theme="mnemo"] .type-system::after { height: 2px; background: var(--mn
 .lib-card:hover .lib-art { border-color: var(--mn-plum); box-shadow: inset 0 -3px 0 var(--mn-amber); }
 .lib-open { border-radius: 0; border: 1px solid var(--mn-plum); background: var(--mn-plum); color: var(--mn-panel); }
 .lib-progress { border-radius: 0; background: rgba(240, 237, 246, .5); box-shadow: inset 0 0 0 1px var(--mn-hair); }
-.lib-progress i { border-radius: 0; background: var(--mn-violet); }
+.lib-progress i { border-radius: 0; background: var(--prog-fill, var(--mn-violet)); }
 .lib-name { color: var(--mn-ink); font-size: 13px; font-weight: 700; }
 .lib-en { color: var(--mn-ink-2); }
 .lib-sub { color: var(--mn-violet); font-family: var(--mn-mono); font-size: 9.5px; }

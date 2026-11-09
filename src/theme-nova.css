@@ -90,7 +90,9 @@ html[data-theme="nova"].is-nova-system .activity-track i,
 html[data-theme="nova"].is-nova-system .dp-track i,
 html[data-theme="nova"].is-nova-system .manage-progress-track i,
 html[data-theme="nova"].is-nova-system .launch-track i {
-  background: linear-gradient(90deg, #f2ecdf, #cbbda6);
+  /* System mode keeps the warm-paper bar while unlit; the ladder publishes
+     a flat tier colour once lit (user call: no two-stop gradients). */
+  background: var(--prog-fill, linear-gradient(90deg, #f2ecdf, #cbbda6));
   box-shadow: none;
 }
 
