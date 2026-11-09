@@ -523,6 +523,21 @@ body {
 .manage-rows { margin-top: 9px; }
 .manage-row { min-height: 42px; font-size: var(--text-meta); color: var(--text-muted); }
 .manage-note { font-size: var(--text-label); color: var(--text-faint); }
+/* Hidden-game switch inside the manage panel — same sizing language as the
+   detail launch-options row; the hint takes the leftover room. */
+.manage-body > .pref-row {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 9px;
+  padding: 0 2px;
+  text-align: left;
+}
+.manage-body > .pref-row .pref-hint {
+  margin-left: auto;
+  font-size: var(--text-micro);
+  color: var(--text-faint);
+  text-align: right;
+}
 /* The steam block inside the manage panel only renders for platform games,
    so no view audit ever saw it. Its colours must come from the shell tokens
    (--ink / --muted) and --accent-text — the fixed light tints and the mint

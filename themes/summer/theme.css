@@ -2876,3 +2876,17 @@ html[data-theme="summer"] .picker-shell {
   --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
   --picker-mark: var(--t-accent);
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   White pill with the cyan keyline, same as the filter chips. */
+html[data-theme="summer"] .lib-sort select,
+html[data-theme="summer"] .lib-genre select,
+html[data-theme="summer"] .lib-sort .lib-dir {
+  border: 1px solid var(--su-cyan);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--su-sky-deep);
+  font-family: var(--font-condensed);
+}
+html[data-theme="summer"] .lib-dir:hover,
+html[data-theme="summer"] .lib-genre select:hover { border-color: var(--su-sky); color: var(--su-sky); }

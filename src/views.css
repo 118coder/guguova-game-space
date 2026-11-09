@@ -785,6 +785,25 @@ body.layout-rail .view-home .dock-title {
   letter-spacing: .1em;
   color: var(--muted, rgba(245, 242, 234, .55));
 }
+/* Type filter — the search box's right-hand neighbour. It shares the sort
+   select's exact control language so the toolbar reads as one family. */
+.lib-genre {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+.lib-genre select {
+  height: 32px;
+  max-width: 132px;
+  padding: 0 26px 0 10px;
+  border: 1px solid var(--hair, rgba(255, 255, 255, .16));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink, #f5f2ea) 6%, transparent);
+  color: var(--ink, #f5f2ea);
+  font: inherit;
+  font-size: 11px;
+  outline: none;
+}
 .lib-sort select {
   height: 32px;
   padding: 0 26px 0 10px;
@@ -802,7 +821,7 @@ body.layout-rail .view-home .dock-title {
    the themed select rather than inside it, so it repeats the same hairline +
    ink treatment: a second control language in the toolbar would read as a
    different widget. Themes that recolour `.lib-sort select` cover `.lib-dir`
-   in the same rule. */
+   and `.lib-genre select` in the same rule. */
 .lib-dir {
   display: inline-flex;
   align-items: center;
@@ -892,6 +911,17 @@ html[data-exporting] ::-webkit-scrollbar { width: 0 !important; height: 0 !impor
   outline: none;
 }
 .settings-field select option { color: #111; background: #f4f2ec; }
+
+/* Inline settings row inside a pref-list (startup card · scale delay): same
+   row rhythm as the pref-rows around it, note wraps underneath. */
+.settings-field--inline {
+  margin-top: 6px;
+  padding: 0 2px;
+}
+.settings-field--inline .settings-note {
+  flex-basis: 100%;
+  margin: 3px 2px 0;
+}
 
 /* Gamepad focus ring: the pad moves real DOM focus, so every theme gets a
    visible ring around the exact option the player is about to press. */

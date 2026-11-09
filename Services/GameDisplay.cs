@@ -33,6 +33,10 @@ public static class GameDisplay
     private const string MagpieSrcProperty = "Magpie.SrcHWND";
     private const uint MonitorDefaultToNearest = 2;
 
+    private const uint Th32csSnapprocess = 0x00000002;
+    private const int MaxFamilyDepth = 3;
+    private const int MaxFamilySize = 64;
+
     private const int GwlStyle = -16;
     private const int GwlExStyle = -20;
 
@@ -134,7 +138,7 @@ public static class GameDisplay
             }
         }
 
-        var applied = ApplyBorderless(pid, window);
+        var applied = ApplyBorderless(new HashSet<int> { pid }, window);
         if (!applied)
         {
             lock (WindowGate) SavedWindows.Remove(key);
@@ -155,26 +159,76 @@ public static class GameDisplay
         }
     }
 
-    /// <summary>Waits for the process's first usable top-level window, brings
-    /// it forward and optionally fills the monitor with it.</summary>
-    public static Result Present(int pid, bool scale, string engine, PlayerSettings settings, int timeoutMs = 30000)
+    /// <summary>Waits for the game's first usable top-level window, brings it
+    /// forward and optionally fills the monitor with it.</summary>
+    public static Result Present(int pid, bool scale, string engine, PlayerSettings settings, int timeoutMs = 30000, bool scaleExplicit = false)
     {
         if (pid <= 0)
             return new Result(false, false, false, "none", "进程信息不可用", 0);
 
         AllowForeground(pid);
 
+        // Games that start behind a launcher often render in a child of the
+        // exe we attached to (DNF-style clients are the example that proved
+        // it). The family is best effort: if the snapshot API is unavailable
+        // it collapses to { pid }, which is exactly the old behaviour.
+        var family = ProcessFamily(pid);
+        var factorMode = string.Equals(settings.ScaleMode, "factor", StringComparison.OrdinalIgnoreCase);
+
         // The bundled engine starts before the hand-off so its own window can
-        // be hidden while the game still owns the foreground.
+        // be hidden while the game still owns the foreground. An explicit
+        // scale request (the player's switch) is permission to start the
+        // engine; the immersive shell default only ever uses one that runs.
         ScalingEngine.Status? engineStatus = null;
-        if (scale && engine == "auto" && ScalingEngine.Supported)
-            ScalingEngine.EnsureRunning(settings, false, out engineStatus);
+        string? engineReason = null;
+        if (scale && engine == "auto")
+        {
+            if (!ScalingEngine.Supported)
+            {
+                engineReason = "当前系统不支持内置缩放引擎";
+            }
+            else
+            {
+                ScalingEngine.EnsureRunning(settings, scaleExplicit, out var status);
+                engineStatus = status;
+
+                // The algorithm and the windowed multiplier both live in the
+                // engine config and are read when Magpie starts. Write them
+                // together, then restart once if anything actually changed —
+                // otherwise a pixel algorithm picked in the launcher would
+                // stay on disk while the running engine kept its old effect.
+                var configChanged = false;
+                var configNotes = new List<string>();
+                if (status.Running)
+                {
+                    ScalingEngine.ApplyAlgorithm(settings.ScaleAlgorithm, out var algoNote, out var algoChanged);
+                    configChanged |= algoChanged;
+                    configNotes.Add($"algo={algoNote}");
+                    if (factorMode)
+                    {
+                        ScalingEngine.WriteWindowedFactor(settings.ScaleFactor, out var factorNote, out var factorChanged);
+                        configChanged |= factorChanged;
+                        configNotes.Add($"factor={factorNote}");
+                    }
+                    if (configChanged && ScalingEngine.IsRunning())
+                    {
+                        ScalingEngine.Restart(settings, out _);
+                        Log.Write($"magpie restarted for scale profile {string.Join(" ", configNotes)}");
+                    }
+                }
+
+                if (!status.Running)
+                    engineReason = string.IsNullOrWhiteSpace(status.Note)
+                        ? "缩放引擎没有在运行（可在设置开启「自动启动内置缩放引擎」）"
+                        : $"缩放引擎没有在运行：{status.Note}";
+            }
+        }
 
         IntPtr window = IntPtr.Zero;
         var deadline = DateTime.UtcNow.AddMilliseconds(Math.Max(2000, timeoutMs));
         while (DateTime.UtcNow < deadline)
         {
-            window = FindMainWindow(pid);
+            window = FindMainWindow(family);
             if (window != IntPtr.Zero) break;
             Thread.Sleep(350);
         }
@@ -189,36 +243,43 @@ public static class GameDisplay
         var scaled = false;
         var engineUsed = "none";
         string? error = null;
+        var magpieDiag = "";
 
         if (scale)
         {
-            if (IsMagpieScaling(window))
+            if (IsMagpieScaling(family))
             {
                 scaled = true;
                 engineUsed = "magpie";
             }
             else if (engine == "auto" && engineStatus is { Running: true })
             {
-                if (TryMagpie(window, engineStatus.Hotkey))
-                {
-                    scaled = true;
-                    engineUsed = "magpie";
-                }
-                else
-                {
-                    error = "缩放引擎没有接管这个窗口，已改用无边框全屏";
-                }
+                // Fullscreen and windowed scaling are two different Magpie
+                // shortcuts; the factor mode's multiplier was written above.
+                var hotkey = factorMode ? ScalingEngine.ReadWindowedHotkey() : engineStatus.Hotkey;
+                scaled = TryMagpie(window, hotkey, family, out window, out magpieDiag);
+                engineUsed = scaled ? (factorMode ? "magpie-factor" : "magpie") : "none";
+                if (!scaled) error = factorMode
+                    ? "倍数缩放没有接管这个窗口，已改用无边框全屏"
+                    : "缩放引擎没有接管这个窗口，已改用无边框全屏";
+            }
+            else if (engine == "auto" && engineReason != null)
+            {
+                // Never silently degrade: say why Magpie is not part of this
+                // launch, including the case where the engine cannot start.
+                error = engineReason + "，已改用无边框全屏";
             }
 
             if (!scaled)
             {
-                scaled = ApplyBorderless(pid, window);
+                scaled = ApplyBorderless(family, window);
                 engineUsed = scaled ? "native" : "none";
                 if (!scaled && error == null) error = "窗口没有响应尺寸调整";
             }
         }
 
-        Log.Write($"present pid={pid} hwnd=0x{window.ToInt64():X} foreground={foreground} scale={scale} engine={engineUsed} scaled={scaled} {error}");
+        GetWindowThreadProcessId(window, out var owner);
+        Log.Write($"present pid={pid} hwnd=0x{window.ToInt64():X} owner={owner} family={family.Count} cls={WindowClass(window)} foreground={foreground} scale={scale} mode={(factorMode ? "factor" : "fullscreen")} algo={(string.IsNullOrWhiteSpace(settings.ScaleAlgorithm) ? "-" : settings.ScaleAlgorithm)} factor={(factorMode ? settings.ScaleFactor.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "-")} engine={engineUsed} scaled={scaled} {magpieDiag} {error}");
         return new Result(true, scaled, foreground, engineUsed, error, window.ToInt64());
     }
 
@@ -276,7 +337,19 @@ public static class GameDisplay
             }
 
             if (!ForegroundBelongsTo(window)) SwitchToThisWindow(window, true);
-            if (!ForegroundBelongsTo(window)) Thread.Sleep(180);
+
+            if (!ForegroundBelongsTo(window))
+            {
+                // A synthetic Alt tap clears the foreground lock that can
+                // survive a programmatic launch; without it the hotkey goes
+                // to the launcher instead of the game. Real logs showed
+                // foreground=False on several DNF launches.
+                keybd_event(0x12, 0, 0, UIntPtr.Zero);       // VK_MENU
+                keybd_event(0x12, 0, KeyEventUp, UIntPtr.Zero);
+                SetForegroundWindow(window);
+                BringWindowToTop(window);
+                Thread.Sleep(180);
+            }
             return ForegroundBelongsTo(window);
         }
         catch (Exception ex)
@@ -298,7 +371,12 @@ public static class GameDisplay
         return foregroundPid != 0 && foregroundPid == windowPid;
     }
 
-    private static IntPtr FindMainWindow(int pid)
+    private static IntPtr FindMainWindow(int pid) => FindMainWindow(new HashSet<int> { pid });
+
+    /// <summary>Largest usable visible window owned by any process in the
+    /// family. A bootstrap or login window is smaller than the renderer, so
+    /// area decides instead of "the first window of the tracked exe".</summary>
+    private static IntPtr FindMainWindow(HashSet<int> pids)
     {
         var best = IntPtr.Zero;
         long bestArea = 0;
@@ -309,7 +387,7 @@ public static class GameDisplay
         {
             uint owner;
             GetWindowThreadProcessId(window, out owner);
-            if (owner != (uint)pid) return true;
+            if (!pids.Contains((int)owner)) return true;
             if (!IsWindowVisible(window)) return true;
 
             var exStyle = GetWindowLongPtr(window, GwlExStyle).ToInt64();
@@ -334,16 +412,82 @@ public static class GameDisplay
         return best != IntPtr.Zero ? best : bestIconic;
     }
 
+    /// <summary>The attached pid plus the processes it spawned (bounded to
+    /// three generations). Toolhelp32 keeps this a single cheap snapshot and
+    /// needs no WMI package in the net48 legacy build.</summary>
+    private static HashSet<int> ProcessFamily(int rootPid)
+    {
+        var family = new HashSet<int> { rootPid };
+        var snapshot = CreateToolhelp32Snapshot(Th32csSnapprocess, 0);
+        if (snapshot == IntPtr.Zero || snapshot == new IntPtr(-1)) return family;
+
+        try
+        {
+            var children = new Dictionary<int, List<int>>();
+            var entry = new ProcessEntry32W
+            {
+                Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<ProcessEntry32W>()
+            };
+            if (Process32FirstW(snapshot, ref entry))
+            {
+                do
+                {
+                    var parent = (int)entry.ParentProcessId;
+                    if (!children.TryGetValue(parent, out var list))
+                        children[parent] = list = new List<int>();
+                    list.Add((int)entry.ProcessId);
+                }
+                while (Process32NextW(snapshot, ref entry));
+            }
+
+            var frontier = new List<int> { rootPid };
+            for (var depth = 0; depth < MaxFamilyDepth && frontier.Count > 0 && family.Count < MaxFamilySize; depth++)
+            {
+                var next = new List<int>();
+                foreach (var pid in frontier)
+                {
+                    if (!children.TryGetValue(pid, out var spawned)) continue;
+                    foreach (var child in spawned)
+                    {
+                        if (family.Add(child)) next.Add(child);
+                        if (family.Count >= MaxFamilySize) break;
+                    }
+                    if (family.Count >= MaxFamilySize) break;
+                }
+                frontier = next;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("process family", ex);
+        }
+        finally
+        {
+            CloseHandle(snapshot);
+        }
+        return family;
+    }
+
+    private static string WindowClass(IntPtr window)
+    {
+        try
+        {
+            var name = new System.Text.StringBuilder(128);
+            return GetClassName(window, name, name.Capacity) > 0 ? name.ToString() : "-";
+        }
+        catch { return "-"; }
+    }
+
     /* ------------------------------------------------------------------
        Native borderless fill
        ------------------------------------------------------------------ */
 
-    private static bool ApplyBorderless(int pid, IntPtr window)
+    private static bool ApplyBorderless(HashSet<int> pids, IntPtr window)
     {
         try
         {
             GetWindowThreadProcessId(window, out var owner);
-            if (owner != (uint)pid) return false;
+            if (!pids.Contains((int)owner)) return false;
 
             var monitor = MonitorFromWindow(window, MonitorDefaultToNearest);
             var info = new MonitorInfo { Size = System.Runtime.InteropServices.Marshal.SizeOf<MonitorInfo>() };
@@ -403,42 +547,106 @@ public static class GameDisplay
        Magpie
        ------------------------------------------------------------------ */
 
-    private static bool TryMagpie(IntPtr window, int hotkey)
+    /// <summary>Magpie's hotkey is a toggle, so a second press is only safe
+    /// when the first one did not scale ANY window. Games that rebuild their
+    /// window while loading are the reason for the retry; the handle that
+    /// actually ended up scaled is returned so the caller reports the truth.</summary>
+    private static bool TryMagpie(IntPtr window, int hotkey, HashSet<int> family,
+        out IntPtr usedWindow, out string diagnosis)
     {
+        usedWindow = window;
         if (hotkey <= 0) hotkey = ScalingEngine.ReadHotkey();
-        if (hotkey <= 0) return false;
-        if (!ForegroundBelongsTo(window) && !BringToFront(window)) return false;
-
-        try
+        if (hotkey <= 0)
         {
+            diagnosis = "hotkey unavailable";
+            return false;
+        }
+
+        var notes = new List<string>();
+        for (var attempt = 1; attempt <= 2; attempt++)
+        {
+            var busy = MagpieSource();
+            if (busy != IntPtr.Zero && IsWindow(busy))
+            {
+                // Pressing the toggle again would turn THAT scaling off, so
+                // stop here and let the caller fall back to native.
+                notes.Add($"try={attempt} busy src=0x{busy.ToInt64():X}");
+                break;
+            }
+
+            // ForegroundBelongsTo accepts any window of the same process, but
+            // a login/overlay window can own it while the renderer does not.
+            // Ask for this exact handle first, then use the full hand-off as
+            // the fallback.
+            SetForegroundWindow(window);
+            BringWindowToTop(window);
+            var exactForeground = GetForegroundWindow() == window;
+            if (!exactForeground) BringToFront(window);
+            var foreground = ForegroundBelongsTo(window);
             Thread.Sleep(180);
             SendHotkey(hotkey);
 
+            var scaledWindow = IntPtr.Zero;
             var deadline = DateTime.UtcNow.AddSeconds(6);
             while (DateTime.UtcNow < deadline)
             {
-                if (IsMagpieScaling(window)) return true;
+                scaledWindow = ScaledWindowIn(family);
+                if (scaledWindow != IntPtr.Zero) break;
                 Thread.Sleep(250);
             }
+
+            if (scaledWindow != IntPtr.Zero)
+            {
+                usedWindow = scaledWindow;
+                notes.Add($"try={attempt} hwnd=0x{window.ToInt64():X} fg={foreground}/exact={exactForeground} scaled=0x{scaledWindow.ToInt64():X}");
+                diagnosis = string.Join(" ", notes);
+                return true;
+            }
+
+            notes.Add($"try={attempt} hwnd=0x{window.ToInt64():X} fg={foreground}/exact={exactForeground} src=0x{MagpieSource().ToInt64():X}");
+            if (attempt == 2) break;
+
+            // Loading rebuilt the window: pick the family's current largest
+            // one and give the hotkey one more chance on the new handle.
+            Thread.Sleep(2000);
+            var rebuilt = FindMainWindow(family);
+            if (rebuilt != IntPtr.Zero && rebuilt != window)
+            {
+                notes.Add($"rebuilt 0x{window.ToInt64():X}->0x{rebuilt.ToInt64():X}");
+                window = rebuilt;
+                // Even when both hotkey attempts fail, the native fallback
+                // must act on the window that survived the rebuild.
+                usedWindow = rebuilt;
+            }
         }
-        catch (Exception ex)
-        {
-            Log.Error("magpie hotkey", ex);
-        }
+
+        diagnosis = string.Join(" ", notes);
         return false;
     }
 
-    private static bool IsMagpieScaling(IntPtr window)
+    private static bool IsMagpieScaling(HashSet<int> family) => ScaledWindowIn(family) != IntPtr.Zero;
+
+    /// <summary>The window Magpie is currently scaling, but only when it still
+    /// exists and belongs to the game family. The old exact-handle comparison
+    /// reported failure whenever a game rebuilt its window after the hotkey.</summary>
+    private static IntPtr ScaledWindowIn(HashSet<int> family)
+    {
+        var src = MagpieSource();
+        if (src == IntPtr.Zero || !IsWindow(src)) return IntPtr.Zero;
+        GetWindowThreadProcessId(src, out var owner);
+        return family.Contains((int)owner) ? src : IntPtr.Zero;
+    }
+
+    private static IntPtr MagpieSource()
     {
         try
         {
             var scaling = FindWindow(MagpieWindowClass, null);
-            if (scaling == IntPtr.Zero) return false;
-            return GetProp(scaling, MagpieSrcProperty) == window;
+            return scaling == IntPtr.Zero ? IntPtr.Zero : GetProp(scaling, MagpieSrcProperty);
         }
         catch
         {
-            return false;
+            return IntPtr.Zero;
         }
     }
 
@@ -466,6 +674,23 @@ public static class GameDisplay
     /* ------------------------------------------------------------------
        Win32
        ------------------------------------------------------------------ */
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential,
+        CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private struct ProcessEntry32W
+    {
+        public uint Size;
+        public uint Usage;
+        public uint ProcessId;
+        public IntPtr DefaultHeapId;
+        public uint ModuleId;
+        public uint Threads;
+        public uint ParentProcessId;
+        public int PriClassBase;
+        public uint Flags;
+        [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string ExeFile;
+    }
 
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct Rect
@@ -552,4 +777,24 @@ public static class GameDisplay
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, UIntPtr extra);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool IsWindow(IntPtr window);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr window, System.Text.StringBuilder name, int maxCount);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr CreateToolhelp32Snapshot(uint flags, uint processId);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", EntryPoint = "Process32FirstW",
+        CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    private static extern bool Process32FirstW(IntPtr snapshot, ref ProcessEntry32W entry);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", EntryPoint = "Process32NextW",
+        CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    private static extern bool Process32NextW(IntPtr snapshot, ref ProcessEntry32W entry);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr handle);
 }

@@ -107,7 +107,7 @@
       if (message.type === 'scaling-toggled') {
         const payload = message.payload || {};
         toast(payload.ok
-          ? (payload.on ? '全屏缩放已开启' : '全屏缩放已关闭')
+          ? (payload.on ? '启动时缩放已开启' : '启动时缩放已关闭')
           : (payload.reason || '没有可以缩放的游戏'), payload.ok ? 'fullscreen' : 'alert');
         return;
       }
@@ -167,6 +167,17 @@
       // '' means "this mode's own reading order", so a mode the player never
       // flipped still behaves the way its name implies. See SORT_DEFAULT_DIR.
       librarySortDir: '',
+      // Cover info tags (平台 → 类型 → 模式); 1–3.
+      libraryTagCount: 3,
+      // Seconds between "game process is up" and the scaling attempt. Some
+      // titles must finish loading first, or the scale request is dropped.
+      scaleDelaySeconds: 0,
+      // fullscreen fills the monitor; factor magnifies the window by a chosen
+      // multiplier using Magpie's windowed mode.
+      scaleMode: 'fullscreen',
+      scaleFactor: 2,
+      // '' = follow whatever algorithm Magpie is currently set to.
+      scaleAlgorithm: '',
       minimizeOnLaunch: true,
       scalingEngine: 'auto',
       magpiePath: null,
@@ -193,6 +204,7 @@
     overlay: null,
     libFilter: 'all',
     libQuery: '',
+    libGenre: '',
     lastFocus: null,
     toastTimer: null,
     launchTimers: [],
@@ -348,6 +360,9 @@
     editRow: $('#editRow'),
     refreshArtRow: $('#refreshArtRow'),
     resetArtRow: $('#resetArtRow'),
+    manageHiddenRow: $('#manageHiddenRow'),
+    manageHiddenSwitch: $('#manageHiddenSwitch'),
+    manageHiddenHint: $('#manageHiddenHint'),
     removeGameBtn: $('#removeGameBtn'),
     manageDoneBtn: $('#manageDoneBtn'),
     libraryOverlay: $('#libraryOverlay'),
@@ -431,6 +446,9 @@
     editorDelete: $('#editorDelete'),
     fExe: $('#fExe'),
     fPickExe: $('#fPickExe'),
+    fLauncher: $('#fLauncher'),
+    fPickLauncher: $('#fPickLauncher'),
+    fGenrePick: $('#fGenrePick'),
     fName: $('#fName'),
     fZh: $('#fZh'),
     fGenre: $('#fGenre'),
@@ -505,6 +523,7 @@
     settingsRow: $('#settingsRow'),
     libSort: $('#libSort'),
     libSortDir: $('#libSortDir'),
+    libGenre: $('#libGenre'),
     shotBtn: $('#shotBtn'),
     settingsPlayerName: $('#settingsPlayerName'),
     settingsSaveName: $('#settingsSaveName'),
@@ -537,6 +556,9 @@
     settingsMagpiePick: $('#settingsMagpiePick'),
     settingsEngineOptions: $('#settingsEngineOptions'),
     engineOverlay: $('#engineOverlay'),
+    engineScaleRow: $('#engineScaleRow'),
+    engineScaleCheck: $('#engineScaleCheck'),
+    engineScaleHint: $('#engineScaleHint'),
     engineClose: $('#engineClose'),
     engineSubtitle: $('#engineSubtitle'),
     engineMode: $('#engineMode'),
@@ -568,6 +590,12 @@
     settingsOpenData: $('#settingsOpenData'),
     settingsOpenBackups: $('#settingsOpenBackups'),
     settingsTier: $('#settingsTier'),
+    settingsTagCount: $('#settingsTagCount'),
+    settingsScaleDelay: $('#settingsScaleDelay'),
+    settingsScaleMode: $('#settingsScaleMode'),
+    settingsScaleFactor: $('#settingsScaleFactor'),
+    settingsScaleFactorRow: $('#settingsScaleFactorRow'),
+    settingsScaleAlgorithm: $('#settingsScaleAlgorithm'),
     settingsTierTag: $('#settingsTierTag'),
     settingsSystemStats: $('#settingsSystemStats'),
     settingsSystemNote: $('#settingsSystemNote'),
@@ -1939,6 +1967,11 @@
         unifiedSfx: !!state.settings.unifiedSfx,
         librarySort: state.settings.librarySort,
         librarySortDir: state.settings.librarySortDir || '',
+        libraryTagCount: Math.min(3, Math.max(1, Number(state.settings.libraryTagCount) || 3)),
+        scaleDelaySeconds: Math.min(120, Math.max(0, Number(state.settings.scaleDelaySeconds) || 0)),
+        scaleMode: state.settings.scaleMode === 'factor' ? 'factor' : 'fullscreen',
+        scaleFactor: Math.min(10, Math.max(1.1, Number(state.settings.scaleFactor) || 2)),
+        scaleAlgorithm: state.settings.scaleAlgorithm || '',
         minimizeOnLaunch: state.settings.minimizeOnLaunch !== false,
         scalingEngine: state.settings.scalingEngine || 'auto',
         magpiePath: state.settings.magpiePath || null,
@@ -2841,10 +2874,18 @@
   function filterGames() {
     const query = state.libQuery.trim().toLowerCase();
     return state.games.filter((game) => {
+      // Hidden entries live only in the dedicated 隐藏 view; every other
+      // tab (and search) pretends they do not exist.
+      if (state.libFilter === 'hidden') {
+        if (!game.hidden) return false;
+      } else if (game.hidden) {
+        return false;
+      }
       if (state.libFilter === 'recent' && !game.lastPlayedUtc) return false;
       if (state.libFilter === 'favorite' && !game.favorite) return false;
       if (state.libFilter === 'platform' && !isPlatformGame(game)) return false;
       if (state.libFilter === 'missing' && game.exists) return false;
+      if (state.libGenre && !gameTypes(game).includes(state.libGenre)) return false;
       if (query) {
         const haystack = `${game.zh} ${game.name} ${(game.genres || []).join(' ')} ${game.genre || ''}`.toLowerCase();
         if (!haystack.includes(query)) return false;
@@ -2853,14 +2894,69 @@
     });
   }
 
+  /** Real genre tags: the platform-written pseudo genres ("Steam") are
+      labels for the source, not types the player filters on. */
+  function gameTypes(game) {
+    const raw = (game.genres && game.genres.length ? game.genres : (game.genre ? [game.genre] : []));
+    return raw.map((value) => String(value || '').trim())
+      .filter((value) => value && PLATFORM_LABELS[value.toLowerCase()] === undefined);
+  }
+
+  function libraryTypeOptions() {
+    const set = new Set();
+    state.games.forEach((game) => gameTypes(game).forEach((type) => set.add(type)));
+    return [...set].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+  }
+
+  /** Keeps the toolbar type filter's options in step with the library. The
+      option list is only rewritten when the set actually changed, so an open
+      nova-select menu is never clobbered mid-interaction. */
+  function syncLibraryGenreFilter() {
+    if (!els.libGenre) return;
+    const options = libraryTypeOptions();
+    const signature = options.join('\u0001');
+    if (els.libGenre.dataset.options !== signature) {
+      els.libGenre.dataset.options = signature;
+      els.libGenre.innerHTML = '<option value="">全部类型</option>' +
+        options.map((type) => `<option value="${esc(type)}">${esc(type)}</option>`).join('');
+    }
+    els.libGenre.value = state.libGenre;
+    // A type that no longer exists in the library resets the filter instead
+    // of silently matching nothing.
+    if (els.libGenre.value !== state.libGenre) {
+      state.libGenre = '';
+      els.libGenre.value = '';
+    }
+  }
+
   /* The per-card live bits, shared by the full render and the 30s live
      patch so the two can never drift apart. */
   function libraryBadgesHTML(game, featured) {
     const badges = [];
     if (featured) badges.push('<span class="lib-current">CURRENT</span>');
+    let platformShown = false;
     if (state.running.has(game.id)) badges.push('<span class="lib-badge live">运行中</span>');
     else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
-    else if (isPlatformGame(game)) badges.push(`<span class="tile-badge">${esc(platformShort(game))}</span>`);
+    else if (isPlatformGame(game)) {
+      badges.push(`<span class="tile-badge">${esc(platformShort(game))}</span>`);
+      platformShown = true;
+    }
+
+    // Info tags after the state row: 平台 → 类型 → 模式, as many as the
+    // player allows in settings (default all three). The platform badge
+    // above IS the platform tag; 手动添加的游戏没有平台标记，标签自然少一个。
+    const count = Math.min(3, Math.max(1, Number(state.settings.libraryTagCount) || 3));
+    let used = platformShown ? 1 : 0;
+    if (used < count) {
+      const type = gameTypes(game)[0] || '';
+      if (type) {
+        badges.push(`<span class="tile-badge tag">${esc(type)}</span>`);
+        used += 1;
+      }
+    }
+    if (used < count && game.mode) {
+      badges.push(`<span class="tile-badge tag">${esc(game.mode)}</span>`);
+    }
     return badges.join('');
   }
 
@@ -2893,6 +2989,7 @@
       button.classList.toggle('is-active', button.dataset.filter === state.libFilter);
     });
     if (els.libSort) els.libSort.value = state.settings.librarySort || 'recent';
+    syncLibraryGenreFilter();
 
     const list = filterGames();
     const sort = state.settings.librarySort || 'recent';
@@ -3137,6 +3234,7 @@
     updateDetailStatus(game);
     updateDetailProgress(game);
     syncDetailScaleRow();
+    syncManageHiddenRow();
 
     closeManage({ silent: true });
     els.detailManageLabel.textContent = '管理';
@@ -3156,6 +3254,24 @@
     return !!state.fullscreen;
   }
 
+  /** The engine sheet (opened from the home "缩放设置" button) carries the
+      same per-game tick box, so deciding whether this game should be scaled
+      never requires a trip into the detail page. */
+  function syncEngineScaleRow() {
+    if (!els.engineScaleRow) return;
+    const game = currentGame();
+    const disabled = state.settings.scalingEngine === 'off';
+    const explicit = !!(game && typeof game.fullscreenScale === 'boolean');
+    els.engineScaleRow.disabled = disabled;
+    els.engineScaleRow.setAttribute('aria-disabled', String(disabled));
+    setPrefSwitch(els.engineScaleRow, els.engineScaleCheck, !disabled && fullscreenScaleFor(game));
+    if (els.engineScaleHint) {
+      els.engineScaleHint.textContent = disabled
+        ? '已在设置中关闭'
+        : (explicit ? '仅对这款游戏生效' : '跟随全屏显示 · 方式在设置页选');
+    }
+  }
+
   function syncHeroScaleRow() {
     if (!els.homeScaleRow) return;
     const game = currentGame();
@@ -3170,8 +3286,9 @@
         ? '已在设置中关闭'
         : explicit
           ? '仅对这款游戏生效'
-          : (state.fullscreen ? '沉浸模式下默认开启' : '全屏显示时默认开启');
+          : '方式在设置页选';
     }
+    syncEngineScaleRow();
   }
 
   async function toggleHeroScale() {
@@ -3188,7 +3305,7 @@
       syncHeroScaleRow();
       syncDetailScaleRow();
       audio.error();
-      toast(result?.error || '无法保存全屏缩放设置', 'alert');
+      toast(result?.error || '无法保存缩放设置', 'alert');
       return;
     }
     if (result.game) Object.assign(game, result.game);
@@ -3211,6 +3328,7 @@
           ? '仅对这款游戏生效'
           : (state.fullscreen ? '沉浸模式下默认开启' : '全屏显示时默认开启');
     }
+    syncEngineScaleRow();
   }
 
   async function toggleDetailScale() {
@@ -3225,12 +3343,48 @@
       game.fullscreenScale = null;
       syncDetailScaleRow();
       audio.error();
-      toast(result?.error || '无法保存全屏缩放设置', 'alert');
+      toast(result?.error || '无法保存缩放设置', 'alert');
       return;
     }
     if (result.game) Object.assign(game, result.game);
     syncDetailScaleRow();
-    toast(next ? '启动时全屏缩放' : '启动时保持窗口大小', 'fullscreen');
+    toast(next ? '启动时按设置缩放' : '启动时保持窗口大小', 'fullscreen');
+  }
+
+  /* ---------- hidden game ---------- */
+
+  function syncManageHiddenRow() {
+    if (!els.manageHiddenRow) return;
+    const game = currentGame();
+    const hidden = !!(game && game.hidden);
+    setPrefSwitch(els.manageHiddenRow, els.manageHiddenSwitch, hidden);
+    if (els.manageHiddenHint) {
+      els.manageHiddenHint.textContent = hidden
+        ? '已隐藏 · 在游戏库的「隐藏」筛选中可见'
+        : '隐藏后不在游戏库列表中显示';
+    }
+  }
+
+  async function toggleManageHidden() {
+    const game = currentGame();
+    if (!game) return;
+    const next = !game.hidden;
+    game.hidden = next;
+    syncManageHiddenRow();
+    audio.toggle();
+    const result = await call('updateGame', { id: game.id, hidden: next });
+    if (!result || !result.ok) {
+      game.hidden = !next;
+      syncManageHiddenRow();
+      audio.error();
+      toast(result?.error || '无法保存隐藏设置', 'alert');
+      return;
+    }
+    if (result.game) Object.assign(game, result.game);
+    syncManageHiddenRow();
+    toast(next
+      ? `《${shortName(game)}》已隐藏 · 游戏库右上角「隐藏」可查看`
+      : `《${shortName(game)}》已恢复显示`, 'check');
   }
 
   function openDetails() {
@@ -4087,6 +4241,7 @@
   }
 
   function fillEngineDialog(options) {
+    syncEngineScaleRow();
     const modes = Array.isArray(options.modes) ? options.modes : [];
     if (els.engineMode) {
       els.engineMode.innerHTML = modes.map((mode) => `
@@ -4203,6 +4358,11 @@
       toast(result?.error || '缩放引擎设置保存失败', 'alert');
       return;
     }
+    // Keep the settings page in sync with the engine sheet: the native side
+    // stores the same name, so the next launch will not undo this choice.
+    const chosenMode = (state.engineOptions?.modes || []).find(
+      (mode) => String(mode.index) === String(els.engineMode?.value));
+    state.settings.scaleAlgorithm = chosenMode ? chosenMode.name : '';
     audio.confirm();
     toast(result.message || '缩放引擎设置已保存', 'check');
     closeEngineDialog();
@@ -4323,9 +4483,9 @@
       if (els.settingsMagpieActions) els.settingsMagpieActions.hidden = true;
       return;
     }
-    const mode = engine === 'off' ? '全屏缩放已关闭。'
-      : engine === 'native' ? '全屏缩放方式：仅无边框拉伸。'
-        : '全屏缩放方式：Magpie 优先。';
+    const mode = engine === 'off' ? '缩放已关闭。'
+      : engine === 'native' ? '缩放引擎：仅无边框拉伸。'
+        : '缩放引擎：Magpie 优先。';
     els.settingsMagpieNote.textContent = `${mode} ${magpie.note || ''}`.trim();
 
     const canStart = engine === 'auto' && magpie.available && !magpie.running;
@@ -4487,6 +4647,30 @@
     });
   }
 
+  /** Fills the scaling-algorithm select from Magpie's own mode list. Names,
+      not indices, are stored: Magpie can insert a mode or the library can be
+      moved to another PC without silently switching to a different effect. */
+  async function fillScaleAlgorithms() {
+    const select = els.settingsScaleAlgorithm;
+    if (!select) return;
+    if (!state.engineOptions) {
+      const result = await call('engineOptions');
+      if (result && result.ok) state.engineOptions = result;
+    }
+    const options = state.engineOptions || {};
+    const modes = Array.isArray(options.modes) ? options.modes : [];
+    const current = modes.find((mode) => mode.index === (options.scalingMode ?? 0));
+    const followLabel = current ? `跟随引擎当前设置（${current.name}）` : '跟随引擎当前设置';
+    const wanted = state.settings.scaleAlgorithm || '';
+    select.innerHTML = [
+      `<option value="">${esc(followLabel)}</option>`,
+      ...modes.filter((mode) => mode.available !== false).map((mode) =>
+        `<option value="${esc(mode.name)}">${esc(mode.name)}</option>`)
+    ].join('');
+    select.value = wanted;
+    if (select.value !== wanted) select.value = '';
+  }
+
   function renderSettings() {
     if (!els.settingsPlayerName) return;
     const stats = state.stats || {};
@@ -4509,6 +4693,29 @@
     if (els.settingsFootPath) els.settingsFootPath.textContent = storage.root ? `数据目录 · ${storage.root}` : '数据目录 · —';
     if (els.settingsSyncPlaytime) els.settingsSyncPlaytime.hidden = !games.some((game) => game.steamAppId);
     if (els.settingsTier) els.settingsTier.value = state.settings.compatibilityTier || 'auto';
+    if (els.settingsTagCount) {
+      els.settingsTagCount.value = String(Math.min(3, Math.max(1, Number(state.settings.libraryTagCount) || 3)));
+    }
+    if (els.settingsScaleMode) {
+      els.settingsScaleMode.value = state.settings.scaleMode === 'factor' ? 'factor' : 'fullscreen';
+    }
+    if (els.settingsScaleFactor) {
+      const storedFactor = Math.min(10, Math.max(1.1, Number(state.settings.scaleFactor) || 2));
+      const factorSteps = [1.25, 1.5, 1.75, 2, 2.5, 3];
+      els.settingsScaleFactor.value = String(factorSteps.reduce((best, step) =>
+        Math.abs(step - storedFactor) < Math.abs(best - storedFactor) ? step : best, 2));
+    }
+    if (els.settingsScaleFactorRow) {
+      els.settingsScaleFactorRow.hidden = state.settings.scaleMode !== 'factor';
+    }
+    fillScaleAlgorithms();
+    if (els.settingsScaleDelay) {
+      // Snap to the offered options so a hand-edited value can't blank the select.
+      const stored = Math.max(0, Number(state.settings.scaleDelaySeconds) || 0);
+      const options = [0, 3, 5, 10, 15];
+      els.settingsScaleDelay.value = String(options.reduce((best, step) =>
+        Math.abs(step - stored) < Math.abs(best - stored) ? step : best, 0));
+    }
     if (els.settingsTierTag) els.settingsTierTag.textContent = system.tierLabel || '完整效果';
     if (els.settingsSystemStats) {
       els.settingsSystemStats.innerHTML = [
@@ -5308,12 +5515,16 @@
       // Steam owns the launch now. The session appears when the game process
       // shows up, which can be minutes away when the client must log in, so
       // the overlay waits on that event instead of claiming it is running.
+      // The separated-launcher flow returns the same shape; the hint tells
+      // the two apart.
+      const viaLauncher = /启动器|本体/.test(result.hint || '');
       game.launchCount = (game.launchCount || 0) + 1;
       game.lastPlayedUtc = new Date().toISOString();
       setLaunchProgress(70);
-      els.launchStatus.textContent = '等待 Steam…';
-      els.launchSystem.textContent = '交给 Steam';
-      els.launchFootMeta.textContent = result.hint || 'Steam 正在启动这款游戏';
+      els.launchStatus.textContent = viaLauncher ? '等待游戏本体…' : '等待 Steam…';
+      els.launchSystem.textContent = viaLauncher ? '交给启动器' : '交给 Steam';
+      els.launchFootMeta.textContent = result.hint
+        || (viaLauncher ? '游戏启动器正在启动这款游戏' : 'Steam 正在启动这款游戏');
       setLaunchStep(2);
       state.launchPendingId = game.id;
       state.launchTimers.push(setTimeout(() => {
@@ -5432,7 +5643,7 @@
       pushNotice({
         icon: 'alert',
         color: game?.accent || '#ffb45e',
-        title: `${payload.gameName || (game ? shortName(game) : '游戏')} 的全屏缩放没有生效`,
+        title: `${payload.gameName || (game ? shortName(game) : '游戏')} 的缩放没有生效`,
         sub: payload.error,
         gameId: payload.gameId
       });
@@ -5771,10 +5982,12 @@
 
   const DOSSIER_FIELDS = [
     { keys: ['游戏程序', '程序', 'exe'], id: 'fExe', path: true },
+    { keys: ['游戏启动器', '启动器', '登录器'], id: 'fLauncher', path: true },
     { keys: ['名称', '名字', '游戏名'], id: 'fName' },
     { keys: ['中文名', '中文名称', '中文'], id: 'fZh' },
     { keys: ['类型', '类别'], id: 'fGenre' },
     { keys: ['字标文字', '字标', '标题文字'], id: 'fLogo' },
+    { keys: ['字标方案', '标题字体'], id: 'fTypeRecipe', select: true },
     { keys: ['年龄分级', '分级', '年龄'], id: 'fAge' },
     { keys: ['游玩模式', '模式'], id: 'fMode' },
     { keys: ['一句话介绍', '简介', '介绍'], id: 'fTagline' },
@@ -5807,6 +6020,15 @@
     });
     DOSSIER_FIELDS.forEach((field) => {
       if (field.path && out[field.id]) out[field.id] = cleanPath(out[field.id]);
+      // A select field travels as its human-readable option label; map it
+      // back to the option value. An unknown label is dropped, never clobbered.
+      if (field.select && out[field.id]) {
+        const select = els[field.id];
+        const match = select ? Array.from(select.options).find((option) =>
+          option.textContent.trim() === out[field.id] || option.value === out[field.id]) : null;
+        if (match) out[field.id] = match.value;
+        else delete out[field.id];
+      }
     });
     return out;
   }
@@ -5845,8 +6067,15 @@
     const lines = [];
     DOSSIER_FIELDS.forEach((field) => {
       const input = els[field.id];
-      const value = input ? String(input.value || '').trim() : '';
-      if (!value) return;
+      if (!input) return;
+      let value = String(input.value || '').trim();
+      if (field.select && value) {
+        const match = Array.from(input.options).find((option) => option.value === value);
+        if (match) value = match.textContent.trim();
+      }
+      // Every label is written, empty or not: the export doubles as a
+      // fill-in template, and import skips labels whose value is blank —
+      // so a complete text can never clobber a target form either.
       lines.push(`${field.keys[0]}：${value}`);
     });
     if (!lines.length) {
@@ -5871,6 +6100,7 @@
 
   function resetEditorFields() {
     els.fExe.value = '';
+    els.fLauncher.value = '';
     els.fName.value = '';
     els.fZh.value = '';
     els.fGenre.value = '';
@@ -5912,6 +6142,7 @@
       els.editorSaveLabel.textContent = '保存修改';
       els.editorDelete.hidden = false;
       els.fExe.value = game.exePath || '';
+      els.fLauncher.value = game.launcherPath || '';
       els.fName.value = game.name || '';
       els.fZh.value = game.zh || '';
       els.fGenre.value = game.genre || '';
@@ -5991,6 +6222,7 @@
     const payload = {
       id: state.editorId || undefined,
       exePath,
+      launcherPath: cleanPath(els.fLauncher.value),
       name: els.fName.value.trim(),
       zh: els.fZh.value.trim(),
       genre: els.fGenre.value.trim(),
@@ -6464,6 +6696,44 @@
     if (els.settingsUnifiedSfxRow) els.settingsUnifiedSfxRow.addEventListener('click', () => setUnifiedSfx(!state.settings.unifiedSfx));
     if (els.settingsFullscreenRow) els.settingsFullscreenRow.addEventListener('click', () => applyFullscreen(!state.fullscreen));
     if (els.settingsTier) els.settingsTier.addEventListener('change', changeCompatibilityTier);
+    if (els.settingsTagCount) els.settingsTagCount.addEventListener('change', () => {
+      state.settings.libraryTagCount = Math.min(3, Math.max(1, Number(els.settingsTagCount.value) || 3));
+      saveSettings();
+      audio.toggle();
+      renderLibrary();
+      toast(`封面标签：${state.settings.libraryTagCount} 个`, 'check');
+    });
+    if (els.settingsScaleDelay) els.settingsScaleDelay.addEventListener('change', () => {
+      state.settings.scaleDelaySeconds = Math.min(120, Math.max(0, Number(els.settingsScaleDelay.value) || 0));
+      saveSettings();
+      audio.toggle();
+      toast(state.settings.scaleDelaySeconds > 0
+        ? `启动后 ${state.settings.scaleDelaySeconds} 秒再缩放`
+        : '缩放时机：立即', 'check');
+    });
+    if (els.settingsScaleMode) els.settingsScaleMode.addEventListener('change', () => {
+      state.settings.scaleMode = els.settingsScaleMode.value === 'factor' ? 'factor' : 'fullscreen';
+      if (els.settingsScaleFactorRow) els.settingsScaleFactorRow.hidden = state.settings.scaleMode !== 'factor';
+      saveSettings();
+      audio.toggle();
+      toast(state.settings.scaleMode === 'factor'
+        ? '缩放方式：倍数缩放，可在下面选倍数'
+        : '缩放方式：全屏缩放', 'check');
+    });
+    if (els.settingsScaleFactor) els.settingsScaleFactor.addEventListener('change', () => {
+      state.settings.scaleFactor = Math.min(10, Math.max(1.1, Number(els.settingsScaleFactor.value) || 2));
+      saveSettings();
+      audio.toggle();
+      toast(`放大倍数：${state.settings.scaleFactor} 倍`, 'check');
+    });
+    if (els.settingsScaleAlgorithm) els.settingsScaleAlgorithm.addEventListener('change', () => {
+      state.settings.scaleAlgorithm = els.settingsScaleAlgorithm.value || '';
+      saveSettings();
+      audio.toggle();
+      toast(state.settings.scaleAlgorithm
+        ? `缩放算法：${state.settings.scaleAlgorithm}`
+        : '缩放算法：跟随引擎当前设置', 'check');
+    });
     if (els.settingsExport) els.settingsExport.addEventListener('click', exportPack);
     if (els.settingsImport) els.settingsImport.addEventListener('click', importPack);
     if (els.settingsCsv) els.settingsCsv.addEventListener('click', exportRecords);
@@ -8147,6 +8417,7 @@
     els.detailPlay.addEventListener('click', handlePrimary);
     els.detailBtn.addEventListener('click', openDetails);
     if (els.homeEngineBtn) els.homeEngineBtn.addEventListener('click', openEngineDialog);
+    if (els.engineScaleRow) els.engineScaleRow.addEventListener('click', toggleHeroScale);
     if (els.homeScaleRow) els.homeScaleRow.addEventListener('click', toggleHeroScale);
     els.questCard.addEventListener('click', openDetails);
     els.detailsClose.addEventListener('click', () => closeDetails());
@@ -8156,6 +8427,7 @@
 
     els.detailFav.addEventListener('click', () => toggleFavorite(currentGame()));
     if (els.detailScaleRow) els.detailScaleRow.addEventListener('click', toggleDetailScale);
+    if (els.manageHiddenRow) els.manageHiddenRow.addEventListener('click', toggleManageHidden);
     els.detailManage.addEventListener('click', () => {
       if (state.manageOpen) closeManage();
       else openManage();
@@ -8206,6 +8478,12 @@
       renderLibrary();
       audio.toggle();
     });
+    if (els.libGenre) els.libGenre.addEventListener('change', () => {
+      state.libGenre = els.libGenre.value || '';
+      state.libPadIndex = 0;
+      renderLibrary();
+      audio.toggle();
+    });
     const favouriteActivate = (event) => {
       const fav = event.target.closest('.lib-fav');
       if (!fav) return false;
@@ -8239,6 +8517,7 @@
       }
       state.libFilter = 'all';
       state.libQuery = '';
+      state.libGenre = '';
       els.libSearch.value = '';
       state.libPadIndex = 0;
       renderLibrary();
@@ -8385,6 +8664,47 @@
     els.fPickExe.addEventListener('click', async () => {
       const path = await window.NovaOverlays.pickerOpen({ filter: 'exe' });
       if (path) await adoptExecutable(path);
+    });
+    els.fPickLauncher.addEventListener('click', async () => {
+      const path = await window.NovaOverlays.pickerOpen({ filter: 'exe' });
+      if (path) els.fLauncher.value = path;
+    });
+
+    /* genre combo · 可输可选：input keeps free typing, the chevron lists the
+       types already present in the library. The popup reuses the themed
+       --menu-* tokens so it reads like every other dropdown. */
+    const genreCombo = $('#genreCombo');
+    const genreMenu = document.createElement('div');
+    genreMenu.className = 'nova-select-menu genre-menu';
+    genreMenu.setAttribute('role', 'listbox');
+    genreMenu.hidden = true;
+    genreCombo.appendChild(genreMenu);
+    const closeGenreMenu = () => { genreMenu.hidden = true; };
+    const openGenreMenu = () => {
+      const typed = els.fGenre.value.trim().toLowerCase();
+      const options = libraryTypeOptions().filter((type) => !typed || type.toLowerCase().includes(typed));
+      genreMenu.innerHTML = options.length
+        ? options.map((type) => `<button type="button" class="nova-select-option" role="option">${esc(type)}</button>`).join('')
+        : '<div class="genre-menu-empty">还没有可选择的类型 · 直接输入新类型</div>';
+      genreMenu.hidden = false;
+    };
+    els.fGenrePick.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (genreMenu.hidden) openGenreMenu(); else closeGenreMenu();
+    });
+    genreMenu.addEventListener('click', (event) => {
+      const option = event.target.closest('.nova-select-option');
+      if (!option) return;
+      els.fGenre.value = option.textContent.trim();
+      closeGenreMenu();
+      try { els.fGenre.focus({ preventScroll: true }); } catch (error) {}
+    });
+    els.fGenre.addEventListener('input', () => {
+      if (!genreMenu.hidden) openGenreMenu();
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (genreMenu.hidden) return;
+      if (!genreCombo.contains(event.target)) closeGenreMenu();
     });
     els.fExe.addEventListener('change', () => {
       const value = els.fExe.value.trim();
@@ -8580,6 +8900,11 @@
       librarySort: boot.settings?.librarySort || 'recent',
       librarySortDir: boot.settings?.librarySortDir === 'asc' || boot.settings?.librarySortDir === 'desc'
         ? boot.settings.librarySortDir : '',
+      libraryTagCount: Math.min(3, Math.max(1, Number(boot.settings?.libraryTagCount) || 3)),
+      scaleDelaySeconds: Math.min(120, Math.max(0, Number(boot.settings?.scaleDelaySeconds) || 0)),
+      scaleMode: boot.settings?.scaleMode === 'factor' ? 'factor' : 'fullscreen',
+      scaleFactor: Math.min(10, Math.max(1.1, Number(boot.settings?.scaleFactor) || 2)),
+      scaleAlgorithm: typeof boot.settings?.scaleAlgorithm === 'string' ? boot.settings.scaleAlgorithm : '',
       minimizeOnLaunch: boot.settings?.minimizeOnLaunch !== false,
       scalingEngine: ['auto', 'native', 'off'].includes(boot.settings?.scalingEngine)
         ? boot.settings.scalingEngine : 'auto',

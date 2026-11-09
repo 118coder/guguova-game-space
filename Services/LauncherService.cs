@@ -5,8 +5,11 @@ using NovaGameSpace.Models;
 namespace NovaGameSpace.Services;
 
 /// <summary>Per-launch display preferences resolved by the host: the game's
-/// explicit checkbox, or the immersive (fullscreen) default when unset.</summary>
-public sealed record LaunchOptions(bool FullscreenScale);
+/// explicit checkbox, or the immersive (fullscreen) default when unset.
+/// <c>ScaleExplicit</c> says the PLAYER asked for scaling (the checkbox or a
+/// per-game value), not just the shell default — an explicit request is also
+/// permission to start the scaling engine.</summary>
+public sealed record LaunchOptions(bool FullscreenScale, bool ScaleExplicit = false);
 
 /// <summary>
 /// Launches real executables, keeps a live session per game, detects crashes vs.
@@ -43,6 +46,25 @@ public sealed class LauncherService
     /// <summary>Entries whose client has been asked to start the game but
     /// whose process has not appeared yet (Epic, Ubisoft, Xbox, Battle.net).</summary>
     private readonly HashSet<string> _pendingClient = new();
+    /// <summary>Entries whose own launcher exe was started but whose game body
+    /// process has not appeared yet (separated launcher, see LauncherPath).</summary>
+    private readonly HashSet<string> _pendingLauncher = new();
+    /// <summary>The launcher process behind a separated-launcher session. When
+    /// the game body exits, its tree goes too — a one-click .bat that starts a
+    /// bundled game server would otherwise keep the server running (holding
+    /// its ports) and break every later launch.</summary>
+    private readonly Dictionary<string, int> _launcherTreePids = new();
+    /// <summary>The launcher's folder plus the PIDs that already lived there
+    /// before this session. `taskkill /T` needs a live parent chain: a .bat
+    /// that used `start` leaves its server orphaned as soon as cmd exits, so
+    /// the exit path also sweeps only the NEW processes under that folder.</summary>
+    private readonly Dictionary<string, LauncherTreeScope> _launcherTreeScopes = new();
+
+    private sealed class LauncherTreeScope
+    {
+        public string Root = "";
+        public HashSet<int> Preexisting = new();
+    }
 
     // --- idle pause: wall-clock time with the game parked over lunch used to
     // count in full. While a session runs, a watchdog samples the last input
@@ -110,6 +132,81 @@ public sealed class LauncherService
             if (_sessions.ContainsKey(game.Id))
                 return new LaunchResult(false, "游戏已经在运行", _sessions[game.Id].SessionId, game.Id);
             _launchOptions[game.Id] = resolved;
+        }
+
+        // --- separated launcher -------------------------------------------------
+        // Some games only start through their own launcher (login, patcher,
+        // anti-cheat). ExePath stays the game body; LauncherPath is the exe we
+        // actually start. Once the body process shows up it becomes the tracked
+        // session, so scaling (Magpie) and playtime act on the game, not on
+        // the launcher window.
+        if (!string.IsNullOrWhiteSpace(game.LauncherPath))
+        {
+            if (!File.Exists(game.LauncherPath))
+            {
+                lock (_gate) _launchOptions.Remove(game.Id);
+                return new LaunchResult(false, $"找不到游戏启动器：{game.LauncherPath}", null, game.Id);
+            }
+
+            // The body may already be running from a session we do not track
+            // (launcher or app restart): take it over instead of starting the
+            // launcher a second time.
+            var running = FindBodyProcess(game, new HashSet<int>(), DateTime.UtcNow - TimeSpan.FromHours(1));
+            if (running != null)
+            {
+                AttachProcess(game, running);
+                Log.Write($"launcher body takeover {game.Name} pid={running.Id}");
+                return new LaunchResult(true, null, null, game.Id, true, "游戏本体已在运行，已接管计时与缩放。");
+            }
+
+            lock (_gate)
+            {
+                if (_pendingLauncher.Contains(game.Id))
+                    return new LaunchResult(false, "正在等待游戏本体进程…", null, game.Id);
+                _pendingLauncher.Add(game.Id);
+            }
+
+            game.LastPlayedUtc = DateTime.UtcNow.ToString("o");
+            game.LaunchCount += 1;
+            _store.Save();
+
+            var launcherDir = Path.GetDirectoryName(game.LauncherPath) ?? "";
+            var scope = new LauncherTreeScope
+            {
+                Root = launcherDir,
+                Preexisting = new HashSet<int>(ProcessIdsUnder(launcherDir))
+            };
+            lock (_gate) _launcherTreeScopes[game.Id] = scope;
+
+            try
+            {
+                var launcherStart = new ProcessStartInfo
+                {
+                    FileName = game.LauncherPath,
+                    WorkingDirectory = launcherDir,
+                    UseShellExecute = true
+                };
+                using var launcherProcess = Process.Start(launcherStart);
+                if (launcherProcess != null)
+                {
+                    lock (_gate) _launcherTreePids[game.Id] = launcherProcess.Id;
+                }
+            }
+            catch (Exception ex)
+            {
+                lock (_gate)
+                {
+                    _pendingLauncher.Remove(game.Id);
+                    _launchOptions.Remove(game.Id);
+                    _launcherTreeScopes.Remove(game.Id);
+                }
+                Log.Error($"launch via launcher {game.Name}", ex);
+                return new LaunchResult(false, "无法启动游戏启动器：" + ex.Message, null, game.Id);
+            }
+
+            WatchLauncherBody(game);
+            Log.Write($"launched via launcher {game.Name} launcher={game.LauncherPath}");
+            return new LaunchResult(true, null, null, game.Id, true, "已启动游戏启动器，等待游戏本体进程…");
         }
 
         try
@@ -317,6 +414,143 @@ public sealed class LauncherService
             Log.Error("start protocol " + uri, ex);
             return (false, "无法唤起启动地址：" + ex.Message);
         }
+    }
+
+    /// <summary>Polls for the game body process after its own launcher was
+    /// started. Launchers may sit on a login screen for a while, so the window
+    /// is generous and the wait never blocks the UI thread. When the body
+    /// shows up it is attached like any client-launched game.</summary>
+    private void WatchLauncherBody(GameEntry game)
+    {
+        var gameId = game.Id;
+        // Processes of the body exe that already exist are skipped: the watch
+        // is waiting for the one THIS launcher start produces.
+        var known = new HashSet<int>(BodyProcessPids(game));
+        var budget = TimeSpan.FromMinutes(5);
+
+        var thread = new System.Threading.Thread(() =>
+        {
+            var started = DateTime.UtcNow;
+            try
+            {
+                while (DateTime.UtcNow - started < budget)
+                {
+                    System.Threading.Thread.Sleep(1500);
+
+                    lock (_gate)
+                    {
+                        if (!_pendingLauncher.Contains(gameId)) return; // stopped or superseded
+                    }
+
+                    var process = FindBodyProcess(game, known, started);
+                    if (process == null) continue;
+
+                    lock (_gate) _pendingLauncher.Remove(gameId);
+                    AttachProcess(game, process);
+                    return;
+                }
+
+                lock (_gate)
+                {
+                    _pendingLauncher.Remove(gameId);
+                    _launchOptions.Remove(gameId);
+                }
+                KillLauncherTree(gameId);
+                Log.Write($"launcher body timeout {game.Name} launcher={game.LauncherPath}");
+                GameFailed?.Invoke(gameId,
+                    "游戏启动器已运行，但没有等到游戏本体进程。可能需要在启动器中手动开始游戏，或确认“游戏程序”填的是本体 exe。");
+            }
+            catch (Exception ex)
+            {
+                lock (_gate)
+                {
+                    _pendingLauncher.Remove(gameId);
+                    _launchOptions.Remove(gameId);
+                }
+                Log.Error("watch launcher body", ex);
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "NOVA launcher body watcher"
+        };
+        thread.Start();
+    }
+
+    /// <summary>PIDs of currently running processes whose exe path equals the
+    /// game body path — the pre-existing set the body watch must ignore.</summary>
+    private static IEnumerable<int> BodyProcessPids(GameEntry game)
+    {
+        var result = new List<int>();
+        var expected = SafeFullPath(game.ExePath);
+        if (string.IsNullOrEmpty(expected)) return result;
+        foreach (var process in Process.GetProcesses())
+        {
+            try
+            {
+                var path = process.MainModule?.FileName;
+                if (!string.IsNullOrEmpty(path) &&
+                    string.Equals(SafeFullPath(path), expected, StringComparison.OrdinalIgnoreCase))
+                    result.Add(process.Id);
+            }
+            catch
+            {
+                // Protected processes reject MainModule; skip them.
+            }
+            process.Dispose();
+        }
+        return result;
+    }
+
+    /// <summary>Finds the game body process: exact exe-path match first, and
+    /// for an elevated body that hides its module path, the file name plus a
+    /// fresh start time (processes that existed before the launch are in
+    /// `known`).</summary>
+    private Process? FindBodyProcess(GameEntry game, HashSet<int> known, DateTime launchedAt)
+    {
+        var expected = SafeFullPath(game.ExePath);
+        var expectedName = string.IsNullOrWhiteSpace(game.ExePath) ? null : Path.GetFileName(game.ExePath);
+
+        foreach (var process in Process.GetProcesses())
+        {
+            var keep = false;
+            try
+            {
+                if (!known.Contains(process.Id))
+                {
+                    string? path = null;
+                    var denied = false;
+                    try
+                    {
+                        path = process.MainModule?.FileName;
+                    }
+                    catch
+                    {
+                        // An elevated game rejects MainModule from a lower
+                        // integrity level.
+                        denied = true;
+                    }
+
+                    if (!string.IsNullOrEmpty(path) && expected != null)
+                    {
+                        keep = string.Equals(SafeFullPath(path), expected, StringComparison.OrdinalIgnoreCase);
+                    }
+                    else if (denied && expectedName != null)
+                    {
+                        keep = string.Equals(process.ProcessName + ".exe", expectedName, StringComparison.OrdinalIgnoreCase) &&
+                            StartedAfter(process, launchedAt.AddSeconds(-10));
+                    }
+                }
+            }
+            catch
+            {
+                // Protected processes reject MainModule; skip them.
+            }
+
+            if (keep) return process;
+            process.Dispose();
+        }
+        return null;
     }
 
     /// <summary>Polls for the real game process, then attaches the normal exit
@@ -539,6 +773,113 @@ public sealed class LauncherService
         }
     }
 
+    /// <summary>Kills whatever the separated launcher left running once the
+    /// game body is gone. A one-click .bat that starts a bundled game server
+    /// would otherwise keep the server alive (holding its ports, answering
+    /// nothing) and break every later launch — the failure that shipped this.
+    /// Best-effort: a launcher that already exited on its own has nothing to
+    /// kill, and an elevated survivor simply wins.</summary>
+    private void KillLauncherTree(string gameId)
+    {
+        var pid = 0;
+        LauncherTreeScope? scope = null;
+        var active = new HashSet<int>();
+        lock (_gate)
+        {
+            if (_launcherTreePids.TryGetValue(gameId, out var launcherPid))
+            {
+                pid = launcherPid;
+                _launcherTreePids.Remove(gameId);
+            }
+            if (_launcherTreeScopes.TryGetValue(gameId, out var saved))
+            {
+                scope = saved;
+                _launcherTreeScopes.Remove(gameId);
+            }
+            // Another session playing from the same folder must survive.
+            foreach (var session in _sessions.Values) active.Add(session.ProcessId);
+        }
+
+        if (pid > 0)
+        {
+            try
+            {
+                using (var killer = Process.Start(new ProcessStartInfo("taskkill", $"/PID {pid} /T /F")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }))
+                {
+                    killer?.WaitForExit(4000);
+                }
+                Log.Write($"launcher tree killed {gameId} pid={pid}");
+            }
+            catch (Exception ex)
+            {
+                Log.Write($"launcher tree kill skipped {gameId} pid={pid}: {ex.Message}");
+            }
+        }
+
+        // The real DNF case proved why /T alone is not enough: the .bat does
+        // `start` on the server, cmd exits while the body is still loading,
+        // and the server becomes an orphan whose parent PID no longer exists.
+        // Sweep the launcher folder for processes that appeared during THIS
+        // session only; anything that was already there is left untouched.
+        if (scope == null || string.IsNullOrWhiteSpace(scope.Root)) return;
+        int self;
+        using (var current = Process.GetCurrentProcess()) { self = current.Id; }
+        foreach (var orphan in ProcessIdsUnder(scope.Root))
+        {
+            if (scope.Preexisting.Contains(orphan) || orphan == pid || orphan == self ||
+                active.Contains(orphan)) continue;
+            try
+            {
+                using var process = Process.GetProcessById(orphan);
+                process.Kill();
+                Log.Write($"launcher orphan killed {gameId} pid={orphan}");
+            }
+            catch (Exception ex)
+            {
+                // Elevated survivors are expected to win; say so plainly.
+                Log.Write($"launcher orphan kept {gameId} pid={orphan}: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>PIDs whose executable lives under this folder. Protected
+    /// processes hide their module path, so they are skipped on purpose.</summary>
+    private static IEnumerable<int> ProcessIdsUnder(string root)
+    {
+        var result = new List<int>();
+        if (string.IsNullOrWhiteSpace(root)) return result;
+
+        string prefix;
+        try
+        {
+            prefix = Path.GetFullPath(root)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+        }
+        catch { return result; }
+
+        foreach (var process in Process.GetProcesses())
+        {
+            try
+            {
+                var path = process.MainModule?.FileName;
+                if (!string.IsNullOrEmpty(path) &&
+                    Path.GetFullPath(path).StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    result.Add(process.Id);
+            }
+            catch
+            {
+                // Protected or already-exited process: nothing we can identify.
+            }
+            process.Dispose();
+        }
+        return result;
+    }
+
     private static IEnumerable<int> CurrentSteamGamePids()
     {
         var result = new List<int>();
@@ -613,7 +954,7 @@ public sealed class LauncherService
             Log.Error("attach steam game", ex);
         }
 
-        Log.Write($"steam game attached {game.Name} pid={process.Id}");
+        Log.Write($"game body attached {game.Name} pid={process.Id}");
     }
 
     /// <summary>The host takes the options once, when the session starts. A
@@ -666,9 +1007,10 @@ public sealed class LauncherService
             _launchOptions.Remove(gameId);
             // A pending client request has no process yet: cancelling it is
             // just dropping the watch, otherwise the button would do nothing.
-            if (_pendingSteam.Remove(gameId)) return true;
+            if (_pendingSteam.Remove(gameId)) { KillLauncherTree(gameId); return true; }
             if (_pendingClient.Remove(gameId)) return true;
-            if (!_processes.TryGetValue(gameId, out process)) return false;
+            if (_pendingLauncher.Remove(gameId)) { KillLauncherTree(gameId); return true; }
+            if (!_processes.TryGetValue(gameId, out process)) { KillLauncherTree(gameId); return false; }
         }
 
         // Soft close is best-effort: an elevated child's restricted handle
@@ -822,6 +1164,10 @@ public sealed class LauncherService
             if (!_sessionStarts.TryGetValue(gameId, out started)) started = DateTime.UtcNow;
             _sessionStarts.Remove(gameId);
         }
+
+        // The separated launcher's tree (cmd, bundled server, patcher) goes
+        // down with the game body.
+        KillLauncherTree(gameId);
 
         var seconds = EffectiveSeconds(gameId, started);
         var crashed = false;

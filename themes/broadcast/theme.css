@@ -2096,3 +2096,15 @@ html[data-theme="broadcast"] .picker-shell {
   --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
   --picker-mark: var(--t-accent);
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Broadcast stays quiet: hairline rule, squared corners, ink label. */
+html[data-theme="broadcast"] .lib-sort select,
+html[data-theme="broadcast"] .lib-genre select,
+html[data-theme="broadcast"] .lib-sort .lib-dir {
+  border: 1px solid rgba(20, 20, 20, .45);
+  border-radius: 0;
+  background: rgba(255, 255, 255, .3);
+  color: var(--bc-ink);
+  letter-spacing: .06em;
+}

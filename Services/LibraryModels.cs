@@ -16,6 +16,12 @@ public sealed class GameEntry
     public string ExePath { get; set; } = "";
     public string Args { get; set; } = "";
     public string WorkDir { get; set; } = "";
+
+    /// <summary>Optional launcher exe that must start the game (the game body
+    /// itself is spawned by that launcher). Empty launches ExePath directly.
+    /// When set, ExePath stays the game body: scaling and playtime track the
+    /// body process, not the launcher.</summary>
+    public string LauncherPath { get; set; } = "";
     public string HeroPath { get; set; } = "";
     public string CoverPath { get; set; } = "";
     public string HeroPosition { get; set; } = "50% 45%";
@@ -27,6 +33,10 @@ public sealed class GameEntry
     public string Scrim { get; set; } = "20, 11, 9";
     public List<string> Colors { get; set; } = new() { "#ffb45e", "#ff6b79", "#f3e3c3", "#251318" };
     public bool Favorite { get; set; }
+
+    /// <summary>Player-hidden entry: excluded from every library view except
+    /// the dedicated 隐藏 filter. Travels inside exported data packs.</summary>
+    public bool Hidden { get; set; }
     public bool AutoUpdate { get; set; } = true;
 
     /// <summary>Test/demo entries (notepad, calc, powershell …). Hidden unless
@@ -166,6 +176,31 @@ public sealed class PlayerSettings
     /// 0 disables the pause. Wall-clock time with the game left running over
     /// night used to count in full.</summary>
     public int IdlePauseMinutes { get; set; } = 10;
+
+    /// <summary>How many info tags (平台 → 类型 → 模式) a library cover shows.
+    /// 1–3, default 3.</summary>
+    public int LibraryTagCount { get; set; } = 3;
+
+    /// <summary>Seconds to wait after a launch before scaling is attempted.
+    /// Some titles run a loading phase first; scaling a half-initialised
+    /// window either does nothing or is dropped when the game rebuilds its
+    /// swap chain. 0 = scale as soon as the window appears.</summary>
+    public int ScaleDelaySeconds { get; set; }
+
+    /// <summary>How a scaling request is carried out: "fullscreen" fills the
+    /// monitor, "factor" magnifies the window by ScaleFactor using Magpie's
+    /// windowed mode (it stays a window and does not cover the desktop).</summary>
+    public string ScaleMode { get; set; } = "fullscreen";
+
+    /// <summary>Magnification for "factor" mode, 1.1–10. Written into Magpie's
+    /// customInitialWindowedScaleFactor before its windowed hotkey is sent.</summary>
+    public double ScaleFactor { get; set; } = 2.0;
+
+    /// <summary>Scaling algorithm name as Magpie lists it (e.g. "Integer
+    /// Scale 2x" or "像素缩放"). Stored by name, not index: modes move when
+    /// Magpie updates or the library is exported to another PC. Empty means
+    /// "follow whatever the engine is already set to".</summary>
+    public string ScaleAlgorithm { get; set; } = "";
 }
 
 /// <summary>Payload returned to the UI after a launch is started. <c>Pending</c>
@@ -179,7 +214,6 @@ public sealed record LaunchResult(
     string? GameId,
     bool Pending = false,
     string? Hint = null);
-
 public sealed record RunningSessionInfo(
     string SessionId,
     string GameId,
@@ -234,7 +268,9 @@ public sealed record GamePayload(
     string PlatformLabel,
     bool HasLaunchUri,
     bool ClientInstalled,
-    PlaySession[] RecentSessions);
+    PlaySession[] RecentSessions,
+    string LauncherPath,
+    bool Hidden);
 
 /// <summary>Result of turning a dropped file/folder into one launchable exe.</summary>
 public sealed record DropResolution(bool Ok, string? Error, string? ExePath, string? Name, string? WorkDir);

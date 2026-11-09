@@ -7,23 +7,23 @@
 <meta name="theme-color" content="#0a0b0b">
 <title>GUGUOVA · 游戏空间</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313110c'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23e4c68b' stroke-opacity='.7' stroke-width='1.2'/%3E%3Crect x='11' y='11' width='10' height='10' transform='rotate(45 16 16)' fill='none' stroke='%23f1d9a6' stroke-width='1.3'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%235ed9c6'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="base.css?v=1.16.3">
-<link rel="stylesheet" href="theme.css?v=1.16.3">
-<link rel="stylesheet" href="cta-palettes.css?v=1.16.3">
-<link rel="stylesheet" href="type.css?v=1.16.3">
-<link rel="stylesheet" href="app.css?v=1.16.3">
-<link rel="stylesheet" href="motion.css?v=1.16.3">
-<link rel="stylesheet" href="views.css?v=1.16.3">
-<link rel="stylesheet" href="dialogs.css?v=1.16.3">
-<link rel="stylesheet" href="themes.css?v=1.16.3">
-<link rel="stylesheet" href="theme-fx.css?v=1.16.3">
-<link rel="stylesheet" href="fx-layers.css?v=1.16.3">
-<link rel="stylesheet" href="theme-kit.css?v=1.16.3">
-<link rel="stylesheet" href="polish.css?v=1.16.3">
-<link rel="stylesheet" href="intro.css?v=1.16.3">
-<link rel="stylesheet" href="compat.css?v=1.16.3" id="compat-style">
-<link rel="stylesheet" href="theme-slots.css?v=1.16.3">
-<link rel="stylesheet" href="settings-themes.css?v=1.16.3">
+<link rel="stylesheet" href="base.css?v=1.16.5">
+<link rel="stylesheet" href="theme.css?v=1.16.5">
+<link rel="stylesheet" href="cta-palettes.css?v=1.16.5">
+<link rel="stylesheet" href="type.css?v=1.16.5">
+<link rel="stylesheet" href="app.css?v=1.16.5">
+<link rel="stylesheet" href="motion.css?v=1.16.5">
+<link rel="stylesheet" href="views.css?v=1.16.5">
+<link rel="stylesheet" href="dialogs.css?v=1.16.5">
+<link rel="stylesheet" href="themes.css?v=1.16.5">
+<link rel="stylesheet" href="theme-fx.css?v=1.16.5">
+<link rel="stylesheet" href="fx-layers.css?v=1.16.5">
+<link rel="stylesheet" href="theme-kit.css?v=1.16.5">
+<link rel="stylesheet" href="polish.css?v=1.16.5">
+<link rel="stylesheet" href="intro.css?v=1.16.5">
+<link rel="stylesheet" href="compat.css?v=1.16.5" id="compat-style">
+<link rel="stylesheet" href="theme-slots.css?v=1.16.5">
+<link rel="stylesheet" href="settings-themes.css?v=1.16.5">
 </head>
 <body>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -215,13 +215,13 @@
                 </button>
               </div>
 
-              <button class="hero-scale" id="homeScaleRow" role="switch" aria-checked="false" type="button">
+              <button class="hero-scale" id="homeScaleRow" role="checkbox" aria-checked="false" type="button">
                 <span class="hero-scale-label">
                   <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-                  <span>全屏缩放</span>
+                  <span>开启缩放</span>
                 </span>
-                <span class="hero-scale-hint" id="homeScaleHint">沉浸模式下默认开启</span>
-                <span class="switch" id="homeScaleSwitch"></span>
+                <span class="hero-scale-hint" id="homeScaleHint">全屏还是按倍数，在设置页选</span>
+                <span class="hero-scale-check" id="homeScaleSwitch" aria-hidden="true"></span>
               </button>
 
               <div class="progress-block">
@@ -314,6 +314,11 @@
               <input id="libSearch" type="text" placeholder="搜索游戏" autocomplete="off" spellcheck="false" aria-label="搜索游戏">
               <span class="keycap">/</span>
             </div>
+            <label class="lib-genre">
+              <select id="libGenre" aria-label="按类型筛选">
+                <option value="">全部类型</option>
+              </select>
+            </label>
             <button class="btn ghost compact lib-add" id="libAdd">
               <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>
               <span>添加游戏</span>
@@ -328,6 +333,7 @@
               <button class="filter" data-filter="favorite">已收藏</button>
               <button class="filter" data-filter="platform">平台</button>
               <button class="filter" data-filter="missing">程序缺失</button>
+              <button class="filter" data-filter="hidden">隐藏</button>
             </div>
             <label class="lib-sort">
               <span>排序</span>
@@ -663,6 +669,22 @@
             <div class="settings-stats" id="settingsPlayStats"></div>
             <div class="recent-sessions" id="settingsSessions"></div>
           </section>
+
+          <section class="appearance-section settings-card settings-card--library">
+            <div class="section-head">
+              <div><h3>游戏库显示</h3><p>封面左上角展示的信息标签，依次为平台、游戏类型、单人/双人。</p></div>
+              <span class="section-tag">游戏库</span>
+            </div>
+            <div class="settings-field">
+              <label for="settingsTagCount">封面标签数量</label>
+              <select id="settingsTagCount" aria-label="封面标签数量">
+                <option value="1">1 个 · 只显示平台</option>
+                <option value="2">2 个 · 平台 + 类型</option>
+                <option value="3">3 个 · 平台 + 类型 + 模式</option>
+              </select>
+            </div>
+            <div class="settings-note">手动添加的游戏没有平台标记，标签会比设定少一个。</div>
+          </section>
           </div>
 
           <div class="settings-col settings-col-side">
@@ -737,6 +759,44 @@
                 </span>
                 <span class="switch on" id="settingsAutoEngineSwitch"></span>
               </button>
+              <div class="settings-field settings-field--inline">
+                <label for="settingsScaleMode">缩放方式</label>
+                <select id="settingsScaleMode" aria-label="缩放方式">
+                  <option value="fullscreen">全屏缩放 · 铺满整块屏幕</option>
+                  <option value="factor">倍数缩放 · 按倍数放大窗口</option>
+                </select>
+                <span class="settings-note">两种都走缩放引擎。全屏是把画面铺满屏幕；倍数是把窗口按选定倍数放大，桌面仍露在外面。</span>
+              </div>
+              <div class="settings-field settings-field--inline" id="settingsScaleFactorRow">
+                <label for="settingsScaleFactor">放大倍数</label>
+                <select id="settingsScaleFactor" aria-label="放大倍数">
+                  <option value="1.25">1.25 倍</option>
+                  <option value="1.5">1.5 倍</option>
+                  <option value="1.75">1.75 倍</option>
+                  <option value="2">2 倍</option>
+                  <option value="2.5">2.5 倍</option>
+                  <option value="3">3 倍</option>
+                </select>
+                <span class="settings-note">倍数越大画面越大，也越吃显卡；换倍数会在下次启动游戏时写进缩放引擎。</span>
+              </div>
+              <div class="settings-field settings-field--inline">
+                <label for="settingsScaleAlgorithm">缩放算法</label>
+                <select id="settingsScaleAlgorithm" aria-label="缩放算法">
+                  <option value="">跟随引擎当前设置</option>
+                </select>
+                <span class="settings-note">像素算法（Integer Scale、像素缩放）保留硬边，适合老游戏和 2D 画面；平滑类算法会把像素边缘糊掉。选完立刻写进引擎，启动游戏时还会再校验一次。</span>
+              </div>
+              <div class="settings-field settings-field--inline">
+                <label for="settingsScaleDelay">启动后延迟缩放</label>
+                <select id="settingsScaleDelay" aria-label="启动后延迟缩放">
+                  <option value="0">立即缩放</option>
+                  <option value="3">等待 3 秒</option>
+                  <option value="5">等待 5 秒</option>
+                  <option value="10">等待 10 秒</option>
+                  <option value="15">等待 15 秒</option>
+                </select>
+                <span class="settings-note">要加载的游戏先等本体就绪再缩放，否则缩放无效；延迟只作用于缩放，不影响启动其它步骤。</span>
+              </div>
               <div class="settings-note" id="settingsMagpieNote">正在检测 Magpie…</div>
               <div class="settings-actions" id="settingsMagpieActions" hidden>
                 <button class="btn ghost compact" id="settingsMagpieStart" type="button">启动引擎</button>
@@ -844,8 +904,16 @@
     </header>
 
     <div class="engine-body">
+      <button class="pref-row engine-scale-row" id="engineScaleRow" role="checkbox" aria-checked="false" type="button">
+        <span class="pref-label">
+          <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+          <span>开启缩放</span>
+        </span>
+        <span class="pref-hint" id="engineScaleHint">仅对当前游戏生效</span>
+        <span class="hero-scale-check" id="engineScaleCheck" aria-hidden="true"></span>
+      </button>
       <div class="settings-field">
-        <label for="engineEngine">全屏缩放方式</label>
+        <label for="engineEngine">缩放引擎</label>
         <select id="engineEngine" aria-label="全屏缩放方式">
           <option value="auto">自动 · Magpie 优先</option>
           <option value="native">仅无边框拉伸</option>
@@ -1076,6 +1144,14 @@
               <svg class="ic" aria-hidden="true"><use href="#i-image"/></svg>
             </button>
           </div>
+          <button class="pref-row" id="manageHiddenRow" role="switch" aria-checked="false" type="button">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>
+              <span>隐藏此游戏</span>
+            </span>
+            <span class="pref-hint" id="manageHiddenHint">隐藏后不在游戏库列表中显示</span>
+            <span class="switch" id="manageHiddenSwitch"></span>
+          </button>
           <div class="manage-actions">
             <button class="btn ghost compact danger" id="removeGameBtn">从游戏库移除</button>
             <button class="btn ghost compact" id="manageDoneBtn">完成</button>
@@ -1087,7 +1163,7 @@
         <button class="pref-row" id="detailScaleRow" role="switch" aria-checked="false" type="button">
           <span class="pref-label">
             <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-            <span>全屏缩放</span>
+            <span>启动时缩放</span>
           </span>
           <span class="pref-hint" id="detailScaleHint">沉浸模式下默认开启</span>
           <span class="switch" id="detailScaleSwitch"></span>
@@ -1174,6 +1250,18 @@
           </label>
         </div>
 
+        <div class="field-row">
+          <label class="field grow">
+            <span class="field-label">游戏启动器 <em>可选 · 缩放与计时将作用于游戏本体</em></span>
+            <span class="field-combo">
+              <input id="fLauncher" type="text" placeholder="启动器 / 登录器 exe，留空则直接启动游戏本体" autocomplete="off" spellcheck="false">
+              <button class="field-btn" id="fPickLauncher" type="button" title="浏览">
+                <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+              </button>
+            </span>
+          </label>
+        </div>
+
         <div class="field-row two">
           <label class="field">
             <span class="field-label">显示名称</span>
@@ -1188,7 +1276,12 @@
         <div class="field-row two">
           <label class="field">
             <span class="field-label">类型 <em>可选</em></span>
-            <input id="fGenre" type="text" placeholder="动作 / RPG" autocomplete="off">
+            <span class="field-combo" id="genreCombo">
+              <input id="fGenre" type="text" placeholder="动作 / RPG" autocomplete="off">
+              <button class="field-btn" id="fGenrePick" type="button" title="选择已有类型">
+                <svg class="ic" aria-hidden="true"><use href="#i-caret"/></svg>
+              </button>
+            </span>
           </label>
           <label class="field">
             <span class="field-label">字标文字 <em>可选</em></span>
@@ -1512,18 +1605,18 @@
   <span id="toastText"></span>
 </div>
 
-<script src="motion.js?v=1.16.3" defer></script>
-<script src="focus.js?v=1.16.3" defer></script>
-<script src="surfaces.js?v=1.16.3" defer></script>
-<script src="gamepad.js?v=1.16.3" defer></script>
-<script src="overlays.js?v=1.16.3" defer></script>
-<script src="capability/palette.js?v=1.16.3" defer></script>
-  <script src="capability/gpu-palette.js?v=1.16.3" defer></script>
-  <script src="capability/capability.js?v=1.16.3" defer></script>
-  <script src="capability/diag.js?v=1.16.3" defer></script>
-  <script src="theme-engine.js?v=1.16.3" defer></script>
-<script src="intro.js?v=1.16.3" defer></script>
-<script src="fx-record.js?v=1.16.3" defer></script>
-<script src="app.js?v=1.16.3" defer></script>
+<script src="motion.js?v=1.16.5" defer></script>
+<script src="focus.js?v=1.16.5" defer></script>
+<script src="surfaces.js?v=1.16.5" defer></script>
+<script src="gamepad.js?v=1.16.5" defer></script>
+<script src="overlays.js?v=1.16.5" defer></script>
+<script src="capability/palette.js?v=1.16.5" defer></script>
+  <script src="capability/gpu-palette.js?v=1.16.5" defer></script>
+  <script src="capability/capability.js?v=1.16.5" defer></script>
+  <script src="capability/diag.js?v=1.16.5" defer></script>
+  <script src="theme-engine.js?v=1.16.5" defer></script>
+<script src="intro.js?v=1.16.5" defer></script>
+<script src="fx-record.js?v=1.16.5" defer></script>
+<script src="app.js?v=1.16.5" defer></script>
 </body>
 </html>

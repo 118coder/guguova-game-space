@@ -2440,3 +2440,17 @@ html[data-theme="zerohour"] .section-tag {
   font-size: 10px;
   letter-spacing: .06em;
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Paper border on the black ground; hover flips to signal yellow. */
+html[data-theme="zerohour"] .lib-sort select,
+html[data-theme="zerohour"] .lib-genre select,
+html[data-theme="zerohour"] .lib-sort .lib-dir {
+  border: 2px solid var(--zh-paper);
+  border-radius: 0;
+  background: var(--zh-black);
+  color: var(--zh-paper);
+  font-weight: 700;
+}
+html[data-theme="zerohour"] .lib-dir:hover,
+html[data-theme="zerohour"] .lib-genre select:hover { border-color: var(--zh-yellow); color: var(--zh-yellow); }

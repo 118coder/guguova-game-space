@@ -305,6 +305,10 @@ public static class BackupService
         if (string.IsNullOrWhiteSpace(target.CoverPath)) target.CoverPath = incoming.CoverPath;
         if (string.IsNullOrWhiteSpace(target.ExePath)) target.ExePath = incoming.ExePath;
         if (string.IsNullOrWhiteSpace(target.WorkDir)) target.WorkDir = incoming.WorkDir;
+        if (string.IsNullOrWhiteSpace(target.LauncherPath)) target.LauncherPath = incoming.LauncherPath;
+        // Hidden travels with the pack: a merged-in entry that was hidden on
+        // the other machine stays hidden here too.
+        if (incoming.Hidden) target.Hidden = true;
 
         target.Sessions ??= new List<PlaySession>();
         var known = new HashSet<string>(target.Sessions.Select(s => s.StartedUtc + "|" + s.EndedUtc));

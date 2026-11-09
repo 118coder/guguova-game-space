@@ -1044,6 +1044,16 @@ h1, h2, h3, p { margin: 0; }
 
 .tile-badge.offline { color: rgba(255, 255, 255, .42); }
 
+/* Info tags (类型 / 模式) sharing the platform badge's row. Same material on
+   purpose — every theme's .tile-badge override applies unchanged — with only
+   width capping added, because a genre string can be long. */
+.tile-badge.tag {
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .tile-progress {
   position: absolute;
   left: 8px;

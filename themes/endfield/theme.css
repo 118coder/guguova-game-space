@@ -2256,3 +2256,19 @@ html[data-theme="endfield"] .launch.is-open .launch-art {
   from { clip-path: inset(0 50% 0 50%); filter: grayscale(1) brightness(1.7) contrast(1.4); }
   to { clip-path: inset(0); filter: brightness(.78) saturate(1.08); }
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   The toolbar controls repeat the chip language: rule border, square corners,
+   panel ground, heavy label. */
+html[data-theme="endfield"] .lib-sort select,
+html[data-theme="endfield"] .lib-genre select,
+html[data-theme="endfield"] .lib-sort .lib-dir {
+  border-radius: 0;
+  border-color: var(--ef-rule);
+  background: var(--ef-panel);
+  color: var(--ef-ink-2);
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+html[data-theme="endfield"] .lib-dir:hover,
+html[data-theme="endfield"] .lib-genre select:hover { border-color: var(--ef-ink); color: var(--ef-ink); }

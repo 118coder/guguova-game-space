@@ -2469,3 +2469,18 @@ html[data-theme="riso"] .picker-shell {
   --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
   --picker-mark: var(--t-accent);
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Blue ink outline on the paper, acid fill on hover — same as the chips. */
+html[data-theme="riso"] .lib-sort select,
+html[data-theme="riso"] .lib-genre select,
+html[data-theme="riso"] .lib-sort .lib-dir {
+  border: 2px solid var(--rs-blue);
+  border-radius: 0;
+  background: transparent;
+  color: var(--rs-blue);
+  font-family: var(--font-condensed);
+  letter-spacing: .06em;
+}
+html[data-theme="riso"] .lib-dir:hover,
+html[data-theme="riso"] .lib-genre select:hover { background: var(--rs-acid); color: var(--rs-blue-deep); }

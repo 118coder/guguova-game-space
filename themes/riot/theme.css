@@ -2306,3 +2306,17 @@ html[data-theme="riot"] .picker-shell {
   --picker-hover: color-mix(in srgb, var(--t-ink) 8%, transparent);
   --picker-mark: var(--t-accent);
 }
+
+/* ---- library toolbar: sort select + dir button + type filter (1.16.4) ----
+   Same black rule frame the chips and search use; the arrow button inverts. */
+html[data-theme="riot"] .lib-sort select,
+html[data-theme="riot"] .lib-genre select,
+html[data-theme="riot"] .lib-sort .lib-dir {
+  border: 2px solid #111;
+  border-radius: 0;
+  background: #faf8f3;
+  color: #33312e;
+  font-weight: 700;
+}
+html[data-theme="riot"] .lib-dir:hover,
+html[data-theme="riot"] .lib-genre select:hover { background: #111; color: #f4f1ea; }

@@ -725,6 +725,12 @@ public sealed class NativeBridge
         // definition (the package folder came with the manifest).
         var exists = (!string.IsNullOrWhiteSpace(game.ExePath) && File.Exists(game.ExePath))
             || game.LaunchUri.StartsWith("shell:", StringComparison.OrdinalIgnoreCase);
+        // A separated launcher is part of the launch chain: if the player
+        // registered one, both halves must exist for the entry to be playable.
+        if (exists && !string.IsNullOrWhiteSpace(game.LauncherPath) && !File.Exists(game.LauncherPath))
+        {
+            exists = false;
+        }
         return new GamePayload(
             game.Id,
             game.Name,
@@ -771,7 +777,9 @@ public sealed class NativeBridge
             GamePlatform.LabelFor(game.Source),
             !string.IsNullOrWhiteSpace(game.LaunchUri),
             game.Source == GamePlatform.Steam.Id || PlatformScanner.ClientInstalled(game.Source),
-            RecentSessions(game));
+            RecentSessions(game),
+            game.LauncherPath ?? "",
+            game.Hidden);
     }
 
     /// <summary>The last five real sessions, oldest first — the detail sheet
@@ -892,6 +900,35 @@ public sealed class NativeBridge
                 settings.MinimizeOnLaunch = minimize.GetBoolean();
             if (args.TryGetProperty("idlePauseMinutes", out var idlePause) && idlePause.TryGetInt32(out var idleMinutes))
                 settings.IdlePauseMinutes = Math.Max(0, Math.Min(120, idleMinutes));
+            if (args.TryGetProperty("libraryTagCount", out var tagCount) && tagCount.TryGetInt32(out var tagCountValue))
+                settings.LibraryTagCount = Math.Max(1, Math.Min(3, tagCountValue));
+            if (args.TryGetProperty("scaleDelaySeconds", out var scaleDelay) && scaleDelay.TryGetInt32(out var scaleDelayValue))
+                settings.ScaleDelaySeconds = Math.Max(0, Math.Min(120, scaleDelayValue));
+            if (args.TryGetProperty("scaleMode", out var scaleMode) && scaleMode.ValueKind == JsonValueKind.String)
+            {
+                var requestedMode = scaleMode.GetString() ?? "fullscreen";
+                settings.ScaleMode = requestedMode is "fullscreen" or "factor" ? requestedMode : "fullscreen";
+            }
+            if (args.TryGetProperty("scaleFactor", out var scaleFactor) && scaleFactor.TryGetDouble(out var scaleFactorValue))
+                settings.ScaleFactor = Math.Max(1.1, Math.Min(10, scaleFactorValue));
+            if (args.TryGetProperty("scaleAlgorithm", out var scaleAlgorithm) && scaleAlgorithm.ValueKind == JsonValueKind.String)
+            {
+                var nextAlgorithm = scaleAlgorithm.GetString() ?? "";
+                if (!string.Equals(nextAlgorithm, settings.ScaleAlgorithm, StringComparison.Ordinal))
+                {
+                    settings.ScaleAlgorithm = nextAlgorithm;
+                    // Picking an algorithm must take effect immediately, not
+                    // only on the next launch: write the config and reload a
+                    // running engine in the background.
+                    System.Threading.Tasks.Task.Run(() =>
+                    {
+                        ScalingEngine.ApplyAlgorithm(nextAlgorithm, out var note, out var changed);
+                        if (changed && ScalingEngine.IsRunning()) ScalingEngine.Restart(settings, out _);
+                        if (!changed && !note.Contains("已是") && !note.Contains("跟随"))
+                            Log.Write($"scale algorithm note: {note}");
+                    });
+                }
+            }
             if (args.TryGetProperty("scalingEngine", out var scaling) && scaling.ValueKind == JsonValueKind.String)
             {
                 var value = scaling.GetString() ?? "auto";
@@ -1095,7 +1132,12 @@ public sealed class NativeBridge
         if (string.Equals(_store.Library.Settings.ScalingEngine, "off", StringComparison.OrdinalIgnoreCase))
             fullscreen = false;
 
-        return _launcher.Launch(game, new LaunchOptions(fullscreen));
+        // An explicit request (the detail checkbox or a per-game value) is
+        // also the player's permission to start the scaling engine; the
+        // immersive shell default is not.
+        var scaleExplicit = fullscreen && (requested == true || game.FullscreenScale == true);
+
+        return _launcher.Launch(game, new LaunchOptions(fullscreen, scaleExplicit));
     }
 
     /// <summary>Runs off the UI thread: the game may take many seconds to create
@@ -1122,11 +1164,20 @@ public sealed class NativeBridge
         // be brought forward as soon as it exists.
         GameDisplay.AllowForeground(info.ProcessId);
 
-        Task.Run(() =>
+        // A window that exists is not a game that is ready: titles with a
+        // loading phase either ignore the scale request or lose it the moment
+        // they rebuild their swap chain. The player picks how long to wait
+        // after the process is up before scaling is attempted; the delay only
+        // ever applies to the scaling attempt itself, never to the other
+        // launch steps.
+        var scaleDelay = scale ? Math.Max(0, Math.Min(120, settings.ScaleDelaySeconds)) : 0;
+
+        Task.Run(async () =>
         {
             try
             {
-                var result = GameDisplay.Present(info.ProcessId, scale, engine, settings, 15000);
+                if (scaleDelay > 0) await Task.Delay(TimeSpan.FromSeconds(scaleDelay));
+                var result = GameDisplay.Present(info.ProcessId, scale, engine, settings, 15000, options.ScaleExplicit);
 
                 // Only step aside once the hand-off had its chance. Minimizing
                 // first would drop the foreground permission before the window
@@ -1382,6 +1433,12 @@ public sealed class NativeBridge
         if (!ScalingEngine.SaveOptions(scalingMode, captureMethod, cursorScaling,
                 frameRateLimiterEnabled, maxFrameRate, gameMode3d, out var message))
             return new { ok = false, error = message };
+
+        // The engine sheet and the launcher's own scaling settings must point
+        // at the same algorithm, or the next launch would force the old one
+        // back onto the engine.
+        settings.ScaleAlgorithm = ScalingEngine.ReadAlgorithmName();
+        _store.Save();
 
         Task.Run(() =>
         {
@@ -2035,6 +2092,8 @@ public sealed class NativeBridge
                 if (!string.IsNullOrWhiteSpace(age)) game.AgeRating = age!;
                 var mode = GetString(args, "mode");
                 if (!string.IsNullOrWhiteSpace(mode)) game.Mode = mode!;
+                var launcher = GetPath(args, "launcherPath");
+                if (!string.IsNullOrWhiteSpace(launcher)) game.LauncherPath = launcher!;
             }
             else
             {
@@ -2050,6 +2109,7 @@ public sealed class NativeBridge
                     ExePath = exe,
                     Args = GetString(args, "args") ?? "",
                     WorkDir = GetPath(args, "workDir") ?? Path.GetDirectoryName(exe) ?? "",
+                    LauncherPath = GetPath(args, "launcherPath") ?? "",
                     Source = "manual"
                 };
             }
@@ -2157,6 +2217,20 @@ public sealed class NativeBridge
             {
                 if (!File.Exists(exe)) return new { ok = false, error = "该可执行文件不存在" };
                 game.ExePath = exe;
+            }
+
+            // Empty string clears the separated launcher; a real path must
+            // exist, otherwise the entry would silently become unplayable.
+            if (TryGetString(args, "launcherPath", out var launcherPath))
+            {
+                if (!string.IsNullOrWhiteSpace(launcherPath) && !File.Exists(launcherPath))
+                    return new { ok = false, error = "启动器程序不存在" };
+                game.LauncherPath = launcherPath?.Trim() ?? "";
+            }
+            if (args.TryGetProperty("hidden", out var hiddenProp)
+                && hiddenProp.ValueKind is JsonValueKind.True or JsonValueKind.False)
+            {
+                game.Hidden = hiddenProp.GetBoolean();
             }
 
             var image = GetPath(args, "imagePath");
