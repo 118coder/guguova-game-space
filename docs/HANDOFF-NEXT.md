@@ -1,22 +1,24 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.5**（1.16.4 六项功能 + 缩放加固 + **倍数缩放 / 算法生效**，全部在工作区待提交）
-> 交接时间：2026-11-10（同日第三轮，见 §1.17）
-> 分支：`main`（基于 `03d6c81`，本轮改动全部在工作区）
+> 交接版本：**1.16.5**（六项功能 + 缩放加固 + 倍数缩放 / 算法生效 / 主页勾选框，**已发布**）
+> 交接时间：2026-11-10（同日第三轮 + 发行，见 §1.17）
+> 分支：`main` = `bbdd2d0`（PR [#36](https://github.com/118coder/guguova-game-space/pull/36) 合并，基于 `03d6c81`）
 > 上一版：1.16.3（游玩时长里程碑变色，**已发布** `v1.16.3`，PR #35）
-> 发行：待 Owner 确认后 `bash tools/release.sh --version 1.16.5 --publish`
+> ✅ **发行完成**：[`v1.16.5`](https://github.com/118coder/guguova-game-space/releases/tag/v1.16.5)
+> 三个资产：`single.exe` 9.51 MB (`e282ee84…`)、`legacy-single.zip` 13.71 MB (`ffaeda6c…`)、
+> `legacy-full.zip` 17.11 MB (`0fac45be…`)；verify 与单文件冒烟都过，签名按惯例跳过（无证书）。
 > ✅ **实机验收已跑通**（§1.17）：真实 DNF 分别以全屏 / 2.5 倍 / 像素算法三种
 > 配置启动，`scaled=True` 全部成立并有窗口像素尺寸为证；孤儿服务端清理也验过三次。
 > ✅ 环境干净：7001 空闲，隔离数据根已删，Magpie 配置已还原成 Owner 原值。
-> ⚠ Owner 的提权旧实例 PID 29332 仍在跑（用的是改名后的 `.old.dll`）；因此
-> `bin/Debug/.../GUGUOVA.old.exe` 与 `.old.dll` 暂时删不掉，等它退出后直接删除即可。
+> ⚠ Owner 的提权旧实例 PID 29332 仍在跑；两个 `.old` 文件已移出 `bin/Debug` 到
+> `03-归档备份\old-build-1.16.4\`，等它退出后直接删除即可。
 > 仓库：`https://github.com/118coder/guguova-game-space`
 
 ---
 
 ## 0. 一句话状态
 
-应用 **1.16.4**（未发行），14 套主题，接口式映射架构不变。本轮按 Owner 清单做六件事：
+应用 **1.16.5**（已发布 `v1.16.5`），14 套主题，接口式映射架构不变。1.16.4 那一轮按 Owner 清单做六件事：
 
 1. **格式化资料导出补全**（需求中途澄清：不是导出 txt，而是编辑器原有的
    「导出现有」文本不全）——14 个字段全量导出（含空的，可当填空模板），
@@ -1472,12 +1474,14 @@ Owner 第三次追加：「在游戏主页的缩放设置里面，加入新的�
   CSS，也没有做一套统一的"绿勾选框"**。
 - 断言：[8] 组 4 项（主页有勾选框 / 点击能切换 / 弹窗有同一勾选框 / 状态镜像）。
 
-### 1.17.7 仍没做 / 下一步
+### 1.17.7 发行结果 / 下一步
 
-1. **提交、PR、发行**：1.16.5 全部改动仍在工作区，按铁律等 Owner 确认后再走
-   `bash tools/release.sh --version 1.16.5 --publish`。
-2. **`.old` 文件**：Owner 的提权旧实例退出后，直接删除
-   `bin/Debug/net10.0-windows/win-x64/GUGUOVA.old.exe` 与 `.old.dll`（不要进回收站）。
+1. ✅ **提交 / PR / 发行已完成**：`b20e14f` → PR [#36](https://github.com/118coder/guguova-game-space/pull/36)
+   → 合并 `bbdd2d0`；`bash tools/release.sh --publish` 发布 `v1.16.5`（三资产与哈希见头部）。
+   推送通道实测是 Clash Verge 的 **7898**（文档里旧的 7897 已失效）；本机没有 gh CLI，
+   PR 用 GitHub API 创建与合并，`publish-release.py` 同样走 API 上传资产。
+2. **`.old` 文件**：已从 `bin/Debug` 移到 `03-归档备份\old-build-1.16.4\`，不会进发行包；
+   Owner 的提权旧实例退出后直接删除，不要进回收站。
 3. **真实库设置**：没有替 Owner 改 `library.json`。新版本里默认是
    「全屏缩放 / 2 倍 / 跟随引擎当前算法」；要用倍数或指定像素算法，在
    **设置 → 启动与关闭 → 缩放方式 / 放大倍数 / 缩放算法** 里选一次即可，
@@ -1729,9 +1733,8 @@ QA 产物（仓库外）：
 3. ✅ 回归全过：双目标编译 0 错误、`theme-slot-check` 0 finding、
    `feature-checks` 41/41、`tier-shots` 98 组、`headless-shots --views=all`
    26 条警告全是既有 aurum/dusk 磁贴名裁切（0 新增）。
-4. **只剩对外动作**：提交（feat: 1.16.5 倍数缩放 / 算法生效 / 主页勾选框 +
-   缩放链路加固与孤儿清理）→ PR → 发行
-   `bash tools/release.sh --version 1.16.5 --publish`，按铁律等 Owner 确认。
+4. ✅ **对外动作已完成**：PR [#36](https://github.com/118coder/guguova-game-space/pull/36)
+   合并 `bbdd2d0`；`v1.16.5` 已发布，三个资产与哈希见文档头部。
 5. UI 观感清单沿用：库工具栏 14 主题扫一眼、类型筛选 + combo、隐藏开关 +
    数据包往返、封面标签 1/2/3 档位、格式化资料 14 行导出。
 
@@ -2131,8 +2134,9 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 孤儿服务端清理（`launcher orphan killed` 连验三次，7001 每次释放）；
 - [x] 双目标编译 0 错误、theme-slot-check 0 finding、feature-checks 41/41、tier-shots 98 组、headless-shots 0 新增警告；
 - [x] 版本 1.16.5 全链同步；用户数据整体备份登记；Magpie 配置测试后还原；隔离数据根直接删除；
-- [ ] 提交 / PR / 发行（等 Owner 确认）；
-- [ ] Owner 提权旧实例退出后删除 `GUGUOVA.old.exe` / `GUGUOVA.old.dll`。
+- [x] 提交 / PR / 发行：`b20e14f` → PR [#36](https://github.com/118coder/guguova-game-space/pull/36) → 合并 `bbdd2d0` → 发布 `v1.16.5`；
+- [x] 发行资产：`single.exe` 9.51 MB `e282ee84ac5c…`、`legacy-single.zip` 13.71 MB `ffaeda6ce491…`、`legacy-full.zip` 17.11 MB `0fac45be8d1e…`；verify 与单文件冒烟通过；
+- [ ] Owner 提权旧实例退出后删除归档 `03-归档备份\old-build-1.16.4\` 里的 `GUGUOVA.old.exe` / `GUGUOVA.old.dll`。
 
 未完成（下一轮）：
 
@@ -2152,5 +2156,5 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
-下一轮从 **§1.17** 开始：实机验收与三类回归都已收官，只剩提交 / PR / 发行，
-以及 Owner 旧实例退出后删掉两个 `.old` 文件；平台真机（P0-2）仍是最大的空白。
+下一轮从 **§1.17** 开始：1.16.5 已发布，实机验收与三类回归都收官；只剩 Owner 旧实例
+退出后删掉归档里的两个 `.old` 文件，以及 §7 的实机回访；平台真机（P0-2）仍是最大空白。
