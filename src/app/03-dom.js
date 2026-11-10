@@ -394,4 +394,4 @@
     homeView: $('#homeView'),
     layoutBtn: $('#layoutBtn')
   };
-
+

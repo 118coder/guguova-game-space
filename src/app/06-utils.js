@@ -48,4 +48,4 @@
   // Path normalisation for the other renderer modules (overlays.js picker
   // path bar): one quote/file-scheme stripper, shared instead of copied.
   window.NovaPaths = { clean: cleanPath };
-
+

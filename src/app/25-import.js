@@ -587,4 +587,4 @@
       els.gameTagline.textContent = '选择游戏开始。';
     }
   }
-
+

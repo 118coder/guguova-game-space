@@ -1,6 +1,11 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.5 已发布；§1.18–§1.24 已全部合并进 `main`（PR #37/#38），未发版**
+> 交接版本：**1.16.5 已发布；§1.18–§1.25 已全部合并进 `main`（PR #37/#38/#39），未发版**
+> ✅ **终末地导出卡片已按 endfield-ui 技能重做**（§1.25，2026-11-11）：黄线全部改黄块、
+> 分隔符 `·`→`/`、Saira 宽体上卡、档案卡重构（原构图有 700px 死白）、并修掉
+> **导出卡顶部烧进弹窗三色条**的导出 Bug（该 Bug 只影响 endfield）。13 套其他主题零改动。
+> ✅ **文件解耦与代码整合完成**（§1.26，2026-11-11）：app.js（9802 行）拆 29 个职责分片、
+> C# 三大文件 partial 化、tools 精简，**行为零变化**（切片字节级验证 + 11 项全量回归）。
 > 交接时间：2026-11-10（同日第四至十一轮）
 > 分支：`main` = `fcbcfe1`（PR [#37](https://github.com/118coder/guguova-game-space/pull/37) squash 合并，
 > 42 文件 +5094/−81，基于 `b40f19e`）；**版本号仍是 1.16.5，没有 bump、没有发行**
@@ -2216,14 +2221,97 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 
 ---
 
-## 1.25 第十三轮（2026-11-11）：文件解耦与代码整合（重构轮，行为零变化）
+## 1.25 第十三轮（2026-11-11）：终末地导出卡片按 endfield-ui 技能重做
+
+> Owner 需求：终末地主题的导出卡片「改改设计」，并加载 `endfield-ui` 技能作为设计
+> 依据。本轮把 endfield 的三张卡（poster/dossier/score）按技能规则逐条对齐，
+> 顺带修掉一个**只影响 endfield 的导出 Bug**。已合并（**PR #39**，squash `437f91a`）。未发版（等 Owner 批准）。
+> 前后对比图：`../_shots/share-endfield-before/` vs `../_shots/share-endfield-final/`。
+
+### 1.25.1 先修掉的导出 Bug（像素实证）
+
+**每张导出卡的顶部都烧进了 3px 弹窗三色条。** 根因：`themes/endfield/theme.css:87`
+的 `body::after` 是页面级三色条（fixed，z 300），导出态 `.app`/浮层都隐藏了但 body
+本身还在，条带就画在文档 (0,0)，正压在卡片顶缘；`body::before` 的 72px 绘图网格同理。
+像素证据：导出图 y=1 处品红/黄/薄荷三段**只铺到视口宽 1440**，x>1440 露出卡片自条——
+弹窗条带与卡片条带叠画的铁证。修法（endfield interfaces.css）：
+
+```css
+html[data-theme="endfield"][data-share-export] body::before,
+html[data-theme="endfield"][data-share-export] body::after { display: none; }
+```
+
+其他 13 套主题没有 body 级装饰，不受此 Bug 影响。
+
+### 1.25.2 按技能逐条对齐的改法
+
+| 技能规则 | 改前 | 改后 |
+| --- | --- | --- |
+| 黄色只做填充，浅色主题不当线 | 封面接缝 10px 黄线、score 封面下缘 8px 黄线、时数板左缘 8px 黄条 | 全删；黄色只出现在：品牌短划、眉标方块、阶梯当前格（=当前位置） |
+| 页面开始用三色条 3px | 卡顶 6px 纯黄条 | 3px 品红/黄/薄荷三等分（与 body::after、弹窗 `--sheet-strip` 同源） |
+| 字段用 `/` 不用 `·` | kicker/meta/foot 全是 `·` | 全改 `/`（机制见 1.25.3） |
+| 圆角一律 0 | 眉标圆点、脚注圆点 | 方块眉标、斜杠脚注 |
+| 编号标签（墨底白字右下切角） | `No.01/06` 灰字直接压封面（深封面不可读） | 墨底白字 8px 切角标签，任何封面可读 |
+| 45° 斜线纹（画框影子） | 32px 图表纸网格（不在词汇表） | 素纸+细线；海报接缝处斜线纹脊、档案卡照片斜线纹影子（沿用主题既有的 `-45deg 5px/1px 11%` 参数） |
+| 宽体几何英文 + 黑体中文 | 全站思源黑体，卡片未用 | **复用已打包的 Saira**（`src/assets/fonts/Saira.ttf`，intro 在用，零新增资产）：令牌 `--sc-title/label/num-font` 指向 `"Saira EF"`，标签 125%、标题 118%、数字 `tabular-nums`。CJK 自动回落黑体，`font-stretch` 对中文无效果——正是「宽体英文+粗体中文」配对 |
+| 看板（白板+顶边粗墨页签+朝中心切角） | 时数板=白板+8px 黄左线+灰硬影 | 白板+1px 墨框+顶边 52×6 墨页签+朝页面中心的切角（poster 切右上、score 切左上） |
+| 资料行去重 | 海报顶部资料行与底部页脚重复（启动次数/上次游玩 ×2） | 页脚只留 ★收藏 + 玩家签署；资料行进看板做规格表头 |
+| 阶梯=状态语义 | is-on 用 tier 变色 | 已达成=墨实心，当前=黄块（唯一强调位），未达成=发丝框 |
+
+### 1.25.3 两处最小共享层改动（其余主题零影响）
+
+1. `src/app.js shareCardHTML`：kicker 与 sc-sign 的 `·` 从文本节点包成 `<em>·</em>`
+   （endfield 用 CSS 把 em 内容换成 `/`；其他主题渲染不变）；
+   `src/share-cards.css` 加一行 `.sc-kicker em, .sc-sign em { font-style: normal }`
+   兜底防 em 默认斜体。nova 卡片渲染对照确认零变化。
+2. 分隔符替换机制（endfield interfaces.css）：`em { font-size: 0 }` + `em::before
+   { content: "/" }`——不改 DOM 文本、不动其他主题。sc-sign 是行内文本，斜杠另加
+   `margin: 0 6px`。
+
+**字体踩坑记录**：先在 `.share-card` 上设 `font-family` 继承——被 `.sc-title` 等
+部件自己的 `font-family: var(--sc-title-font)` 声明盖掉（实测 computed 仍是思源）。
+**必须覆写令牌本身**（`--sc-title-font/--sc-label-font/--sc-num-font` 指向 Saira）。
+
+### 1.25.4 三种规格的新构图
+
+| 规格 | 构图 |
+| --- | --- |
+| poster 1600×900 | 技术规格纸：左纸栏（品牌行+编号标签 / 资料簇沉底）+ 右封面窗，接缝 1px 墨线+斜线纹脊；底部一块看板装下全部数字（规格表头 4 栏 + 时数 + 阶梯 + 里程碑文案） |
+| dossier 1200×1500 | 规格账目：右上档案照 470×520（1px 墨框+斜线纹影子），左侧标题簇；时数块在左栏，下方**全宽细线账目行**（标签左/数值右）填满原 700px 死白；空心幽灵编号（-webkit-text-stroke） |
+| score 1600×840 | 封面横带下缘 1px 墨线（原 8px 黄线）；品牌行+编号标签移到纸上；左标题簇 / 右看板（规格表头 2×2 + 时数 + 阶梯），看板切角朝页面中心 |
+
+### 1.25.5 验证
+
+| 检查 | 结果 |
+| --- | --- |
+| `tools/share-shots.js --themes=endfield` | 三种规格按设计尺寸导出，overflow 0 |
+| 导出泄漏 | 像素验证：y=1 三段铺满 1600（x=1500 为薄荷绿），body 条带不再叠画 |
+| Saira 加载 | `document.fonts.check('800 84px "Saira EF"')` true，faces `50% 125% loaded` |
+| 其他主题 | nova poster 前后对照：分隔符仍 `·`、构图零变化 |
+| `theme-slot-check --strict` | exit 0 |
+| `tools/feature-checks.js` | 全过（app.js 改动后回归） |
+| 编译（本轮无 C# 改动） | modern net10 Debug **0 错误 / 5 警告（全部既有）**；legacy net48 Debug（`tools/build-legacy.sh Debug`，顺带重打 assets zip）**0 错误 / 47 警告（既有 nullability 提示）** |
+| 对比度 | 卡面全部成对：墨/纸 15:1、墨2/纸 5.5:1、白字/墨标签 15:1、墨/白板 15.6:1（AA 余量充足） |
+| 技能交付清单 | 黄=填充 only、切角不压字、无红、无圆角/投影/渐变、数字全真实、无假技术文字、术语未外泄 |
+
+### 1.25.6 已知限制 / 下一步
+
+1. **等高线纹理未上卡**：`src/assets/contours/*.svg` 单个 ~70KB，不适合内联进主题
+   CSS（主题目录会被整体拷贝到运行时，相对路径不可靠）；斜线纹足够表达，如要等高线
+   需要宿主侧资产映射；
+2. dossier 的空状态呼吸区（账目行与幽灵编号之间 ~140px）刻意保留，规格纸需要留白；
+3. 签名分隔符在 sc-sign 文本节点内嵌 `<em>`，若未来其他主题要换分隔符，同一机制可复用；
+4. endfield `theme.json` 1.0.24 → **1.0.25**（铁律 41）；已随 PR #39 合并进 `main`；版本仍 1.16.5，**未发行（等 Owner 批准）**；
+5. Owner 实机回访：真机导出一次 poster/dossier/score，确认 WebView2 下 Saira 与
+   无头渲染一致（`font-display: block`，字体在 runtime assets 内已存在）。
+## 1.26 第十四轮（2026-11-11）：文件解耦与代码整合（重构轮，行为零变化）
 
 > Owner 指令：①在保证全功能正常的前提下，把大文件解成小文件与文件夹，各司其职、
 > 做好文档备注；②整合精简代码、保持高复用；③全自动执行。
 > 本轮**不新增功能、不改任何行为**：JS 拆分以字节级比对证明等价，C# 拆分是
 > partial 逐字搬运（构建 0 错误、警告逐条一致）。版本仍 1.16.5，未 bump、未发行。
 
-### 1.25.1 渲染端：app.js（9802 行）→ src/app/ 29 个分片
+### 1.26.1 渲染端：app.js（9802 行）→ src/app/ 29 个分片
 
 **为什么用「拼装」而不是改造成多文件加载**：`src/app.js` 是单一 IIFE 闭包，
 42 个区块注释标记的区块共享同一作用域、互相直接引用。拆成多个 `<script>` 标签或 ES module
@@ -2250,7 +2338,7 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 - 修 CSS 层叠序、主题 `theme.json` 均未触碰；`index.html` 未动（`app.js` 仍是
   唯一被加载的主程序文件，`?v=` 戳不需要变）。
 
-### 1.25.2 宿主 C#：三个大文件 partial 拆分（子代理执行）
+### 1.26.2 宿主 C#：三个大文件 partial 拆分（子代理执行）
 
 | 原文件 | 拆后 | 分片 |
 | --- | --- | --- |
@@ -2268,7 +2356,7 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 - **遗留提醒**：以后新增 `NativeBridge.*.cs` 要同步补 legacy csproj 的
   `<Compile>` 条目（已在 `docs/ARCHITECTURE.md` §1.1 标注）。
 
-### 1.25.3 tools 精简（子代理执行）
+### 1.26.3 tools 精简（子代理执行）
 
 - **已删**（grep 全仓库零引用后直接删除，不进回收站）：`tools/_intro1.tmp.js`、
   `_intros.tmp.js`、`_probe2.tmp.js`、`_reload.tmp.js`、`tools/__pycache__/`。
@@ -2285,7 +2373,7 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
   `probe-graphics.js`、`stress-dataset.py`、`dev-run.sh`、`immersive-audit.js`
   确认仍在用，**不可删**。
 
-### 1.25.4 文档
+### 1.26.4 文档
 
 - **新建 `docs/ARCHITECTURE.md`**：仓库结构总览、宿主/渲染端文件职责速查表、
   `src/app/` 分片机制（引用 `src/app/README.md`）、CSS 层叠序契约与「为什么
@@ -2293,7 +2381,7 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
   铁律指路。**本轮最重要的新文档**，下一轮接手先读它再读交接。
 - **新建 `src/app/README.md`**：分片规则 + 29 分片地图。
 
-### 1.25.5 决策记录：CSS 为什么不拆
+### 1.26.5 决策记录：CSS 为什么不拆
 
 `intro.css` 5063 行、`base.css` 2904 行等大 CSS 保持原样。理由：层叠序是本产品
 最脆弱的契约（交接铁律与 §1.5 反复强调），每多一张表就多一层叠边界与加载时序
@@ -2301,7 +2389,7 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 只剩风险。JS 能拆是因为文本拼装可逐字节验证等价，CSS 拼装做不到等价性验证。
 完整论述在 `docs/ARCHITECTURE.md` §2。
 
-### 1.25.6 验证（全量回归，11 项）
+### 1.26.6 验证（全量回归，11 项）
 
 | 项 | 结果 | 基线 |
 | --- | --- | --- |
@@ -2320,7 +2408,7 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 
 > 构建坑（QA 代理实测）：用临时输出路径做增量 build 会因「已是最新」跳过编译报**假 0 警告**——验证警告数量必须 `-t:Rebuild` 强制全量。
 
-### 1.25.7 没做 / 下一步
+### 1.26.7 没做 / 下一步
 
 1. `pipeline.sh --modern` 收编进 release.sh 后删除（P2 原项，本轮记录了差异）；
 2. `HANDOFF-THEMES.md` 修订时清理 4 个仍被引用的 tmp 探针与过期提及
@@ -3016,7 +3104,7 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [ ] 14 套主题 `theme.json` version 未 bump，发版时统一处理；
 - [ ] 图标带卡片形状/名字排布未定稿（Owner 认为「框太丑」）。
 
-本轮（第十三轮 · 文件解耦与代码整合，重构轮，详见 §1.25）：
+本轮（第十四轮 · 文件解耦与代码整合，重构轮，详见 §1.26）：
 
 - [x] `src/app.js`（9802 行）→ `src/app/` 29 分片：切片拼装字节级一致验证 + git diff 仅 203 行注释插入 + feature-checks 全过；
 - [x] `tools/build-app.js` 拼装器 + 五处接线（headless-host / relaunch.sh / release.sh 审计 / pack-assets 排除 / legacy csproj 排除）；

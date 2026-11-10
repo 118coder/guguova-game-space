@@ -450,4 +450,4 @@
       toast(`已添加《${shortName(result.game)}》`, 'check');
     }
   }
-
+

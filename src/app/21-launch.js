@@ -430,4 +430,4 @@
     if (state.view === 'library') refreshLibraryLive();
     if (!state.overlay && state.view === 'home' && currentGame()) renderHero(currentGame(), false);
   }
-
+

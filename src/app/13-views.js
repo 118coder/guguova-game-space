@@ -91,4 +91,4 @@
   function toggleLayout() {
     applyLayout(state.layout === 'rail' ? 'row' : 'rail');
   }
-
+

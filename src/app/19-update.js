@@ -230,4 +230,4 @@
     if (state.view !== 'settings') return;
     setView('home');
   }
-
+
