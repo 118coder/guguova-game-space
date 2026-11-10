@@ -1811,6 +1811,42 @@
   const currentGame = () => state.games[state.index] || null;
   const clamp01Value = (value) => Math.max(0, Math.min(1, value));
 
+  /* ------------------------------------------------------------
+     SHELF · a hidden game is off the shelf
+     ------------------------------------------------------------
+     Hiding a title removed it from the library grid but left it in the
+     home strip, so the cover, the card band and the "46 款" count kept
+     advertising a game the player had just hidden (user report). The
+     array stays complete — the library filter, the detail sheet and
+     every index lookup depend on it — but nothing on the home page is
+     drawn from a hidden entry any more.
+     ------------------------------------------------------------ */
+
+  /** How many games the home shelf actually shows. */
+  function shelfCount() {
+    let count = 0;
+    for (const game of state.games) if (!game.hidden) count += 1;
+    return count;
+  }
+
+  /** Walk from `from` in `dir` and return the nearest index the shelf shows. */
+  function resolveShelfIndex(from, dir) {
+    const total = state.games.length;
+    if (!total) return -1;
+    const step = dir >= 0 ? 1 : -1;
+    for (let offset = 0; offset < total; offset += 1) {
+      const at = ((from + step * offset) % total + total) % total;
+      if (!state.games[at].hidden) return at;
+    }
+    return -1;
+  }
+
+  /** The strip skips hidden entries, so a tile is found by its game index,
+   *  never by its position among the children. */
+  function tileForIndex(index) {
+    return els.rail.querySelector(`.tile[data-index="${index}"]`);
+  }
+
   /**
    * Cover plates are the loading state: the skeleton shimmer stays until
    * the image has decoded, then it cross-fades in. Broken art is marked
@@ -2108,13 +2144,22 @@
     const a = game && (game.accent || '#ffd88a');
     const b = game && (game.accent2 || a);
     if (!a) return null;
-    const { r, g, b: blue } = parseHex(mixHex(a, b, .35));
-    const luma = (.2126 * r + .7152 * g + .0722 * blue) / 255;
-    const fg = luma > .62 ? '#161008' : '#fff8ee';
-    const border = luma > .62 ? `rgba(20, 14, 10, .18)` : `rgba(255, 250, 240, .42)`;
+    const plateA = lighten(a, .36);
+    const plateB = lighten(b, .16);
+    /* The label is solved against the plate it will actually sit on — the
+       midpoint of the two-stop gradient — by measured contrast. A luma
+       threshold guesses: a rose plate at .55 luma kept white type at 3.0:1
+       while the dark ink would have cleared 7:1. */
+    const plate = mixHex(plateA, plateB, .5);
+    const darkInk = '#161008';
+    const lightInk = '#fff8ee';
+    const wantDark = contrastRatio(darkInk, plate) >= contrastRatio(lightInk, plate);
+    const fg = wantDark ? darkInk : lightInk;
+    const border = wantDark ? 'rgba(20, 14, 10, .22)' : 'rgba(255, 250, 240, .45)';
+    const { r, g, b: blue } = parseHex(plate);
     return {
-      '--cta-a': lighten(a, .36),
-      '--cta-b': lighten(b, .16),
+      '--cta-a': plateA,
+      '--cta-b': plateB,
       '--cta-a-hover': lighten(a, .48),
       '--cta-b-hover': lighten(b, .28),
       '--cta-fg': fg,
@@ -2647,7 +2692,16 @@
       renderHero(null, false);
       return;
     }
-    const wrapped = ((index % state.games.length) + state.games.length) % state.games.length;
+    const total = state.games.length;
+    const target = ((index % total) + total) % total;
+    /* Stepping past a hidden title must land on the next one the shelf
+       shows, not on the empty slot it used to occupy. */
+    const dir = target === state.index ? 1 : (index > state.index ? 1 : -1);
+    const wrapped = resolveShelfIndex(target, dir);
+    if (wrapped < 0) {
+      renderHero(null, false);
+      return;
+    }
     const previous = state.index;
 
     if (wrapped === previous) {
@@ -2689,7 +2743,7 @@
      ============================================================ */
 
   function buildRail() {
-    els.rail.innerHTML = state.games.map((game, index) => `
+    els.rail.innerHTML = state.games.map((game, index) => game.hidden ? '' : `
       <button class="tile" data-index="${index}" aria-label="${esc(fullName(game))}" aria-current="false">
         <div class="tile-art">
           <img src="${esc(game.coverUrl)}" alt="" loading="eager" draggable="false" style="object-position:${esc(game.coverPosition)}">
@@ -2705,17 +2759,20 @@
 
     markMedia(els.rail);
 
-    const empty = state.games.length === 0;
+    const count = shelfCount();
+    const empty = count === 0;
     els.rail.style.display = empty ? 'none' : '';
     els.railEmpty.hidden = !empty;
-    els.dockCount.textContent = `${state.games.length} 款`;
+    els.dockCount.textContent = `${count} 款`;
   }
 
   function updateRail() {
-    const tiles = els.rail.children;
-    state.games.forEach((game, index) => {
-      const tile = tiles[index];
-      if (!tile) return;
+    /* Iterate the tiles, not the array: hidden games have no tile, so the
+       child position no longer equals the game index. */
+    Array.from(els.rail.children).forEach((tile) => {
+      const index = Number(tile.dataset.index);
+      const game = state.games[index];
+      if (!game) return;
       const active = index === state.index;
       tile.classList.toggle('is-active', active);
       tile.setAttribute('aria-current', active ? 'true' : 'false');
@@ -2742,7 +2799,7 @@
   }
 
   function centerTile(index) {
-    const tile = els.rail.children[index];
+    const tile = tileForIndex(index);
     if (!tile) return;
     const railRect = els.rail.getBoundingClientRect();
     const tileRect = tile.getBoundingClientRect();
@@ -2760,7 +2817,7 @@
   }
 
   function ensureActiveTileVisible() {
-    const tile = els.rail.children[state.index];
+    const tile = tileForIndex(state.index);
     if (!tile) return;
     const railRect = els.rail.getBoundingClientRect();
     const tileRect = tile.getBoundingClientRect();
@@ -3254,6 +3311,19 @@
     return !!state.fullscreen;
   }
 
+  /** Name the active scaling mode in plain words. The per-game tick box only
+      says *whether* to scale; the row still has to show that fullscreen
+      scaling is alive (and which mode is in force) without a settings trip. */
+  function scaleModeLabel() {
+    const settings = state.settings || {};
+    if (settings.scaleMode === 'factor') {
+      const factor = Number(settings.scaleFactor) || 2;
+      const text = Number.isInteger(factor) ? String(factor) : String(Number(factor.toFixed(2)));
+      return `倍数缩放 ${text} 倍`;
+    }
+    return '全屏缩放';
+  }
+
   /** The engine sheet (opened from the home "缩放设置" button) carries the
       same per-game tick box, so deciding whether this game should be scaled
       never requires a trip into the detail page. */
@@ -3268,7 +3338,7 @@
     if (els.engineScaleHint) {
       els.engineScaleHint.textContent = disabled
         ? '已在设置中关闭'
-        : (explicit ? '仅对这款游戏生效' : '跟随全屏显示 · 方式在设置页选');
+        : `${scaleModeLabel()} · ${explicit ? '仅此游戏' : '默认开启'}`;
     }
   }
 
@@ -3284,9 +3354,7 @@
     if (els.homeScaleHint) {
       els.homeScaleHint.textContent = disabled
         ? '已在设置中关闭'
-        : explicit
-          ? '仅对这款游戏生效'
-          : '方式在设置页选';
+        : `${scaleModeLabel()} · ${explicit ? '仅此游戏' : '默认开启'}`;
     }
     syncEngineScaleRow();
   }
@@ -3382,6 +3450,9 @@
     }
     if (result.game) Object.assign(game, result.game);
     syncManageHiddenRow();
+    // Take the tile off the shelf right away; waiting for the next library
+    // rebuild left a hidden game sitting in the home strip.
+    rebuildAfterLibraryChange(false);
     toast(next
       ? `《${shortName(game)}》已隐藏 · 游戏库右上角「隐藏」可查看`
       : `《${shortName(game)}》已恢复显示`, 'check');
@@ -3409,11 +3480,14 @@
   function closeDetails(options = {}) {
     if (state.overlay !== 'details') return;
     const { focus = true, sound = true } = options;
+    const wasHidden = !!(currentGame() && currentGame().hidden);
     closeManage({ silent: true });
     closeSurface('details');
     state.overlay = null;
     if (sound) audio.close();
     if (focus) restoreFocus();
+    // Leaving the sheet is when a just-hidden game actually leaves the stage.
+    if (wasHidden) rebuildAfterLibraryChange(false);
   }
 
   async function toggleFavorite(game) {
@@ -5208,6 +5282,36 @@
     if (els.calmRow) els.calmRow.setAttribute('aria-checked', String(state.settings.calm));
   }
 
+  /* ---- the switcher strip measures itself --------------------------------
+     The strip floats over the cover, so the stage reserves its height. That
+     height is not a constant: a two-line game name adds ~16px, a narrow
+     window adds a third line, and the tile count decides whether the strip
+     scrolls. A hard-coded 128px matched the demo library and buried the
+     action row on a real one. Measure it, write it back as --im-dock-h, and
+     re-measure whenever the strip's own box changes. */
+  let dockObserver = null;
+
+  function syncDockHeight() {
+    const dock = document.querySelector('.view-home .dock');
+    if (!dock) return;
+    const height = Math.round(dock.getBoundingClientRect().height);
+    if (!height) return;
+    const next = `${height}px`;
+    if (document.documentElement.style.getPropertyValue('--im-dock-h') !== next) {
+      document.documentElement.style.setProperty('--im-dock-h', next);
+    }
+  }
+
+  function watchDockHeight() {
+    const dock = document.querySelector('.view-home .dock');
+    if (!dock) return;
+    if (!dockObserver && 'ResizeObserver' in window) {
+      dockObserver = new ResizeObserver(() => syncDockHeight());
+      dockObserver.observe(dock);
+    }
+    syncDockHeight();
+  }
+
   function setCalm(on, announce = true) {
     state.settings.calm = on;
     saveSettings();
@@ -5219,6 +5323,9 @@
     // The cue follows the click, not the toast: the appearance page toggles
     // the same switch without a toast and still needs to sound.
     audio.toggle();
+    // Entering or leaving the immersive layout changes the strip's box; the
+    // stage padding has to follow in the same frame, not after a resize.
+    syncDockHeight();
     if (announce) {
       toast(on ? '沉稳模式已开启 · 更少动画，更多留白' : '沉稳模式已关闭', 'moon');
     }
@@ -7651,17 +7758,30 @@
       if (!state.games.length) state.index = 0;
       else state.index = Math.max(0, Math.min(state.index, state.games.length - 1));
     }
+    /* Rebuilds follow hide/unhide too, so the pointer must never rest on a
+       game the shelf no longer shows — except while the detail sheet is open
+       on that very game. Moving it there made the sheet's own hide switch jump
+       back to "off" the moment you flipped it, because the switch reads the
+       current game. The move happens on close instead (closeDetails). */
+    if (!state.overlay && state.games[state.index] && state.games[state.index].hidden) {
+      const nextShelf = resolveShelfIndex(state.index, 1);
+      if (nextShelf >= 0) state.index = nextShelf;
+    }
     buildRail();
     buildAppearanceSwitcher();
     updateRail();
     const game = currentGame();
-    if (!state.overlay) {
-      renderHero(game, false);
+    /* The hero follows the shelf even while the detail sheet is open. Skipping
+       it there left the page showing the game the player had just hidden as
+       soon as the sheet closed (user report). Only the backdrop waits, because
+       repainting it under an open sheet is wasted work. */
+    renderHero(game, false);
+    if (game && !state.overlay) {
       // Editing can change hero framing without changing the image URL,
       // so re-apply the crop on the background layer too.
-      if (game) setBackdrop(game);
+      setBackdrop(game);
     }
-    document.body.classList.toggle('is-empty', !state.games.length);
+    document.body.classList.toggle('is-empty', shelfCount() === 0);
     if (state.view === 'library') renderLibrary();
     if (state.view === 'appearance') renderAppearance();
     if (!game) {
@@ -7884,6 +8004,17 @@
 
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (isTypingTarget(event.target)) return;
+
+      // Fullscreen home: arrows belong to the two focus rows first, so the
+      // player can walk onto a button and press Enter instead of having to
+      // remember a shortcut.
+      if (state.view === 'home' && state.fullscreen) {
+        const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+        if (step && immersiveStep(step[0], step[1])) {
+          event.preventDefault();
+          return;
+        }
+      }
 
       switch (event.key) {
         case 'ArrowLeft':
@@ -8152,18 +8283,128 @@
     }
   }
 
+  /* ============================================================
+     IMMERSIVE NAV · two focus rows, pad and keyboard share them
+     ------------------------------------------------------------
+     The fullscreen home is a console surface: the action cluster
+     and the icon strip are the only two places focus can be, and
+     ↑/↓ moves between them while ←/→ walks inside one. In the strip
+     ←/→ keeps its old meaning (switch game), because that is what a
+     player already expects from the windowed page.
+     ============================================================ */
+
+  const IMMERSIVE_ACTIONS = ['.hero-inner #playBtn', '.hero-inner #detailBtn',
+    '.hero-inner #homeEngineBtn', '.hero-inner #homeScaleRow'];
+
+  /* The immersive page belongs to 沉稳模式, not to fullscreen. Fullscreen is a
+     window state the player may want on its own (just a bigger view of the
+     normal page); binding the layout to it replaced that page with a second
+     design nobody asked for. */
+  function immersiveHome() {
+    return state.view === 'home' && state.settings.calm &&
+      !state.overlay && !state.manageOpen && !state.menuOpen &&
+      !document.querySelector('.dialog-overlay.is-open') &&
+      !document.querySelector('.picker-overlay.is-open');
+  }
+
+  function immersiveActionEls() {
+    const root = els.homeView || document;
+    return IMMERSIVE_ACTIONS
+      .map((sel) => root.querySelector(sel))
+      .filter((el) => el && el.offsetParent !== null && !el.disabled);
+  }
+
+  function immersiveTileEls() {
+    const root = els.homeView || document;
+    return Array.from(root.querySelectorAll('.rail .tile')).filter((el) => el.offsetParent !== null);
+  }
+
+  let immersiveRingEl = null;
+
+  /** Draw the pad ring on whatever we just moved to, without pretending
+      the input device changed. */
+  function immersiveRing(el) {
+    if (!el) return;
+    if (immersiveRingEl && immersiveRingEl !== el) immersiveRingEl.classList.remove('is-pad-focus');
+    immersiveRingEl = el;
+    el.classList.add('is-pad-focus');
+    try { el.focus({ preventScroll: true }); } catch (error) {}
+    try { el.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (error) {}
+  }
+
+  function immersiveStep(dx, dy) {
+    if (!immersiveHome()) return false;
+    const actions = immersiveActionEls();
+    const tiles = immersiveTileEls();
+    const active = document.activeElement;
+    const inActions = !!(active && active.closest && active.closest('.hero-inner'));
+    const inStrip = !!(active && active.closest && active.closest('.rail'));
+
+    // ↓ from the actions (or from nowhere) lands on the strip.
+    if (dy > 0) {
+      if (inActions || !inStrip) {
+        const target = tiles.find((t) => t.classList.contains('is-active')) || tiles[0];
+        if (target) { immersiveRing(target); audio.move(1); return true; }
+        return false;
+      }
+      return false;
+    }
+    // ↑ from the strip goes back to the actions, to the primary button.
+    if (dy < 0) {
+      if (inStrip) {
+        const target = actions[0] || actions[actions.length - 1];
+        if (target) { immersiveRing(target); audio.move(-1); return true; }
+        return false;
+      }
+      return false;
+    }
+    // ←/→ inside the actions wraps; inside the strip it switches games.
+    if (inActions) {
+      const index = actions.indexOf(active);
+      if (index === -1) { immersiveRing(actions[0]); return true; }
+      const next = actions[(index + dx + actions.length) % actions.length];
+      immersiveRing(next);
+      audio.move(dx);
+      return true;
+    }
+    if (inStrip) {
+      selectGame(state.index + dx, { sound: true, scroll: true });
+      const tile = immersiveTileEls().find((t) => t.classList.contains('is-active'));
+      if (tile) immersiveRing(tile);
+      return true;
+    }
+    // Nothing focused yet: first arrow press puts the ring on the primary
+    // action instead of silently switching games.
+    if (actions.length) { immersiveRing(actions[0]); return true; }
+    return false;
+  }
+
+  function immersiveActivate() {
+    if (!immersiveHome()) return false;
+    const active = document.activeElement;
+    if (!active || !active.closest || !active.closest('.hero-inner, .rail')) return false;
+    if (active.tagName === 'BUTTON' || active.getAttribute('role') === 'checkbox') {
+      active.click();
+      return true;
+    }
+    return false;
+  }
+
   const padApp = {
     nav(delta) {
       const scope = padScope();
       if (padDialogOpen() || padPickerOpen() || PAD_FOCUS_SCOPES.has(scope)) { padMoveFocus(delta, 0); return; }
+      if (scope === 'home' && immersiveStep(delta, 0)) return;
       if (scope === 'home') selectGame(state.index + delta, { sound: true, scroll: true });
     },
     navVertical(delta) {
+      if (padScope() === 'home' && immersiveStep(0, delta)) return;
       padVertical(delta);
     },
     confirm() {
       const scope = padScope();
       if (padDialogOpen() || padPickerOpen() || PAD_FOCUS_SCOPES.has(scope)) { padActivate(); return; }
+      if (scope === 'home' && immersiveActivate()) { audio.select(); return; }
       if (scope === 'sleep') { exitSleep(); return; }
       if (scope === 'launch') { return; }
       handlePrimary();
@@ -8947,6 +9188,11 @@
     const currentId = boot.currentGameId;
     const index = state.games.findIndex((game) => game.id === currentId);
     state.index = index >= 0 ? index : 0;
+    // The last session may have ended on a title that has since been hidden.
+    if (state.games[state.index] && state.games[state.index].hidden) {
+      const firstShelf = resolveShelfIndex(state.index, 1);
+      if (firstShelf >= 0) state.index = firstShelf;
+    }
 
     els.profileName.textContent = state.settings.playername;
     syncAvatarImages();
@@ -9012,9 +9258,10 @@
     bindSettings();
     bindIdleSwitch();
     initThemedSelects();
-    document.body.classList.toggle('is-empty', !state.games.length);
+    document.body.classList.toggle('is-empty', shelfCount() === 0);
     applyAccent(currentGame());
-    renderHero(currentGame(), false);
+    // Every game hidden is the same empty shelf as no game at all.
+    renderHero(shelfCount() ? currentGame() : null, false);
     applyStyleModeUI();
     syncSoundUI();
     syncFullscreenLabels();
@@ -9039,6 +9286,7 @@
     setTimeout(ensureActiveTileVisible, 140);
     initParallax();
     startGamepad();
+    watchDockHeight();
     setTimeout(refitLogos, 500);
     setTimeout(() => setNav(document.documentElement.dataset.view || 'home'), 240);
 

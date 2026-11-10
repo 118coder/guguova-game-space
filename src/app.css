@@ -1137,9 +1137,12 @@ html[data-input="gamepad"] .steam-mode.is-pad-focus {
 
 .detail-launch-options .pref-hint {
   margin-left: auto;
-  font-size: 10px;
-  line-height: 1.35;
-  color: var(--faint);
+  /* Same reason as the manage sheet: the faint tier disappears on paper
+     panels, and this label explains what the switch will do. */
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--muted);
   text-align: right;
 }
 
@@ -2244,6 +2247,7 @@ html[data-tier="safe"] .import-shell { transition: none; }
 
 .hero-scale-label {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 8px;
   font-size: var(--hs-label-size);
@@ -2255,6 +2259,8 @@ html[data-tier="safe"] .import-shell { transition: none; }
 
 .hero-scale-hint {
   margin-left: auto;
+  min-width: 0;
+  white-space: normal;
   font-size: var(--hs-hint-size);
   line-height: 1.3;
   /* Inherit the row's themed ink instead of a fixed light-theme --faint. */
@@ -2270,30 +2276,40 @@ html[data-tier="safe"] .import-shell { transition: none; }
 
 /* The home row and the engine sheet both use an explicit tick box, so the
    player can decide "scale this game or not" without opening the detail
-   page. Corner, ink and accent come from each theme's own tokens. */
+   page. Every part of the box and its mark is a --hs-check-* slot; the
+   defaults below are only a fallback for a theme that maps none. Each
+   theme draws its own mark (dot / bar / seal / slash / tick) — a shared
+   tick on all 14 themes is exactly the generic control Owner rejected. */
 .hero-scale-check {
   flex: none;
   position: relative;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--hair, rgba(127, 127, 127, .5));
-  border-radius: calc(var(--hero-scale-radius, 9px) * .45);
-  background: transparent;
+  box-sizing: border-box;
+  width: var(--hs-check-size, 14px);
+  height: var(--hs-check-size, 14px);
+  border: var(--hs-check-border, 1px solid var(--hair, rgba(127, 127, 127, .5)));
+  border-radius: var(--hs-check-radius, calc(var(--hero-scale-radius, 9px) * .45));
+  background: var(--hs-check-bg, transparent);
+  box-shadow: var(--hs-check-shadow, none);
+  transform: var(--hs-check-transform, none);
 }
-.hero-scale-check.on { border-color: var(--accent); }
+.hero-scale-check.on {
+  border-color: var(--hs-check-on-line, var(--accent));
+  background: var(--hs-check-on-bg, transparent);
+  box-shadow: var(--hs-check-on-shadow, none);
+}
 .hero-scale-check.on::after {
   content: '';
   position: absolute;
-  left: 4px;
-  top: 1px;
-  width: 4px;
-  height: 8px;
-  border: solid var(--accent);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+  left: var(--hs-check-mark-x, 4px);
+  top: var(--hs-check-mark-y, 1px);
+  width: var(--hs-check-mark-w, 4px);
+  height: var(--hs-check-mark-h, 8px);
+  border: solid var(--hs-check-mark, var(--accent));
+  border-width: var(--hs-check-mark-bw, 0 2px 2px 0);
+  border-radius: var(--hs-check-mark-radius, 0);
+  background: var(--hs-check-mark-bg, transparent);
+  transform: var(--hs-check-mark-transform, rotate(45deg));
 }
-.engine-scale-row .hero-scale-check { margin-left: 4px; }
-.engine-scale-row[aria-disabled="true"] { opacity: .55; }
 
 @media (max-width: 900px) {
   .hero-scale-hint { display: none; }

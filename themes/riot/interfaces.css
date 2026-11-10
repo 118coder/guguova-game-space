@@ -218,3 +218,88 @@ html[data-theme="riot"] .settings-id-tags i {
   color: var(--t-on-accent);
   font-weight: 700;
 }
+
+/* ============================================================
+   IMMERSIVE SHELL SLOT MAPPING + SCALE TICK BOX
+   ------------------------------------------------------------
+   Values are this theme's own material: veil, rule, card
+   proportion and the shape of the tick mark. Geometry lives in
+   src/theme-slots.css. Per-theme art direction is deferred by
+   Owner (2026-11-10) — this is the mechanism, not the final look.
+   ============================================================ */
+
+html[data-theme="riot"] {
+  --im-safe-x: clamp(42px, 6vw, 112px);
+  --im-text-width: min(56vw, 880px);
+  --im-title-size: 6.8vw;
+  --im-title-max: 116px;
+  --im-veil: linear-gradient(90deg, rgba(246,242,232,.95) 0%, rgba(246,242,232,.66) 42%, rgba(246,242,232,0) 76%);
+  --im-topbar-bg: rgba(246,242,232,.82);
+  --im-topbar-rule: 3px solid #111;
+  --im-dock-bg: #f6f2e8;
+  --im-dock-rule: 4px solid #111;
+  --im-dock-shadow: none;
+  --im-card-gap: 14px;
+  --im-card-width: clamp(140px, 11.6vw, 188px);
+  --im-card-ratio: 1 / 1;
+  --im-card-radius: 0;
+  --im-card-border: 2px solid #111;
+  --im-card-shadow: 6px 6px 0 #cf0017;
+  --im-card-active-border: 3px solid #cf0017;
+  --im-card-active-shadow: 8px 8px 0 #111;
+  --im-card-lift: -4px;
+  --im-card-name-size: 12px;
+  --hs-check-size: 15px;
+  --hs-check-border: 2px solid #111;
+  --hs-check-radius: 0;
+  --hs-check-bg: #f6f2e8;
+  --hs-check-shadow: 3px 3px 0 #cf0017;
+  --hs-check-on-line: #111;
+  --hs-check-on-bg: #cf0017;
+  --hs-check-mark: #f6f2e8;
+  --hs-check-mark-x: 3px;
+  --hs-check-mark-y: 3px;
+  --hs-check-mark-w: 7px;
+  --hs-check-mark-h: 7px;
+  --hs-check-mark-bw: 0;
+  --hs-check-mark-bg: #f6f2e8;
+  --hs-check-mark-transform: none;
+}
+
+/* ============================================================
+   IMMERSIVE CONTROLS
+   ------------------------------------------------------------
+   Fullscreen puts the action row straight on the cover, where the
+   windowed page had a plate under it. Each theme answers with its
+   own material — paper stays paper, glass stays glass — and every
+   block below decides plate AND ink together. Declaring one of the
+   two is exactly how a label disappears (白底白字).
+
+   Geometry, hit areas and the focus ring stay in src/theme-slots.css.
+   ============================================================ */
+
+html[data-theme="riot"].calm .view-home .hero-inner > .cta-row .btn {
+  font-family: var(--font-display);
+  letter-spacing: .06em;
+  font-weight: 800;
+  border-radius: 0;
+}
+html[data-theme="riot"].calm .view-home .hero-inner > .cta-row .btn.primary {
+  background: #111111 !important;
+  color: #fffaf2 !important;
+  border: 1px solid #111111 !important;
+  box-shadow: 4px 4px 0 0 #cf0017;
+}
+html[data-theme="riot"].calm .view-home .hero-inner > .cta-row .btn.ghost {
+  background: #fffaf2 !important;
+  color: #111111 !important;
+  border: 1px solid #111111 !important;
+  box-shadow: 4px 4px 0 0 #111111;
+}
+html[data-theme="riot"].calm .view-home .hero-inner > .kicker {
+  letter-spacing: .12em;
+}
+html[data-theme="riot"].calm .view-home .status-card {
+  --im-card-ink: #111111;
+  --im-card-muted: rgba(17, 17, 17, .74);
+}

@@ -42,6 +42,8 @@ const REQUIRED_SLOTS = {
   '.hero-scale': { why: 'the homepage fullscreen row', tokens: '--hs-' },
   '.appearance-framing': { why: 'the hero framing panel', tokens: '--af-' },
   '.engine-mode-row': { why: 'the algorithm selection row', tokens: '--mode-' },
+  '--hs-check-': { why: 'the per-theme scale tick mark', tokens: null },
+  '--im-': { why: 'the immersive shell material', tokens: null },
   '--accent-text': { why: 'readable accent text (rule #21)', tokens: null },
   '--menu-': { why: 'the themed dropdown', tokens: null }
 };
@@ -119,6 +121,11 @@ if (!fs.existsSync(novaFile)) {
     .map((h) => h.match(/"([a-z0-9-]+)"/)[1]))];
   const foreign = ids.filter((id) => id !== 'nova');
   if (foreign.length) findings.push(`src/theme-nova.css: references other theme(s) ${foreign.join(', ')}`);
+  // The built-in theme historically ships no .engine-shell block (it is the
+  // default material), so only the two slots added for the immersive shell
+  // are gated here. Do not widen this to REQUIRED_SLOTS wholesale.
+  const novaMissing = ['--hs-check-', '--im-'].filter((slot) => !css.includes(slot));
+  if (novaMissing.length) findings.push(`src/theme-nova.css: missing immersive slot(s) ${novaMissing.join(', ')}`);
   covered.push({ id: 'nova (built-in)', bytes: css.length, rules: (css.match(/\{/g) || []).length });
 }
 

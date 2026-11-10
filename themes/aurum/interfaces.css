@@ -211,3 +211,99 @@ html[data-theme="aurum"] .settings-id-copy b { color: var(--aurum-text); font-fa
 html[data-theme="aurum"] .settings-id-copy em { color: var(--aurum-text-dim); }
 
 html[data-theme="aurum"] .settings-id-tags i { border-color: rgba(232, 201, 138, .38); border-radius: 0; color: var(--aurum-bronze-hi); }
+
+/* ============================================================
+   IMMERSIVE SHELL SLOT MAPPING + SCALE TICK BOX
+   ------------------------------------------------------------
+   Values are this theme's own material: veil, rule, card
+   proportion and the shape of the tick mark. Geometry lives in
+   src/theme-slots.css. Per-theme art direction is deferred by
+   Owner (2026-11-10) — this is the mechanism, not the final look.
+   ============================================================ */
+
+html[data-theme="aurum"] {
+  --im-safe-x: clamp(54px, 8vw, 150px);
+  --im-text-width: min(48vw, 760px);
+  --im-title-size: 5.2vw;
+  --im-title-max: 88px;
+  --im-veil: linear-gradient(90deg, rgba(7,11,9,.9) 0%, rgba(7,11,9,.5) 42%, rgba(7,11,9,0) 76%);
+  --im-topbar-bg: rgba(7,11,9,.6);
+  --im-topbar-rule: 1px solid rgba(232,201,138,.2);
+  --im-dock-bg: rgba(13,19,16,.82);
+  --im-dock-rule: 3px double rgba(232,201,138,.5);
+  --im-dock-shadow: 0 -18px 40px -28px #000;
+  --im-card-gap: 12px;
+  --im-card-width: clamp(128px, 10.6vw, 168px);
+  --im-card-ratio: 4 / 3;
+  --im-card-radius: 2px;
+  --im-card-border: 1px solid rgba(232,201,138,.28);
+  --im-card-shadow: inset 0 0 0 3px rgba(7,11,9,.6);
+  --im-card-active-border: 1px solid #f6e3bb;
+  --im-card-active-shadow: 0 0 0 2px rgba(232,201,138,.35);
+  --im-card-lift: -2px;
+  --im-card-name-size: 11.5px;
+  --hs-check-size: 15px;
+  --hs-check-border: 1px solid rgba(232,201,138,.6);
+  --hs-check-radius: 0;
+  --hs-check-bg: rgba(7,11,9,.5);
+  --hs-check-shadow: inset 0 0 0 2px rgba(7,11,9,.9), inset 0 0 0 3px rgba(232,201,138,.3);
+  --hs-check-on-line: #f6e3bb;
+  --hs-check-on-bg: rgba(232,201,138,.14);
+  --hs-check-mark: #f6e3bb;
+  --hs-check-mark-bw: 0 1px 1px 0;
+}
+
+/* ============================================================
+   IMMERSIVE CONTROLS
+   ------------------------------------------------------------
+   Fullscreen puts the action row straight on the cover, where the
+   windowed page had a plate under it. Each theme answers with its
+   own material — paper stays paper, glass stays glass — and every
+   block below decides plate AND ink together. Declaring one of the
+   two is exactly how a label disappears (白底白字).
+
+   Geometry, hit areas and the focus ring stay in src/theme-slots.css.
+   ============================================================ */
+
+html[data-theme="aurum"].calm .view-home .hero-inner > .cta-row .btn {
+  font-family: var(--font-display);
+  letter-spacing: .12em;
+  font-weight: 600;
+  border-radius: 2px;
+}
+html[data-theme="aurum"].calm .view-home .hero-inner > .cta-row .btn.primary {
+  background: linear-gradient(180deg, #f2e6cc 0%, #e1ceaa 52%, #cdb488 100%);
+  color: #2a1b10 !important;
+  border: 1px solid rgba(255, 250, 238, .66);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 252, 244, .92),
+    inset 0 -2px 0 rgba(88, 64, 30, .3),
+    0 14px 34px -18px #000;
+  text-shadow: 0 1px 0 rgba(255, 252, 244, .5);
+}
+html[data-theme="aurum"].calm .view-home .hero-inner > .cta-row .btn.ghost {
+  background: linear-gradient(180deg, rgba(26, 22, 16, .78), rgba(12, 11, 9, .7));
+  color: #ecd9b2 !important;
+  border: 1px solid rgba(232, 201, 138, .5);
+  box-shadow: 0 10px 26px -18px #000, inset 0 1px 0 rgba(232, 201, 138, .16);
+}
+html[data-theme="aurum"].calm .view-home .hero-inner > .cta-row .btn.ghost:hover {
+  color: #f6e3bb !important;
+  border-color: rgba(232, 201, 138, .8);
+}
+html[data-theme="aurum"].calm .view-home .hero-inner > .kicker {
+  font-family: var(--font-display);
+  letter-spacing: .16em;
+}
+html[data-theme="aurum"].calm .view-home .status-card {
+  --im-card-ink: #ede3cd;
+  --im-card-muted: rgba(237, 227, 205, .84);
+}
+
+/* Status card material: forged metal plate with a bronze hairline. The shell's fallback is a neutral
+   translucent black, which reads as "unstyled" beside these palettes. */
+html[data-theme="aurum"] {
+  --im-card-bg: linear-gradient(180deg, rgba(18, 24, 20, .92), rgba(8, 12, 10, .95));
+  --im-card-border: 1px solid rgba(232, 201, 138, .34);
+  --im-card-radius: 2px;
+}

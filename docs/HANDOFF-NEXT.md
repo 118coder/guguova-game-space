@@ -1,8 +1,18 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.5**（六项功能 + 缩放加固 + 倍数缩放 / 算法生效 / 主页勾选框，**已发布**）
-> 交接时间：2026-11-10（同日第三轮 + 发行，见 §1.17）
-> 分支：`main` = `bbdd2d0`（PR [#36](https://github.com/118coder/guguova-game-space/pull/36) 合并，基于 `03d6c81`）
+> 交接版本：**1.16.5 已发布 + 第四至八轮（沉浸 §1.18–§1.21 / 隐藏语义与全页文字审计 §1.22，工作区未提交）**
+> 交接时间：2026-11-10（同日第四至七轮）
+> 分支：`main` = `bbdd2d0`（PR [#36](https://github.com/118coder/guguova-game-space/pull/36) 合并，基于 `03d6c81`）；**§1.18–§1.21 的改动仍在工作区，没有 bump / 提交 / 发行**
+> ✅ **沉浸模式已按 Owner 理念重构**（§1.19）：封面就是页面，UI 当配角。全幅封面 +
+> 底部信息横条 + 图标条叠在封面上（不再占用版面），实测封面占屏幕 72%–82%；14 套主题
+> 共用一套骨架，横条内部的网格、材质、墨色各写各的。上一版「左文右图」已作废。
+> ✅ **控件材质与墨色配对**（§1.21）：Owner 指出的「按钮颜色盖过文字」是共享层
+> 单方面改字色造成的（grimoire / riot / riso / summer 次按钮曾低到 1.01:1）。现由每套主题
+> 成对声明底与字，`tools/immersive-audit.js` 双帧差分实测 **196/196 全部可读**。
+> ✅ **隐藏语义修正**（§1.22）：隐藏的游戏不再出现在首页封面与图标带，「N 款」跟随；
+> 详情页隐藏开关的说明文字在 8 个纸面主题上曾低到 1.0:1（浅字压浅纸），已改 `--muted` 并抬到 11px。
+> 新增 `tools/text-audit.js` 全页文字对比审计（双帧差分，14 主题 × 4 视图）。
+> ⏸ 静态构图稿**不作为设计依据**，只在本地留档、不入库（Owner 判定不符合主题理念）。
 > 上一版：1.16.3（游玩时长里程碑变色，**已发布** `v1.16.3`，PR #35）
 > ✅ **发行完成**：[`v1.16.5`](https://github.com/118coder/guguova-game-space/releases/tag/v1.16.5)
 > 三个资产：`single.exe` 9.51 MB (`e282ee84…`)、`legacy-single.zip` 13.71 MB (`ffaeda6c…`)、
@@ -18,7 +28,7 @@
 
 ## 0. 一句话状态
 
-应用 **1.16.5**（已发布 `v1.16.5`），14 套主题，接口式映射架构不变。1.16.4 那一轮按 Owner 清单做六件事：
+应用 **1.16.5**（已发布 `v1.16.5`），14 套主题，接口式映射架构不变。第四轮在已发布版本之上做了沉浸模式（§1.19 为当前形态：全幅封面 + 底部横条 + 图标条叠放）、缩放勾选框主题适配与「全屏缩放」文案回归，全部在工作区未提交。1.16.4 那一轮按 Owner 清单做六件事：
 
 1. **格式化资料导出补全**（需求中途澄清：不是导出 txt，而是编辑器原有的
    「导出现有」文本不全）——14 个字段全量导出（含空的，可当填空模板），
@@ -1491,6 +1501,515 @@ Owner 第三次追加：「在游戏主页的缩放设置里面，加入新的�
 
 ---
 
+## 1.18 第四轮：沉浸模式机制 + 缩放控件彻查（工作区待提交，外观深化暂停）
+
+> Owner 原话：「先暂停，你的设计稿不符合主题的设计理念。你先实现，后面再改吧。」
+> 因此本轮**只交付机制**，14 套主题的沉浸外观是占位实现，等 Owner 给定稿方向再逐套深化。
+> 静态构图稿保留作过程产物，**不作为 CSS 实现依据**。
+
+### 1.18.1 参考图里值得借鉴的（回答 Owner 的提问）
+
+PS 主机式大屏的排版结论，只有「结构」被采纳，「外观」一律不照搬：
+
+1. **全幅背景 + 单侧渐变压暗**：文字锁在左侧安全区，主体画面留给右侧。天然满足
+   「文字不许被图形压住」这条铁律，所以共享骨架做了 `--im-veil`，且每套主题按
+   自己的明暗给值（浅色主题是白色 veil，不是统一黑罩）。
+2. **顶部极简**：只有几个文字标签和右上角图标，没有实心标题栏——正好避开
+   「加标题栏」式仿制。沉浸骨架只压低顶栏高度，不隐藏任何导航功能。
+3. **左侧纵向信息层级**：字标 → 描述 → 状态 → 次要卡片，阅读动线清楚、留白大。
+4. **卡片横排是游戏切换器**：选中放大加描边，下面带名称。Owner 要求放**下方**，
+   而现有 `dock > rail` 本来就在下方，结构对得上。
+5. **明确不照搬**：紫粉配色 / 棕榈叶属真实游戏素材（铁律禁止），白色描边胶囊
+   也不能变成 14 套共用的统一控件。
+
+### 1.18.2 构图稿暂停
+
+构图稿（14 套静态构图，本地留档未入库）
+已产出，`_shots/immersive/immersive-contact-sheet.png` 是缩略总览。Owner 判定
+**不符合各主题设计理念**，本轮起这些稿子**不进实现、不作为设计契约**；文件保留
+仅供后续比对，若 Owner 要求可直接删除。CSS 里也写了同样的免责注释，避免下一轮
+接手的人误把稿子当规范。
+
+### 1.18.3 本轮实际实现（机制三块）
+
+**A · 沉浸模式骨架**（`src/theme-slots.css` 末尾，共享层；JS 零改动）
+
+> ⚠ **本节描述的「左文右图」版本已被 §1.19 取代**，只作为演进记录保留。
+> 当前实现全幅封面 + 底部横条，请看 §1.19。
+
+`html.is-fullscreen` 下只重排现有主页 DOM，不新建视图、不复制渲染器：
+
+- `.stage` 收成左侧安全区（`--im-safe-x` / `--im-text-width`），`stage::before` 画单侧
+  `--im-veil`；`.hero` 提到 `z-index:1`，文字永远在压暗层之上。
+- `.dock` 强制变成**底部横排卡片带**，并用
+  `html.is-fullscreen body.layout-rail .view-home .dock` 这条更高特异性覆盖掉
+  layout-rail 模式下「左侧竖排 rail」的既有规则；`rail` 改横向滚动、卡片按
+  `--im-card-width / ratio / radius / border` 成排，选中态用 `--im-card-active-*`。
+- 长游戏名在沉浸模式下 `white-space:normal / overflow:visible / text-overflow:clip`，
+  换行完整显示，不再被磁贴宽度裁掉（铁律 #2）。
+- 顶栏压到 `clamp(50px, 6.4vh, 68px)` 并由主题给底色与分隔线；窗口模式零影响。
+- **字号决定权还给主题**：第一版曾在共享层放大 `.hero-logo`，把 endfield 的
+  `THINGS AS THEY ARE` 挤出固定白色铭牌、右半截落在黑底上看不见。已改成只保留
+  `max-width:100%`，`--im-title-size / --im-title-max` 由此成为**预留但未消费**的插槽。
+
+**B · 14 套主题映射**（13 份 `interfaces.css` + `src/theme-nova.css`）
+
+每套一个 `html[data-theme="…"]` 块，值全部取自该主题现有材质语言，不引入构图稿的
+新造几何：暗金双线直角、胶片扁平宽卡、铜金凹框窄卡、拱形画框比例、酸黄切角、
+深褐厚框蜡封、雾紫方块、登机牌虚线长卡、黑胶硬偏移、蓝黄实色海报、炭黑大卡、
+青线白纸、荧光青柠斜纹等。`--im-veil` 在 endfield / riot / riso / summer / broadcast
+等纸面主题上是**浅色**，不是统一黑罩。
+`tools/theme-slot-check.js` 新增 `--im-` 与 `--hs-check-` 两个守门项；内置 nova 单独
+只查这两项（它历史上没有 `.engine-shell` 块，不要放宽成全量 REQUIRED_SLOTS）。
+
+**C · 缩放控件彻查 + 「全屏缩放」文案回归**
+
+- 根因：上一轮加的 `engineScaleRow` 借用了通用 `.pref-row`，勾选框是共享层一个
+  14 套同形的 14px 方框 + 斜勾，只随 `--accent` 变色——就是 Owner 截图里那个
+  「不属于本主题」的黄框。
+- 修法：勾选框全部参数化为 `--hs-check-*`（尺寸 / 线型 / 圆角 / 底 / 阴影 / 标记
+  位置 / 宽高 / 边宽 / 圆点 / 底色 / 旋转），14 套各给一套，形态互不相同：斜勾、
+  双线细勾、白圆点、金短横、火漆圆点、酸黄黑方块、蜡封、梅红横线、荧光虚线勾、
+  红方块硬偏移、蓝横、青绿勾、青块、荧光斜条。`engineScaleRow` 脱掉 `.pref-row`，
+  改用该主题主页缩放行的 `--hs-bg / --hs-border / --hs-ink` 材质。
+- **「全屏缩放」没被吃掉**：设置页第一项就是它且是默认值，后端 `factorMode=false`
+  走 `scale` 热键 3137，实机日志 `mode=fullscreen … scaled=True` 配 2560×1600 整屏窗口。
+  丢的只是字面。现在主页与引擎弹窗的 hint 直接显示当前方式：
+  `全屏缩放 · 默认开启` / `倍数缩放 2.5 倍 · 仅此游戏` / `已在设置中关闭`，
+  由 `app.js scaleModeLabel()` 统一生成；`.hero-scale-hint` 允许换行，不会被压断。
+
+### 1.18.4 验收
+
+| 检查 | 结果 |
+| --- | --- |
+| `dotnet build` 现代 + legacy net48 | 0 错误（既有警告） |
+| `node tools/theme-slot-check.js --strict` | exit 0，14 套全部覆盖新插槽 |
+| `node tools/feature-checks.js` | **47/47**（新增第 [9] 组 6 项：沉浸横排 / 带宽 / 贴底 / veil / 主题插槽注入 / 长名换行） |
+| `node tools/tier-shots.js --shots=false` | 98 组 · 294 captures 全过 |
+| `node tools/headless-shots.js --views=all` | exit 0，警告仍是既有 aurum 5px / dusk 2px 磁贴名裁切，**0 新增** |
+| 真实沉浸截图 | 14 张在 `_shots/immersive-real/`，总览 `contact-sheet.jpg`；逐套 `overflowX=0` |
+| 人工抽查 | steam / endfield / zerohour 大图：文字可读、卡片带横排贴底、勾选框是各主题形态；endfield 标题修正后完整落在铭牌内 |
+
+### 1.18.5 没做 / 下一步
+
+1. **14 套沉浸外观深化**：已由 §1.19 接手并落地（全幅封面 + 底部横条，14 套网格
+   与材质各异）。后续若要更强的主题差异，在 §1.19.6 第 2 条里继续。
+2. `--im-title-size / --im-title-max` 是预留插槽，当前不消费（见 1.18.3 A 的教训）。
+3. 本轮改动**全部在工作区未提交**；版本号仍是 1.16.5，没有 bump、没有提交 / PR / 发行（见 §1.19.6）。
+4. 沿用：Owner 提权旧实例退出后删 `03-归档备份\old-build-1.16.4\` 里两个 `.old` 文件；
+   §7 的 1.16.3 颜色回访与平台真机。
+
+---
+
+## 1.19 第五轮：沉浸模式重构——封面就是页面（工作区待提交）
+
+> Owner 原话：「沉浸式模式，是主游戏封面，然后图标是次要的，所以游戏封面必须要占
+> 很大一部分，不能让 UI 喧宾夺主。」随后又补了 PS 商店的拆解作为参考，并明确
+> 「底部横条不要作废，这是为了做成区别」，最后定为「不要左文右图，全部采取全幅
+> 加底部横条」。
+> 因此 §1.18 的「左侧信息栏 + 右侧封面」方案**作废**，本轮改成单一构图家族：
+> **全幅封面 + 底部信息横条 + 图标条叠放**。
+
+### 1.19.1 结构怎么变的（和 §1.18 的差别）
+
+| 部位 | §1.18（已作废） | 本轮 |
+| --- | --- | --- |
+| 封面 | 右侧 58% 面板，文字在左 | `stage::after` 铺满整个舞台，含底部预留区 |
+| 压暗 | 90° 单侧渐变（横向） | 180° 底部渐变，只压暗下缘信息带 |
+| 信息 | 左侧一列 7 块，纵向堆叠 | 底部一条横条，3 行 × 3 列网格（每套顺序不同） |
+| 图标条 | 参与 flex 布局，占一条版面 | `position:absolute` 叠在封面上，舞台用 `padding-bottom` 预留同一高度 |
+| 文字色 | 由横条自带底色决定 | 新增 `--im-dock-ink`，图标条的文字与底衬按主题明暗给 |
+
+关键一点：图标条改成叠放后，`.view-home` 不再被它撑高，必须自己声明
+`flex:1 1 auto; height:100%`，否则舞台会塌成内容高度（本轮踩过，已修）。
+
+### 1.19.2 共享层新增/改动的规则（`src/theme-slots.css`）
+
+- `.stage`：`align-items:flex-end`、`padding:0`、`padding-bottom: var(--im-dock-h,128px)`
+- `.stage::after`：封面层，`inset:0`，`--nova-hero` 兜底 `assets/backdrop.jpg`
+- `.stage::before`：底部 veil，默认 180° 三段渐变（浅色主题换成白色系）
+- `.hero-inner`：主题各自给 `grid-template-areas`，共享层只保证「横条是配角」：
+  - 标题字号封顶 `clamp(19px, 1.95vw, 29px) !important`（主题原本会给到 44–48px，
+    那是纵向大标题的尺寸，横条里会把带子撑到 240px 高）
+  - `.cta-row .btn` 统一 26px 高 / 11px 字，避免 3 个按钮竖排撑高
+  - `.progress-block` 收紧为 3–4 行小字，进度条 3px
+  - `.hero-logo` 上下 padding 归零（保留主题的分隔线）
+  - `.hero-scale` 文字强制 `color:inherit`——夜航那类纸面主题原本是白字，落在浅色横条上直接看不见
+- `.dock`：`position:absolute; bottom:0; z-index:60; height:var(--im-dock-h)`，
+  背景/边框/阴影全部清空（原来主题给的是"木架/货架"底板），
+  文字用 `--im-dock-ink` + `--im-dock-ink-shadow`
+- `.tile-art`：`max-height:56px !important`，图标是切换器不是第二主角
+- `.tile-label`：`background: var(--im-card-label-bg)`，因为文字直接压在封面图上
+
+### 1.19.3 14 套主题各给的值（`theme.css` 末尾，一次性生成后入库）
+
+每套一条 `html[data-theme="…"].is-fullscreen` 块，含 `--im-veil / --im-dock-ink /
+--im-dock-ink-shadow / --im-dock-h / --im-card-label-bg` 与横条的网格、材质：
+
+- 网格顺序 14 套互不相同（标题在第一行/第二行、进度在左/右、CTA 在中间/末尾），
+  例如 aurum 与 broadcast 是标题打头，nova 与 steam 是标签打头，grimoire 与 riso 是
+  三列等宽、zerohour 是单列堆叠。
+- `--im-veil` 按主题明暗分两种：暗底主题用黑色系底部渐变，纸面主题（nightflight /
+  dusk / mnemo / riot / broadcast / endfield / grimoire / riso / summer）用白色系。
+- `--im-dock-h` 不是拍脑袋：先量每套图标条的自然高度再写死（119–173px），
+  否则图标条会与横条重叠或把封面顶掉一块。
+- 横条材质沿用各主题现有语言：暗金双线、胶片宽条、切角酸黄、火漆厚框、雾紫方块、
+  登机牌撕齿、黑胶硬偏移、蓝黄海报、青线白纸、荧光斜纹等。
+
+### 1.19.4 验收（量出来的，不是"看起来差不多"）
+
+| 检查 | 结果 |
+| --- | --- |
+| 封面净空高度 | **446–536px**（900px 视口，占舞台 52%–63%；封面本身全幅铺满，横条与图标条浮在其上） |
+| 横条高度 | 132–221px，最矮 aurum 132 / 最高 grimoire 221 |
+| 横条内容溢出 | 14 套全部 `overflow=0`（内容一行都没跑出边框） |
+| 图标条 | 14 套全部完整可见、与横条间距 11–16px、文字有底衬可读 |
+| `dotnet build` 现代 + legacy net48 | 0 错误 |
+| `theme-slot-check --strict` | exit 0 |
+| `feature-checks.js` | **47/47**（第 [9] 组改写为 9 项：横排 / 满宽 / 贴底 / **封面层铺满舞台** / **veil 只压底部** / 主题插槽 / **图标条叠放** / **封面占比 >55%** / 长名换行） |
+| `tier-shots.js --shots=false` | 98 组 · 294 captures 全过 |
+| `headless-shots.js --views=all` | exit 0，52 条警告仍是既有 aurum 5px / dusk 2px 磁贴名裁切（两个尺寸各 26 条），**0 新增** |
+| 人工看图 | `_shots/immersive-layout/` 14 张单图 + `compare-1/2.jpg`（普通 vs 沉浸并排）+ `immersive-sheet.jpg` 总览，逐套抽查 nova / aurum / dusk / nightflight / endfield |
+
+### 1.19.5 过程中踩到并修掉的问题（留给下一轮避坑）
+
+1. **图标条被封面盖住**：`dock` 原本 `z-index:3`，低于舞台封面层，DOM 在、截图全黑。
+   现在 `z-index:60`，并且用 `elementFromPoint` 验证过命中的是 `.tile-badge`。
+2. **图标条消失导致舞台塌陷**：绝对定位后 `.view-home` 失去高度，必须显式
+   `height:100%`，否则 stage 只有 286px。
+3. **横条吃封面**：主题的纵向大标题 + 3 个竖排按钮把横条顶到 344–374px。
+   共享层封顶字号、压扁按钮与进度块后降到 136–228px。
+4. **浅色横条上白字消失**：`.hero-scale` 在夜航/黄昏这类纸面主题下整块看不见，
+   已改为 `color:inherit`。
+5. **纸面主题横条雾化**：早期白色 veil 压到 0.8，整片发白像雾；降到 0.58 并上移起点。
+6. **steam 的横条跑到屏幕顶部**：它的 `.hero` 在窗口模式是 `height:100%`（为了纵向居中），
+   横条被顶到最上面。共享层已强制 `.hero { height:auto !important }` +
+   `.stage { justify-content:flex-end !important }`，现在 14 套都贴底。
+7. **横条被挤扁导致最后一行压到边框上**：`hero-inner` 作为 flex 子项会被压缩，
+   内容比可用高度多 20px 时最后一行落到边框外。已加 `flex:0 0 auto; height:auto !important`。
+8. **横条内出现"别的页面"色块**：若干主题给 `.progress-block / .meta-row / .cta-row`
+   自带底色（纸卡、暗井），叠在横条上像贴了补丁。现在这三块统一 `background:none`，
+   只保留 kicker 与缩放行的标签底色。riso 的 `cta-row::after` 斜纹装饰原本悬在框外
+   120px，也已隐藏。
+9. **进度百分比是 26px 展示字**：grimoire 这类主题把 % 数字当大标题，单这一个字符
+   就把横条顶高 40px；横条内封顶 12px，字体与颜色仍归主题。
+
+### 1.19.6 没做 / 下一步
+
+1. **图标条目前是"小图标 + 名称"**，没有 PS 商店那种"选中放大 + 外发光"的联动效果；
+   要不要加，等 Owner 看现在的形态再定。
+2. 横条内部的**装饰细节**（登机牌条码、书脊、蜡封边）仍复用各主题原有元素，
+   没有为沉浸模式新画图案；若要更强的主题差异，下一步在各自 `theme.css` 里加。
+3. 版本仍是 1.16.5，本轮改动**未提交、未 bump、未发行**。
+4. 沿用：Owner 提权旧实例退出后删 `03-归档备份\old-build-1.16.4\` 里两个 `.old` 文件；
+   §7 的 1.16.3 颜色回访与平台真机。
+
+---
+
+## 1.20 第六轮：沉浸模式重新设计（面试级重做，工作区待提交）
+
+> Owner 反馈：「当前界面仍然不好看，边框过长，且没有考虑手柄玩家的交互体验。」
+> 要求以资深前端 UI 设计师视角整体重做。完整方案见 `docs/IMMERSIVE-DESIGN.md`，
+> 本节只记实现与验收。
+
+### 1.20.1 诊断
+
+1. 1280px 通栏横板：眼睛要横扫 1200px 才读完 7 个信息块，读起来像工具栏而不是主机界面。
+2. 进度块、缩放开关各自带底色，叠在同一块板上像补丁。
+3. 按钮 26px 高、图标 56px，低于 44px 命中下限，摇杆选起来费劲。
+4. 手柄只有快捷键（A 启动 / Y 详情），**不能把焦点走到按钮上再按 A**；方向键在主页只会换游戏。
+5. 键盘 Tab 的焦点环在深色封面上几乎看不见。
+
+### 1.20.2 新结构：两个簇 + 一条带（最长边框 1280px → 320px）
+
+- **左簇 identity**：kicker（带 26×3 accent 短横）→ 标题 → 简介 → 标签 → 主按钮。
+  无底色无边框，直接压在底部压暗层上。
+- **右簇 status**：`<div class="status-card">` 包住 `progress-block` 与 `hero-scale`，
+  合成**全屏唯一一张卡片**（240–320px，中间一条发丝线）。窗口模式下
+  `.status-card { display: contents }`，布局与原来完全一致。
+- **底部图标带**：图标 64–72px、名称一行、整块可点；选中只给图标短底边。
+- 压暗统一改成 180° 深色渐变（8% 起、62% 到 0.6、底部 0.92）；纸面主题不再用白色 veil，
+  改为**浅色文字 + 深色压暗**，主题身份留在卡片材质上（羊皮纸 / 暗金双线 / 登机牌 / 硬偏移）。
+
+### 1.20.3 交互：两条聚焦行，键盘与手柄共用
+
+| 操作 | 行为 |
+| --- | --- |
+| ↑ / ↓ | 在 `actions`（继续游戏 → 详情 → 缩放设置 → 开启缩放）与 `strip`（游戏图标）之间切换 |
+| ← / → | 在 actions 内移动并回绕；在 strip 内保持"换游戏" |
+| Enter / A | 激活当前焦点（`immersiveActivate()` 直接 click，不依赖 pad 的列表） |
+| Esc / B | 退出沉浸模式（原有行为不变） |
+
+实现：`app.js` 新增 `immersiveHome() / immersiveActionEls() / immersiveStep() /
+immersiveRing() / immersiveActivate()`；键盘在全局 switch 之前拦方向键；`padApp.nav /
+navVertical / confirm` 先走同一套函数。焦点环用 `.is-pad-focus`，键盘与手柄都画，
+`data-input="pointer"` 时隐藏；环是**双色**（accent 描边 + 3px 深色领圈 + 12px 光晕），
+在明亮封面上也能看清。
+
+### 1.20.4 尺寸与对比（实测）
+
+| 项 | 值 |
+| --- | --- |
+| 信息簇宽 | 1180px（`min(1180px, 92vw)`），内容列 560px |
+| 状态卡 | 320×104–150px（唯一带边框的元素） |
+| 主按钮 | 48–56 × 168px（最低 48×168） |
+| 次按钮 | 44px 高 / ≥96px 宽 |
+| 缩放开关 | 44px 高，整卡宽 |
+| 图标 | 72×77–100px（夜航是 186×54 的横条） |
+| 内容溢出 | 14 套全部 `overflow=0` |
+
+### 1.20.5 踩坑（重要，下一轮别踩）
+
+1. **通栏横板改成两簇后必须改 DOM**：`progress-block` + `hero-scale` 需要同一个包裹层才能
+   共用一张卡；否则两半永远隔着网格行距。包裹层在窗口模式用 `display:contents` 归零。
+2. **`grid-row: 1 / -1` 在隐式网格里无效**（`-1` 指第 1 条线），会变成 `1/1` 空区；
+   改成 `1 / span 6`。
+3. **codex 把 `.hero` 用 auto margin 居中**，卡片会被推到视口外（x=1619）；
+   沉浸层必须 `width/max-width/margin/padding` 全 `!important`。
+4. **codex 用 `:not(.is-long-title)` + `!important` 把短标题放大到 40–72px**，
+   共享层的字号封顶要多带一个 `[data-theme]` 属性才压得住。
+5. **纸面主题的白色 veil 会把封面洗成雾**（0.58–0.9 时整片发白），已统一改深色压暗。
+6. **截图脚本直接加 `.is-fullscreen` 类不等于进入沉浸模式**：`state.fullscreen` 仍为 false，
+   方向键会走全局换游戏分支；测试与截图都必须用 `F` 真实切换。
+
+### 1.20.6 验收
+
+| 检查 | 结果 |
+| --- | --- |
+| `dotnet build` 现代 + legacy net48 | 0 错误 0 警告 |
+| `theme-slot-check --strict` | exit 0 |
+| `feature-checks.js` | **55/55**，新增第 [10] 组 8 项：F 进沉浸 / 首个方向键落在主按钮 / 行动作行回绕 / ↓ 进入图标带 / ↑ 回到操作行 / 命中尺寸 ≥44 / 焦点环已绘制 |
+| `tier-shots.js --shots=false` | 98 组全过 |
+| `headless-shots.js --views=all` | exit 0，26 条警告仍是既有 aurum 5px / dusk 2px 磁贴名裁切，**0 新增** |
+| 截图 | `_shots/immersive-v2/`：14 套 + `sheet.jpg` 总览 + `nova-focus.jpg` / `dusk-focus.jpg` 焦点特写 |
+
+### 1.20.7 没做 / 下一步
+
+1. 图标带的"选中放大 + 外发光"联动还没做（当前只有短底边 + accent 描边）。
+2. 左簇在极长游戏名（>30 字）时的两行标题未逐一压测，`headless-shots` 的 stress 视图只覆盖窗口模式。
+3. 版本仍 1.16.5，本轮改动**未提交、未 bump、未发行**。
+
+---
+
+## 1.21 第七轮：控件材质与墨色配对（Owner 反馈"按钮颜色盖过文字"）
+
+Owner 原话：**「就是按钮和字体不符合主题的设计风格，同时也违反按钮颜色盖过文字导致文字不清晰的铁律」**。
+这不是审美问题，是共享层把主题的配色拆散了。
+
+### 1.21.1 根因
+
+`src/theme-slots.css` 沉浸段里有一条：
+
+```css
+html.is-fullscreen .view-home .hero-inner > .cta-row .btn.ghost {
+  color: var(--im-dock-ink, #f4f2ec) !important;
+}
+```
+
+它只改**文字色**，不动**底色**。纸面主题（grimoire / riot / riso / summer / mnemo）的次按钮是
+`background: 羊皮纸/白纸/荧光黄` + `color: 深墨`，被这条一改就成了白底白字：
+
+| 主题 | 次按钮实测对比（修复前） |
+| --- | --- |
+| grimoire | **1.01:1** |
+| riot | 1.10:1 |
+| riso | 1.11:1 |
+| summer | 1.16:1 |
+| mnemo | 1.13:1 |
+| broadcast / endfield / nightflight | 删除该条后回落成透明底深墨 → 1.05–1.12:1 |
+
+主按钮另有一批：nova 3.02 / steam 3.22 / dusk 4.27 / aurum 2.24，原因是 app.js 用
+`luma > .62` 猜深浅字，阈值偏保守，浅粉、浅金底上仍然给白字。
+
+### 1.21.2 改法
+
+1. **共享层不再单方面改字色**。`.btn.ghost` 只加深度（`--im-btn-shadow`）与圆角，颜色全交主题；
+   `.btn.primary` / `.btn.ghost` 的字体、字距、字重、圆角、尺寸全部走 `--im-cta-*` / `--im-btn-*`。
+2. **每套主题在 `interfaces.css` 末尾写一段「IMMERSIVE CONTROLS」**，把底与字成对声明：
+   - 纸面主题保留纸牌（grimoire 羊皮纸 + 深墨、riot 白块 + 黑字 + 红硬偏移、riso 酸黄 + 深蓝、
+     summer 荧光黄 + 深蓝、endfield 白纸 + 墨 + 4px 硬投影）；
+   - 深色主题保留发光/金属（aurum 羊皮纸 + 近黑、codex 铜金渐变 + 深墨、nightflight 荧光黄 + 深蓝、
+     zerohour 青柠 + 黑、steam 深绿 + 近白、mnemo 深紫 + 雾白）。
+3. **字体跟主题走**：宋体主题（aurum / codex / grimoire / dusk / broadcast / riso）的按钮与眉标用
+   `--font-display`；黑体主题用黑体。字距 .05–.18em 按主题。**小字（meta、卡片副行、图标带名）一律
+   UI 字体**——10px 宋体在米白纸上渲染成灰糊，不是墨。
+4. **墨色分三层令牌**：`--im-ink`（封面主文字）/ `--im-ink-dim`（次级）/ `--im-kicker-ink`、
+   `--im-kicker-dim`（眉标自带浅底时用）/ `--im-card-ink`、`--im-card-muted`（右卡自成一套）。
+   所有"用 opacity 做次级"的地方改成颜色，opacity 会与主题自己的 alpha 相乘。
+5. **veil 双层**：主题 `--im-veil` 在上，共享底线渐变在下（`.74` 收尾）。原来单层时浅色主题
+   底部只有 .5–.6，1px 浅字达不到 4.5:1；现在任何封面都有可读地板。
+6. **修掉三处结构性 bug**：
+   - `.hero` 在沉浸模式仍有主题的实色背景 → 一条硬边横带把封面切成两半（grimoire 最明显）；
+   - dusk 的 `html[data-theme="dusk"] .stage::after { display:none }` 把封面本身关掉了，
+     沉浸模式只剩渐变底；
+   - 各主题遗留的 `order:` 把标题排到眉标前面（nightflight 标题在上、眉标在下），
+     共享层统一 `kicker → 标题 → tagline → 事实行 → 行动行`。
+7. **焦点环改双色**：`outline: 3px #fff` + `outline-offset: 3px` + `box-shadow: 0 0 0 3px rgba(0,0,0,.88)`。
+   单色 accent 环在 accent 主按钮上等于没有（nova 粉环压粉按钮），单色白环在纸按钮上等于没有。
+
+### 1.21.3 新增验收工具 `tools/immersive-audit.js`
+
+不靠眼睛，也不靠 computed color（渐变色/半透明/图片底都算不准）。做法是**双帧差分**：
+对每个控件拍两张图，第二张把文字色与 `-webkit-text-fill-color` 打透明、`text-shadow: none`，
+两帧差异区就是笔画；底色取未变像素众数，墨色取差异像素里对比更强那一侧的笔画核心中位色，
+再算 WCAG。命令：
+
+```bash
+node tools/immersive-audit.js                                  # 只出报告，失败退出码 1
+node tools/immersive-audit.js --shots --focus --out=../_shots/x # 顺带出 14 套截图 + 焦点图
+node tools/immersive-audit.js --themes=nova,summer             # 子集
+```
+
+覆盖 14 个控件 × 14 套主题 = **196 个读数**：主按钮、两个次按钮、缩放勾选行及其 hint、眉标、
+标题、副标题、元信息、卡片表头/时长/副行、图标带名、图标带标题。
+
+### 1.21.4 结果
+
+| 检查 | 结果 |
+| --- | --- |
+| `immersive-audit.js` | **196/196** 全部 ≥4.5:1（标题等大字 ≥3.0），14 套一次过 |
+| `theme-slot-check --strict` | exit 0（14 套 rules 17–47 条不等） |
+| `feature-checks.js` | **55/55** 全过（第 [9][10] 组沉浸断言未回退） |
+| `headless-shots.js` 窗口模式 | nova / grimoire / summer 首页 0 裁切 0 溢出，布局未变 |
+| 截图 | `_shots/immersive-v3/`：14 套 + `sheet.jpg` + `*-focus.jpg`；`pass1..pass11.json` 留了逐轮读数 |
+
+测量口径注意：像素法对 9–10px 小字会低估（抗锯齿边缘占多数），卡片副行因此把字号抬到 11px、
+字重 500，而不是继续调颜色。
+
+### 1.21.5 没做
+
+1. ~~各主题的 `--im-card-bg` 多数还是共享兜底~~ → 第八轮补上了 aurum / codex / steam / zerohour
+   的卡面材质（§1.22.4）。
+2. 标题字号上限仍统一 34px（`clamp(24px,2.5vw,34px)`），主题的字标个性被压平；
+   放开到 `--im-title-max` 需要先补长名压测，本轮未做。
+3. 仍未提交、未 bump、未发行。
+
+---
+
+## 1.22 第八轮：隐藏游戏的两处语义修正 + 全页文字审计
+
+Owner 报了两个问题，都成立，而且都属于"我上一轮只测了自己盯的那一页"：
+
+1. 详情页「隐藏此游戏」右边的说明文字看不见；
+2. 隐藏之后，游戏还在首页的封面和图标带里。
+
+### 1.22.1 隐藏行说明文字：8 个主题低到 1.0:1
+
+`src/type.css` 的 `.manage-body > .pref-row .pref-hint` 用 `var(--text-faint)`
+（`rgba(244,240,231,.58)`，为深色底调的浅米白）。八个纸面主题把管理面板画成羊皮纸/白纸，
+浅字压浅底：
+
+| 主题 | 修复前 | 现在 |
+| --- | --- | --- |
+| broadcast | 1.10:1 | 6.7:1 |
+| riot | 1.02:1 | 6.6:1 |
+| riso | 1.04:1 | 7.2:1 |
+| grimoire | 1.14:1 | 6.6:1 |
+| summer | 1.08:1 | 6.4:1 |
+| dusk / endfield / mnemo | 1.05–1.08:1 | 6.2–7.0:1 |
+
+改法：`--faint` → `--muted`（每个主题都定义了这一层，纸面主题给深墨），字号 10 → 11px、
+字重 500。`src/app.css` 里详情页同族的 `.detail-launch-options .pref-hint` 一并改掉——
+它讲的是"开着缩放会怎样"，同样不能是装饰。
+
+### 1.22.2 隐藏之后还留在首页：索引体系的问题
+
+`buildRail()` 直接 `state.games.map(...)`，隐藏标记只影响游戏库网格。于是封面、图标带、
+「6 款」计数全都继续展示刚被隐藏的游戏（Owner 的红框截图）。
+
+`state.games` 不能删（库里要能筛出隐藏项，详情页、索引、计时都要它），所以改成
+**"货架"概念**：
+
+- `shelfCount()` / `resolveShelfIndex(from, dir)`：只在未隐藏的游戏之间走位；
+- `buildRail()` 跳过隐藏项，但 `data-index` 仍是 `state.games` 的下标；
+- `updateRail()` / `centerTile()` / `ensureActiveTileVisible()` 改成按 `data-index` 找 tile，
+  不再用 `children[i]`（跳过后位置与下标不再相等）；
+- 启动时若上次停在隐藏游戏上，自动落到最近的可见项；
+- 隐藏当前游戏后立即 `rebuildAfterLibraryChange(false)`，并且**即使在详情页开着也重绘 hero**
+  （原来 `if (!state.overlay)` 把这一步跳过了，关掉详情页就会看到刚隐藏的游戏）；
+- 全部隐藏 = 空货架，走 `is-empty` 与 `railEmpty`，不显示半个封面。
+
+新增 `tools/verify-hidden.js`（7 项断言：tile 少一个 / 名字不在带里 / 计数跟随 / hero 换人 /
+全部隐藏时货架为空 + 空态提示），并把这套断言并入 `feature-checks` 第 [11] 组。
+
+### 1.22.3 新增 `tools/text-audit.js`：一次扫完所有页面的所有小字
+
+上一轮的 `immersive-audit.js` 只覆盖沉浸首页，所以详情页里的说明文字两轮都没被发现。
+新工具遍历"拥有文本节点的可见元素"，逐个做同样的双帧差分，输出选择器路径：
+
+```bash
+node tools/text-audit.js                                     # 4 个视图 × 14 主题
+node tools/text-audit.js --views=detail --min=4.5
+node tools/text-audit.js --selectors="#manageHiddenHint"      # 定位单个问题时用
+node tools/text-audit.js --shots --out=../_shots/text-audit   # 顺带整页截图
+```
+
+判定：正文 ≥ 4.5:1，大字（≥18.66px，或 ≥14px 且 700）≥ 3.0:1；测不出来的单独计数，不算通过。
+
+**这个工具自己踩了四个坑，都写进注释了**：
+
+1. 被弹层压住的元素整体变暗，对比塌到 1:1 → 用 `elementFromPoint` 命中测试排除；
+2. `scrollIntoView` 要等两帧才生效，否则读到滚动前的坐标；
+3. `Page.captureScreenshot` 的 `clip` 是**页面坐标**，滚动页必须加 `scrollX/scrollY`；
+4. "把文字变透明"的样式原来只写在 `html.is-fullscreen .view-home` 作用域下，详情页完全不生效，
+   diff 恒为空 → 回退到亮度分位法，把按钮边缘当成了文字，读出一堆 1.7–3.8 的假失败。
+   加上不限作用域的一份后才测准。
+
+同时把像素测量抽成 `tools/lib/legibility.js`，两个审计脚本共用一份实现。
+
+### 1.22.4 顺带补上的卡面材质
+
+aurum（墨绿金属 + 铜线）、codex（旧皮革 + 金线）、steam（控制台炭黑）、zerohour（命令台黑 + 青柠描边）
+各给了 `--im-card-bg / --im-card-border / --im-card-radius`，原来它们用的是共享兜底的半透明黑。
+
+### 1.22.5 试过但回退的方案（重要，别重复）
+
+窗口模式的小字（图标带时长、底部按键提示、"6 款"计数、详情页统计标签）也存在同类问题，
+`text-audit` 在 `home` + `detail` 两个视图里扫出 **118 处**低于 4.5:1。
+
+我先试了"在共享层统一改用 `--muted`"，结果**一半主题变好、一半变坏**：
+
+| 主题 | 统一前 | 统一后 |
+| --- | --- | --- |
+| grimoire | 15 处失败 | 21 处（游戏名从 1.93 → 1.35） |
+| dusk | ? | 21 处 |
+
+原因：这幅画里"标签的底"不是同一个东西。grimoire 的 `.tile-label` 是蜡红条，`--muted`（深褐）
+压上去 1.35:1；dusk 的标签在夜空上，`--muted` 也是褐；而 summer 的标签是白纸，`--muted`
+（深蓝）就正好。**一个全局令牌无法同时服务三种底。**
+
+试过的第二个方案（逐主题配 `#f6e7c4` / `#17345a` 这类硬编码）能让 grimoire 21 → 10、
+summer 14 → 9，但 active 卡片的标签底又和普通卡片不同（riot 红块 / riso 蓝块），
+28 种组合逐一验证的收益不抵风险，已回退。
+
+正确做法（留给下一轮）：**给每套主题的 `.tile-label` 明确声明"标签底 + 标签墨"一对**，
+和沉浸模式的 `--im-card-bg/-ink` 同一套做法；工具已经能直接测出每种的读数
+（`node tools/text-audit.js --views=home --themes=grimoire`）。
+
+### 1.22.6 验收
+
+| 检查 | 结果 |
+| --- | --- |
+| `tools/immersive-audit.js` | **196/196**（改了共享测量库后回归，无回退） |
+| `tools/text-audit.js --views=detail --selectors=#manageHiddenHint,#detailScaleHint,#manageDoneBtn` | **0 失败 / 14 主题** |
+| `tools/verify-hidden.js` | 7/7（含隐藏前后截图 `_shots/hidden-shelf/`） |
+| `feature-checks.js` | **60/60**（第 [11] 组 5 项新增，第 [5] 组按新语义重写） |
+| `theme-slot-check --strict` | exit 0（新增 4 套卡面令牌后仍通过） |
+| 窗口模式 | nova / grimoire / summer 首页 0 裁切 0 溢出 |
+
+实测隐藏流程（`_shots/hidden-shelf/before-hide.jpg` → `after-hide.jpg`）：
+6 款 → 5 款，图标带里"沉睡的法则"消失，封面从 THINGS AS THEY ARE 切到 LULLABY FOR YOU，
+右下角出现"已隐藏 · 游戏库右上角「隐藏」可查看"。
+
+### 1.22.7 没做
+
+1. **窗口模式的次要文字（118 处）**：见 §1.22.5，需要在每个主题里成对声明标签底与标签墨。
+   这是下一轮的第一项，工具与清单都已就绪。
+2. 标题字号上限仍统一 34px（需要长名压测后才能放开 `--im-title-max`）。
+3. 仍未提交、未 bump、未发行。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -2138,6 +2657,21 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 发行资产：`single.exe` 9.51 MB `e282ee84ac5c…`、`legacy-single.zip` 13.71 MB `ffaeda6ce491…`、`legacy-full.zip` 17.11 MB `0fac45be8d1e…`；verify 与单文件冒烟通过；
 - [ ] Owner 提权旧实例退出后删除归档 `03-归档备份\old-build-1.16.4\` 里的 `GUGUOVA.old.exe` / `GUGUOVA.old.dll`。
 
+本轮（第四轮 · 沉浸模式机制，**工作区未提交**，详见 §1.18）：
+
+- [x] 参考图分析：单侧压暗、极简顶栏、左侧信息层级、卡片横排放下方；不照搬真实游戏素材；
+- [x] `src/theme-slots.css` 沉浸骨架（左侧安全区 / 单侧 veil / 底部横排卡片带 / 顶栏压低），JS 零改动、窗口模式零影响；
+- [x] 13 份 `interfaces.css` + `src/theme-nova.css` 各写一套 `--im-*` 材质值（浅色主题用浅色 veil）；
+- [x] 缩放勾选框参数化 `--hs-check-*` 并 14 套各给形态；`engineScaleRow` 脱离通用 `.pref-row`；
+- [x] 主页 / 引擎弹窗 hint 显示「全屏缩放」或「倍数缩放 X 倍」，`.hero-scale-hint` 允许换行；
+- [x] 修掉共享层放大字标导致 endfield 标题挤出铭牌的回归；
+- [x] `theme-slot-check` 新增 `--im-` / `--hs-check-` 守门；`feature-checks` 新增第 [9] 组 6 项；
+- [x] 双目标编译 0 错误、守门 exit 0、feature-checks 47/47、tier-shots 98 组、headless-shots 0 新增警告；
+- [x] 14 张真实沉浸截图 `_shots/immersive-real/`（含 `contact-sheet.jpg`），逐套 `overflowX=0`；
+- [ ] **14 套沉浸外观深化（Owner 叫停，等定稿方向）**；构图稿保留但不采纳；
+- [ ] 沉浸模式形态回访（§1.19.6：图标条是否要"选中放大 + 外发光"联动、横条是否要新装饰）；
+- [ ] 本轮改动提交 / bump 版本 / PR / 发行（等 Owner 确认）。
+
 未完成（下一轮）：
 
 - [ ] **1.16.3 实机回访**（§7 P0-0，已发行；broadcast 的 REC 红要 Owner 拍板）；
@@ -2156,5 +2690,8 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
-下一轮从 **§1.17** 开始：1.16.5 已发布，实机验收与三类回归都收官；只剩 Owner 旧实例
-退出后删掉归档里的两个 `.old` 文件，以及 §7 的实机回访；平台真机（P0-2）仍是最大空白。
+下一轮从 **§1.19** 开始：沉浸模式已按「封面就是页面」重构并跑完三类回归，等 Owner 看过
+14 张截图（`_shots/immersive-layout/`）后决定是否再加强图标条联动与横条装饰；
+改动仍在工作区待提交，未 bump、未发行。
+其余沿用：Owner 旧实例退出后删归档里的两个 `.old` 文件、§7 的实机回访；
+平台真机（P0-2）仍是最大空白。

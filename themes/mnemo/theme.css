@@ -1381,3 +1381,44 @@ html[data-theme="mnemo"] .lib-sort .lib-dir {
 }
 html[data-theme="mnemo"] .lib-dir:hover,
 html[data-theme="mnemo"] .lib-genre select:hover { border-color: var(--mn-plum); color: var(--mn-plum); }
+
+/* ============================================================
+   IMMERSIVE COMPOSITION (fullscreen only)
+   ------------------------------------------------------------
+   Owner principle (2026-11-10, revised same day):
+     • the cover is the page; controls are guests;
+     • ONE composition for all 14 themes — a short identity cluster
+       bottom-left, one status card bottom-right (240–320px, the only
+       bordered surface) and the icon strip along the bottom edge.
+       No full-width bar: the longest border on screen is the card.
+     • themes differ by type, accent rule, card material, tick shape
+       and the reading order of the left cluster — never by falling
+       back to the windowed layout.
+
+   Geometry lives in src/theme-slots.css. This block only supplies the
+   theme's materials and its reading order.
+   ============================================================ */
+
+html[data-theme="mnemo"].calm {
+  --im-veil: linear-gradient(180deg, rgba(0,0,0,0) 8%, rgba(0,0,0,.24) 34%, rgba(0,0,0,.6) 62%, rgba(0,0,0,.92) 100%);
+  --im-dock-ink: #efe9f9;
+  --im-dock-ink-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 14px rgba(0,0,0,.55);
+  --im-dock-h: 148px;
+  --im-card-label-bg: transparent;
+  /* status card */
+  --im-card-bg: rgba(240, 236, 248, .95);
+  --im-card-border: 1px solid rgba(91, 74, 140, .72);
+  --im-card-radius: 10px;
+  --im-card-ink: #241f33;
+  --im-card-shadow: inset 3px 0 0 #9b3550;
+  --im-card-rule: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  /* accent rule before the kicker */
+  --im-rule: var(--accent);
+}
+
+/* Reading order of the identity cluster. */
+html[data-theme="mnemo"].calm .view-home .hero-inner > .hero-logo { order: 1; }
+html[data-theme="mnemo"].calm .view-home .hero-inner > .kicker { order: 2; }
+html[data-theme="mnemo"].calm .view-home .hero-inner > .meta-row { order: 3; }
+html[data-theme="mnemo"].calm .view-home .hero-inner > .tagline { order: 4; }
+html[data-theme="mnemo"].calm .view-home .hero-inner > .cta-row { order: 5; }

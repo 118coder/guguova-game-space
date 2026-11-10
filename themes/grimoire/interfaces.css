@@ -207,3 +207,103 @@ html[data-theme="grimoire"] .settings-id-copy b { color: var(--t-ink); font-fami
 html[data-theme="grimoire"] .settings-id-copy em { color: var(--t-muted); }
 
 html[data-theme="grimoire"] .settings-id-tags i { border-color: rgba(122, 31, 43, .5); border-radius: 0; color: var(--t-accent); }
+
+/* ============================================================
+   IMMERSIVE SHELL SLOT MAPPING + SCALE TICK BOX
+   ------------------------------------------------------------
+   Values are this theme's own material: veil, rule, card
+   proportion and the shape of the tick mark. Geometry lives in
+   src/theme-slots.css. Per-theme art direction is deferred by
+   Owner (2026-11-10) — this is the mechanism, not the final look.
+   ============================================================ */
+
+html[data-theme="grimoire"] {
+  --im-safe-x: clamp(56px, 8vw, 148px);
+  --im-text-width: min(49vw, 770px);
+  --im-title-size: 5vw;
+  --im-title-max: 86px;
+  --im-veil: linear-gradient(90deg, rgba(32,20,14,.9) 0%, rgba(32,20,14,.5) 42%, rgba(32,20,14,0) 76%);
+  --im-topbar-bg: rgba(32,20,14,.7);
+  --im-topbar-rule: 3px double rgba(176,138,62,.5);
+  --im-dock-bg: rgba(40,26,18,.86);
+  --im-dock-rule: 4px solid rgba(122,31,43,.7);
+  --im-dock-shadow: inset 0 8px 20px -14px #000;
+  --im-card-gap: 11px;
+  --im-card-width: clamp(130px, 10.6vw, 170px);
+  --im-card-ratio: 5 / 4;
+  --im-card-radius: 3px;
+  --im-card-border: 3px solid rgba(176,138,62,.55);
+  --im-card-shadow: 0 8px 20px -14px #000;
+  --im-card-active-border: 3px solid #b08a3e;
+  --im-card-active-shadow: 0 0 0 2px rgba(122,31,43,.7);
+  --im-card-lift: -3px;
+  --im-card-name-size: 11.5px;
+  --hs-check-size: 16px;
+  --hs-check-border: 2px solid rgba(176,138,62,.7);
+  --hs-check-radius: 50%;
+  --hs-check-bg: rgba(40,26,18,.7);
+  --hs-check-shadow: 0 0 0 2px rgba(122,31,43,.35);
+  --hs-check-on-line: #b08a3e;
+  --hs-check-on-bg: rgba(122,31,43,.4);
+  --hs-check-mark: #f0d9a8;
+  --hs-check-mark-x: 4px;
+  --hs-check-mark-y: 4px;
+  --hs-check-mark-w: 6px;
+  --hs-check-mark-h: 6px;
+  --hs-check-mark-bw: 0;
+  --hs-check-mark-bg: #7a1f2b;
+  --hs-check-mark-radius: 50%;
+  --hs-check-mark-transform: none;
+}
+
+/* ============================================================
+   IMMERSIVE CONTROLS
+   ------------------------------------------------------------
+   Fullscreen puts the action row straight on the cover, where the
+   windowed page had a plate under it. Each theme answers with its
+   own material — paper stays paper, glass stays glass — and every
+   block below decides plate AND ink together. Declaring one of the
+   two is exactly how a label disappears (白底白字).
+
+   Geometry, hit areas and the focus ring stay in src/theme-slots.css.
+   ============================================================ */
+
+html[data-theme="grimoire"].calm .view-home .hero-inner > .cta-row .btn {
+  font-family: var(--font-display);
+  letter-spacing: .12em;
+  font-weight: 600;
+  border-radius: 0;
+}
+html[data-theme="grimoire"].calm .view-home .hero-inner > .cta-row .btn.primary {
+  background: linear-gradient(180deg, #8a2532 0%, #6d1b26 100%) !important;
+  color: #f6e7c4 !important;
+  border: 1px solid #b08a3e !important;
+  box-shadow: inset 0 0 0 1px rgba(241, 228, 198, .28), 0 12px 28px -18px #000;
+}
+html[data-theme="grimoire"].calm .view-home .hero-inner > .cta-row .btn.ghost {
+  background: #f6ead0 !important;
+  color: #2a1b12 !important;
+  border: 3px double rgba(176, 138, 62, .85) !important;
+}
+html[data-theme="grimoire"].calm .view-home .hero-inner > .kicker {
+  font-family: var(--font-display);
+  letter-spacing: .16em;
+}
+html[data-theme="grimoire"].calm .view-home .status-card {
+  --im-card-ink: #f4e6c8;
+  --im-card-muted: rgba(244, 230, 200, .86);
+}
+
+/* The dossier card is two materials in one surface: a wax-red header band
+   carrying parchment type, and a parchment body carrying sepia ink. One
+   --im-card-ink cannot serve both, so each half names its own. */
+html[data-theme="grimoire"].calm .view-home .status-card .progress-head,
+html[data-theme="grimoire"].calm .view-home .status-card .progress-pct {
+  color: #f4e6c8 !important;
+}
+html[data-theme="grimoire"].calm .view-home .status-card .progress-sub,
+html[data-theme="grimoire"].calm .view-home .status-card > .hero-scale,
+html[data-theme="grimoire"].calm .view-home .status-card .hero-scale-label,
+html[data-theme="grimoire"].calm .view-home .status-card .hero-scale-hint {
+  color: #33241a !important;
+}

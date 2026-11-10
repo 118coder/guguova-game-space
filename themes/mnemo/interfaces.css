@@ -192,3 +192,91 @@ html[data-theme="mnemo"] .settings-id-copy b { color: var(--mn-ink); font-family
 html[data-theme="mnemo"] .settings-id-copy em { color: var(--mn-ink-2); font-family: var(--mn-mono); }
 
 html[data-theme="mnemo"] .settings-id-tags i { border-color: var(--mn-hair); border-radius: 2px; color: var(--mn-violet); font-family: var(--mn-mono); }
+
+/* ============================================================
+   IMMERSIVE SHELL SLOT MAPPING + SCALE TICK BOX
+   ------------------------------------------------------------
+   Values are this theme's own material: veil, rule, card
+   proportion and the shape of the tick mark. Geometry lives in
+   src/theme-slots.css. Per-theme art direction is deferred by
+   Owner (2026-11-10) — this is the mechanism, not the final look.
+   ============================================================ */
+
+html[data-theme="mnemo"] {
+  --im-safe-x: clamp(52px, 7.6vw, 142px);
+  --im-text-width: min(47vw, 750px);
+  --im-title-size: 5vw;
+  --im-title-max: 88px;
+  --im-veil: linear-gradient(90deg, rgba(28,24,44,.9) 0%, rgba(28,24,44,.52) 42%, rgba(28,24,44,0) 76%);
+  --im-topbar-bg: rgba(28,24,44,.6);
+  --im-topbar-rule: 1px solid rgba(155,53,80,.36);
+  --im-dock-bg: rgba(34,29,52,.82);
+  --im-dock-rule: 1px solid rgba(91,74,140,.6);
+  --im-dock-shadow: 0 -18px 40px -28px #000;
+  --im-card-gap: 12px;
+  --im-card-width: clamp(124px, 10vw, 160px);
+  --im-card-ratio: 1 / 1;
+  --im-card-radius: 2px;
+  --im-card-border: 1px solid rgba(91,74,140,.6);
+  --im-card-shadow: inset 0 0 0 1px rgba(201,155,63,.2);
+  --im-card-active-border: 2px solid #c99b3f;
+  --im-card-active-shadow: 0 0 0 3px rgba(155,53,80,.3);
+  --im-card-lift: -3px;
+  --im-card-name-size: 11.5px;
+  --hs-check-size: 15px;
+  --hs-check-border: 1px solid rgba(91,74,140,.8);
+  --hs-check-radius: 2px;
+  --hs-check-bg: rgba(28,24,44,.7);
+  --hs-check-shadow: inset 0 0 0 1px rgba(155,53,80,.3);
+  --hs-check-on-line: #9b3550;
+  --hs-check-mark: #c99b3f;
+  --hs-check-mark-x: 3px;
+  --hs-check-mark-y: 6px;
+  --hs-check-mark-w: 9px;
+  --hs-check-mark-h: 2px;
+  --hs-check-mark-bw: 0;
+  --hs-check-mark-bg: #9b3550;
+  --hs-check-mark-transform: none;
+}
+
+/* ============================================================
+   IMMERSIVE CONTROLS
+   ------------------------------------------------------------
+   Fullscreen puts the action row straight on the cover, where the
+   windowed page had a plate under it. Each theme answers with its
+   own material — paper stays paper, glass stays glass — and every
+   block below decides plate AND ink together. Declaring one of the
+   two is exactly how a label disappears (白底白字).
+
+   Geometry, hit areas and the focus ring stay in src/theme-slots.css.
+   ============================================================ */
+
+html[data-theme="mnemo"].calm .view-home .hero-inner > .cta-row .btn {
+  font-family: var(--font-display);
+  letter-spacing: .1em;
+  font-weight: 700;
+  border-radius: 2px;
+}
+html[data-theme="mnemo"].calm .view-home .hero-inner > .cta-row .btn.primary {
+  background: linear-gradient(180deg, #332b4d 0%, #241f33 100%) !important;
+  color: #fbf9fd !important;
+  border: 1px solid rgba(154, 137, 196, .62) !important;
+  box-shadow: 0 12px 30px -18px #000;
+}
+html[data-theme="mnemo"].calm .view-home .hero-inner > .cta-row .btn.ghost {
+  background: #fbf9fd !important;
+  color: #241f33 !important;
+  border: 1px solid rgba(91, 74, 140, .55) !important;
+}
+html[data-theme="mnemo"].calm .view-home .hero-inner > .cta-row .btn.ghost:hover {
+  background: #f0edf6 !important;
+  border-color: #9b3550 !important;
+  color: #6d2238 !important;
+}
+html[data-theme="mnemo"].calm .view-home .hero-inner > .kicker {
+  letter-spacing: .14em;
+}
+html[data-theme="mnemo"].calm .view-home .status-card {
+  --im-card-ink: #241f33;
+  --im-card-muted: rgba(36, 31, 51, .74);
+}
