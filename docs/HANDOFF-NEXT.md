@@ -2223,7 +2223,7 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 
 > Owner 需求：终末地主题的导出卡片「改改设计」，并加载 `endfield-ui` 技能作为设计
 > 依据。本轮把 endfield 的三张卡（poster/dossier/score）按技能规则逐条对齐，
-> 顺带修掉一个**只影响 endfield 的导出 Bug**。工作区未提交、未发版。
+> 顺带修掉一个**只影响 endfield 的导出 Bug**。已合并（**PR #39**，squash `437f91a`）。未发版（等 Owner 批准）。
 > 前后对比图：`../_shots/share-endfield-before/` vs `../_shots/share-endfield-final/`。
 
 ### 1.25.1 先修掉的导出 Bug（像素实证）
@@ -2299,7 +2299,7 @@ html[data-theme="endfield"][data-share-export] body::after { display: none; }
    需要宿主侧资产映射；
 2. dossier 的空状态呼吸区（账目行与幽灵编号之间 ~140px）刻意保留，规格纸需要留白；
 3. 签名分隔符在 sc-sign 文本节点内嵌 `<em>`，若未来其他主题要换分隔符，同一机制可复用；
-4. endfield `theme.json` 1.0.24 → **1.0.25**（铁律 41）；版本仍 1.16.5，未提交未发行；
+4. endfield `theme.json` 1.0.24 → **1.0.25**（铁律 41）；已随 PR #39 合并进 `main`；版本仍 1.16.5，**未发行（等 Owner 批准）**；
 5. Owner 实机回访：真机导出一次 poster/dossier/score，确认 WebView2 下 Saira 与
    无头渲染一致（`font-display: block`，字体在 runtime assets 内已存在）。
 
