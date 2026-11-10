@@ -1910,7 +1910,7 @@
         <div class="sc-sheet" data-no="${String(index).padStart(2, '0')}" data-total="${String(total).padStart(2, '0')}">
           <div class="sc-main">
             <div class="sc-id">
-              <div class="sc-kicker"><i></i>${esc(sourceLabel(game))} · ${shareDateText()}</div>
+              <div class="sc-kicker"><i></i>${esc(sourceLabel(game))}<em>·</em>${shareDateText()}</div>
               <h1 class="sc-title">${esc(name || zh || '未命名游戏')}</h1>
               ${showZh ? `<p class="sc-zh">${esc(zh)}</p>` : ''}
               ${game.tagline ? `<p class="sc-tagline">${esc(game.tagline)}</p>` : ''}
@@ -1933,7 +1933,7 @@
 
           <footer class="sc-foot">
             ${foot.join('')}
-            <span class="sc-sign">${esc(player)} · ${shareDateText()}</span>
+            <span class="sc-sign">${esc(player)}<em>·</em>${shareDateText()}</span>
           </footer>
         </div>
       </article>

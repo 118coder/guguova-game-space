@@ -340,35 +340,174 @@ html[data-theme="endfield"] {
   --sc-accent-ink: #161616;
   --sc-plate: #ffffff;
   --sc-plate-line: #161616;
-  --sc-sheet-bg: #efefec;
+  --sc-sheet-bg: #f4f4f2;
   --sc-sheet-line: #161616;
   --sc-radius: 0;
   --sc-scrim-rgb: 244, 244, 242;
-  /* Paper ground: the veil lightens the artwork into the sheet instead of
-     smearing black over it — a dark veil on a paper theme reads as damage. */
-  --sc-veil:
-    linear-gradient(180deg, rgba(244, 244, 242, .34) 0%, rgba(244, 244, 242, .04) 20%,
-      rgba(244, 244, 242, .46) 52%, rgba(244, 244, 242, .86) 82%, var(--sc-bg) 100%);
-  --sc-veil-x:
-    linear-gradient(90deg, rgba(244, 244, 242, 0) 0%, rgba(244, 244, 242, .3) 46%, var(--sc-bg) 96%);
+  /* Every word lives on declared paper, never on the photo: the wash is
+     switched off per variant below, and the veil tokens stay empty as a
+     second line of defence. */
+  --sc-veil: none;
+  --sc-veil-x: none;
+  --sc-top-veil: none;
   --sc-frame-line: #161616;
   --sc-frame-w: 1px;
   --sc-frame-inset: 34px;
-  --sc-strip-h: 6px;
-  --sc-strip: #fffa00;
+  /* The page-start marker, the same three-colour strip the app's own
+     screens wear at their top edge. */
+  --sc-strip-h: 3px;
+  --sc-strip: linear-gradient(90deg,
+    var(--ef-mark) 0 33.33%, var(--ef-signal) 33.33% 66.66%, var(--ef-mint) 66.66% 100%);
   --sc-label-tracking: .18em;
   --sc-title-transform: uppercase;
   --sc-title-tracking: .01em;
-  --sc-title-size: 82px;
-  --sc-title-size-dossier: 58px;
-  --sc-title-size-score: 48px;
+  --sc-title-weight: 800;
+  --sc-title-size: 84px;
+  --sc-title-size-dossier: 60px;
+  --sc-title-size-score: 56px;
 }
-/* Cut corner: the same 45° pressable corner the theme uses on buttons. */
+
+/* Export hygiene: the drafting grid and the three-colour strip are body
+   decorations of the whole app. In export state the body itself stays
+   visible, so both would print across the card's top edge — measured as a
+   3px baked-in band on every exported card until this rule existed. */
+html[data-theme="endfield"][data-share-export] body::before,
+html[data-theme="endfield"][data-share-export] body::after { display: none; }
+
+/* Cut corner: the same 45° pressable corner the theme uses on buttons,
+   carried by the card frame like a poster plate. The fonts are routed
+   through the shared tokens — every card part declares its own family,
+   so an inherited font would lose to those declarations. */
 html[data-theme="endfield"] .share-card {
-  clip-path: polygon(0 0, calc(100% - 38px) 0, 100% 38px, 100% 100%, 0 100%);
-  --sc-plate-shadow: 4px 4px 0 rgba(22, 22, 22, .16);
+  clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 0 100%);
+  --sc-title-font: "Saira EF", var(--font-ui);
+  --sc-label-font: "Saira EF", var(--font-ui);
+  --sc-num-font: "Saira EF", var(--font-ui);
 }
 html[data-theme="endfield"] .share-card .sc-brand::before { width: 26px; height: 6px; }
+
+/* Wide geometric Latin (Saira, the variable font already bundled for the
+   intro). CJK falls back to the theme sans, which font-stretch does not
+   touch — exactly the wide-Latin-plus-bold-Chinese pairing. */
+html[data-theme="endfield"] .share-card :is(
+    .sc-brand, .sc-kicker, .sc-no, .sc-label, .sc-fact span, .sc-fact b,
+    .sc-hours b, .sc-hours em, .sc-foot, .sc-sign, .sc-tier, .sc-plat) {
+  font-stretch: 112%;
+}
+html[data-theme="endfield"] .share-card :is(.sc-brand, .sc-kicker, .sc-no, .sc-label) {
+  font-stretch: 125%;
+}
+html[data-theme="endfield"] .share-card .sc-title { font-stretch: 118%; }
+html[data-theme="endfield"] .share-card :is(.sc-hours b, .sc-fact b, .sc-no) {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+html[data-theme="endfield"] .share-card .sc-hours { white-space: nowrap; }
+
+/* The milestone ladder reads like the skill's status blocks: reached is
+   inked solid, the current position is the one yellow fill, the rest are
+   hairline boxes. */
+html[data-theme="endfield"] .share-card .sc-ladder i {
+  height: 14px;
+  border-radius: 0;
+  border-color: rgba(22, 22, 22, .34);
+  background: transparent;
+  box-shadow: none;
+}
+html[data-theme="endfield"] .share-card .sc-ladder i.is-on {
+  background: var(--ef-ink);
+  border-color: var(--ef-ink);
+}
+html[data-theme="endfield"] .share-card .sc-ladder i.is-next {
+  background: var(--ef-signal);
+  border-color: var(--ef-ink);
+  box-shadow: none;
+}
+
+/* The library number as an ink tag: white on ink with a cut corner, so it
+   survives any cover it is printed over. */
+html[data-theme="endfield"] .share-card .sc-no {
+  padding: 5px 12px 6px;
+  background: var(--ef-ink);
+  color: #f4f4f2;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: .1em;
+}
+
+/* Field rows read with slashes, never middle dots; markers are squares. */
+html[data-theme="endfield"] .share-card .sc-kicker i {
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+}
+html[data-theme="endfield"] .share-card .sc-kicker em,
+html[data-theme="endfield"] .share-card .sc-meta em,
+html[data-theme="endfield"] .share-card .sc-sign em {
+  font-size: 0;
+  opacity: .5;
+}
+html[data-theme="endfield"] .share-card .sc-kicker em::before,
+html[data-theme="endfield"] .share-card .sc-meta em::before,
+html[data-theme="endfield"] .share-card .sc-sign em::before {
+  content: "/";
+  font-size: 11px;
+}
+/* The sign is inline text, not a flex row — the slash needs its own air. */
+html[data-theme="endfield"] .share-card .sc-sign em::before { margin: 0 6px; }
+html[data-theme="endfield"] .share-card .sc-foot i {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  font-size: 0;
+  opacity: .5;
+}
+html[data-theme="endfield"] .share-card .sc-foot i::before {
+  content: "/";
+  font-size: 11px;
+}
+
+/* Genre and mode chips are the theme's filter blocks: light grey, one cut
+   corner. Age keeps a straight ruled box, the platform is an ink stamp. */
+html[data-theme="endfield"] .share-card .sc-meta {
+  gap: 8px 10px;
+  margin-top: 22px;
+}
+html[data-theme="endfield"] .share-card .sc-meta > span {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 11px 4px;
+  background: #e9e9e5;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  color: var(--ef-ink);
+}
+html[data-theme="endfield"] .share-card .sc-meta .sc-age {
+  padding: 2px 9px 3px;
+  background: transparent;
+  border: 1px solid var(--ef-ink);
+  clip-path: none;
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+html[data-theme="endfield"] .share-card .sc-meta .sc-plat {
+  padding: 3px 11px 4px;
+  background: var(--ef-ink);
+  border: 0;
+  color: #f4f4f2;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+}
+
+/* The spec header on each card already carries launch count and last
+   played; the foot keeps only the collector's mark. */
+html[data-theme="endfield"] .share-card .sc-foot > :is(
+    span:nth-child(1), i:nth-child(2), span:nth-child(3), i:nth-child(4)) {
+  display: none;
+}
 
 /* ============================================================
    CALM MODE · IDENTITY PLATE
@@ -415,24 +554,35 @@ html[data-theme="endfield"].calm .view-home .hero-inner > .hero-logo {
    answers with its own composition. Geometry lives in
    src/share-cards.css; this block moves the artwork, re-shapes the
    sheet and adds the theme's decoration.
+
+   Three rules govern every composition here. Signal yellow only ever
+   fills a block (marker, current ladder rung, brand dash) — never a
+   line or a letter. Paper is plain; division is hairlines and the 45°
+   hatch, not grid paper. And each spec keeps one white instrument
+   board (ink tab on its top edge, one corner cut toward the page) so
+   the numbers always have a surface of their own.
    ============================================================ */
 
-/* Technical spec sheet: paper column on the left, cover window on the
-   right, acid signal seam, cut corner, ruled paper. */
-html[data-theme="endfield"] .share-card {
-  --sc-rule-grid:
-    linear-gradient(rgba(22, 22, 22, .085) 1px, transparent 1px) 0 0 / 100% 32px,
-    linear-gradient(90deg, rgba(22, 22, 22, .085) 1px, transparent 1px) 0 0 / 32px 100%;
-}
-html[data-theme="endfield"] .share-card .sc-sheet { background-image: var(--sc-rule-grid); }
+/* -- POSTER · 技术规格纸 -------------------------------------
+   Paper column on the left, cover window on the right, a hatched
+   spine at the seam. The board at the bottom carries the whole record:
+   spec header on top, hours, ladder, milestone caption below. */
 html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-art {
   inset: 0 0 0 55%;
-  border-left: 10px solid #fffa00;
+  border-left: 1px solid var(--ef-ink);
 }
 html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-deco {
+  top: 0;
+  bottom: 0;
+  left: calc(55% - 26px);
+  right: auto;
+  width: 26px;
+  background: repeating-linear-gradient(-45deg, transparent 0 5px, rgba(22, 22, 22, .11) 5px 6px);
+}
 html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-sheet {
   inset: 0 45% 0 0;
-  padding: 52px 46px 40px;
+  padding: 44px 46px 40px 52px;
 }
 html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-top { inset: 48px 46px auto 52px; }
 html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-main {
@@ -441,85 +591,194 @@ html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-main {
   margin-top: auto;
 }
 html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-score {
+  position: relative;
   align-items: flex-start;
   text-align: left;
   width: 100%;
-  margin-top: 26px;
-  padding: 18px 20px 16px;
-  border: 1px solid #161616;
-  border-left: 8px solid #fffa00;
-  background: #ffffff;
-  box-shadow: 5px 5px 0 #d9d9d6;
+  margin-top: 28px;
+  padding: 22px 26px 20px;
+  background: var(--sc-plate);
+  border: 1px solid var(--ef-ink);
+  box-shadow: none;
+  /* One corner cut toward the page, like the theme's boards. */
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
 }
-html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
-html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-ladder,
-html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
-/* The sheet's upper half carries the record data, like a spec header. */
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-score::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 26px;
+  width: 52px;
+  height: 6px;
+  background: var(--ef-ink);
+}
+/* The record data rides the board as its spec header. */
 html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-facts {
   display: grid;
-  position: absolute;
-  left: 52px;
-  right: 46px;
-  top: 168px;
+  position: static;
+  order: -1;
+  width: 100%;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px;
+  gap: 0 24px;
+  margin: 0 0 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(22, 22, 22, .28);
 }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-hours { margin-top: 2px; }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-tier {
+  width: 100%;
+  margin-left: 0;
+}
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-tier { margin-top: 12px; }
 
-/* Dossier: a filed photo taped to the top right, fields as a ledger. */
+/* -- DOSSIER · 规格账目 --------------------------------------
+   A filed photo with a hatched shadow, top right. The identity block
+   sits beside it; the numbers stack below as a ruled ledger. */
 html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 60px 60px 60px auto;
-  width: 400px;
-  border: 1px solid #161616;
-  box-shadow: 6px 6px 0 rgba(22, 22, 22, .18);
-  z-index: 4;
+  inset: 132px 60px auto auto;
+  width: 470px;
+  height: 520px;
+  border: 1px solid var(--ef-ink);
+  box-shadow: none;
+  /* Above the deco layer, so the hatched shadow reads as behind the photo. */
+  z-index: 5;
 }
 html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: "";
+  position: absolute;
+  top: 146px;
+  right: 46px;
+  width: 470px;
+  height: 520px;
+  background: repeating-linear-gradient(-45deg, transparent 0 5px, rgba(22, 22, 22, .13) 5px 6px);
+}
 html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-sheet {
   inset: 0;
-  padding: 128px 60px 52px;
+  padding: 118px 60px 46px;
 }
 html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-frame {
   inset: 26px;
   height: auto;
   border-width: 2px;
 }
-html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-main { gap: 30px; }
-html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-id { max-width: calc(100% - 460px); }
-html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-score {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: calc(100% - 460px);
-  border-top: 2px solid #161616;
-  padding-top: 24px;
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-top { inset: 48px 60px auto 60px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0;
 }
-html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-foot { padding-right: 460px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-id { max-width: calc(100% - 540px); }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-score {
+  display: flex;
+  flex-direction: column;
+  /* The shared dossier record block aligns its items end for its own grid;
+     this composition is a full-width column stack. */
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  margin-top: 42px;
+  border-top: 0;
+  padding-top: 0;
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-score > :is(.sc-label, .sc-hours, .sc-ladder, .sc-tier) {
+  max-width: calc(100% - 540px);
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-hours { margin-top: 4px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 112px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 18px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-tier { margin-top: 10px; }
+/* The ledger: one hairline per field, label left, value right. */
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-facts {
+  display: grid;
+  position: static;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: 34px;
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-fact {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 15px 2px 14px;
+  border-top: 1px solid rgba(22, 22, 22, .24);
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-fact:last-child {
+  border-bottom: 1px solid rgba(22, 22, 22, .24);
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-fact span { font-size: 11px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-fact b { font-size: 20px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-foot { padding-right: 0; }
+/* Hollow plate number behind the ledger. */
 html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-sheet::after {
   content: attr(data-no);
   position: absolute;
-  left: 54px;
-  bottom: 300px;
-  font: 700 280px/1 var(--sc-title-font);
-  letter-spacing: -.04em;
-  color: rgba(22, 22, 22, .07);
+  left: 52px;
+  bottom: 240px;
+  font-family: "Saira EF", var(--font-ui);
+  font-weight: 800;
+  font-size: 300px;
+  line-height: 1;
+  letter-spacing: -.02em;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(22, 22, 22, .12);
   z-index: -1;
 }
-html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-top { inset: 48px 480px auto 60px; }
 
-/* Score: cover band on top, four-cell instrument panel below. */
+/* -- SCORE · 战绩板 ------------------------------------------
+   Cover band on top under a hairline; the record splits into the
+   identity column and one board whose corner cuts toward the page
+   centre. */
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-art {
   inset: 0 0 auto 0;
   height: 330px;
-  border-bottom: 8px solid #fffa00;
+  border-bottom: 1px solid var(--ef-ink);
 }
-html[data-theme="endfield"] .share-card[data-variant="score"] .sc-top { inset: 44px 56px auto; }
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-top { inset: 352px 56px auto 56px; }
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 338px 0 0;
-  padding: 34px 56px 30px;
+  inset: 352px 0 0;
+  padding: 54px 56px 32px;
 }
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-main {
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 44px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  gap: 52px;
   align-items: start;
+  flex: 1 1 auto;
+  margin: 0;
+}
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-score {
+  position: relative;
+  width: 100%;
+  padding: 22px 26px 20px;
+  background: var(--sc-plate);
+  border: 1px solid var(--ef-ink);
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
+}
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-score::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 26px;
+  width: 52px;
+  height: 6px;
+  background: var(--ef-ink);
+}
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-facts {
+  display: grid;
+  position: static;
+  order: -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 0 0 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(22, 22, 22, .28);
 }
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-hours b { font-size: 120px; }
-html[data-theme="endfield"] .share-card[data-variant="score"] .sc-ladder { margin-top: 12px; }
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-ladder { margin-top: 14px; }
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-tier { margin-top: 10px; }
