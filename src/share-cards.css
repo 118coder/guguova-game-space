@@ -461,6 +461,10 @@
   background: var(--sc-accent);
   flex: none;
 }
+/* The separator is an element so themes can restyle it; keep the base
+   rendering identical to the old text node. */
+.sc-kicker em,
+.sc-sign em { font-style: normal; }
 .share-card[data-variant="score"] .sc-kicker { margin-bottom: 12px; }
 
 .sc-title {

@@ -1,6 +1,9 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.5 已发布；§1.18–§1.23 的全部改动已合并进 `main`（PR #37），但未发版**
+> 交接版本：**1.16.5 已发布；§1.18–§1.24 的全部改动已合并进 `main`（PR #37），但未发版**
+> ✅ **终末地导出卡片已按 endfield-ui 技能重做**（§1.25，2026-11-11）：黄线全部改黄块、
+> 分隔符 `·`→`/`、Saira 宽体上卡、档案卡重构（原构图有 700px 死白）、并修掉
+> **导出卡顶部烧进弹窗三色条**的导出 Bug（该 Bug 只影响 endfield）。13 套其他主题零改动。
 > 交接时间：2026-11-10（同日第四至十一轮）
 > 分支：`main` = `fcbcfe1`（PR [#37](https://github.com/118coder/guguova-game-space/pull/37) squash 合并，
 > 42 文件 +5094/−81，基于 `b40f19e`）；**版本号仍是 1.16.5，没有 bump、没有发行**
@@ -2213,6 +2216,92 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 5. 版本仍 1.16.5，本轮未提交、未 bump、未发行；
 6. 共用 QA 脚本 `tools/share-shots.js` / `_share-e2e.tmp.js` 留在仓库外
    使用（下轮可转正成 `tools/share-shots.js`）。
+
+---
+
+## 1.25 第十三轮（2026-11-11）：终末地导出卡片按 endfield-ui 技能重做
+
+> Owner 需求：终末地主题的导出卡片「改改设计」，并加载 `endfield-ui` 技能作为设计
+> 依据。本轮把 endfield 的三张卡（poster/dossier/score）按技能规则逐条对齐，
+> 顺带修掉一个**只影响 endfield 的导出 Bug**。工作区未提交、未发版。
+> 前后对比图：`../_shots/share-endfield-before/` vs `../_shots/share-endfield-final/`。
+
+### 1.25.1 先修掉的导出 Bug（像素实证）
+
+**每张导出卡的顶部都烧进了 3px 弹窗三色条。** 根因：`themes/endfield/theme.css:87`
+的 `body::after` 是页面级三色条（fixed，z 300），导出态 `.app`/浮层都隐藏了但 body
+本身还在，条带就画在文档 (0,0)，正压在卡片顶缘；`body::before` 的 72px 绘图网格同理。
+像素证据：导出图 y=1 处品红/黄/薄荷三段**只铺到视口宽 1440**，x>1440 露出卡片自条——
+弹窗条带与卡片条带叠画的铁证。修法（endfield interfaces.css）：
+
+```css
+html[data-theme="endfield"][data-share-export] body::before,
+html[data-theme="endfield"][data-share-export] body::after { display: none; }
+```
+
+其他 13 套主题没有 body 级装饰，不受此 Bug 影响。
+
+### 1.25.2 按技能逐条对齐的改法
+
+| 技能规则 | 改前 | 改后 |
+| --- | --- | --- |
+| 黄色只做填充，浅色主题不当线 | 封面接缝 10px 黄线、score 封面下缘 8px 黄线、时数板左缘 8px 黄条 | 全删；黄色只出现在：品牌短划、眉标方块、阶梯当前格（=当前位置） |
+| 页面开始用三色条 3px | 卡顶 6px 纯黄条 | 3px 品红/黄/薄荷三等分（与 body::after、弹窗 `--sheet-strip` 同源） |
+| 字段用 `/` 不用 `·` | kicker/meta/foot 全是 `·` | 全改 `/`（机制见 1.25.3） |
+| 圆角一律 0 | 眉标圆点、脚注圆点 | 方块眉标、斜杠脚注 |
+| 编号标签（墨底白字右下切角） | `No.01/06` 灰字直接压封面（深封面不可读） | 墨底白字 8px 切角标签，任何封面可读 |
+| 45° 斜线纹（画框影子） | 32px 图表纸网格（不在词汇表） | 素纸+细线；海报接缝处斜线纹脊、档案卡照片斜线纹影子（沿用主题既有的 `-45deg 5px/1px 11%` 参数） |
+| 宽体几何英文 + 黑体中文 | 全站思源黑体，卡片未用 | **复用已打包的 Saira**（`src/assets/fonts/Saira.ttf`，intro 在用，零新增资产）：令牌 `--sc-title/label/num-font` 指向 `"Saira EF"`，标签 125%、标题 118%、数字 `tabular-nums`。CJK 自动回落黑体，`font-stretch` 对中文无效果——正是「宽体英文+粗体中文」配对 |
+| 看板（白板+顶边粗墨页签+朝中心切角） | 时数板=白板+8px 黄左线+灰硬影 | 白板+1px 墨框+顶边 52×6 墨页签+朝页面中心的切角（poster 切右上、score 切左上） |
+| 资料行去重 | 海报顶部资料行与底部页脚重复（启动次数/上次游玩 ×2） | 页脚只留 ★收藏 + 玩家签署；资料行进看板做规格表头 |
+| 阶梯=状态语义 | is-on 用 tier 变色 | 已达成=墨实心，当前=黄块（唯一强调位），未达成=发丝框 |
+
+### 1.25.3 两处最小共享层改动（其余主题零影响）
+
+1. `src/app.js shareCardHTML`：kicker 与 sc-sign 的 `·` 从文本节点包成 `<em>·</em>`
+   （endfield 用 CSS 把 em 内容换成 `/`；其他主题渲染不变）；
+   `src/share-cards.css` 加一行 `.sc-kicker em, .sc-sign em { font-style: normal }`
+   兜底防 em 默认斜体。nova 卡片渲染对照确认零变化。
+2. 分隔符替换机制（endfield interfaces.css）：`em { font-size: 0 }` + `em::before
+   { content: "/" }`——不改 DOM 文本、不动其他主题。sc-sign 是行内文本，斜杠另加
+   `margin: 0 6px`。
+
+**字体踩坑记录**：先在 `.share-card` 上设 `font-family` 继承——被 `.sc-title` 等
+部件自己的 `font-family: var(--sc-title-font)` 声明盖掉（实测 computed 仍是思源）。
+**必须覆写令牌本身**（`--sc-title-font/--sc-label-font/--sc-num-font` 指向 Saira）。
+
+### 1.25.4 三种规格的新构图
+
+| 规格 | 构图 |
+| --- | --- |
+| poster 1600×900 | 技术规格纸：左纸栏（品牌行+编号标签 / 资料簇沉底）+ 右封面窗，接缝 1px 墨线+斜线纹脊；底部一块看板装下全部数字（规格表头 4 栏 + 时数 + 阶梯 + 里程碑文案） |
+| dossier 1200×1500 | 规格账目：右上档案照 470×520（1px 墨框+斜线纹影子），左侧标题簇；时数块在左栏，下方**全宽细线账目行**（标签左/数值右）填满原 700px 死白；空心幽灵编号（-webkit-text-stroke） |
+| score 1600×840 | 封面横带下缘 1px 墨线（原 8px 黄线）；品牌行+编号标签移到纸上；左标题簇 / 右看板（规格表头 2×2 + 时数 + 阶梯），看板切角朝页面中心 |
+
+### 1.25.5 验证
+
+| 检查 | 结果 |
+| --- | --- |
+| `tools/share-shots.js --themes=endfield` | 三种规格按设计尺寸导出，overflow 0 |
+| 导出泄漏 | 像素验证：y=1 三段铺满 1600（x=1500 为薄荷绿），body 条带不再叠画 |
+| Saira 加载 | `document.fonts.check('800 84px "Saira EF"')` true，faces `50% 125% loaded` |
+| 其他主题 | nova poster 前后对照：分隔符仍 `·`、构图零变化 |
+| `theme-slot-check --strict` | exit 0 |
+| `tools/feature-checks.js` | 全过（app.js 改动后回归） |
+| 编译（本轮无 C# 改动） | modern net10 Debug **0 错误 / 5 警告（全部既有）**；legacy net48 Debug（`tools/build-legacy.sh Debug`，顺带重打 assets zip）**0 错误 / 47 警告（既有 nullability 提示）** |
+| 对比度 | 卡面全部成对：墨/纸 15:1、墨2/纸 5.5:1、白字/墨标签 15:1、墨/白板 15.6:1（AA 余量充足） |
+| 技能交付清单 | 黄=填充 only、切角不压字、无红、无圆角/投影/渐变、数字全真实、无假技术文字、术语未外泄 |
+
+### 1.25.6 已知限制 / 下一步
+
+1. **等高线纹理未上卡**：`src/assets/contours/*.svg` 单个 ~70KB，不适合内联进主题
+   CSS（主题目录会被整体拷贝到运行时，相对路径不可靠）；斜线纹足够表达，如要等高线
+   需要宿主侧资产映射；
+2. dossier 的空状态呼吸区（账目行与幽灵编号之间 ~140px）刻意保留，规格纸需要留白；
+3. 签名分隔符在 sc-sign 文本节点内嵌 `<em>`，若未来其他主题要换分隔符，同一机制可复用；
+4. endfield `theme.json` 1.0.24 → **1.0.25**（铁律 41）；版本仍 1.16.5，未提交未发行；
+5. Owner 实机回访：真机导出一次 poster/dossier/score，确认 WebView2 下 Saira 与
+   无头渲染一致（`font-display: block`，字体在 runtime assets 内已存在）。
 
 ---
 
