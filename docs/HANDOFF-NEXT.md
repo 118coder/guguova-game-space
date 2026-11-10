@@ -2304,7 +2304,7 @@ html[data-theme="endfield"][data-share-export] body::after { display: none; }
 4. endfield `theme.json` 1.0.24 → **1.0.25**（铁律 41）；已随 PR #39 合并进 `main`；版本仍 1.16.5，**未发行（等 Owner 批准）**；
 5. Owner 实机回访：真机导出一次 poster/dossier/score，确认 WebView2 下 Saira 与
    无头渲染一致（`font-display: block`，字体在 runtime assets 内已存在）。
-## 1.26 第十四轮（2026-11-11）：文件解耦与代码整合（重构轮，行为零变化）
+## 1.26 第十四轮（2026-11-11）：文件解耦与代码整合（重构轮，行为零变化；已合并 [PR #40](https://github.com/118coder/guguova-game-space/pull/40)，未发版）
 
 > Owner 指令：①在保证全功能正常的前提下，把大文件解成小文件与文件夹，各司其职、
 > 做好文档备注；②整合精简代码、保持高复用；③全自动执行。
@@ -3104,7 +3104,7 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [ ] 14 套主题 `theme.json` version 未 bump，发版时统一处理；
 - [ ] 图标带卡片形状/名字排布未定稿（Owner 认为「框太丑」）。
 
-本轮（第十四轮 · 文件解耦与代码整合，重构轮，详见 §1.26）：
+本轮（第十四轮 · 文件解耦与代码整合，重构轮，**已合并 PR #40**，详见 §1.26）：
 
 - [x] `src/app.js`（9802 行）→ `src/app/` 29 分片：切片拼装字节级一致验证 + git diff 仅 203 行注释插入 + feature-checks 全过；
 - [x] `tools/build-app.js` 拼装器 + 五处接线（headless-host / relaunch.sh / release.sh 审计 / pack-assets 排除 / legacy csproj 排除）；
