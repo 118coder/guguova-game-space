@@ -18,6 +18,9 @@ USER_THEMES="$LOCALAPPDATA/NOVA Game Space/themes"
 taskkill //IM GUGUOVA.exe //F >/dev/null 2>&1
 sleep 1
 
+# src/app.js is assembled from src/app/* parts — always fresh before the copy.
+node tools/build-app.js --quiet || { echo "app.js assembly failed"; exit 1; }
+
 if ! dotnet build -c Debug 2>&1 | tail -4; then
   echo "build failed"; exit 1
 fi

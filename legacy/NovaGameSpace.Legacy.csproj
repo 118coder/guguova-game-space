@@ -37,12 +37,25 @@
     <Compile Include="..\App.xaml.cs" Link="App.xaml.cs" />
     <Compile Include="..\MainWindow.xaml.cs" Link="MainWindow.xaml.cs" />
     <Compile Include="..\NativeBridge.cs" Link="NativeBridge.cs" />
+    <Compile Include="..\NativeBridge.Capture.cs" Link="NativeBridge.Capture.cs" />
+    <Compile Include="..\NativeBridge.Engine.cs" Link="NativeBridge.Engine.cs" />
+    <Compile Include="..\NativeBridge.Games.cs" Link="NativeBridge.Games.cs" />
+    <Compile Include="..\NativeBridge.Launch.cs" Link="NativeBridge.Launch.cs" />
+    <Compile Include="..\NativeBridge.Library.cs" Link="NativeBridge.Library.cs" />
+    <Compile Include="..\NativeBridge.Media.cs" Link="NativeBridge.Media.cs" />
+    <Compile Include="..\NativeBridge.Settings.cs" Link="NativeBridge.Settings.cs" />
+    <Compile Include="..\NativeBridge.System.cs" Link="NativeBridge.System.cs" />
+    <Compile Include="..\NativeBridge.Themes.cs" Link="NativeBridge.Themes.cs" />
+    <Compile Include="..\NativeBridge.Update.cs" Link="NativeBridge.Update.cs" />
     <Compile Include="..\Services\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="..\src\**\*" Link="src\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\themes\**\*" Link="themes\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- src\app\* are the un-assembled parts of app.js; only the assembled
+         src\app.js ships (built by tools/build-app.js). -->
+    <Content Remove="..\src\app\**" />
     <!-- Bundled GPLv3 upscaler; optional, fetched with tools/fetch-magpie.py. -->
     <Content Include="..\third_party\magpie\**\*" Condition="Exists('..\third_party\magpie\Magpie.exe')" Link="engine\magpie\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
