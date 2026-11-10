@@ -227,7 +227,8 @@ html[data-theme="aurum"] {
   --im-title-size: 5.2vw;
   --im-title-max: 88px;
   --im-veil: linear-gradient(90deg, rgba(7,11,9,.9) 0%, rgba(7,11,9,.5) 42%, rgba(7,11,9,0) 76%);
-  --im-topbar-bg: rgba(7,11,9,.6);
+  --im-topbar-bg: rgba(7, 11, 9, .88);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 1px solid rgba(232,201,138,.2);
   --im-dock-bg: rgba(13,19,16,.82);
   --im-dock-rule: 3px double rgba(232,201,138,.5);
@@ -306,4 +307,197 @@ html[data-theme="aurum"] {
   --im-card-bg: linear-gradient(180deg, rgba(18, 24, 20, .92), rgba(8, 12, 10, .95));
   --im-card-border: 1px solid rgba(232, 201, 138, .34);
   --im-card-radius: 2px;
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="aurum"] {
+  --sc-bg: #0b100e;
+  --sc-ink: #ede3cd;
+  --sc-ink-2: rgba(237, 227, 205, .78);
+  --sc-rule: rgba(232, 201, 138, .26);
+  --sc-accent: #e8c98a;
+  --sc-accent-ink: #070b0a;
+  --sc-plate: rgba(16, 22, 19, .94);
+  --sc-plate-line: rgba(232, 201, 138, .38);
+  --sc-sheet-bg: #101613;
+  --sc-sheet-line: rgba(232, 201, 138, .26);
+  --sc-radius: 2px;
+  --sc-scrim-rgb: 7, 11, 10;
+  --sc-frame-line: rgba(232, 201, 138, .55);
+  --sc-frame-inner: rgba(232, 201, 138, .22);
+  --sc-frame-inner-inset: 7px;
+  --sc-frame-inset: 38px;
+  --sc-title-font: var(--font-serif);
+  --sc-title-weight: 600;
+  --sc-num-font: var(--font-serif);
+  --sc-label-tracking: .18em;
+  --sc-label-transform: uppercase;
+  --sc-title-size: 72px;
+  --sc-plate-shadow: 0 26px 60px -34px #000;
+}
+html[data-theme="aurum"] .share-card .sc-sheet {
+  background-image: radial-gradient(120% 80% at 50% 100%, rgba(95, 214, 198, .07), transparent 66%);
+}
+html[data-theme="aurum"] .share-card .sc-brand::before { height: 2px; }
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="aurum"] {
+  --im-plate-bg: rgba(16, 22, 19, .9);
+  --im-plate-border: 1px solid rgba(232, 201, 138, .48);
+  --im-plate-radius: 2px;
+  --im-plate-pad: 24px;
+  --im-plate-pad-x: 28px;
+  --im-plate-shadow: 0 30px 80px -50px #000;
+  --im-plate-ink: #ede3cd;
+  --im-plate-ink-dim: rgba(237, 227, 205, .8);
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: rgba(232, 201, 138, .07);
+  --im-chip-border: 1px solid rgba(232, 201, 138, .42);
+  --im-chip-radius: 2px;
+  --im-chip-ink: #ede3cd;
+  --im-title-ceiling: 36px;
+}
+
+html[data-theme="aurum"] .view-home .hero-inner::before {
+  box-shadow: 0 30px 80px -50px #000, inset 0 0 0 4px rgba(232, 201, 138, .14);
+}
+
+/* ============================================================
+   CARD CHARACTER · AURUM
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Engraved plaque: a round medallion, a centred inscription, a bronze
+   rail of statistics. */
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-art {
+  inset: 52px auto auto 50%;
+  width: 268px;
+  height: 268px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  border: 2px solid rgba(232, 201, 138, .8);
+  box-shadow: 0 0 0 10px #101613, 0 0 0 11px rgba(232, 201, 138, .3), 0 30px 60px -30px #000;
+}
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0;
+  padding: 372px 80px 48px;
+  background: transparent;
+  align-items: center;
+  text-align: center;
+}
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-top { inset: 56px 80px auto; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  justify-items: center;
+  width: 100%;
+}
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-id { text-align: center; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-score {
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  padding-top: 20px;
+  border-top: 1px solid rgba(232, 201, 138, .3);
+}
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-hours { justify-content: center; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-hours b { font-size: 72px; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-tagline { display: none; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-title { font-size: 64px; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-main { gap: 14px; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-foot { gap: 8px 10px; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; max-width: none; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-frame {
+  inset: 26px;
+  border-color: rgba(232, 201, 138, .32);
+  --sc-frame-inner: rgba(232, 201, 138, .2);
+  --sc-frame-inner-inset: 9px;
+}
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-foot { justify-content: center; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-sign { margin-left: 0; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-sign::before {
+  content: '·';
+  margin-right: 10px;
+  opacity: .6;
+}
+
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 56px auto auto 50%;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  border: 2px solid rgba(232, 201, 138, .8);
+  box-shadow: 0 0 0 10px #0b100e, 0 0 0 11px rgba(232, 201, 138, .3);
+  z-index: 4;
+}
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 430px 72px 56px;
+  align-items: center;
+  text-align: center;
+}
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-top { inset: 52px 72px auto; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-main { width: 100%; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-id { text-align: center; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-score {
+  border-top: 1px solid rgba(232, 201, 138, .3);
+  text-align: left;
+}
+
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-art {
+  inset: 60px auto 60px 60px;
+  width: 360px;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 201, 138, .8);
+  box-shadow: 0 0 0 10px #0b100e, 0 0 0 11px rgba(232, 201, 138, .3);
+  z-index: 4;
+}
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0 0 0 34%;
+  padding: 64px 64px 48px;
+  background: #0b100e;
+  border-left: 0;
+}
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-top { inset: 56px 64px auto 34%; padding-left: 64px; }
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-main { gap: 18px; margin-top: auto; }
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 26px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(232, 201, 138, .28);
 }

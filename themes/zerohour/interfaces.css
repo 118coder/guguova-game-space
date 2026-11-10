@@ -218,6 +218,7 @@ html[data-theme="zerohour"] {
   --im-title-max: 120px;
   --im-veil: linear-gradient(90deg, rgba(0,0,0,.94) 0%, rgba(0,0,0,.56) 42%, rgba(0,0,0,0) 76%);
   --im-topbar-bg: rgba(0,0,0,.8);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 1px solid rgba(201,247,58,.4);
   --im-dock-bg: rgba(0,0,0,.9);
   --im-dock-rule: 2px solid #c9f73a;
@@ -294,9 +295,8 @@ html[data-theme="zerohour"].calm .view-home .status-card {
    paint its label white on lime (1.8:1), so this theme names the sticker ink
    instead: black on lime is the whole point of the command bar. */
 html[data-theme="zerohour"].calm .view-home .hero-inner > .kicker {
-  --im-kicker-ink: #0a0b0c;
-  --im-kicker-dim: rgba(10, 11, 12, .68);
-  border: 2px solid #0a0b0c;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
 }
 
 /* Status card material: command-console black with a lime trace. The shell's fallback is a neutral
@@ -305,4 +305,185 @@ html[data-theme="zerohour"] {
   --im-card-bg: rgba(8, 9, 10, .9);
   --im-card-border: 1px solid rgba(198, 255, 46, .3);
   --im-card-radius: 2px;
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="zerohour"] {
+  --sc-bg: #0a0b0c;
+  --sc-ink: #f1efe7;
+  --sc-ink-2: #9aa3ab;
+  --sc-rule: rgba(241, 239, 231, .2);
+  --sc-accent: #c6ff2e;
+  --sc-accent-ink: #0a0b0c;
+  --sc-plate: rgba(10, 11, 12, .9);
+  --sc-plate-line: #c6ff2e;
+  --sc-sheet-bg: #0a0b0c;
+  --sc-sheet-line: rgba(198, 255, 46, .26);
+  --sc-radius: 0;
+  --sc-scrim-rgb: 10, 11, 12;
+  --sc-frame-line: transparent;
+  --sc-frame-w: 0px;
+  --sc-frame-inset: 34px;
+  --sc-label-tracking: .16em;
+  --sc-title-transform: uppercase;
+  --sc-title-size: 78px;
+}
+/* Command console: four lime corner brackets instead of a full frame. */
+html[data-theme="zerohour"] .share-card .sc-frame {
+  border: 0;
+  background:
+    linear-gradient(#c6ff2e, #c6ff2e) left top / 26px 3px no-repeat,
+    linear-gradient(#c6ff2e, #c6ff2e) left top / 3px 26px no-repeat,
+    linear-gradient(#c6ff2e, #c6ff2e) right top / 26px 3px no-repeat,
+    linear-gradient(#c6ff2e, #c6ff2e) right top / 3px 26px no-repeat,
+    linear-gradient(#c6ff2e, #c6ff2e) left bottom / 26px 3px no-repeat,
+    linear-gradient(#c6ff2e, #c6ff2e) left bottom / 3px 26px no-repeat,
+    linear-gradient(#c6ff2e, #c6ff2e) right bottom / 26px 3px no-repeat,
+    linear-gradient(#c6ff2e, #c6ff2e) right bottom / 3px 26px no-repeat;
+  opacity: .82;
+}
+html[data-theme="zerohour"] .share-card .sc-brand::before { height: 3px; }
+html[data-theme="zerohour"] .share-card .sc-kicker i {
+  border-radius: 0;
+  box-shadow: 0 0 10px rgba(198, 255, 46, .6);
+}
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="zerohour"] {
+  --im-plate-bg: rgba(10, 11, 12, .9);
+  --im-plate-border: 1px solid #c6ff2e;
+  --im-plate-radius: 0;
+  --im-plate-pad: 24px;
+  --im-plate-pad-x: 28px;
+  --im-plate-shadow: 0 30px 70px -46px #000;
+  --im-plate-ink: #f1efe7;
+  --im-plate-ink-dim: #9aa3ab;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: #c6ff2e;
+  --im-chip-border: 1px solid #c6ff2e;
+  --im-chip-radius: 0;
+  --im-chip-ink: #0a0b0c;
+  --im-title-ceiling: 38px;
+}
+
+/* ============================================================
+   CARD CHARACTER · ZEROHOUR
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Command console: a black rail on the left with a lime edge, brackets,
+   scanlines and a mission readout. */
+html[data-theme="zerohour"] .share-card .sc-deco {
+  background-image: repeating-linear-gradient(0deg, rgba(198, 255, 46, .05) 0 1px, transparent 1px 4px);
+}
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-art { inset: 0 0 0 52%; }
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-wash {
+  inset: 0 0 0 52%;
+  background-image: linear-gradient(90deg, #0a0b0c 0%, rgba(10, 11, 12, .55) 18%, rgba(10, 11, 12, .15) 60%);
+}
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0 48% 0 0;
+  padding: 64px 44px 44px;
+  background: rgba(8, 9, 10, .82);
+  border-right: 2px solid #c6ff2e;
+}
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-top { inset: 52px 48px auto 48px; }
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 26px;
+  margin-top: auto;
+}
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-id { padding-left: 22px; border-left: 3px solid #c6ff2e; }
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px 18px 14px;
+  border: 1px solid rgba(198, 255, 46, .45);
+  background: rgba(10, 11, 12, .7);
+}
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-facts {
+  display: grid;
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  top: 112px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 18px;
+}
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-fact b { font-size: 15px; }
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-facts :is(span, b) {
+  font-family: var(--font-mono, var(--font-ui));
+}
+
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 44px 44px auto 44px;
+  height: 430px;
+  border: 1px solid rgba(198, 255, 46, .35);
+}
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 530px 56px 48px;
+  background: rgba(8, 9, 10, .92);
+}
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-top { inset: 56px 56px auto; }
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-frame { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-score {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-top: 1px solid rgba(198, 255, 46, .3);
+}
+
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-art {
+  inset: 48px auto auto 48px;
+  width: 260px;
+  height: 160px;
+  border: 1px solid rgba(198, 255, 46, .4);
+  z-index: 4;
+}
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0;
+  padding: 268px 56px 44px;
+  background: #0a0b0c;
+}
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-top { inset: 52px 56px auto; }
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 44px;
+  align-items: end;
+}
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-ladder i.is-on,
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-ladder i.is-next {
+  box-shadow: 0 0 12px rgba(198, 255, 46, .55);
 }

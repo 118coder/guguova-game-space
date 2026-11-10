@@ -167,7 +167,8 @@ html[data-theme="nightflight"] {
   --im-title-size: 6vw;
   --im-title-max: 100px;
   --im-veil: linear-gradient(90deg, rgba(6,16,34,.9) 0%, rgba(6,16,34,.46) 42%, rgba(6,16,34,0) 76%);
-  --im-topbar-bg: rgba(6,16,34,.62);
+  --im-topbar-bg: rgba(6, 16, 34, .88);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 1px dashed rgba(217,255,69,.36);
   --im-dock-bg: rgba(8,20,40,.84);
   --im-dock-rule: 1px dashed rgba(244,240,224,.42);
@@ -231,4 +232,245 @@ html[data-theme="nightflight"].calm .view-home .hero-inner > .kicker {
 html[data-theme="nightflight"].calm .view-home .status-card {
   --im-card-ink: #0a0f14;
   --im-card-muted: rgba(10, 15, 20, .74);
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="nightflight"] {
+  --sc-bg: #07101c;
+  --sc-ink: #f4f0e0;
+  --sc-ink-2: #93a6b8;
+  --sc-rule: #1c3348;
+  --sc-accent: #d9ff45;
+  --sc-accent-ink: #07101c;
+  --sc-plate: rgba(11, 23, 36, .88);
+  --sc-plate-line: #2f5474;
+  --sc-sheet-bg: #0b1724;
+  --sc-sheet-line: #2f5474;
+  --sc-radius: 3px;
+  --sc-scrim-rgb: 4, 7, 13;
+  --sc-frame-line: rgba(111, 168, 255, .42);
+  --sc-frame-inset: 40px;
+  --sc-label-font: var(--font-mono, "Cascadia Mono", "Consolas", monospace);
+  /* The hero number stays in the display face: mono at 190px opens a hole
+     around the decimal ("14 . 5"), which reads as a typo, not a ticket. */
+  --sc-num-font: var(--font-display);
+  --sc-label-tracking: .14em;
+  --sc-label-transform: uppercase;
+  --sc-title-size: 70px;
+}
+/* The record sheet is the boarding pass: a perforated tear line. */
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-sheet {
+  border-top: 2px dashed #2f5474;
+}
+html[data-theme="nightflight"] .share-card .sc-brand::before { height: 2px; }
+html[data-theme="nightflight"] .share-card .sc-kicker i {
+  border-radius: 0;
+  box-shadow: 0 0 0 2px rgba(217, 255, 69, .22);
+}
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="nightflight"] {
+  --im-plate-bg: rgba(7, 16, 28, .86);
+  --im-plate-border: 1px solid #2f5474;
+  --im-plate-radius: 4px;
+  --im-plate-pad: 24px;
+  --im-plate-pad-x: 28px;
+  --im-plate-shadow: 0 30px 70px -44px #000;
+  --im-plate-ink: #f4f0e0;
+  --im-plate-ink-dim: #93a6b8;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: rgba(217, 255, 69, .07);
+  --im-chip-border: 1px solid #2f5474;
+  --im-chip-radius: 2px;
+  --im-chip-ink: #f4f0e0;
+  --im-title-ceiling: 34px;
+}
+
+/* ============================================================
+   CARD CHARACTER · NIGHTFLIGHT
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Night flight: a paper boarding pass with a dashed seam, a window on the
+   cover, mono data rows and a barcode at the bottom. */
+html[data-theme="nightflight"] .share-card .sc-sheet {
+  --sc-ink: #0a0f14;
+  --sc-ink-2: #3b4652;
+  --sc-rule: #c9c2ad;
+  --sc-plate: #efe9d6;
+  --sc-plate-line: #b8b09a;
+  --sc-accent: #6f8a12;
+  --sc-accent-ink: #f4f0e0;
+  background: #f4f0e0;
+}
+html[data-theme="nightflight"] .share-card .sc-brand,
+html[data-theme="nightflight"] .share-card .sc-no { color: #0a0f14; }
+html[data-theme="nightflight"] .share-card .sc-brand::before { background: #6f8a12; }
+
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-art {
+  inset: 28px 28px 28px auto;
+  width: 33%;
+  border-left: 3px dashed #2f5474;
+}
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-wash {
+  inset: 28px 28px 28px auto;
+  width: 33%;
+  background-image: linear-gradient(180deg, rgba(4, 7, 13, .1), rgba(4, 7, 13, .3));
+}
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 28px 34% 28px 28px;
+  padding: 44px 48px 100px;
+}
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-top { inset: 52px auto auto 48px; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin-top: auto;
+}
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-title { font-size: 62px; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px 0 0;
+  border-top: 1px dashed #b8b09a;
+}
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-hours b { font-size: 92px; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-facts {
+  display: grid;
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  top: 150px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-fact b { font-family: var(--font-mono); font-size: 17px; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-foot {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 40px;
+  border-top: 0;
+  padding-top: 0;
+}
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 48px;
+  bottom: 96px;
+  width: 220px;
+  height: 30px;
+  background: repeating-linear-gradient(90deg, #0a0f14 0 2px, transparent 2px 5px,
+    #0a0f14 5px 6px, transparent 6px 11px);
+}
+
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 36px 36px auto 36px;
+  height: 520px;
+  border-bottom: 3px dashed #2f5474;
+}
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-wash {
+  inset: 36px 36px auto 36px;
+  height: 520px;
+  background-image: linear-gradient(180deg, rgba(4, 7, 13, 0), rgba(4, 7, 13, .28));
+}
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 520px 0 0;
+  padding: 48px 64px 110px;
+}
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-top { inset: 44px 64px auto; }
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 22px;
+  height: auto;
+  border-color: #2f5474;
+}
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  bottom: 44px;
+  height: 40px;
+  background: repeating-linear-gradient(90deg, #0a0f14 0 3px, transparent 3px 7px,
+    #0a0f14 7px 8px, transparent 8px 15px);
+}
+
+/* Score: the split-flap departure board. */
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-art {
+  inset: 72px auto auto 64px;
+  width: 300px;
+  height: 210px;
+  border: 1px solid #2f5474;
+  z-index: 4;
+}
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0;
+  padding: 56px 72px 40px;
+  background: #0b1724;
+  --sc-ink: #f4f0e0;
+  --sc-ink-2: #93a6b8;
+  --sc-rule: #1c3348;
+  --sc-plate: rgba(11, 23, 36, .9);
+  --sc-plate-line: #2f5474;
+  --sc-accent: #d9ff45;
+}
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-brand,
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-no { color: #f4f0e0; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-brand::before { background: #d9ff45; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-top { inset: 56px 72px auto; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 48px;
+  align-items: end;
+  margin: 300px 0 0;
+}
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-foot { margin-top: auto; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-title { font-size: 44px; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-facts {
+  display: grid;
+  position: absolute;
+  left: 400px;
+  right: 72px;
+  top: 88px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #1c3348;
+}
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-fact b { font-size: 16px; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-ladder i {
+  height: 16px;
+  border-radius: 0;
+  background: #16293c;
 }

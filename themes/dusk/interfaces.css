@@ -188,7 +188,8 @@ html[data-theme="dusk"] {
   --im-title-size: 5.4vw;
   --im-title-max: 92px;
   --im-veil: linear-gradient(90deg, rgba(38,24,20,.86) 0%, rgba(38,24,20,.44) 42%, rgba(38,24,20,0) 76%);
-  --im-topbar-bg: rgba(38,24,20,.5);
+  --im-topbar-bg: rgba(38, 24, 20, .8);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 1px solid rgba(200,122,82,.28);
   --im-dock-bg: rgba(52,34,27,.7);
   --im-dock-rule: 1px solid rgba(200,122,82,.42);
@@ -265,8 +266,8 @@ html[data-theme="dusk"].calm .view-home .status-card {
 /* The eyebrow keeps its own plate here (a parchment ribbon), so the label is decided
    against that plate rather than against the cover. */
 html[data-theme="dusk"].calm .view-home .hero-inner > .kicker {
-  --im-kicker-ink: #5a3a25;
-  --im-kicker-dim: rgba(90, 58, 37, .72);
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
 }
 
 /* DUSK's detail sheet sits on the night sky while its --muted is a parchment
@@ -275,3 +276,172 @@ html[data-theme="dusk"].calm .view-home .hero-inner > .kicker {
 html[data-theme="dusk"] .detail-launch-options .pref-hint {
   color: #eddec2 !important;
 }
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="dusk"] {
+  --sc-bg: #f7edd8;
+  --sc-ink: #30251a;
+  --sc-ink-2: #6a5740;
+  --sc-rule: rgba(90, 66, 38, .3);
+  --sc-accent: #a9503a;
+  --sc-accent-ink: #fdf6e8;
+  --sc-plate: rgba(253, 246, 232, .92);
+  --sc-plate-line: #b58a4b;
+  --sc-sheet-bg: #f7edd8;
+  --sc-sheet-line: rgba(90, 66, 38, .32);
+  --sc-radius: 2px;
+  --sc-scrim-rgb: 247, 237, 216;
+  /* Paper ground: the veil lightens the artwork into the sheet instead of
+     smearing black over it — a dark veil on a paper theme reads as damage. */
+  --sc-veil:
+    linear-gradient(180deg, rgba(247, 237, 216, .34) 0%, rgba(247, 237, 216, .04) 20%,
+      rgba(247, 237, 216, .46) 52%, rgba(247, 237, 216, .86) 82%, var(--sc-bg) 100%);
+  --sc-veil-x:
+    linear-gradient(90deg, rgba(247, 237, 216, 0) 0%, rgba(247, 237, 216, .3) 46%, var(--sc-bg) 96%);
+  --sc-frame-line: #b58a4b;
+  --sc-frame-inner: rgba(181, 138, 75, .55);
+  --sc-frame-inner-inset: 7px;
+  --sc-frame-inset: 40px;
+  --sc-title-font: var(--font-serif);
+  --sc-title-weight: 600;
+  --sc-num-font: var(--font-serif);
+  --sc-label-tracking: .16em;
+  --sc-title-size: 74px;
+}
+html[data-theme="dusk"] .share-card .sc-sheet {
+  background-image: radial-gradient(120% 80% at 100% 0%, rgba(181, 138, 75, .14), transparent 60%);
+}
+html[data-theme="dusk"] .share-card .sc-brand::before { height: 2px; }
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="dusk"] {
+  --im-plate-bg: rgba(253, 246, 232, .94);
+  --im-plate-border: 1px solid #b58a4b;
+  --im-plate-radius: 2px;
+  --im-plate-pad: 26px;
+  --im-plate-pad-x: 30px;
+  --im-plate-shadow: 0 30px 70px -40px rgba(48, 37, 26, .62);
+  --im-plate-ink: #30251a;
+  --im-plate-ink-dim: #6a5740;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: rgba(181, 138, 75, .1);
+  --im-chip-border: 1px solid #b58a4b;
+  --im-chip-radius: 0;
+  --im-chip-ink: #30251a;
+  --im-title-ceiling: 36px;
+  --im-plate-text-shadow: none;
+}
+
+html[data-theme="dusk"] .view-home .hero-inner::before {
+  box-shadow: 0 30px 70px -40px rgba(48, 37, 26, .62), inset 0 0 0 5px #fdf6e8, inset 0 0 0 6px rgba(181, 138, 75, .55);
+}
+
+/* ============================================================
+   CARD CHARACTER · DUSK
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Alchemist's archive: the type lives in an arched parchment window,
+   the cover keeps the right side, gold double rules hold it together. */
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 40px auto 40px 40px;
+  width: 640px;
+  padding: 120px 52px 44px;
+  border: 1px solid #b58a4b;
+  border-radius: 320px 320px 2px 2px;
+  background: #f7edd8;
+}
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-top { inset: 64px auto auto 84px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 26px;
+  margin-top: auto;
+}
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(90, 66, 38, .35);
+}
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-hours b { font-size: 104px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-foot { padding-right: 84px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-frame {
+  inset: 22px;
+  border-color: rgba(181, 138, 75, .5);
+  --sc-frame-inner: rgba(181, 138, 75, .35);
+}
+/* A wax seal sits where a passport would put it. */
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 588px;
+  bottom: 44px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #b5452f, #7a1f2b 62%, #5d1620);
+  box-shadow: inset 0 0 0 4px rgba(247, 237, 216, .35), 0 12px 26px -14px #000;
+}
+
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 0 0 auto 0;
+  height: 660px;
+  border-radius: 0 0 50% 50% / 0 0 16% 16%;
+  border-bottom: 2px solid #b58a4b;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 660px 0 0;
+  padding: 64px 76px 44px;
+  background: transparent;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 26px 26px auto 26px;
+  height: 640px;
+  border-radius: 50% 50% 0 0 / 16% 16% 0 0;
+  border-color: #b58a4b;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-score { padding-top: 20px; }
+
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-art {
+  inset: 40px 40px 40px auto;
+  width: 34%;
+  border-radius: 50% 50% 2px 2px / 22% 22% 2px 2px;
+  border: 1px solid #b58a4b;
+}
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0 38% 0 0;
+  padding: 64px 56px 48px;
+  background: #f7edd8;
+  border-left: 0;
+}
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-top { inset: 56px auto auto 56px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-main { gap: 20px; }

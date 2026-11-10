@@ -1,0 +1,741 @@
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Three fixed-size cards built from one DOM tree:
+
+     poster     1600 × 900    full-bleed cover, giant hours
+     dossier    1200 × 1500   framed cover over a record sheet
+     score      1600 × 840    cover panel + milestone scoreboard
+
+   This sheet owns geometry only. Every material decision is a
+   --sc-* value supplied by the active theme's interfaces.css, so a
+   card is made of the same paper / metal / glass as the app it was
+   exported from. A theme that maps nothing still gets a readable
+   dark glass card (the fallbacks below).
+
+   Nothing here may reference a concrete theme id.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+/* ---------- the dialog ---------- */
+
+.share-overlay { z-index: 90; }
+
+.share-shell {
+  width: min(1180px, 94vw);
+  max-height: min(92vh, 1040px);
+}
+
+.share-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 268px;
+  gap: clamp(16px, 1.6vw, 26px);
+  align-items: start;
+  min-height: 0;
+}
+
+/* Preview stage: the card is rendered at its real size and scaled down.
+   The frame carries the theme's hairline so the preview reads as a sheet
+   of paper lying on the dialog, not as a cropped screenshot. */
+.share-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(380px, 54vh, 560px);
+  min-height: 380px;
+  padding: clamp(14px, 1.6vw, 22px);
+  border: var(--sheet-control-border, 1px solid var(--sheet-line));
+  border-radius: var(--sheet-control-radius, 8px);
+  background: var(--sheet-well, rgba(255, 255, 255, .05));
+  overflow: hidden;
+}
+
+.share-mount {
+  position: relative;
+  flex: none;
+  transform-origin: top left;
+}
+
+.share-mount > .share-card {
+  transform-origin: top left;
+}
+
+/* Three variants as a vertical list of spec rows. Each row is a small
+   diagram of the card it produces: the diagram is drawn in CSS so it
+   wears the theme's ink instead of shipping fifteen screenshots. */
+.share-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.share-choice {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: var(--sheet-control-border, 1px solid var(--sheet-line));
+  border-radius: var(--sheet-control-radius, 8px);
+  background: var(--sheet-control-bg, transparent);
+  color: var(--sheet-ink, inherit);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.share-choice:hover { background: var(--sheet-well, rgba(255, 255, 255, .06)); }
+
+.share-choice[aria-selected="true"] {
+  border-color: var(--sheet-primary-bg, currentColor);
+  background: color-mix(in srgb, var(--sheet-primary-bg, currentColor) 12%, transparent);
+  box-shadow: inset var(--sheet-mark-w, 3px) 0 0 var(--sheet-mark, currentColor);
+}
+
+.share-choice-art {
+  position: relative;
+  width: 52px;
+  height: 36px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  opacity: .72;
+  overflow: hidden;
+}
+/* A diagram, not a picture: two bars for the copy, one block for the
+   art. The selected row inks it solid. */
+.share-choice-art::before,
+.share-choice-art::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+  border-radius: 1px;
+}
+.share-choice-art::before {
+  left: 5px;
+  right: 18px;
+  bottom: 7px;
+  height: 3px;
+  box-shadow: 0 -6px 0 currentColor;
+}
+.share-choice-art::after {
+  right: 5px;
+  top: 5px;
+  bottom: 5px;
+  width: 9px;
+  opacity: .5;
+}
+.share-choice[data-variant="dossier"] .share-choice-art { height: 40px; }
+.share-choice[data-variant="dossier"] .share-choice-art::before { right: 5px; }
+.share-choice[data-variant="dossier"] .share-choice-art::after { display: none; }
+.share-choice[data-variant="score"] .share-choice-art::after {
+  right: auto;
+  left: 4px;
+  width: 18px;
+  top: 4px;
+  bottom: 4px;
+}
+.share-choice[data-variant="score"] .share-choice-art::before { left: 28px; }
+
+.share-choice-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.share-choice-name { font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.share-choice-note {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--sheet-muted, inherit);
+}
+.share-choice-size {
+  font-size: 9px;
+  letter-spacing: .12em;
+  color: var(--sheet-muted, inherit);
+  font-variant-numeric: tabular-nums;
+}
+
+.share-actions { display: flex; gap: 10px; margin-top: 14px; }
+.share-actions .engine-btn { flex: 1 1 auto; }
+
+/* ============================================================
+   THE CARD
+   ============================================================ */
+
+:root {
+  /* ---- material fallbacks: nova's dark glass ----
+     Declared on :root, NOT on .share-card: a custom property set on the
+     element itself beats the inherited value a theme puts on
+     html[data-theme], and every card came out dark-glass because of it.
+     Every theme maps these; the defaults only cover a bare page. */
+  --sc-bg: #0c0f15;
+  --sc-ink: #f5f2ea;
+  --sc-ink-2: rgba(245, 242, 234, .74);
+  --sc-rule: rgba(255, 255, 255, .18);
+  --sc-accent: var(--accent, #5ed9c6);
+  --sc-accent-ink: #07100e;
+  --sc-sheet-bg: #0c0f15;
+  --sc-sheet-line: rgba(255, 255, 255, .14);
+  --sc-plate: rgba(10, 13, 19, .62);
+  --sc-plate-line: rgba(255, 255, 255, .16);
+  --sc-radius: 3px;
+  --sc-cut: none;
+  --sc-shadow: none;
+  --sc-veil:
+    linear-gradient(180deg, rgba(4, 6, 10, .42) 0%, rgba(4, 6, 10, .04) 22%,
+      rgba(4, 6, 10, .52) 52%, rgba(4, 6, 10, .92) 82%, var(--sc-bg) 100%);
+  --sc-veil-x: linear-gradient(90deg, rgba(4, 6, 10, 0) 0%, rgba(4, 6, 10, .2) 46%, var(--sc-bg) 96%);
+  --sc-wash-opacity: 1;
+  /* Corner scrim behind the identity cluster: the readability floor for the
+     poster variant. A theme supplies its own ground RGB so a paper card
+     lightens that corner instead of smearing black over it. */
+  --sc-scrim-rgb: 4, 6, 10;
+  /* Masthead band: the brand row sits on artwork, and a paper card needs a
+     paper band behind dark ink exactly as a dark card needs a dark one. */
+  --sc-top-veil: linear-gradient(180deg,
+    rgba(var(--sc-scrim-rgb), .78) 0%,
+    rgba(var(--sc-scrim-rgb), .3) 11%,
+    rgba(var(--sc-scrim-rgb), 0) 23%);
+
+  /* ---- type ---- */
+  --sc-title-font: var(--font-display, var(--font-ui, sans-serif));
+  --sc-title-size: 78px;
+  --sc-title-weight: 700;
+  --sc-title-tracking: -.025em;
+  --sc-title-transform: none;
+  --sc-label-font: var(--font-ui, sans-serif);
+  --sc-label-size: 13px;
+  --sc-label-tracking: .22em;
+  --sc-label-transform: uppercase;
+  --sc-num-font: var(--font-display, var(--font-ui, sans-serif));
+  --sc-num-tracking: -.03em;
+
+  /* ---- framing ---- */
+  --sc-frame-line: rgba(255, 255, 255, .26);
+  --sc-frame-w: 1px;
+  --sc-frame-inset: 44px;
+  /* Optional inner rule (dusk / grimoire / codex gold double line). */
+  --sc-frame-inner: transparent;
+  --sc-frame-inner-inset: 6px;
+  /* Optional edge strip (steam green, endfield signal, broadcast film). */
+  --sc-strip-h: 0px;
+  --sc-strip: none;
+  --sc-plate-shadow: none;
+  --sc-deco: none;
+}
+
+.share-card {
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--sc-bg);
+  color: var(--sc-ink);
+  font-family: var(--sc-label-font);
+  clip-path: var(--sc-cut);
+  -webkit-font-smoothing: antialiased;
+}
+
+.share-card[data-variant="poster"] { width: 1600px; height: 900px; }
+.share-card[data-variant="dossier"] { width: 1200px; height: 1500px; }
+.share-card[data-variant="score"] { width: 1600px; height: 840px; }
+
+/* ---------- artwork ---------- */
+
+.sc-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.sc-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--sc-art-pos, 50% 40%);
+  display: block;
+}
+
+/* Per-theme decoration layer (tape, barcode, halftone, scanlines, crop
+   marks). Themes position it; it never carries text. */
+.sc-deco {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.sc-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--sc-wash-opacity, 1);
+  background-image: var(--sc-deco), var(--sc-top-veil), var(--sc-veil);
+  background-size: cover, cover, cover;
+}
+
+.share-card[data-variant="poster"] .sc-wash {
+  background-image:
+    var(--sc-deco),
+    radial-gradient(112% 76% at 0% 100%,
+      rgba(var(--sc-scrim-rgb), .92) 0%,
+      rgba(var(--sc-scrim-rgb), .58) 34%,
+      rgba(var(--sc-scrim-rgb), 0) 68%),
+    var(--sc-top-veil),
+    var(--sc-veil);
+  background-size: cover, cover, cover, cover;
+}
+
+.share-card[data-variant="score"] .sc-wash {
+  background-image: var(--sc-deco), var(--sc-top-veil), var(--sc-veil-x);
+  background-size: cover, cover, cover;
+}
+
+/* A hairline frame is the cheapest way to make a screenshot read as a
+   printed card, and every theme already has an opinion about its width
+   and inset. The theme may also switch it off with --sc-frame-w: 0. */
+.sc-frame {
+  position: absolute;
+  z-index: 2;
+  inset: var(--sc-frame-inset);
+  border: var(--sc-frame-w) solid var(--sc-frame-line);
+  border-radius: var(--sc-radius);
+  pointer-events: none;
+}
+.sc-frame::after {
+  content: '';
+  position: absolute;
+  inset: var(--sc-frame-inner-inset);
+  border: 1px solid var(--sc-frame-inner);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.share-card::before {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--sc-strip-h);
+  background: var(--sc-strip);
+  pointer-events: none;
+}
+.share-card[data-variant="dossier"] .sc-frame {
+  inset: 52px 52px auto 52px;
+  height: 788px;
+}
+
+/* ---------- brand row ---------- */
+
+.sc-top {
+  position: absolute;
+  /* Above the sheet: on the score variant the sheet covers the right 60%
+     and the masthead lives in it. */
+  z-index: 7;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.sc-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--sc-label-font);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--sc-ink);
+}
+.sc-brand::before {
+  content: '';
+  width: 22px;
+  height: 3px;
+  background: var(--sc-accent);
+}
+.sc-no {
+  font-family: var(--sc-label-font);
+  font-size: 12px;
+  letter-spacing: .2em;
+  color: var(--sc-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.share-card[data-variant="poster"] .sc-top { inset: 58px 76px auto; }
+.share-card[data-variant="dossier"] .sc-top { inset: 58px 76px auto; }
+.share-card[data-variant="score"] .sc-top { inset: 56px 76px auto 40%; }
+
+/* ---------- sheet: the type panel ---------- */
+
+.sc-sheet {
+  position: absolute;
+  z-index: 3;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--sc-sheet-bg);
+}
+
+.share-card[data-variant="poster"] .sc-sheet {
+  inset: 0;
+  padding: 0 76px 56px;
+  justify-content: flex-end;
+  /* Poster: the sheet is the lower third of the artwork, already veiled;
+     and the veil's own bottom stop is the ink floor. */
+  background: transparent;
+}
+
+.share-card[data-variant="dossier"] .sc-sheet {
+  inset: 840px 0 0;
+  padding: 44px 76px 40px;
+  border-top: var(--sc-sheet-line-w, 0) solid var(--sc-sheet-line);
+  box-shadow: 0 -1px 0 var(--sc-sheet-line) inset;
+  display: flex;
+  flex-direction: column;
+}
+
+.share-card[data-variant="score"] .sc-sheet {
+  inset: 0 0 0 40%;
+  padding: 132px 76px 48px;
+  border-left: var(--sc-sheet-line-w, 0) solid var(--sc-sheet-line);
+}
+/* A single accent rule is the whole decoration on this variant: it gives
+   the right panel a spine without boxing the type in. */
+.share-card[data-variant="score"] .sc-sheet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 132px;
+  bottom: 48px;
+  width: 4px;
+  background: var(--sc-accent);
+}
+
+/* ---------- identity ---------- */
+
+.sc-main { display: grid; gap: 0; }
+
+.share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 72px;
+}
+
+.share-card[data-variant="dossier"] .sc-main {
+  /* Fill the sheet: identity rides the top, the record block the bottom. */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 26px;
+}
+
+.share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  margin: auto 0;
+}
+
+.sc-id { min-width: 0; }
+
+.sc-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-family: var(--sc-label-font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--sc-label-tracking);
+  text-transform: var(--sc-label-transform);
+  color: var(--sc-ink-2);
+}
+.sc-kicker i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sc-accent);
+  flex: none;
+}
+.share-card[data-variant="score"] .sc-kicker { margin-bottom: 12px; }
+
+.sc-title {
+  margin: 0;
+  font-family: var(--sc-title-font);
+  font-size: var(--sc-title-size, 78px);
+  font-weight: var(--sc-title-weight);
+  letter-spacing: var(--sc-title-tracking);
+  text-transform: var(--sc-title-transform);
+  line-height: .98;
+  color: var(--sc-ink);
+  /* Long names wrap, they never clip: a card is read, not skimmed. */
+  overflow-wrap: anywhere;
+}
+
+.share-card[data-variant="score"] .sc-title { font-size: var(--sc-title-size-score, 50px); line-height: 1.04; }
+.share-card[data-variant="dossier"] .sc-title { font-size: var(--sc-title-size-dossier, 62px); line-height: 1.02; }
+
+.sc-zh {
+  margin: 14px 0 0;
+  font-family: var(--sc-label-font);
+  font-size: 21px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  color: var(--sc-ink-2);
+}
+
+.sc-tagline {
+  margin: 12px 0 0;
+  max-width: 34ch;
+  font-family: var(--sc-label-font);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--sc-ink-2);
+}
+.share-card[data-variant="score"] .sc-tagline { display: none; }
+
+.sc-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-top: 20px;
+  font-family: var(--sc-label-font);
+  font-size: 13px;
+  letter-spacing: .05em;
+  color: var(--sc-ink-2);
+}
+.sc-meta em {
+  font-style: normal;
+  opacity: .5;
+  font-size: 10px;
+}
+.sc-age {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px 3px;
+  border: 1px solid var(--sc-plate-line);
+  border-radius: var(--sc-radius);
+  color: var(--sc-ink);
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+.sc-plat {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px 3px;
+  background: var(--sc-plate);
+  border: 1px solid var(--sc-plate-line);
+  border-radius: var(--sc-radius);
+  color: var(--sc-ink);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* ---------- score / hours ---------- */
+
+.sc-score { display: flex; flex-direction: column; min-width: 0; }
+.share-card[data-variant="poster"] .sc-score {
+  align-items: flex-end;
+  text-align: right;
+  /* One plate, and only around the numbers: the identity keeps the artwork
+     behind it, the score has to survive a bright cover. */
+  padding: 20px 24px 18px 28px;
+  border: 1px solid var(--sc-plate-line);
+  border-radius: var(--sc-radius);
+  background: var(--sc-plate);
+  box-shadow: var(--sc-plate-shadow, none);
+}
+.share-card[data-variant="score"] .sc-score { gap: 0; }
+.share-card[data-variant="dossier"] .sc-score {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 22px 44px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--sc-rule);
+}
+.share-card[data-variant="dossier"] .sc-score > :is(.sc-label, .sc-hours, .sc-ladder, .sc-tier) {
+  grid-column: 1;
+}
+.share-card[data-variant="dossier"] .sc-facts { grid-column: 2; grid-row: 1 / span 4; }
+.share-card[data-variant="dossier"] .sc-ladder { margin-top: 22px; }
+.share-card[data-variant="dossier"] .sc-tier { margin-top: 12px; }
+
+.sc-label {
+  font-family: var(--sc-label-font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--sc-label-tracking);
+  text-transform: var(--sc-label-transform);
+  color: var(--sc-ink-2);
+}
+
+.sc-hours {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 4px;
+  font-family: var(--sc-num-font);
+  letter-spacing: var(--sc-num-tracking);
+  color: var(--sc-ink);
+  line-height: .86;
+}
+.sc-hours b {
+  font-size: 132px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.sc-hours em {
+  font-style: normal;
+  font-family: var(--sc-label-font);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  color: var(--sc-ink-2);
+}
+.share-card[data-variant="score"] .sc-hours b { font-size: 190px; }
+.share-card[data-variant="dossier"] .sc-hours b { font-size: 128px; }
+.share-card[data-variant="dossier"] .sc-hours { margin-top: 2px; }
+
+/* The milestone ladder is the launcher's own signature: 21 nodes, the
+   reached ones inked with the theme's ladder colour. */
+.sc-ladder {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  width: 100%;
+  margin-top: 16px;
+}
+.share-card[data-variant="poster"] .sc-ladder { width: 264px; margin-left: auto; }
+.sc-ladder i {
+  height: 12px;
+  background: var(--sc-track, rgba(127, 127, 127, .3));
+  border: 1px solid var(--sc-plate-line);
+  border-radius: 1px;
+}
+.sc-ladder i.is-on {
+  background: var(--prog-fill, var(--sc-accent));
+  border-color: var(--prog-fill, var(--sc-accent));
+}
+.sc-ladder i.is-next {
+  border-color: var(--sc-accent);
+  box-shadow: inset 0 0 0 1px var(--sc-accent);
+}
+
+.sc-facts {
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 26px;
+}
+.share-card[data-variant="dossier"] .sc-facts { display: grid; }
+.sc-fact { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sc-fact span {
+  font-family: var(--sc-label-font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--sc-label-tracking);
+  text-transform: var(--sc-label-transform);
+  color: var(--sc-ink-2);
+}
+.sc-fact b {
+  font-family: var(--sc-label-font);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--sc-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sc-fact b em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--sc-ink-2);
+  letter-spacing: .04em;
+}
+
+.sc-tier {
+  margin-top: 10px;
+  font-family: var(--sc-label-font);
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--sc-ink-2);
+}
+.share-card[data-variant="poster"] .sc-tier { max-width: 264px; margin-left: auto; }
+
+/* ---------- footer ---------- */
+
+.sc-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 32px;
+  padding-top: 18px;
+  border-top: 1px solid var(--sc-rule);
+  font-family: var(--sc-label-font);
+  font-size: 12px;
+  letter-spacing: .05em;
+  color: var(--sc-ink-2);
+}
+.sc-foot i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .5; }
+.sc-sign { margin-left: auto; color: var(--sc-ink); letter-spacing: .12em; }
+.share-card[data-variant="dossier"] .sc-foot { margin-top: auto; padding-top: 14px; }
+.share-card[data-variant="score"] .sc-foot { border-top: 0; padding-top: 0; }
+
+/* ============================================================
+   EXPORT STAGE
+   ------------------------------------------------------------
+   While a capture runs the app is hidden and the card is laid out in
+   normal document flow at the origin, so the host's clip (0,0 → w×h)
+   is exactly the card. `exact` on the bridge call keeps the host from
+   widening the frame to the viewport.
+   ============================================================ */
+
+.share-export-stage { display: none; }
+
+/* display, not visibility: a hidden-but-laid-out app keeps its ~900px of
+   document height, which pushes the card down to y=900 and the capture
+   (clip 0,0) lands on the page instead of the card. */
+html[data-share-export] .app,
+html[data-share-export] body > .overlay,
+html[data-share-export] body > .toast,
+html[data-share-export] body > .context-menu,
+html[data-share-export] body > .intro,
+html[data-share-export] body > .launch,
+html[data-share-export] body > .sleep,
+html[data-share-export] body > .theme-curtain { display: none !important; }
+
+html[data-share-export],
+html[data-share-export] body {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  background: #000 !important;
+}
+
+html[data-share-export] .share-export-stage {
+  display: block;
+  position: static;
+  margin: 0;
+  padding: 0;
+  width: max-content;
+}
+
+/* Narrow dialog: the spec list moves under the preview. */
+@media (max-width: 980px) {
+  .share-body { grid-template-columns: minmax(0, 1fr); }
+  .share-choices { flex-direction: row; }
+  .share-choice { grid-template-columns: 40px minmax(0, 1fr); }
+  .share-choice-art { width: 40px; height: 28px; }
+}

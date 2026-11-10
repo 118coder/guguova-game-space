@@ -244,7 +244,8 @@ html[data-theme="endfield"] {
   --im-title-size: 5.6vw;
   --im-title-max: 96px;
   --im-veil: linear-gradient(90deg, rgba(250,250,246,.96) 0%, rgba(250,250,246,.72) 42%, rgba(250,250,246,0) 76%);
-  --im-topbar-bg: rgba(250,250,246,.8);
+  --im-topbar-bg: rgba(250, 250, 246, .93);
+  --im-topbar-ink: var(--ink, #161616);
   --im-topbar-rule: 1px solid rgba(22,22,22,.24);
   --im-dock-bg: rgba(244,244,238,.94);
   --im-dock-rule: 2px solid #161616;
@@ -317,3 +318,208 @@ html[data-theme="endfield"].calm .view-home .status-card {
   --im-card-ink: #161616;
   --im-card-muted: rgba(22, 22, 22, .74);
 }
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="endfield"] {
+  --sc-bg: #f4f4f2;
+  --sc-ink: #161616;
+  --sc-ink-2: #5c5c5c;
+  --sc-rule: #d9d9d6;
+  --sc-accent: #fffa00;
+  --sc-accent-ink: #161616;
+  --sc-plate: #ffffff;
+  --sc-plate-line: #161616;
+  --sc-sheet-bg: #efefec;
+  --sc-sheet-line: #161616;
+  --sc-radius: 0;
+  --sc-scrim-rgb: 244, 244, 242;
+  /* Paper ground: the veil lightens the artwork into the sheet instead of
+     smearing black over it — a dark veil on a paper theme reads as damage. */
+  --sc-veil:
+    linear-gradient(180deg, rgba(244, 244, 242, .34) 0%, rgba(244, 244, 242, .04) 20%,
+      rgba(244, 244, 242, .46) 52%, rgba(244, 244, 242, .86) 82%, var(--sc-bg) 100%);
+  --sc-veil-x:
+    linear-gradient(90deg, rgba(244, 244, 242, 0) 0%, rgba(244, 244, 242, .3) 46%, var(--sc-bg) 96%);
+  --sc-frame-line: #161616;
+  --sc-frame-w: 1px;
+  --sc-frame-inset: 34px;
+  --sc-strip-h: 6px;
+  --sc-strip: #fffa00;
+  --sc-label-tracking: .18em;
+  --sc-title-transform: uppercase;
+  --sc-title-tracking: .01em;
+  --sc-title-size: 82px;
+  --sc-title-size-dossier: 58px;
+  --sc-title-size-score: 48px;
+}
+/* Cut corner: the same 45° pressable corner the theme uses on buttons. */
+html[data-theme="endfield"] .share-card {
+  clip-path: polygon(0 0, calc(100% - 38px) 0, 100% 38px, 100% 100%, 0 100%);
+  --sc-plate-shadow: 4px 4px 0 rgba(22, 22, 22, .16);
+}
+html[data-theme="endfield"] .share-card .sc-brand::before { width: 26px; height: 6px; }
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="endfield"] {
+  --im-plate-bg: #fbfbf8;
+  --im-plate-border: 1px solid #161616;
+  --im-plate-radius: 0;
+  --im-plate-pad: 26px;
+  --im-plate-pad-x: 30px;
+  --im-plate-shadow: 6px 6px 0 rgba(22, 22, 22, .82);
+  --im-plate-ink: #161616;
+  --im-plate-ink-dim: #4d4d4d;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: #fffa00;
+  --im-chip-border: 1px solid #161616;
+  --im-chip-radius: 0;
+  --im-chip-ink: #161616;
+  --im-title-ceiling: 38px;
+  --im-plate-text-shadow: none;
+}
+
+/* Acid marker on the plate edge and the same cut corner as buttons. */
+html[data-theme="endfield"] .view-home .hero-inner::before {
+  box-shadow: 6px 6px 0 rgba(22, 22, 22, .82), inset 5px 0 0 #fffa00;
+}
+html[data-theme="endfield"].calm .view-home .hero-inner > .hero-logo {
+  letter-spacing: .01em;
+}
+
+/* ============================================================
+   CARD CHARACTER · ENDFIELD
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Technical spec sheet: paper column on the left, cover window on the
+   right, acid signal seam, cut corner, ruled paper. */
+html[data-theme="endfield"] .share-card {
+  --sc-rule-grid:
+    linear-gradient(rgba(22, 22, 22, .085) 1px, transparent 1px) 0 0 / 100% 32px,
+    linear-gradient(90deg, rgba(22, 22, 22, .085) 1px, transparent 1px) 0 0 / 32px 100%;
+}
+html[data-theme="endfield"] .share-card .sc-sheet { background-image: var(--sc-rule-grid); }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-art {
+  inset: 0 0 0 55%;
+  border-left: 10px solid #fffa00;
+}
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0 45% 0 0;
+  padding: 52px 46px 40px;
+}
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-top { inset: 48px 46px auto 52px; }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: auto;
+}
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  margin-top: 26px;
+  padding: 18px 20px 16px;
+  border: 1px solid #161616;
+  border-left: 8px solid #fffa00;
+  background: #ffffff;
+  box-shadow: 5px 5px 0 #d9d9d6;
+}
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+/* The sheet's upper half carries the record data, like a spec header. */
+html[data-theme="endfield"] .share-card[data-variant="poster"] .sc-facts {
+  display: grid;
+  position: absolute;
+  left: 52px;
+  right: 46px;
+  top: 168px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+
+/* Dossier: a filed photo taped to the top right, fields as a ledger. */
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 60px 60px 60px auto;
+  width: 400px;
+  border: 1px solid #161616;
+  box-shadow: 6px 6px 0 rgba(22, 22, 22, .18);
+  z-index: 4;
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 128px 60px 52px;
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 26px;
+  height: auto;
+  border-width: 2px;
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-main { gap: 30px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-id { max-width: calc(100% - 460px); }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-score {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: calc(100% - 460px);
+  border-top: 2px solid #161616;
+  padding-top: 24px;
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-foot { padding-right: 460px; }
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: attr(data-no);
+  position: absolute;
+  left: 54px;
+  bottom: 300px;
+  font: 700 280px/1 var(--sc-title-font);
+  letter-spacing: -.04em;
+  color: rgba(22, 22, 22, .07);
+  z-index: -1;
+}
+html[data-theme="endfield"] .share-card[data-variant="dossier"] .sc-top { inset: 48px 480px auto 60px; }
+
+/* Score: cover band on top, four-cell instrument panel below. */
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-art {
+  inset: 0 0 auto 0;
+  height: 330px;
+  border-bottom: 8px solid #fffa00;
+}
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-top { inset: 44px 56px auto; }
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 338px 0 0;
+  padding: 34px 56px 30px;
+}
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 44px;
+  align-items: start;
+}
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-hours b { font-size: 120px; }
+html[data-theme="endfield"] .share-card[data-variant="score"] .sc-ladder { margin-top: 12px; }

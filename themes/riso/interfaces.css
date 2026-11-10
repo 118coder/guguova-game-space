@@ -216,7 +216,8 @@ html[data-theme="riso"] {
   --im-title-size: 6.2vw;
   --im-title-max: 104px;
   --im-veil: linear-gradient(90deg, rgba(244,242,232,.96) 0%, rgba(244,242,232,.7) 42%, rgba(244,242,232,0) 76%);
-  --im-topbar-bg: rgba(244,242,232,.86);
+  --im-topbar-bg: rgba(244, 242, 232, .95);
+  --im-topbar-ink: var(--ink, #161616);
   --im-topbar-rule: 4px solid #2f3fd4;
   --im-dock-bg: rgba(232,255,42,.92);
   --im-dock-rule: 4px solid #2f3fd4;
@@ -286,4 +287,211 @@ html[data-theme="riso"].calm .view-home .hero-inner > .kicker {
 html[data-theme="riso"].calm .view-home .status-card {
   --im-card-ink: #101014;
   --im-card-muted: rgba(16, 16, 20, .74);
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="riso"] {
+  --sc-bg: #faf8ef;
+  --sc-ink: #101014;
+  --sc-ink-2: #55555f;
+  --sc-rule: #101014;
+  --sc-accent: #2b2fa8;
+  --sc-accent-ink: #f7f5ea;
+  --sc-plate: #ffffff;
+  --sc-plate-line: #101014;
+  --sc-sheet-bg: #faf8ef;
+  --sc-sheet-line: #101014;
+  --sc-radius: 0;
+  --sc-scrim-rgb: 250, 248, 239;
+  /* Paper ground: the veil lightens the artwork into the sheet instead of
+     smearing black over it — a dark veil on a paper theme reads as damage. */
+  --sc-veil:
+    linear-gradient(180deg, rgba(250, 248, 239, .34) 0%, rgba(250, 248, 239, .04) 20%,
+      rgba(250, 248, 239, .46) 52%, rgba(250, 248, 239, .86) 82%, var(--sc-bg) 100%);
+  --sc-veil-x:
+    linear-gradient(90deg, rgba(250, 248, 239, 0) 0%, rgba(250, 248, 239, .3) 46%, var(--sc-bg) 96%);
+  --sc-frame-line: #101014;
+  --sc-frame-w: 2px;
+  --sc-frame-inset: 32px;
+  --sc-title-weight: 700;
+  --sc-title-tracking: -.015em;
+  --sc-title-size: 78px;
+  --sc-label-tracking: .12em;
+}
+/* Two inks, one misregistration: acid tape on the eyebrow and a blue
+   offset print under the score. */
+html[data-theme="riso"] .share-card .sc-kicker {
+  padding: 5px 10px;
+  background: #e8ff2a;
+  color: #101014;
+}
+html[data-theme="riso"] .share-card .sc-kicker i { background: #2b2fa8; }
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-score {
+  box-shadow: 7px 7px 0 #2b2fa8;
+}
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+/* The plate is paper now, so the old per-block white wells are gone and
+   the title's acid offset is replaced by a blue one: an acid shadow on
+   paper is 1.05:1 and the pixel audit reads it as the glyph. Blue keeps
+   the misregistration idea and stays readable. */
+html[data-theme="riso"].calm .view-home .hero-inner .hero-logo {
+  background: transparent !important;
+  padding: 0 !important;
+  color: #101014 !important;
+  -webkit-text-fill-color: currentColor !important;
+  text-shadow: 6px 6px 0 rgba(43, 47, 168, .9) !important;
+}
+html[data-theme="riso"].calm .view-home .hero-inner :is(.tagline, .meta-row) {
+  background: transparent !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+html[data-theme="riso"] {
+  --im-plate-bg: #fbf9f0;
+  --im-plate-border: 2px solid #101014;
+  --im-plate-radius: 0;
+  --im-plate-pad: 24px;
+  --im-plate-pad-x: 28px;
+  --im-plate-shadow: 6px 6px 0 #2b2fa8;
+  --im-plate-ink: #101014;
+  --im-plate-ink-dim: #55555f;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: #e8ff2a;
+  --im-chip-border: 1px solid #101014;
+  --im-chip-radius: 0;
+  --im-chip-ink: #101014;
+  --im-title-ceiling: 38px;
+  --im-plate-text-shadow: none;
+}
+
+/* ============================================================
+   CARD CHARACTER · RISO
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Two-ink print: halftone field, crop marks, a blue title block and acid
+   overprint blocks. */
+html[data-theme="riso"] .share-card .sc-deco {
+  background-image: radial-gradient(rgba(43, 47, 168, .5) 1.1px, transparent 1.3px);
+  background-size: 11px 11px;
+  opacity: .16;
+  mix-blend-mode: multiply;
+}
+html[data-theme="riso"] .share-card .sc-frame {
+  border: 0;
+  background:
+    linear-gradient(#101014, #101014) left top / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) left top / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) right top / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) right top / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) left bottom / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) left bottom / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) right bottom / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) right bottom / 2px 34px no-repeat;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-art { inset: 0 0 0 46%; }
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-wash {
+  inset: 0 0 0 46%;
+  background-image: linear-gradient(90deg, #faf8ef 0%, rgba(250, 248, 239, .1) 26%, rgba(43, 47, 168, .28) 100%);
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-sheet { inset: 0 54% 0 0; padding: 60px 40px 48px; }
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-top { inset: 48px 40px auto 48px; }
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 26px;
+  margin-top: auto;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-title {
+  display: inline-block;
+  padding: 6px 14px 12px;
+  background: #2b2fa8;
+  color: #f7f5ea;
+  box-shadow: 7px 7px 0 #e8ff2a;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px 18px 14px;
+  border: 2px solid #101014;
+  background: #e8ff2a;
+  box-shadow: 7px 7px 0 #2b2fa8;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-hours b { font-size: 86px; }
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-ladder { display: none; }
+
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 56px 56px auto auto;
+  width: 46%;
+  height: 420px;
+  border: 2px solid #101014;
+  box-shadow: 9px 9px 0 #2b2fa8;
+  z-index: 4;
+}
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 140px 60px 52px; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-id { max-width: 42%; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-score {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-top: 2px solid #101014;
+}
+
+/* Score: the number is printed twice, one blue plate slightly off. */
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-art {
+  inset: 44px 44px auto 44px;
+  height: 210px;
+  border-bottom: 2px solid #101014;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 254px 0 0;
+  padding: 34px 60px 40px;
+  background: #faf8ef;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-top { inset: 52px 56px auto; }
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 44px;
+  align-items: end;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-hours b {
+  font-size: 150px;
+  text-shadow: 6px 6px 0 rgba(43, 47, 168, .9);
+}
+
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: attr(data-no);
+  position: absolute;
+  right: 60px;
+  top: 520px;
+  font: 700 260px/1 var(--sc-title-font);
+  color: rgba(43, 47, 168, .1);
+  z-index: -1;
 }

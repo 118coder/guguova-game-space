@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -178,12 +178,16 @@ public sealed class NativeBridge
         var background = args.TryGetProperty("background", out var bg) && bg.ValueKind == JsonValueKind.String
             ? bg.GetString()
             : null;
+        // A share card is narrower than the window on purpose. Normal page
+        // captures widen the clip to the viewport (a full page is at least
+        // as wide as the window); an exact capture must not.
+        var exact = args.TryGetProperty("exact", out var exactNode) && exactNode.ValueKind == JsonValueKind.True;
 
         // The reply is immediate. The image arrives later as a
         // `screenshot-done` notification, which is also the signal the page
         // uses to put its layout back.
         Application.Current?.Dispatcher.InvokeAsync(
-            async () => await CapturePageAsync(view, width, height, scale, background));
+            async () => await CapturePageAsync(view, width, height, scale, background, exact));
         return new { ok = true, queued = true };
     }
 
@@ -194,7 +198,7 @@ public sealed class NativeBridge
             : 0;
     }
 
-    private async Task CapturePageAsync(string view, double widthHint, double heightHint, double requestedScale, string? background)
+    private async Task CapturePageAsync(string view, double widthHint, double heightHint, double requestedScale, string? background, bool exact = false)
     {
         string? path = null;
         string? error = null;
@@ -234,7 +238,7 @@ public sealed class NativeBridge
                 viewW = Math.Max(viewW, ReadNumber(layout, "clientWidth"));
             }
 
-            var cssWidth = Math.Max(widthHint, viewW);
+            var cssWidth = exact ? widthHint : Math.Max(widthHint, viewW);
             var cssHeight = heightHint;
             if (cssWidth < 2 || cssHeight < 2) throw new InvalidOperationException("没有可导出的内容");
             if (cssHeight > 20000) throw new InvalidOperationException("页面过长（超过 20000 px）");

@@ -223,7 +223,8 @@ html[data-theme="grimoire"] {
   --im-title-size: 5vw;
   --im-title-max: 86px;
   --im-veil: linear-gradient(90deg, rgba(32,20,14,.9) 0%, rgba(32,20,14,.5) 42%, rgba(32,20,14,0) 76%);
-  --im-topbar-bg: rgba(32,20,14,.7);
+  --im-topbar-bg: rgba(32, 20, 14, .92);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 3px double rgba(176,138,62,.5);
   --im-dock-bg: rgba(40,26,18,.86);
   --im-dock-rule: 4px solid rgba(122,31,43,.7);
@@ -306,4 +307,200 @@ html[data-theme="grimoire"].calm .view-home .status-card > .hero-scale,
 html[data-theme="grimoire"].calm .view-home .status-card .hero-scale-label,
 html[data-theme="grimoire"].calm .view-home .status-card .hero-scale-hint {
   color: #33241a !important;
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="grimoire"] {
+  --sc-bg: #e8d8b6;
+  --sc-ink: #2a1b12;
+  --sc-ink-2: #5a3a25;
+  --sc-rule: #8a6a3a;
+  --sc-accent: #7a1f2b;
+  --sc-accent-ink: #f4e6c8;
+  --sc-plate: rgba(241, 228, 198, .96);
+  --sc-plate-line: #b08a3e;
+  --sc-sheet-bg: #f1e4c6;
+  --sc-sheet-line: #8a6a3a;
+  --sc-radius: 2px;
+  --sc-scrim-rgb: 232, 216, 182;
+  /* Paper ground: the veil lightens the artwork into the sheet instead of
+     smearing black over it — a dark veil on a paper theme reads as damage. */
+  --sc-veil:
+    linear-gradient(180deg, rgba(232, 216, 182, .34) 0%, rgba(232, 216, 182, .04) 20%,
+      rgba(232, 216, 182, .46) 52%, rgba(232, 216, 182, .86) 82%, var(--sc-bg) 100%);
+  --sc-veil-x:
+    linear-gradient(90deg, rgba(232, 216, 182, 0) 0%, rgba(232, 216, 182, .3) 46%, var(--sc-bg) 96%);
+  --sc-frame-line: #b08a3e;
+  --sc-frame-inner: rgba(176, 138, 62, .6);
+  --sc-frame-inner-inset: 7px;
+  --sc-frame-inset: 40px;
+  --sc-title-font: var(--font-serif);
+  --sc-title-weight: 600;
+  --sc-num-font: var(--font-serif);
+  --sc-label-tracking: .16em;
+  --sc-title-size: 72px;
+}
+/* Character sheet: parchment grain, double gold rule, a wax seal in the
+   corner of the record sheet. */
+html[data-theme="grimoire"] .share-card .sc-sheet {
+  background-image: radial-gradient(120% 90% at 100% 100%, rgba(122, 31, 43, .1), transparent 62%);
+}
+html[data-theme="grimoire"] .share-card .sc-brand::before {
+  height: 2px;
+  background: #b08a3e;
+}
+html[data-theme="grimoire"] .share-card .sc-foot::after {
+  content: '';
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #7a1f2b;
+  box-shadow: inset 0 0 0 3px rgba(244, 230, 200, .35);
+  margin-left: 6px;
+}
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="grimoire"] {
+  --im-plate-bg: rgba(241, 228, 198, .97);
+  --im-plate-border: 1px solid #b08a3e;
+  --im-plate-radius: 2px;
+  --im-plate-pad: 26px;
+  --im-plate-pad-x: 30px;
+  --im-plate-shadow: 0 30px 70px -40px rgba(42, 27, 18, .55);
+  --im-plate-ink: #2a1b12;
+  --im-plate-ink-dim: #5a3a25;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: rgba(122, 31, 43, .08);
+  --im-chip-border: 1px solid #b08a3e;
+  --im-chip-radius: 0;
+  --im-chip-ink: #2a1b12;
+  --im-title-ceiling: 34px;
+  --im-plate-text-shadow: none;
+}
+
+html[data-theme="grimoire"] .view-home .hero-inner::before {
+  box-shadow: 0 30px 70px -40px rgba(42, 27, 18, .55), inset 0 0 0 5px #f1e4c6, inset 0 0 0 6px rgba(176, 138, 62, .6);
+}
+
+/* ============================================================
+   CARD CHARACTER · GRIMOIRE
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Character sheet: a framed portrait, ability-score boxes, a wax seal. */
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-art {
+  inset: 56px auto 56px 56px;
+  width: 36%;
+  border: 1px solid #b08a3e;
+  box-shadow: 0 0 0 6px #e8d8b6, 0 0 0 7px rgba(176, 138, 62, .55);
+}
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0 0 0 40%;
+  padding: 64px 60px 48px;
+  background: #e8d8b6;
+}
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-top { inset: 64px 60px auto 40%; padding-left: 60px; }
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  margin-top: auto;
+}
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  padding: 20px 0 0;
+  border-top: 3px double #8a6a3a;
+}
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-hours b { font-size: 96px; }
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-frame { display: none; }
+html[data-theme="grimoire"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 528px;
+  bottom: 198px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, #a33b45, #7a1f2b 64%, #591319);
+  box-shadow: inset 0 0 0 4px rgba(244, 230, 200, .4), 0 10px 22px -12px #000;
+}
+
+html[data-theme="grimoire"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 64px auto auto 64px;
+  width: 300px;
+  height: 360px;
+  border: 1px solid #b08a3e;
+  box-shadow: 0 0 0 6px #f1e4c6, 0 0 0 7px rgba(176, 138, 62, .55);
+  z-index: 4;
+}
+html[data-theme="grimoire"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="grimoire"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 150px 64px 52px; }
+html[data-theme="grimoire"] .share-card[data-variant="dossier"] .sc-id { margin-left: 340px; min-height: 360px; }
+html[data-theme="grimoire"] .share-card[data-variant="dossier"] .sc-score {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  border-top: 3px double #8a6a3a;
+}
+html[data-theme="grimoire"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: attr(data-no);
+  position: absolute;
+  right: 60px;
+  top: 470px;
+  font: 600 300px/1 var(--sc-title-font);
+  color: rgba(42, 27, 18, .07);
+  z-index: -1;
+}
+
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-art {
+  inset: 56px 56px 56px auto;
+  width: 32%;
+  border: 1px solid #b08a3e;
+  box-shadow: 0 0 0 6px #e8d8b6, 0 0 0 7px rgba(176, 138, 62, .55);
+}
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0 36% 0 0;
+  padding: 64px 56px 48px;
+  background: #e8d8b6;
+  --sc-sheet-bg: #e8d8b6;
+}
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-top { inset: 56px auto auto 56px; }
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-main { gap: 18px; margin-top: auto; }
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
+html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 26px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #8a6a3a;
 }

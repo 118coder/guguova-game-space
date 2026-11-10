@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="intro.css?v=1.16.5">
 <link rel="stylesheet" href="compat.css?v=1.16.5" id="compat-style">
 <link rel="stylesheet" href="theme-slots.css?v=1.16.5">
+<link rel="stylesheet" href="share-cards.css?v=1.16.5">
 <link rel="stylesheet" href="settings-themes.css?v=1.16.5">
 </head>
 <body>
@@ -156,7 +157,7 @@
       <button class="icon-btn" id="searchBtn" aria-label="搜索游戏" title="搜索游戏 (/)">
         <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
       </button>
-      <button class="icon-btn" id="shotBtn" aria-label="导出截图" title="导出截图 · 整页长图">
+      <button class="icon-btn" id="shotBtn" aria-label="导出卡片" title="导出卡片 · 分享图 (C)">
         <svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>
       </button>
       <button class="icon-btn" id="notifBtn" aria-label="通知" title="通知 (N)" aria-expanded="false">
@@ -1478,6 +1479,38 @@
     <div class="dialog-actions" id="dialogActions"></div>
   </div>
 </div>
+
+<!-- ============ SHARE CARDS ============ -->
+<div class="overlay share-overlay" id="shareOverlay" aria-hidden="true">
+  <div class="engine-shell share-shell" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+    <header class="engine-head">
+      <div class="engine-head-copy">
+        <div class="engine-kicker" id="shareKicker">EXPORT · CARD</div>
+        <h2 id="shareTitle">导出卡片</h2>
+        <p id="shareSubtitle">把这一款游戏的封面、时长与进度做成一张图</p>
+      </div>
+      <button class="icon-btn" id="shareClose" aria-label="关闭导出卡片">
+        <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </header>
+
+    <div class="engine-body share-body">
+      <div class="share-stage" id="shareStage">
+        <div class="share-mount" id="shareMount"></div>
+      </div>
+
+      <div class="share-choices" id="shareChoices" role="radiogroup" aria-label="卡片版式"></div>
+    </div>
+
+    <footer class="engine-foot">
+      <button class="engine-btn ghost" id="shareLongPage" type="button">整页长图</button>
+      <button class="engine-btn primary" id="shareExport" type="button">导出这张卡</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Off-screen full-size card used by the host capture. -->
+<div class="share-export-stage" id="shareExportStage" aria-hidden="true"></div>
 
 <!-- ============ IN-APP FILE BROWSER ============ -->
 <div class="overlay picker-overlay" id="pickerOverlay" aria-hidden="true">

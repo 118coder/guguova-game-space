@@ -295,7 +295,8 @@ html[data-theme="summer"] {
   --im-title-size: 5.8vw;
   --im-title-max: 98px;
   --im-veil: linear-gradient(90deg, rgba(255,255,255,.97) 0%, rgba(255,255,255,.74) 42%, rgba(255,255,255,0) 76%);
-  --im-topbar-bg: rgba(255,255,255,.9);
+  --im-topbar-bg: rgba(255, 255, 255, .96);
+  --im-topbar-ink: var(--ink, #161616);
   --im-topbar-rule: 1px solid rgba(26,155,215,.5);
   --im-dock-bg: #fff;
   --im-dock-rule: 2px solid #1a9bd7;
@@ -368,6 +369,206 @@ html[data-theme="summer"].calm .view-home .status-card {
 /* The eyebrow keeps its own plate here (lime), so the label is decided
    against that plate rather than against the cover. */
 html[data-theme="summer"].calm .view-home .hero-inner > .kicker {
-  --im-kicker-ink: #17345a;
-  --im-kicker-dim: rgba(23, 52, 90, .72);
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="summer"] {
+  --sc-bg: #fdfbf6;
+  --sc-ink: #101820;
+  --sc-ink-2: #53677a;
+  --sc-rule: #9cc6d9;
+  --sc-accent: #1f93c8;
+  --sc-accent-ink: #ffffff;
+  --sc-plate: #ffffff;
+  --sc-plate-line: #1f93c8;
+  --sc-sheet-bg: #ffffff;
+  --sc-sheet-line: #9cc6d9;
+  --sc-radius: 12px;
+  --sc-scrim-rgb: 253, 251, 246;
+  /* Paper ground: the veil lightens the artwork into the sheet instead of
+     smearing black over it — a dark veil on a paper theme reads as damage. */
+  --sc-veil:
+    linear-gradient(180deg, rgba(253, 251, 246, .34) 0%, rgba(253, 251, 246, .04) 20%,
+      rgba(253, 251, 246, .46) 52%, rgba(253, 251, 246, .86) 82%, var(--sc-bg) 100%);
+  --sc-veil-x:
+    linear-gradient(90deg, rgba(253, 251, 246, 0) 0%, rgba(253, 251, 246, .3) 46%, var(--sc-bg) 96%);
+  --sc-frame-line: #1f93c8;
+  --sc-frame-w: 2px;
+  --sc-frame-inset: 38px;
+  --sc-label-tracking: .16em;
+  --sc-title-size: 76px;
+  --sc-plate-shadow: 0 18px 40px -26px rgba(16, 24, 32, .5);
+}
+/* Acid-lime tape behind the eyebrow, the theme's own label language. */
+html[data-theme="summer"] .share-card .sc-kicker {
+  padding: 5px 10px;
+  border-radius: 2px;
+  background: #e2f53c;
+  color: #101820;
+}
+html[data-theme="summer"] .share-card .sc-kicker i { background: #1f93c8; }
+html[data-theme="summer"] .share-card .sc-brand::before { border-radius: 999px; height: 4px; }
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="summer"] {
+  --im-plate-bg: rgba(255, 255, 255, .95);
+  --im-plate-border: 2px solid #1f93c8;
+  --im-plate-radius: 16px;
+  --im-plate-pad: 26px;
+  --im-plate-pad-x: 30px;
+  --im-plate-shadow: 0 30px 70px -40px rgba(16, 24, 32, .5);
+  --im-plate-ink: #101820;
+  --im-plate-ink-dim: #3d4d58;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: #e2f53c;
+  --im-chip-border: 0;
+  --im-chip-radius: 999px;
+  --im-chip-ink: #101820;
+  --im-title-ceiling: 36px;
+  --im-plate-text-shadow: none;
+}
+
+/* ============================================================
+   CARD CHARACTER · SUMMER
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Summer postcard: a photo taped to the card, lime tape, a round hours
+   badge and a lot of white. */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
+  inset: 64px 64px auto auto;
+  width: 42%;
+  height: 58%;
+  border: 14px solid #ffffff;
+  box-shadow: 0 24px 50px -24px rgba(16, 24, 32, .45);
+  transform: rotate(-2.4deg);
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0;
+  padding: 76px;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 64px 0 auto 76px; right: 46%; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 30px;
+  margin-top: auto;
+  max-width: 48%;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: #e2f53c;
+  border: 2px solid #101820;
+  box-shadow: 8px 8px 0 rgba(31, 147, 200, .9);
+  padding: 0;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours { gap: 6px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 74px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder { display: none; }
+/* A round badge holds two lines; the milestone sentence belongs to the
+   dossier, not to a 250px circle. */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier { display: none; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score { padding: 0 26px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  right: 34%;
+  top: 52px;
+  width: 170px;
+  height: 40px;
+  background: rgba(226, 245, 60, .92);
+  transform: rotate(-4deg);
+  box-shadow: 0 6px 14px -8px rgba(16, 24, 32, .4);
+}
+
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 56px 70px auto auto;
+  width: 50%;
+  height: 460px;
+  border: 16px solid #ffffff;
+  box-shadow: 0 26px 54px -26px rgba(16, 24, 32, .45);
+  transform: rotate(1.8deg);
+  z-index: 4;
+}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 150px 64px 52px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 26px;
+  height: auto;
+  border-color: #9cc6d9;
+}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-id { max-width: 40%; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-score {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  border-top: 2px solid #1f93c8;
+}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  right: 30%;
+  top: 42px;
+  width: 150px;
+  height: 34px;
+  background: rgba(226, 245, 60, .92);
+  transform: rotate(-3.5deg);
+}
+
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-art {
+  inset: 70px 70px 70px auto;
+  width: 34%;
+  border-radius: 50%;
+  border: 14px solid #e2f53c;
+  box-shadow: 0 26px 60px -30px rgba(16, 24, 32, .5);
+}
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0 40% 0 0;
+  padding: 64px 60px 48px;
+  background: #ffffff;
+  border-left: 0;
+}
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 56px auto auto 60px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: attr(data-no);
+  position: absolute;
+  right: 60px;
+  top: 520px;
+  font: 700 260px/1 var(--sc-title-font);
+  color: rgba(16, 24, 32, .07);
+  z-index: -1;
 }
