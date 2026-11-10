@@ -191,3 +191,95 @@ html[data-theme="codex"] .settings-id-copy b { color: var(--cx-cream); font-fami
 html[data-theme="codex"] .settings-id-copy em { color: var(--cx-cream-3); }
 
 html[data-theme="codex"] .settings-id-tags i { border-color: var(--cx-gold-line); border-radius: 0; color: var(--cx-gold); }
+
+/* ============================================================
+   IMMERSIVE SHELL SLOT MAPPING + SCALE TICK BOX
+   ------------------------------------------------------------
+   Values are this theme's own material: veil, rule, card
+   proportion and the shape of the tick mark. Geometry lives in
+   src/theme-slots.css. Per-theme art direction is deferred by
+   Owner (2026-11-10) — this is the mechanism, not the final look.
+   ============================================================ */
+
+html[data-theme="codex"] {
+  --im-safe-x: clamp(58px, 8.5vw, 160px);
+  --im-text-width: min(46vw, 720px);
+  --im-title-size: 4.8vw;
+  --im-title-max: 82px;
+  --im-veil: linear-gradient(90deg, rgba(16,13,10,.92) 0%, rgba(16,13,10,.55) 42%, rgba(16,13,10,.12) 76%);
+  --im-topbar-bg: rgba(16,13,10,.66);
+  --im-topbar-rule: 1px solid rgba(226,199,142,.32);
+  --im-dock-bg: rgba(16,13,10,.88);
+  --im-dock-rule: 3px double rgba(226,199,142,.42);
+  --im-dock-shadow: inset 0 6px 18px -12px #000;
+  --im-card-gap: 10px;
+  --im-card-width: clamp(116px, 9.4vw, 150px);
+  --im-card-ratio: 3 / 4;
+  --im-card-radius: 1px;
+  --im-card-border: 1px solid rgba(226,199,142,.34);
+  --im-card-shadow: inset 0 0 0 2px rgba(16,13,10,.7), inset 0 0 0 3px rgba(226,199,142,.2);
+  --im-card-active-border: 2px solid #e2c78e;
+  --im-card-active-shadow: 0 0 0 1px rgba(138,47,40,.7);
+  --im-card-lift: -2px;
+  --im-card-name-size: 11px;
+  --hs-check-size: 15px;
+  --hs-check-border: 1px solid rgba(226,199,142,.7);
+  --hs-check-radius: 1px;
+  --hs-check-bg: rgba(16,13,10,.7);
+  --hs-check-shadow: inset 0 0 0 2px rgba(16,13,10,.9), inset 0 0 0 3px rgba(226,199,142,.28);
+  --hs-check-on-line: #e2c78e;
+  --hs-check-mark: #e2c78e;
+  --hs-check-mark-x: 3px;
+  --hs-check-mark-y: 6px;
+  --hs-check-mark-w: 9px;
+  --hs-check-mark-h: 2px;
+  --hs-check-mark-bw: 0;
+  --hs-check-mark-bg: #e2c78e;
+  --hs-check-mark-transform: none;
+}
+
+/* ============================================================
+   IMMERSIVE CONTROLS
+   ------------------------------------------------------------
+   Fullscreen puts the action row straight on the cover, where the
+   windowed page had a plate under it. Each theme answers with its
+   own material — paper stays paper, glass stays glass — and every
+   block below decides plate AND ink together. Declaring one of the
+   two is exactly how a label disappears (白底白字).
+
+   Geometry, hit areas and the focus ring stay in src/theme-slots.css.
+   ============================================================ */
+
+html[data-theme="codex"].calm .view-home .hero-inner > .cta-row .btn {
+  font-family: var(--font-display);
+  letter-spacing: .14em;
+  font-weight: 600;
+  border-radius: 1px;
+}
+html[data-theme="codex"].calm .view-home .hero-inner > .cta-row .btn.primary {
+  background: linear-gradient(180deg, #efdcb2 0%, #c9a35e 100%) !important;
+  color: #241a10 !important;
+  border: 1px solid rgba(246, 227, 187, .7) !important;
+  box-shadow: inset 0 0 0 1px rgba(42, 29, 18, .35), 0 12px 30px -18px #000;
+}
+html[data-theme="codex"].calm .view-home .hero-inner > .cta-row .btn.ghost {
+  background: rgba(22, 15, 9, .76) !important;
+  color: #f0e4cc !important;
+  border: 1px solid rgba(226, 199, 142, .46) !important;
+}
+html[data-theme="codex"].calm .view-home .hero-inner > .kicker {
+  font-family: var(--font-display);
+  letter-spacing: .18em;
+}
+html[data-theme="codex"].calm .view-home .status-card {
+  --im-card-ink: #f0e4cc;
+  --im-card-muted: rgba(240, 228, 204, .82);
+}
+
+/* Status card material: aged leather under a gold rule. The shell's fallback is a neutral
+   translucent black, which reads as "unstyled" beside these palettes. */
+html[data-theme="codex"] {
+  --im-card-bg: linear-gradient(180deg, rgba(33, 22, 15, .93), rgba(15, 10, 7, .96));
+  --im-card-border: 1px solid rgba(226, 199, 142, .3);
+  --im-card-radius: 1px;
+}

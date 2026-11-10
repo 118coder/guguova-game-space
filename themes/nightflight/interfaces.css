@@ -151,3 +151,84 @@ html[data-theme="nightflight"] .appearance-framing {
   --af-done-radius: 0;
   --af-done-shadow: 4px 4px 0 #0a0f14;
 }
+
+/* ============================================================
+   IMMERSIVE SHELL SLOT MAPPING + SCALE TICK BOX
+   ------------------------------------------------------------
+   Values are this theme's own material: veil, rule, card
+   proportion and the shape of the tick mark. Geometry lives in
+   src/theme-slots.css. Per-theme art direction is deferred by
+   Owner (2026-11-10) — this is the mechanism, not the final look.
+   ============================================================ */
+
+html[data-theme="nightflight"] {
+  --im-safe-x: clamp(44px, 6.4vw, 118px);
+  --im-text-width: min(55vw, 860px);
+  --im-title-size: 6vw;
+  --im-title-max: 100px;
+  --im-veil: linear-gradient(90deg, rgba(6,16,34,.9) 0%, rgba(6,16,34,.46) 42%, rgba(6,16,34,0) 76%);
+  --im-topbar-bg: rgba(6,16,34,.62);
+  --im-topbar-rule: 1px dashed rgba(217,255,69,.36);
+  --im-dock-bg: rgba(8,20,40,.84);
+  --im-dock-rule: 1px dashed rgba(244,240,224,.42);
+  --im-dock-shadow: 0 -20px 46px -30px #000;
+  --im-card-gap: 10px;
+  --im-card-width: clamp(158px, 13.4vw, 216px);
+  --im-card-ratio: 2 / 1;
+  --im-card-radius: 4px;
+  --im-card-border: 1px dashed rgba(244,240,224,.5);
+  --im-card-shadow: none;
+  --im-card-active-border: 2px solid #d9ff45;
+  --im-card-active-shadow: 0 0 0 3px rgba(217,255,69,.2);
+  --im-card-lift: -4px;
+  --im-card-name-size: 11px;
+  --hs-check-size: 15px;
+  --hs-check-border: 1px dashed rgba(244,240,224,.6);
+  --hs-check-radius: 2px;
+  --hs-check-bg: rgba(6,16,34,.6);
+  --hs-check-on-line: #d9ff45;
+  --hs-check-mark: #d9ff45;
+  --hs-check-mark-bw: 0 2px 2px 0;
+}
+
+/* ============================================================
+   IMMERSIVE CONTROLS
+   ------------------------------------------------------------
+   Fullscreen puts the action row straight on the cover, where the
+   windowed page had a plate under it. Each theme answers with its
+   own material — paper stays paper, glass stays glass — and every
+   block below decides plate AND ink together. Declaring one of the
+   two is exactly how a label disappears (白底白字).
+
+   Geometry, hit areas and the focus ring stay in src/theme-slots.css.
+   ============================================================ */
+
+html[data-theme="nightflight"].calm .view-home .hero-inner > .cta-row .btn {
+  font-family: var(--font-display);
+  letter-spacing: .14em;
+  font-weight: 700;
+  border-radius: 0;
+}
+html[data-theme="nightflight"].calm .view-home .hero-inner > .cta-row .btn.primary {
+  background: #d9ff45 !important;
+  color: #0a0f14 !important;
+  border: 1px solid #d9ff45 !important;
+  box-shadow: 0 0 26px -8px rgba(217, 255, 69, .5);
+}
+html[data-theme="nightflight"].calm .view-home .hero-inner > .cta-row .btn.ghost {
+  background: rgba(4, 7, 13, .62) !important;
+  color: #e9edf2 !important;
+  border: 1px solid rgba(217, 255, 69, .62) !important;
+}
+html[data-theme="nightflight"].calm .view-home .hero-inner > .cta-row .btn.ghost:hover {
+  background: rgba(217, 255, 69, .16) !important;
+  color: #d9ff45 !important;
+}
+html[data-theme="nightflight"].calm .view-home .hero-inner > .kicker {
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+html[data-theme="nightflight"].calm .view-home .status-card {
+  --im-card-ink: #0a0f14;
+  --im-card-muted: rgba(10, 15, 20, .74);
+}

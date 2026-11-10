@@ -55,3 +55,700 @@ html[data-theme] .engine-shell .pref-row .pref-label {
 html[data-theme] .engine-shell .pref-row .pref-hint {
   color: var(--sheet-muted);
 }
+
+/* ============================================================
+   SLOT · immersive shell (geometry only)
+   ------------------------------------------------------------
+   Fullscreen re-balances the *existing* home DOM: the text stays in a
+   protected left column, and the game switcher becomes a horizontal
+   card band along the bottom — including on themes whose windowed
+   layout keeps a vertical rail on the left. No second view, no second
+   renderer, no JS change, and the windowed layout is untouched.
+
+   Every material decision is a --im-* value supplied by the active
+   theme's interfaces.css. This sheet must never name a theme id.
+
+   Owner deferred the per-theme art direction on 2026-11-10: what is
+   here is the mechanism, not the final look. Do not read the parked
+   concept boards as the design contract for these rules.
+   ============================================================ */
+
+html.calm .view-home .stage,
+html.calm body.layout-rail .view-home .stage {
+  order: 1;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  /* The bar must rest on the lower edge on every theme: several themes
+     centre or top-align the stage in windowed mode, and the bar followed
+     the theme instead of the page. */
+  justify-content: flex-end !important;
+  min-height: 0;
+  /* The strip is absolutely positioned over the cover, so the stage has to
+     reserve its height or the action row slides underneath it. The value is
+     measured at runtime (app.js syncDockHeight) because the strip is not a
+     fixed height: long names wrap to two or three lines, a narrow window
+     drops the caption further, and the tile count changes the scroll axis.
+     A constant 128px looked right on the demo library and buried the buttons
+     on a real one. */
+  padding: 0 0 calc(var(--im-dock-h, 128px) + clamp(4px, .8vh, 12px)) 0;
+}
+
+/* THE COVER IS THE PAGE.
+   The current game's artwork fills the whole stage; the controls collapse
+   into one bar resting on its lower edge. Nothing of the windowed column
+   survives here — the artwork keeps the weight, the UI is the guest. */
+html.calm .view-home .stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* A game without its own artwork still gets a picture, not a black
+     hole: the launcher backdrop is the floor. */
+  background-image: var(--nova-hero, url("assets/backdrop.jpg"));
+  background-position: var(--nova-hero-position, center);
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: var(--im-cover-radius, 0);
+  box-shadow: var(--im-cover-shadow, none);
+  /* This pseudo-element IS the cover in fullscreen, so a theme cannot keep it
+     switched off here. DUSK removes it in the windowed page because its own
+     stage art sits behind the column; in fullscreen that left a bare gradient
+     where the game should be. */
+  display: block !important;
+}
+
+/* Bottom veil only: the bar sits in the darkened lower band, the top of
+   the artwork stays clean. A full wash would flatten the cover.
+   Two layers, and the order matters: the theme's own tint goes on top, the
+   shared floor goes underneath. Readability is not a per-theme opinion —
+   every label on this page sits in the lower half, and a light glyph needs
+   a plate dark enough for 4.5:1 on ANY artwork. A theme may colour the
+   band, never delete it. */
+html.calm .view-home .stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    var(--im-veil, none),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, .2) 46%, rgba(0, 0, 0, .48) 68%, rgba(0, 0, 0, .74) 100%);
+  background-size: cover;
+}
+
+html.calm .view-home .hero,
+html.calm body.layout-rail .view-home .hero {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 100%;
+  /* Some themes stretch the hero to the stage so their windowed headline
+     can centre; here that would drag the bar to the top edge. */
+  height: auto !important;
+  /* Themes centre or inset the hero with auto margins; the cluster must own
+     the full width or the card lands outside the viewport. */
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  /* A windowed hero is a panel; here it is glass. Leaving the theme's plate
+     on made a hard-edged band slice the artwork in half at the hero's top
+     edge (grimoire, riot, dusk). */
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ------------------------------------------------------------
+   IMMERSIVE · two clusters, one strip
+   ------------------------------------------------------------
+   The windowed page stacks seven blocks in a column. Fullscreen
+   keeps the same DOM but splits it in two:
+     · left  · identity  — kicker / title / tagline / meta / actions,
+               set straight on the veil, no plate, no long border;
+     · right · status    — playtime + scale switch fused into ONE
+               240–320px card: the only bordered surface on screen.
+   The action cluster is the primary target for pad and keyboard, so
+   its hit areas are 44–48px and its focus ring is unmistakable.
+   ------------------------------------------------------------ */
+
+/* The status card is a wrapper added for fullscreen. In the windowed column
+   it must not exist at all, so its children keep laying out as before. */
+.status-card { display: contents; }
+
+html.calm .view-home .hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 560px) minmax(240px, 320px);
+  justify-content: space-between;
+  align-items: end;
+  column-gap: clamp(28px, 5vw, 80px);
+  /* Zero row gap: the status card is two stacked halves and must read as
+     one surface. The left cluster spaces itself with margins. */
+  row-gap: 0;
+  flex: 0 0 auto;
+  width: min(1180px, 92vw) !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 0;
+  margin: 0 auto clamp(12px, 1.8vh, 22px);
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  color: var(--im-ink, var(--im-dock-ink, #f7f4ee));
+  text-shadow: var(--im-dock-ink-shadow, 0 1px 2px rgba(0, 0, 0, .85));
+  text-align: left;
+}
+
+/* Left cluster: one column, read top to bottom. */
+html.calm .view-home .hero-inner > .kicker,
+html.calm .view-home .hero-inner > .hero-logo,
+html.calm .view-home .hero-inner > .tagline,
+html.calm .view-home .hero-inner > .meta-row,
+html.calm .view-home .hero-inner > .cta-row {
+  grid-column: 1;
+  width: 100%;
+  margin: 0 !important;
+  justify-self: start;
+}
+
+/* Reading order is information architecture, not art direction: kicker →
+   title → tagline → facts → actions, on every theme. Half the themes still
+   carried an order list from the old left-column layout and two of them put
+   the title above its own eyebrow, which reads as a caption under a heading. */
+html.calm .view-home .hero-inner > .kicker { order: 1 !important; }
+html.calm .view-home .hero-inner > .hero-logo { order: 2 !important; }
+html.calm .view-home .hero-inner > .tagline { order: 3 !important; }
+html.calm .view-home .hero-inner > .meta-row { order: 4 !important; }
+html.calm .view-home .hero-inner > .cta-row { order: 5 !important; }
+html.calm .view-home .hero-inner > .status-card { order: 6 !important; }
+
+/* Right cluster: playtime on top, switch under it, one fused card. */
+html.calm .view-home .hero-inner > .status-card {
+  display: flex;
+  flex-direction: column;
+  grid-column: 2;
+  /* Implicit rows: -1 is not the last line here, so span past them. */
+  grid-row: 1 / span 6;
+  align-self: end;
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  overflow: hidden;
+  text-align: left;
+  text-shadow: none;
+  background: var(--im-card-bg, rgba(8, 10, 14, .58));
+  border: var(--im-card-border, 1px solid rgba(255, 255, 255, .18));
+  border-radius: var(--im-card-radius, 14px);
+  color: var(--im-card-ink, inherit);
+  box-shadow: var(--im-card-shadow, none);
+}
+html.calm .view-home .status-card > .progress-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  margin: 0 !important;
+  padding: clamp(10px, 1.4vh, 14px) clamp(12px, 1.4vw, 16px) clamp(9px, 1.2vh, 12px);
+}
+html.calm .view-home .status-card > .hero-scale {
+  width: 100%;
+  min-height: 44px;
+  margin: 0 !important;
+  padding: 0 clamp(10px, 1.2vw, 14px);
+  border: 0 !important;
+  border-top: var(--im-card-rule, 1px solid rgba(255, 255, 255, .14)) !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Identity type: the theme keeps face, tracking and case. */
+html.calm .view-home .hero-inner > .kicker {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  letter-spacing: .16em;
+  /* A muted theme tone disappears on artwork; the cluster's ink is the floor. */
+  color: var(--im-kicker-ink, var(--im-ink, var(--im-dock-ink, #f7f4ee))) !important;
+}
+/* The dim half of the kicker is darkened by colour, not by alpha: at .66
+   opacity a 11px glyph on artwork drops under 3:1 and reads as a smudge. */
+html.calm .view-home .hero-inner .kicker-dim {
+  opacity: 1 !important;
+  color: var(--im-kicker-dim, var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 84%, transparent))) !important;
+}
+html.calm .view-home .hero-inner .kicker-dot,
+html.calm .view-home .hero-inner .kicker-sep {
+  opacity: 1 !important;
+}
+html.calm .view-home .hero-inner > .kicker::before {
+  content: '';
+  flex: none;
+  width: var(--im-rule-w, 26px);
+  height: var(--im-rule-h, 3px);
+  background: var(--im-rule, var(--accent));
+}
+/* Some themes scale short titles with :not(.is-long-title) + !important
+   (codex 40–72px). The cluster needs one ceiling, so this selector carries
+   an extra attribute to outrank them without touching their files. */
+html[data-theme].calm .view-home .hero-inner .hero-logo,
+html[data-theme].calm body.layout-rail .view-home .hero-inner .hero-logo {
+  font-size: clamp(24px, 2.5vw, 34px) !important;
+  line-height: 1.05;
+  max-width: 100%;
+  margin-top: 2px !important;
+  padding: 0 !important;
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+  background: none !important;
+}
+/* Secondary ink is a colour, never an opacity: a global opacity multiplies
+   with the theme's own muted alpha and lands under 3:1 on artwork, which is
+   exactly how "subtle" turns into "invisible". */
+html.calm .view-home .hero-inner > .tagline {
+  margin-top: 6px !important;
+  font-size: var(--im-tagline-size, 13px);
+  line-height: 1.5;
+  max-width: 44ch;
+  color: var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 88%, transparent)) !important;
+  font-family: var(--im-body-font, inherit);
+  letter-spacing: var(--im-body-tracking, .01em);
+}
+html.calm .view-home .hero-inner > .meta-row {
+  margin-top: 9px !important;
+  font-size: var(--im-meta-size, 11.5px);
+  color: var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 88%, transparent)) !important;
+  font-family: var(--im-label-font, inherit);
+  letter-spacing: var(--im-label-tracking, .08em);
+}
+html.calm .view-home .hero-inner > .meta-row :is(span, i, .age-badge) {
+  color: inherit !important;
+}
+
+/* Actions: 48px primary, 44px secondaries, never two lines of label.
+   The shell owns geometry and one thing else — that the label stays inside
+   its plate. It does NOT own the fill or the ink: a sheet that paints a
+   paper button (grimoire, riot, riso, summer) needs dark ink, and a sheet
+   that paints a glass button needs light ink. Forcing one of the two from
+   here is what turned three themes into white-on-white. */
+html.calm .view-home .hero-inner > .cta-row {
+  display: flex;
+  align-items: center;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+html.calm .view-home .hero-inner > .cta-row .btn {
+  min-width: 96px;
+  min-height: 44px;
+  padding: 0 16px !important;
+  font-size: var(--im-btn-size, 13px) !important;
+  font-weight: var(--im-btn-weight, 600);
+  letter-spacing: var(--im-btn-tracking, .06em);
+  text-transform: var(--im-btn-transform, none);
+  font-family: var(--im-btn-font, var(--font-ui, sans-serif));
+  line-height: 1;
+  white-space: nowrap;
+  background-clip: padding-box;
+}
+html.calm .view-home .hero-inner > .cta-row .btn.primary {
+  min-width: 168px;
+  min-height: 48px;
+  padding: 0 24px !important;
+  font-size: var(--im-cta-size, 14px) !important;
+  font-weight: var(--im-cta-weight, 600);
+  letter-spacing: var(--im-cta-tracking, .06em);
+  text-transform: var(--im-cta-transform, none);
+  font-family: var(--im-cta-font, var(--font-ui, sans-serif));
+  border-radius: var(--im-cta-radius, 999px);
+}
+html.calm .view-home .hero-inner > .cta-row .btn .ic { width: 16px; height: 16px; }
+/* Secondaries keep the theme's own pairing; only the depth is added, so a
+   paper button reads as paper lifted off the cover instead of a hole in it. */
+html.calm .view-home .hero-inner > .cta-row .btn.ghost {
+  border-radius: var(--im-btn-radius, 999px);
+  box-shadow: var(--im-btn-shadow, 0 10px 26px -16px rgba(0, 0, 0, .9));
+}
+html.calm .view-home .hero-inner > .cta-row .btn.ghost .ic { opacity: .94; }
+
+/* Playtime readout inside the status card. The card is one surface with one
+   ink pair; its muted half is a colour supplied by the theme, not an opacity
+   the shell invents, because a light card needs a darker muted than a dark
+   card does. */
+html.calm .view-home .status-card > .progress-block {
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+html.calm .view-home .status-card .progress-head {
+  font-size: 10.5px;
+  color: var(--im-card-muted, color-mix(in srgb, var(--im-card-ink, #f4f0e7) 86%, transparent)) !important;
+}
+html.calm .view-home .status-card .progress-pct {
+  font-size: 14px !important;
+  line-height: 1.1;
+  font-family: var(--im-num-font, inherit);
+  letter-spacing: var(--im-num-tracking, .01em);
+}
+html.calm .view-home .status-card .progress-track { height: 4px; }
+html.calm .view-home .status-card .progress-sub {
+  margin-top: 3px;
+  gap: 4px;
+  /* 11px floor: a 10px serif caption on a parchment card renders as grey
+     anti-aliasing, not as ink, whatever colour it is declared in. */
+  font-size: 11px;
+  font-weight: var(--im-card-sub-weight, 500);
+  line-height: 1.35;
+  color: var(--im-card-muted, color-mix(in srgb, var(--im-card-ink, #f4f0e7) 86%, transparent)) !important;
+}
+html.calm .view-home .status-card .progress-sub :is(span, .ic) { color: inherit; }
+html.calm .view-home .status-card .progress-sub .ic { width: 11px; height: 11px; }
+
+/* The switch row is a control, not a label: full width, 44px, one line. */
+html.calm .view-home .status-card > .hero-scale {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit !important;
+}
+html.calm .view-home .status-card .hero-scale-label,
+html.calm .view-home .status-card .hero-scale-hint {
+  color: inherit !important;
+}
+html.calm .view-home .status-card .hero-scale-hint {
+  margin-left: auto;
+  opacity: .78;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* Theme artwork inside the hero competes with the cover. */
+html.calm .view-home .hero::before,
+html.calm .view-home .hero::after,
+html.calm .view-home .hero-inner::before,
+html.calm .view-home .hero-inner::after {
+  display: none !important;
+}
+
+/* Decorations sized for a tall column paint outside the card. */
+html.calm .view-home .hero-inner > .cta-row::before,
+html.calm .view-home .hero-inner > .cta-row::after,
+html.calm .view-home .hero-inner > .progress-block::before,
+html.calm .view-home .hero-inner > .progress-block::after {
+  display: none !important;
+}
+
+html.calm .view-home .hero-inner > .activity-strip { display: none; }
+
+/* Narrow window: the clusters stack, the card goes last and full width. */
+@media (max-width: 1020px) {
+  html.calm .view-home .hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+  }
+  html.calm .view-home .hero-inner > .status-card { grid-row: auto; }
+  }
+
+/* ------------------------------------------------------------
+   FOCUS · pad and keyboard get a ring, the mouse does not
+   ------------------------------------------------------------
+   The ring is three concentric bands: a dark collar, a white band, an
+   accent haze. A single accent ring disappears on the accent-coloured
+   primary button (it did, on nova: pink on pink), while a single white
+   ring disappears on the paper buttons. Two tones always survive.
+   ------------------------------------------------------------ */
+html.calm .view-home :is(.hero-inner .btn, .hero-inner .hero-scale, .tile):focus-visible,
+html.calm .view-home .is-pad-focus {
+  /* Band 1 is the collar, band 2 the ring. They cannot both be box-shadows
+     (the later one paints over the earlier), and mixing a shadow with an
+     outline is the one combination where they do not overlap: the shadow
+     hugs the control, the outline starts where the offset says. */
+  outline: 3px solid #ffffff !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, .88) !important;
+  position: relative;
+  z-index: 6;
+}
+html.calm[data-input="pointer"] .view-home :is(.hero-inner .btn, .hero-inner .hero-scale, .tile):focus-visible,
+html.calm[data-input="pointer"] .view-home .is-pad-focus {
+  box-shadow: var(--im-btn-shadow, 0 10px 26px -16px rgba(0, 0, 0, .9)) !important;
+}
+html.calm[data-input="gamepad"] .view-home :is(.btn, .tile).is-pad-focus {
+  transform: scale(1.02);
+}
+html.calm .view-home .hero-scale:focus-visible .hero-scale-check,
+html.calm[data-input="gamepad"] .view-home .hero-scale.is-pad-focus .hero-scale-check {
+  border-color: var(--accent) !important;
+}
+
+/* The theme owns the wordmark scale. Enlarging it here pushed the last
+   glyph off fixed-plate heroes (endfield), i.e. rule #2. The immersive
+   shell only re-balances the layout; art direction comes later. */
+html.calm .view-home .hero-logo {
+  max-width: 100%;
+}
+
+html.calm .topbar {
+  height: clamp(50px, 6.4vh, 68px);
+  background: var(--im-topbar-bg, transparent);
+  border-bottom: var(--im-topbar-rule, 0);
+}
+
+/* The switcher strip floats ON the artwork instead of taking a band of
+   its own: the stage reserves its height, the strip sits in that space
+   with no plate of its own. That is what keeps the cover whole from the
+   top bar to the bottom edge instead of being sliced in three. */
+html.calm .view-home,
+html.calm body.layout-rail .view-home {
+  position: relative;
+  /* The strip no longer takes flow height, so the page must claim the
+     viewport itself or the stage collapses to its content. */
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+}
+
+html.calm .view-home .stage,
+html.calm body.layout-rail .view-home .stage {
+  padding-bottom: var(--im-dock-h, 128px) !important;
+}
+
+html.calm .view-home .dock,
+html.calm body.layout-rail .view-home .dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Above the stage's cover and veil, or the strip paints underneath
+     them and the icons vanish into the artwork. */
+  z-index: 60;
+  order: 2;
+  flex: 0 0 auto;
+  width: 100%;
+  /* Height comes from the content, never from --im-dock-h: that token is the
+     measurement app.js writes back for the stage's bottom padding, and letting
+     the strip read its own measurement would loop. */
+  height: auto;
+  min-height: 0;
+  padding: clamp(4px, .7vh, 9px) var(--im-safe-x, clamp(40px, 6.5vw, 120px)) clamp(6px, 1.1vh, 14px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: transparent !important;
+  border-top: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html.calm .view-home .dock-head,
+html.calm body.layout-rail .view-home .dock-head {
+  flex: 0 0 auto;
+  margin-bottom: clamp(2px, .4vh, 5px);
+  font-size: 9px;
+  opacity: .78;
+}
+/* Some themes print the shelf title as display type (nightflight's
+   DEPARTURES). Above a 72px strip that collides with the first card, so in
+   fullscreen it drops to a label. */
+html.calm .view-home .dock-head .dock-title,
+html.calm .view-home .dock-head .dock-title::before,
+html.calm .view-home .dock-head .dock-count {
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  min-height: 0 !important;
+  letter-spacing: .12em !important;
+}
+
+/* The strip sits on artwork now, so its ink is supplied by the theme
+   (--im-ink) instead of the shelf colour it used to inherit. */
+html.calm .view-home .dock-head,
+html.calm .view-home .dock-head .dock-title,
+html.calm .view-home .dock-head .dock-count,
+html.calm .view-home .dock-head .all-btn,
+html.calm .view-home .tile-name,
+html.calm .view-home .tile-sub {
+  color: var(--im-ink, var(--im-dock-ink, #f7f4ee)) !important;
+  text-shadow: var(--im-dock-ink-shadow, 0 1px 2px rgba(0, 0, 0, .85));
+}
+html.calm .view-home .tile-name {
+  color: var(--im-tile-ink, var(--im-ink, #f7f4ee)) !important;
+}
+html.calm .view-home .tile-sub {
+  color: var(--im-tile-muted, var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 82%, transparent))) !important;
+}
+
+html.calm .view-home .dock-head .all-btn .ic {
+  stroke: currentColor;
+  fill: none;
+}
+
+html.calm .view-home .dock-foot,
+html.calm body.layout-rail .view-home .dock-foot {
+  display: none;
+}
+
+html.calm .view-home .rail,
+html.calm body.layout-rail .view-home .rail {
+  flex: 0 0 auto;
+  flex-direction: row;
+  /* Covers line up, captions hang below them. Bottom-aligned, a two-line
+     name lifted its cover above the rest and the strip read as a ragged
+     pile; the eye reads a shelf by its top edge, not its baseline. */
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: var(--im-card-gap, clamp(10px, 1.1vw, 18px));
+  width: 100%;
+  min-height: 0;
+  padding: 6px 4px 8px;
+  margin: 0;
+  scroll-snap-type: x proximity;
+  mask-image: linear-gradient(90deg, #000 0%, #000 94%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 94%, transparent 100%);
+}
+
+html.calm .view-home .tile,
+html.calm body.layout-rail .view-home .tile {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 0 0 auto;
+  /* Secondary by design: the switcher is a strip of small icons under the
+     cover, never a second hero. */
+  width: min(var(--im-card-width, 126px), 72px);
+  gap: 4px;
+  scroll-snap-align: start;
+}
+
+html.calm .view-home .tile-art,
+html.calm body.layout-rail .view-home .tile-art {
+  /* A theme may ship a tall cover for the windowed rail; in this strip the
+     icons are a switcher, so the height is capped instead of the width. */
+  width: 100% !important;
+  height: auto !important;
+  max-height: 46px !important;
+  aspect-ratio: var(--im-card-ratio, 16 / 10);
+  object-fit: cover;
+  border-radius: var(--im-card-radius, 8px);
+  /* No outline on a resting tile. Fourteen themes ship a hairline here, and
+     on a 72px thumbnail a box around every cover turns the strip into a row
+     of stamps — the covers are the content, the frame is not. The current
+     tile is the only one that gets an edge. */
+  border: 0 !important;
+  box-shadow: var(--im-card-shadow, none);
+  outline: 0;
+}
+
+html.calm .view-home .tile.is-active .tile-art,
+html.calm body.layout-rail .view-home .tile.is-active .tile-art {
+  border: var(--im-card-active-border, 2px solid var(--accent)) !important;
+  box-shadow: var(--im-card-active-shadow, 0 0 0 3px rgba(255, 255, 255, .12));
+  transform: translateY(var(--im-card-lift, -4px));
+}
+
+/* The strip is a switcher, not a library grid. A platform chip on a 46px
+   cover is a second label for information the sheet already carries. */
+html.calm .view-home .tile-badges,
+html.calm body.layout-rail .view-home .tile-badges {
+  display: none !important;
+}
+
+html.calm .view-home .tile-label,
+html.calm body.layout-rail .view-home .tile-label {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 0 2px;
+  white-space: normal;
+}
+
+/* Long names wrap instead of being cut: rule #2 applies here too.
+   The floor is 10.5px, not 9px: at 9px a light label on artwork never clears
+   4.5:1, and the strip is a switcher a player has to read, not fine print. */
+html.calm .view-home .tile-name,
+html.calm body.layout-rail .view-home .tile-name {
+  max-width: 100%;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  font-size: clamp(10.5px, var(--im-card-name-size, 11.5px), 12.5px);
+  font-family: var(--im-label-font, inherit);
+  letter-spacing: var(--im-label-tracking, .02em);
+}
+
+html.calm .view-home .tile-sub,
+html.calm body.layout-rail .view-home .tile-sub {
+  margin-top: 0;
+}
+
+/* The caption sits straight on artwork, so it gets a scrim supplied by the
+   theme (--im-card-label-bg) rather than relying on the shelf underneath.
+   The fallback is a real scrim, because "transparent" is how a label ends up
+   with the artwork showing through its own letters. */
+html.calm .view-home .tile-label,
+html.calm body.layout-rail .view-home .tile-label {
+  /* No per-tile scrim by default: nine themes turned it into two black
+     rectangles under every icon, which reads as damage on a clean strip. The
+     band under the strip already carries the veil; a theme that wants its own
+     label plate (paper themes) sets --im-card-label-bg. */
+  background: var(--im-card-label-bg, transparent) !important;
+  border-radius: var(--im-card-radius, 3px);
+  padding: 2px 4px 3px;
+}
+
+html.calm .view-home .tile-progress,
+html.calm body.layout-rail .view-home .tile-progress {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   SLOT · the scale tick box, in the engine sheet too
+   The sheet's row is the home row's control, so it wears that
+   surface's material rather than the generic preference row. The
+   tick mark itself is parameterised by --hs-check-* so each theme
+   can draw its own dot / bar / seal / slash / tick.
+   ------------------------------------------------------------ */
+
+.engine-scale-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  border: var(--hs-border, 1px solid rgba(127, 127, 127, .3));
+  border-radius: var(--hero-scale-radius, 9px);
+  background: var(--hs-bg, transparent);
+  color: var(--hs-ink, inherit);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.engine-scale-row .pref-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+
+.engine-scale-row .pref-hint {
+  margin-left: auto;
+  color: inherit;
+  opacity: var(--hs-hint-alpha, .78);
+  text-align: right;
+}
+
+.engine-scale-row .hero-scale-check { margin-left: 4px; }
+.engine-scale-row[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }

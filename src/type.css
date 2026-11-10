@@ -534,8 +534,14 @@ body {
 }
 .manage-body > .pref-row .pref-hint {
   margin-left: auto;
-  font-size: var(--text-micro);
-  color: var(--text-faint);
+  /* --muted, not --text-faint: the faint tier is tuned for the dark page and
+     measured 1.0–1.1:1 on the paper panels eight themes paint here, i.e. the
+     "hidden" explanation was invisible on exactly the themes that need it.
+     11px is the floor for a hint that carries a consequence. */
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--muted);
   text-align: right;
 }
 /* The steam block inside the manage panel only renders for platform games,

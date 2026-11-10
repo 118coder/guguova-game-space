@@ -167,3 +167,96 @@ html[data-theme="steam"] .settings-id-tags i {
 }
 
 html[data-theme="steam"] .settings-card { background: #16202d; }
+
+/* ============================================================
+   IMMERSIVE SHELL SLOT MAPPING + SCALE TICK BOX
+   ------------------------------------------------------------
+   Values are this theme's own material: veil, rule, card
+   proportion and the shape of the tick mark. Geometry lives in
+   src/theme-slots.css. Per-theme art direction is deferred by
+   Owner (2026-11-10) — this is the mechanism, not the final look.
+   ============================================================ */
+
+html[data-theme="steam"] {
+  --im-safe-x: clamp(40px, 5.8vw, 108px);
+  --im-text-width: min(58vw, 920px);
+  --im-title-size: 6.4vw;
+  --im-title-max: 108px;
+  --im-veil: linear-gradient(90deg, rgba(10,12,14,.9) 0%, rgba(10,12,14,.48) 42%, rgba(10,12,14,0) 76%);
+  --im-topbar-bg: rgba(10,12,14,.72);
+  --im-topbar-rule: 1px solid rgba(255,255,255,.1);
+  --im-dock-bg: rgba(16,18,21,.92);
+  --im-dock-rule: 2px solid rgba(143,188,28,.4);
+  --im-dock-shadow: 0 -24px 50px -30px #000;
+  --im-card-gap: 16px;
+  --im-card-width: clamp(168px, 14vw, 232px);
+  --im-card-ratio: 16 / 9;
+  --im-card-radius: 6px;
+  --im-card-border: 1px solid rgba(255,255,255,.14);
+  --im-card-shadow: 0 14px 30px -20px #000;
+  --im-card-active-border: 3px solid #8fbc1c;
+  --im-card-active-shadow: 0 0 0 4px rgba(26,159,255,.22);
+  --im-card-lift: -6px;
+  --im-card-name-size: 12.5px;
+  --hs-check-size: 16px;
+  --hs-check-border: 2px solid rgba(255,255,255,.36);
+  --hs-check-radius: 5px;
+  --hs-check-bg: rgba(16,18,21,.8);
+  --hs-check-on-line: #8fbc1c;
+  --hs-check-on-bg: rgba(143,188,28,.16);
+  --hs-check-mark: #8fbc1c;
+  --hs-check-mark-x: 4px;
+  --hs-check-mark-y: 2px;
+  --hs-check-mark-w: 5px;
+  --hs-check-mark-h: 9px;
+  --hs-check-mark-bw: 0 2px 2px 0;
+}
+
+/* ============================================================
+   IMMERSIVE CONTROLS
+   ------------------------------------------------------------
+   Fullscreen puts the action row straight on the cover, where the
+   windowed page had a plate under it. Each theme answers with its
+   own material — paper stays paper, glass stays glass — and every
+   block below decides plate AND ink together. Declaring one of the
+   two is exactly how a label disappears (白底白字).
+
+   Geometry, hit areas and the focus ring stay in src/theme-slots.css.
+   ============================================================ */
+
+html[data-theme="steam"].calm .view-home .hero-inner > .cta-row .btn {
+  font-family: var(--font-ui);
+  letter-spacing: .05em;
+  font-weight: 700;
+  border-radius: 3px;
+}
+html[data-theme="steam"].calm .view-home .hero-inner > .cta-row .btn.primary {
+  background: linear-gradient(180deg, #6b9012 0%, #4e6a0a 100%) !important;
+  color: #f6fbe9 !important;
+  border: 1px solid rgba(140, 178, 40, .55) !important;
+  box-shadow: 0 10px 26px -16px #000;
+}
+html[data-theme="steam"].calm .view-home .hero-inner > .cta-row .btn.ghost {
+  background: rgba(16, 18, 22, .66) !important;
+  color: #f3f4f6 !important;
+  border: 1px solid rgba(255, 255, 255, .26) !important;
+}
+html[data-theme="steam"].calm .view-home .hero-inner > .cta-row .btn.ghost:hover {
+  background: rgba(45, 48, 56, .9) !important;
+  border-color: rgba(255, 255, 255, .44) !important;
+}
+html[data-theme="steam"].calm .view-home .hero-inner > .kicker {
+  letter-spacing: .1em;
+}
+html[data-theme="steam"].calm .view-home .status-card {
+  --im-card-ink: #f3f4f6;
+  --im-card-muted: rgba(243, 244, 246, .82);
+}
+
+/* Status card material: console charcoal. The shell's fallback is a neutral
+   translucent black, which reads as "unstyled" beside these palettes. */
+html[data-theme="steam"] {
+  --im-card-bg: rgba(23, 25, 30, .9);
+  --im-card-border: 1px solid rgba(255, 255, 255, .1);
+  --im-card-radius: 4px;
+}

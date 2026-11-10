@@ -215,25 +215,30 @@
                 </button>
               </div>
 
-              <button class="hero-scale" id="homeScaleRow" role="checkbox" aria-checked="false" type="button">
-                <span class="hero-scale-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-                  <span>开启缩放</span>
-                </span>
-                <span class="hero-scale-hint" id="homeScaleHint">全屏还是按倍数，在设置页选</span>
-                <span class="hero-scale-check" id="homeScaleSwitch" aria-hidden="true"></span>
-              </button>
+              <!-- Status card: playtime + the per-game scale switch share one
+                   surface, so the fullscreen page has exactly one bordered
+                   block instead of a full-width bar. -->
+              <div class="status-card">
+                <div class="progress-block">
+                  <div class="progress-head">
+                    <span id="progressLabel">尚未添加游戏</span>
+                    <span class="progress-pct" id="progressPct">—</span>
+                  </div>
+                  <div class="progress-track"><i id="progressFill" style="width:0%"></i></div>
+                  <div class="progress-sub">
+                    <svg class="ic" id="progressSubIcon" aria-hidden="true"><use href="#i-clock"/></svg>
+                    <span id="progressSub">导入 Steam 游戏库，或添加任意游戏程序</span>
+                  </div>
+                </div>
 
-              <div class="progress-block">
-                <div class="progress-head">
-                  <span id="progressLabel">尚未添加游戏</span>
-                  <span class="progress-pct" id="progressPct">—</span>
-                </div>
-                <div class="progress-track"><i id="progressFill" style="width:0%"></i></div>
-                <div class="progress-sub">
-                  <svg class="ic" id="progressSubIcon" aria-hidden="true"><use href="#i-clock"/></svg>
-                  <span id="progressSub">导入 Steam 游戏库，或添加任意游戏程序</span>
-                </div>
+                <button class="hero-scale" id="homeScaleRow" role="checkbox" aria-checked="false" type="button">
+                  <span class="hero-scale-label">
+                    <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+                    <span>开启缩放</span>
+                  </span>
+                  <span class="hero-scale-hint" id="homeScaleHint">全屏缩放 · 默认开启</span>
+                  <span class="hero-scale-check" id="homeScaleSwitch" aria-hidden="true"></span>
+                </button>
               </div>
 
               <!-- Reserved for future activity notices. It currently repeats the
@@ -904,12 +909,12 @@
     </header>
 
     <div class="engine-body">
-      <button class="pref-row engine-scale-row" id="engineScaleRow" role="checkbox" aria-checked="false" type="button">
+      <button class="engine-scale-row" id="engineScaleRow" role="checkbox" aria-checked="false" type="button">
         <span class="pref-label">
           <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
           <span>开启缩放</span>
         </span>
-        <span class="pref-hint" id="engineScaleHint">仅对当前游戏生效</span>
+        <span class="pref-hint" id="engineScaleHint">全屏缩放 · 默认开启</span>
         <span class="hero-scale-check" id="engineScaleCheck" aria-hidden="true"></span>
       </button>
       <div class="settings-field">

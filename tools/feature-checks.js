@@ -223,7 +223,18 @@ async function main() {
 
     /* ---- manage panel hidden switch ---- */
     console.log('\n[5] detail · hidden switch round-trip');
+    /* Round-trip on the game that IS on the shelf: hide it, the switch and the
+       hint must flip; unhide, they flip back. Opening a hidden game's sheet
+       from the library is covered by group [1] (隐藏 view shows them) and by
+       the fact that the sheet is reachable from that view. */
     await boot(cdp, host, '?novaHidden=1');
+    const shelfOnBoot = await evalJson(cdp, `JSON.stringify({
+      tiles: document.querySelectorAll('.rail .tile').length,
+      count: (document.querySelector('#dockCount') || {}).textContent || ''
+    })`);
+    check('the shelf skips the hidden games on boot', shelfOnBoot.tiles === 4 && shelfOnBoot.count.trim() === '4 款',
+      JSON.stringify(shelfOnBoot));
+
     await cdp.ev(`window.__novaExport.setup('detail')`);
     await wait(500);
     await cdp.ev(`(() => { const button = document.querySelector('#detailManage'); if (button) button.click(); })()`);
@@ -234,15 +245,52 @@ async function main() {
       hint: document.querySelector('#manageHiddenHint').textContent
     })`);
     let hs = await hiddenState();
-    check('switch reflects the hidden current game', hs.checked === 'true' && hs.switch === true, JSON.stringify(hs));
+    check('the switch starts off for a game on the shelf', hs.checked === 'false' && hs.switch === false, JSON.stringify(hs));
+
     await cdp.ev(`(() => { document.querySelector('#manageHiddenRow').click(); })()`);
-    await wait(450);
+    await wait(500);
     hs = await hiddenState();
-    check('click unhides through the bridge', hs.checked === 'false' && hs.switch === false, JSON.stringify(hs));
-    await cdp.ev(`window.__novaExport.setup('library')`);
+    check('hiding flips the switch and the hint', hs.checked === 'true' && hs.switch === true
+      && /已隐藏/.test(hs.hint), JSON.stringify(hs));
+    const hintLegible = await evalJson(cdp, `JSON.stringify((() => {
+      const el = document.querySelector('#manageHiddenHint');
+      const cs = getComputedStyle(el);
+      return { color: cs.color, size: parseFloat(cs.fontSize) };
+    })())`);
+    check('the hint keeps a readable size on every theme', hintLegible.size >= 11, JSON.stringify(hintLegible));
+
+    await cdp.ev(`(() => { document.querySelector('#manageHiddenRow').click(); })()`);
+    await wait(500);
+    hs = await hiddenState();
+    check('unhiding flips it back', hs.checked === 'false' && hs.switch === false, JSON.stringify(hs));
+
+    /* Check it where it actually shows up: the 隐藏 filter must lose the card.
+       Counting the 全部 grid instead made this assertion depend on when the
+       grid re-renders, not on whether the unhide reached the store. */
+    await cdp.ev(`(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.querySelector('#detailsClose') && document.querySelector('#detailsClose').click();
+      await sleep(300);
+      document.querySelector('.nav-btn[data-nav="library"]').click();
+      await sleep(500);
+      const hidden = document.querySelector('.filter[data-filter="hidden"]');
+      if (hidden) hidden.click();
+      await sleep(400);
+      return 'ok';
+    })()`);
+    const hiddenCardsLeft = await evalJson(cdp, `JSON.stringify({
+      cards: document.querySelectorAll('#libGrid .lib-card').length,
+      filter: (document.querySelector('.filter.is-active') || {}).dataset ? document.querySelector('.filter.is-active').dataset.filter : ''
+    })`);
+    /* Two games arrive hidden from ?novaHidden=1. Hiding then unhiding the
+       current game is a round trip, so the counts must land back where they
+       started — 2 in the 隐藏 view, 4 in 全部. */
+    check('the 隐藏 view still holds the two seeded games',
+      hiddenCardsLeft.cards === 2 && hiddenCardsLeft.filter === 'hidden', JSON.stringify(hiddenCardsLeft));
+    await cdp.ev(`(() => { const all = document.querySelector('.filter[data-filter="all"]'); if (all) all.click(); })()`);
     await wait(400);
     grid = await evalJson(cdp, GRID);
-    check('unhidden game returned to 全部 view', grid.cards.length === 5, `cards=${grid.cards.length}`);
+    check('全部 view is back to its original four cards', grid.cards.length === 4, `cards=${grid.cards.length}`);
     await shot(cdp, 'library-after-unhide.png');
 
     /* ---- editor: launcher field, genre combo, complete dossier ---- */
@@ -374,6 +422,212 @@ async function main() {
     check('engine sheet has the same tick box', engineTick.has === true, JSON.stringify(engineTick));
     check('engine tick box mirrors the home value', engineTick.checked === afterTick, JSON.stringify(engineTick));
     await shot(cdp, 'home-scale-tick.png');
+
+    /* ---- 9 · immersive shell: the fullscreen switch changes the layout ---- */
+    console.log('\n[9] immersive shell · fullscreen layout switch');
+    await cdp.ev(`window.__novaExport.setup('home')`);
+    await wait(350);
+    const beforeIm = await evalJson(cdp, `JSON.stringify({
+      dir: getComputedStyle(document.querySelector('#rail')).flexDirection
+    })`);
+    await cdp.ev(`(() => {
+      const rail = document.querySelector('#rail');
+      if (rail && !rail.querySelector('.tile')) {
+        const tile = document.createElement('button');
+        tile.className = 'tile';
+        tile.innerHTML = '<span class="tile-art"></span><span class="tile-label"><span class="tile-name">' +
+          '这是一个特别长的游戏名称用来验证三十个字也完整显示不会被截断也不会压住别的文字' +
+          '</span></span>';
+        rail.appendChild(tile);
+      }
+      document.documentElement.classList.add('is-fullscreen');
+      return 'ok';
+    })()`);
+    await wait(400);
+    const afterIm = await evalJson(cdp, `JSON.stringify({
+      dir: getComputedStyle(document.querySelector('#rail')).flexDirection,
+      dockW: Math.round(document.querySelector('.dock').getBoundingClientRect().width),
+      dockBottom: Math.round(document.querySelector('.dock').getBoundingClientRect().bottom),
+      winW: Math.round(innerWidth),
+      winH: Math.round(innerHeight),
+      veil: getComputedStyle(document.querySelector('.view-home .stage'), '::before').backgroundImage,
+      cover: (() => {
+        const el = document.querySelector('.view-home .stage');
+        const a = getComputedStyle(el, '::after');
+        const r = el.getBoundingClientRect();
+        return { pos: a.position, top: a.top, right: a.right, bottom: a.bottom, left: a.left, w: Math.round(r.width), h: Math.round(r.height) };
+      })(),
+      dockPos: getComputedStyle(document.querySelector('.dock')).position,
+      stagePad: parseFloat(getComputedStyle(document.querySelector('.view-home .stage')).paddingBottom),
+      barH: Math.round(document.querySelector('.view-home .hero-inner').getBoundingClientRect().height),
+      cardW: getComputedStyle(document.documentElement).getPropertyValue('--im-card-width').trim(),
+      tickRadius: getComputedStyle(document.documentElement).getPropertyValue('--hs-check-radius').trim(),
+      nameWhite: getComputedStyle(document.querySelector('.tile-name')).whiteSpace,
+      nameClip: getComputedStyle(document.querySelector('.tile-name')).textOverflow,
+      nameOverflow: getComputedStyle(document.querySelector('.tile-name')).overflow
+    })`);
+    check('immersive mode turns the card band horizontal', afterIm.dir === 'row', JSON.stringify({ before: beforeIm.dir, after: afterIm.dir }));
+    check('the card band spans the window width', Math.abs(afterIm.dockW - afterIm.winW) <= 4, JSON.stringify(afterIm));
+    check('the card band sits at the bottom', afterIm.winH - afterIm.dockBottom <= 4, JSON.stringify(afterIm));
+    check('the cover layer fills the whole stage',
+      afterIm.cover.pos === 'absolute' && afterIm.cover.top === '0px' && afterIm.cover.left === '0px'
+      && afterIm.cover.right === '0px' && afterIm.cover.bottom === '0px',
+      JSON.stringify(afterIm.cover));
+    check('the veil only darkens the bottom band',
+      !afterIm.veil.includes('90deg') && !afterIm.veil.includes('to right'), afterIm.veil.slice(0, 90));
+    check('the active theme feeds the new slots', !!afterIm.cardW && !!afterIm.tickRadius, JSON.stringify({ cardW: afterIm.cardW, tickRadius: afterIm.tickRadius }));
+    check('the icon strip overlays the cover instead of taking a row',
+      afterIm.dockPos === 'absolute' && afterIm.stagePad > 40, JSON.stringify({ dockPos: afterIm.dockPos, stagePad: afterIm.stagePad }));
+    check('the artwork keeps the majority of the screen',
+      (afterIm.winH - afterIm.barH - afterIm.stagePad - 44) / afterIm.winH > 0.55,
+      JSON.stringify({ barH: afterIm.barH, dock: afterIm.stagePad, winH: afterIm.winH }));
+    check('long game names wrap instead of being cut',
+      afterIm.nameWhite === 'normal' && afterIm.nameClip === 'clip' && afterIm.nameOverflow === 'visible',
+      JSON.stringify({ white: afterIm.nameWhite, clip: afterIm.nameClip, overflow: afterIm.nameOverflow }));
+    await shot(cdp, 'home-immersive.png');
+
+    console.log('\n[10] immersive nav · pad and keyboard walk the same rows');
+    const press = async (key) => {
+      await cdp.ev(`document.dispatchEvent(new KeyboardEvent('keydown', { key: ${JSON.stringify(key)}, bubbles: true }))`);
+      await wait(160);
+    };
+    const focused = async () => evalJson(cdp, `JSON.stringify({
+      id: document.activeElement ? document.activeElement.id : '',
+      cls: document.activeElement ? document.activeElement.className : '',
+      ring: !!document.querySelector('.view-home .is-pad-focus')
+    })`);
+
+    // Enter immersive through the app (F), not by toggling the class, so the
+    // navigation guard sees the same state a player would.
+    await cdp.ev(`document.documentElement.classList.remove('is-fullscreen')`);
+    await wait(200);
+    await press('f');
+    await wait(700);
+    const entered = await evalJson(cdp, `JSON.stringify({ on: document.documentElement.classList.contains('is-fullscreen') })`);
+    check('F enters the immersive layout', entered.on === true, JSON.stringify(entered));
+
+    await press('ArrowRight');
+    const f0 = await focused();
+    check('first arrow lands on the primary action', f0.id === 'playBtn', JSON.stringify(f0));
+
+    await press('ArrowRight');
+    const f1 = await focused();
+    await press('ArrowRight');
+    const f2 = await focused();
+    await press('ArrowRight');
+    const f3 = await focused();
+    check('←/→ walks the action row', f1.id === 'detailBtn' && f2.id === 'homeEngineBtn' && f3.id === 'homeScaleRow',
+      JSON.stringify({ f1: f1.id, f2: f2.id, f3: f3.id }));
+
+    await press('ArrowRight');
+    const f4 = await focused();
+    check('the action row wraps back to the primary', f4.id === 'playBtn', JSON.stringify(f4));
+
+    await press('ArrowDown');
+    const f5 = await focused();
+    check('↓ drops into the icon strip', /tile/.test(f5.cls), JSON.stringify(f5));
+
+    await press('ArrowUp');
+    const f6 = await focused();
+    check('↑ returns to the action row', f6.id === 'playBtn', JSON.stringify(f6));
+
+    const sizes = await evalJson(cdp, `JSON.stringify((() => {
+      const h = (sel) => { const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().height) : 0; };
+      return { play: h('.view-home #playBtn'), detail: h('.view-home #detailBtn'), scale: h('.view-home #homeScaleRow'), tile: h('.view-home .rail .tile') };
+    })())`);
+    check('every action clears the 44px touch floor',
+      sizes.play >= 48 && sizes.detail >= 44 && sizes.scale >= 44 && sizes.tile >= 64, JSON.stringify(sizes));
+
+    const ringWidth = await evalJson(cdp, `JSON.stringify((() => {
+      const el = document.querySelector('.view-home .is-pad-focus');
+      if (!el) return { ring: 0 };
+      const cs = getComputedStyle(el);
+      return { ring: parseFloat(cs.outlineWidth) || 0, style: cs.outlineStyle, offset: parseFloat(cs.outlineOffset) || 0 };
+    })())`);
+    check('the focus ring is drawn and offset from the control',
+      ringWidth.ring >= 2 && ringWidth.style !== 'none', JSON.stringify(ringWidth));
+    await shot(cdp, 'home-immersive-focus.png');
+
+    await shot(cdp, 'home-immersive.png');
+    await cdp.ev(`document.documentElement.classList.remove('is-fullscreen')`);
+    await wait(300);
+
+    console.log('\n[11] hidden games stay off the home shelf');
+    /* "隐藏" used to remove the tile from the library grid only: the cover,
+       the strip and the "N 款" count kept advertising the game the player had
+       just hidden. These four assertions lock the shelf behaviour in. */
+    const shelfBefore = await evalJson(cdp, `JSON.stringify((() => {
+      const tiles = Array.from(document.querySelectorAll('.rail .tile'));
+      return { tiles: tiles.length, count: (document.querySelector('#dockCount') || {}).textContent || '',
+               logo: (document.querySelector('#gameLogo') || {}).textContent || '' };
+    })())`);
+
+    const hiddenName = await cdp.ev(`(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const nav = document.querySelector('.nav-btn[data-nav="home"]');
+      if (nav) nav.click();
+      await sleep(320);
+      const name = (document.querySelector('.rail .tile.is-active .tile-name') || {}).textContent || '';
+      const detail = document.querySelector('#detailBtn');
+      if (detail) detail.click();
+      await sleep(700);
+      const manage = document.querySelector('#detailManage');
+      const panel = document.querySelector('#managePanel');
+      if (panel && panel.hidden && manage) manage.click();
+      await sleep(500);
+      const toggle = document.querySelector('#manageHiddenRow');
+      if (toggle) toggle.click();
+      await sleep(900);
+      document.querySelector('#detailsClose') && document.querySelector('#detailsClose').click();
+      await sleep(500);
+      return name;
+    })()`);
+
+    const shelfAfter = await evalJson(cdp, `JSON.stringify((() => {
+      const tiles = Array.from(document.querySelectorAll('.rail .tile'));
+      return {
+        tiles: tiles.length,
+        count: (document.querySelector('#dockCount') || {}).textContent || '',
+        logo: (document.querySelector('#gameLogo') || {}).textContent || '',
+        names: tiles.map((t) => (t.querySelector('.tile-name') || {}).textContent || '')
+      };
+    })())`);
+    check('hiding a game removes its tile from the shelf',
+      shelfAfter.tiles === shelfBefore.tiles - 1, `${shelfBefore.tiles} → ${shelfAfter.tiles}`);
+    check('the hidden game is not in the strip',
+      !!hiddenName && !shelfAfter.names.includes(hiddenName), `hidden="${hiddenName}"`);
+    check('the dock count follows the shelf',
+      shelfAfter.count.trim() === `${shelfAfter.tiles} 款`, shelfAfter.count);
+    check('the cover moves off the hidden game',
+      shelfAfter.logo !== shelfBefore.logo, `"${shelfBefore.logo}" → "${shelfAfter.logo}"`);
+
+    // Put it back: the pass runs on the demo library and the next group (or a
+    // later run) must not inherit a hidden game.
+    await cdp.ev(`(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const nav = document.querySelector('.nav-btn[data-nav="library"]');
+      if (nav) nav.click();
+      await sleep(500);
+      const hiddenFilter = document.querySelector('.filter[data-filter="hidden"]');
+      if (hiddenFilter) hiddenFilter.click();
+      await sleep(400);
+      const card = document.querySelector('.lib-card[data-game]');
+      if (card) card.click();
+      await sleep(600);
+      const manage = document.querySelector('#detailManage');
+      const panel = document.querySelector('#managePanel');
+      if (panel && panel.hidden && manage) manage.click();
+      await sleep(400);
+      const toggle = document.querySelector('#manageHiddenRow');
+      if (toggle && toggle.getAttribute('aria-checked') === 'true') toggle.click();
+      await sleep(500);
+      document.querySelector('#detailsClose') && document.querySelector('#detailsClose').click();
+      await sleep(300);
+      const homeBtn = document.querySelector('.nav-btn[data-nav="home"]');
+      if (homeBtn) homeBtn.click();
+      await sleep(300);
+      return 'ok';
+    })()`);
   } finally {
     try { await cdp.ev('window.__novaExport.reset()'); } catch (error) { /* closing */ }
     await cdp.close();
