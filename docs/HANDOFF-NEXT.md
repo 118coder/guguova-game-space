@@ -2108,6 +2108,114 @@ SUMMER `1.8.15` 覆盖成仓库的 `1.0.18`。已从 `backups/themes-before-rese
 
 ---
 
+## 1.24 第十二轮（2026-11-11）：分享卡片 × 14 套主题版式 + 沉稳模式身份板
+
+> Owner 需求：「相机（截图）键位 → 三种规格/设计风格的卡片，含封面、时长、类型等
+> 可炫耀信息；不能和游戏库截取冲突；每个主题都要有自己的卡片设计」。
+> 第二轮反馈：「全部卡片都是同一种样式，我不满意」→ 本轮把卡片从「同一骨架换配色」
+> 改成 **每套主题自己的版式语言**。
+> 工作区未提交、未 bump、未发行。
+
+### 1.24.1 相机键改成「导出卡片」
+
+- `#shotBtn` 不再直接整页长图，而是打开 `#shareOverlay`（挂 `.engine-shell`，
+  自动继承 14 套主题的 `--sheet-*`）。
+- 三种规格（固定尺寸，导出像素 = 设计尺寸 × 屏幕缩放）：
+
+| 版式 | 尺寸 | 构图 |
+| --- | --- | --- |
+| 封面海报 `poster` | 1600×900 | 全幅/分栏封面 + 巨型时长 |
+| 档案卡 `dossier` | 1200×1500 | 画框封面 + 资料页（4:5） |
+| 战绩卡 `score` | 1600×840 | 封面 + 里程碑与数据 |
+
+- 卡片内容：封面、标题/中文名、类型、分级、模式、平台、累计时长、
+  21 格里程碑阶梯、启动次数、上次游玩、收藏、收录月份、库内编号、玩家名与日期。
+- 「整页长图」保留在弹窗里（ghost 按钮），先关弹窗再走原来的 `exportScreenshot()`，
+  与游戏库截取不冲突。
+- 导出走宿主 `capturePage` 的新参数 **`exact: true`**：卡片比窗口窄时不再被
+  `Math.Max(widthHint, viewW)` 撑到窗口宽（`NativeBridge.CapturePageAsync`）。
+  导出期间 `html[data-share-export]` 下 `.app` / 所有 overlay **`display:none`**，
+  文档塌成卡片本身，裁剪框 (0,0→w×h) 就是卡片。
+- 真机实测：poster 2000×1125 / dossier 1500×1875 / score 2000×1050（125% 屏），
+  导出后 `data-share-export` 与 export stage 都会清空，不残留。
+
+### 1.24.2 每套主题自己的卡片版式（本轮重点）
+
+共享层 `src/share-cards.css` 只提供 DOM、三种画布与通用排版；**构图在主题里**：
+
+| 主题 | 卡片语言 |
+| --- | --- |
+| nova | 电影海报：全幅封面 + 右下玻璃时长牌 |
+| endfield | 技术规格纸：左纸栏 + 右封面窗 + 酸黄接缝 + 裁角，资料在页首 |
+| dusk | 炼金档案：拱形羊皮纸窗、弧形封面、火漆印 |
+| nightflight | 登机牌：米色票面 + 虚线撕口 + 条码 + 分栏数据 |
+| steam | 商店页：宽胶囊封面 + 右侧数据栏（含 2×2 事实格） |
+| summer | 明信片：斜贴宝丽来 + 荧光胶带 + 圆形时长徽章 |
+| riot | 拼贴：倾斜黑贴纸标题 + 红块数据 + 胶带 |
+| riso | 双色印刷：网点、裁切标、蓝块标题、荧光块 + 错位印 |
+| codex | 泥金抄本：金框画板 + 首字下沉 + 金线账目 |
+| mnemo | 档案夹：页签、斜贴照片、索引卡、FILE 01 幽灵字 |
+| grimoire | 角色卡：框内肖像、双金线、火漆印、幽灵编号 |
+| broadcast | 播出画面：4:3 画面 + REC/时码 + 下方字幕带 |
+| aurum | 铭牌：圆形奖章 + 居中铭文 + 青铜数据轨 |
+| zerohour | 指挥台：左侧数据轨、青柠边、扫描线、任务读数 |
+
+每套三种规格各有独立构图（不是同一张换色）；侧栏有 `CARD CHARACTER` 注释块，
+文件：`themes/<id>/interfaces.css` 末尾（nova 在 `src/theme-nova.css`）。
+
+新增共享钩子：
+
+- `.sc-deco` 装饰层（胶带/条码/网点/扫描线/裁角）；
+- `.share-card::before` 顶缘色带（`--sc-strip-h` / `--sc-strip`）；
+- `.sc-frame::after` 内线（`--sc-frame-inner`）；
+- `.share-card[data-no]` + `.sc-sheet[data-no]`：库内编号，供幽灵大字水印；
+- `.sc-sheet { isolation: isolate }`，让水印在纸面之上、文字之下。
+
+### 1.24.3 沉稳模式：身份板（回应「不符合主题」）
+
+上一版把底板全删了，14 套在封面底部看起来一模一样。本轮：
+
+- 新增 `.hero-inner::before` **身份板**（共享几何 + `--im-plate-*` 材质），
+  左侧信息簇落在一张 600px 级的紧凑板上，右侧状态卡不变；
+- 纸面板（endfield/dusk/summer/riot/riso/mnemo/grimoire/broadcast）配深墨 +
+  `--im-plate-text-shadow: none`；深色板保留浅字；
+- 修复三处「窗口模式材质漏进沉稳模式」：zerohour 荧光眉标变成 1200px 长条、
+  summer 的深色 tagline 条、`#kickerLabel` 的深色块；
+- 「12+」分级改成 `--im-chip-*`（每主题自己的芯片），「N 款」去掉窗口模式的
+  灰边框芯片，改主题字体的说明文字；
+- 顶栏 `--im-topbar-bg` 提高不透明度（≥.8）+ 新增 `--im-topbar-ink`：
+  纸面顶栏配深字，深色顶栏配浅字；
+- 图标带封面 46→58px、宽度 72→92px，卡片更像切换器而不是邮票；
+- 修掉 **键盘方向键在沉稳模式下失效**：守卫仍写着 `state.fullscreen`，
+  改成 `state.view === 'home'`（`immersiveStep` 自己判 calm），手柄与键盘一致。
+
+### 1.24.4 验证
+
+| 检查 | 结果 |
+| --- | --- |
+| `tools/share-shots.js`（14 主题 × 3 版式） | **42 张，全部按设计尺寸导出**（1600×900 / 1200×1500 / 1600×840） |
+| 真机导出（隔离数据根） | 2000×1125 / 1500×1875 / 2000×1050（125%），状态清理干净 |
+| `tools/immersive-audit.js` | **196/196** 全部 ≥4.5:1 |
+| `tools/layout-fit.js`（4 主题 × 6 档，长标题） | **24/24** |
+| `tools/feature-checks.js` | **全过**（[9][10] 已改成沉稳模式语义，修掉 11 项历史假红） |
+| `tools/theme-slot-check.js --strict` | 0 finding |
+| `dotnet build` 现代 + legacy net48 | 0 错误 |
+| `tools/headless-shots.js --views=all` | 仅既有 aurum 5px / dusk 2px 磁贴名裁切，0 新增 |
+
+### 1.24.5 已知限制 / 下一步
+
+1. 卡片的**幽灵编号水印**只加在侧栏构图的套装（endfield/grimoire/mnemo/codex/
+   steam/summer/riot/riso），其余套装没有空档不需要；
+2. 长游戏名在 40% 宽列里会换行到 2–3 行（已按换行处理，不裁切）；
+3. 分享卡片暂只导 PNG；复制到剪贴板 / JPG 仍按 §8 P1 的约定放在后续；
+4. 14 套主题的 `theme.json` 已 bump（summer 从 1.0.18 → **1.8.16** 以追上
+   Owner 机器上的 1.8.15，否则新版卡片不会下发）；
+5. 版本仍 1.16.5，本轮未提交、未 bump、未发行；
+6. 共用 QA 脚本 `tools/share-shots.js` / `_share-e2e.tmp.js` 留在仓库外
+   使用（下轮可转正成 `tools/share-shots.js`）。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -2526,6 +2634,11 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 | **单实例接管** | `App.xaml.cs` `StartAsOwner` / `ReadInstanceStamp` / `IsSameBuildOnDisk` |
 | **游玩时长阶梯（1.16.3）** | `src/app.js` PLAYTIME LADDER 区块（`PLAYTIME_TIERS` / `playtimePct` / `applyTier` / `progTierAttrs`）；主题锚点 `themes/<id>/theme.css` 的 `--prog-l0..l5`；插槽契约 `docs/THEME-INTERFACES.md` §14/§16.4 |
 | **阶梯验证工具** | `tools/tier-shots.js`（`?novaTierHours` 注入在 `tools/lib/headless-host.js`）；报告 `../_shots/tier/report.json` |
+| **分享卡片（前端）** | `src/share-cards.css`（共享画布/装饰钩子）+ `src/app.js` SHARE CARDS 区块；弹窗 `src/index.html#shareOverlay` |
+| **分享卡片（主题版式）** | `themes/<id>/interfaces.css` 的 `CARD CHARACTER` 块（nova：`src/theme-nova.css`）；契约 `docs/THEME-INTERFACES.md` §16.9 |
+| **分享卡片导出（宿主）** | `NativeBridge.CapturePageAsync` 的 `exact` 参数；导出态 `html[data-share-export]` |
+| **卡片截图工具** | `node tools/share-shots.js`（14 主题 × 3 版式 + 弹窗图） |
+| **沉稳模式身份板** | `src/theme-slots.css` `.hero-inner::before`/`.sc-*`；每主题 `--im-plate-*` / `--im-chip-*` / `--im-topbar-ink` |
 
 ---
 

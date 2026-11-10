@@ -548,3 +548,90 @@ NOVA_CDP_PORT=9333 node tools/audit-hover.js             # 悬停对比度
 5. 跑无头截图与两条对比度审计。
 
 **不需要改 `src/` 下任何文件。** 这是本轮改造的唯一目的。
+
+### 16.9 分享卡片插槽（2026-11-10 新增）
+
+相机按钮不再只导整页长图，而是先开「导出卡片」弹窗，三种固定尺寸：
+
+| 版式 | 尺寸 | 构图 |
+| --- | --- | --- |
+| `poster` 封面海报 | 1600 × 900 | 全幅封面 + 左下信息 + 右下时长牌 |
+| `dossier` 档案卡 | 1200 × 1500 | 56% 画框封面 + 下方资料页 |
+| `score` 战绩卡 | 1600 × 840 | 左 40% 封面 + 右侧巨型时长与 21 格里程碑 |
+
+DOM 锚点是 `.share-card`，画布与通用排版在 `src/share-cards.css`
+（**共享表，不认主题 id**）。**构图与材质都在主题里**：每套主题在自己的
+`interfaces.css` 末尾写一个 `CARD CHARACTER` 块，用自己的方式摆放封面、资料页、
+时长与装饰（endfield 是规格纸、nightflight 是登机牌、grimoire 是角色卡……）。
+只写 `--sc-*` 而不写构图，会得到「同一张卡换配色」——Owner 已明确不接受。
+
+主题可用的共享钩子：
+
+| 钩子 | 用途 |
+| --- | --- |
+| `.sc-deco` | 装饰层（胶带、条码、网点、扫描线、裁角） |
+| `.share-card::before` | 顶缘色带，`--sc-strip-h` + `--sc-strip` |
+| `.sc-frame::after` | 内线，`--sc-frame-inner` |
+| `[data-no]` / `[data-total]` | 库内编号（卡片和 `.sc-sheet` 上都有），幽灵水印 |
+| `.sc-sheet { isolation: isolate }` | 水印用 `z-index:-1` 会落在纸面上、文字下 |
+
+必填（漏了会落到别的主题的默认值，属于缺陷）：
+
+| 令牌 | 作用 |
+| --- | --- |
+| `--sc-bg` | 卡片底色（也是 veil 的收尾色） |
+| `--sc-ink` / `--sc-ink-2` | 主文字 / 次级文字（**必须是颜色，不用 opacity**） |
+| `--sc-rule` | 发丝线（页脚上边、分隔） |
+| `--sc-accent` / `--sc-accent-ink` | 信号色 / 压在信号色上的字 |
+| `--sc-plate` / `--sc-plate-line` | 时长牌与标签芯片的底 / 边 |
+| `--sc-sheet-bg` / `--sc-sheet-line` | 资料页（dossier、score 右栏）的底 / 边 |
+| `--sc-radius` | 卡片内所有圆角（0 = 硬边主题） |
+| `--sc-scrim-rgb` | 压暗/提亮用的 RGB 三元组（`247, 237, 216`）。纸面主题填纸色，veil 会把封面**提亮**成纸 |
+| `--sc-veil` / `--sc-veil-x` | 竖向 / 横向压暗层。纸面主题必须是浅色，否则深罩会把纸卡洗成脏灰 |
+
+可选签名令牌：`--sc-title-font / -size / -weight / -tracking / -transform`、
+`--sc-label-font / -tracking / -transform`、`--sc-num-font / -tracking`、
+`--sc-frame-line / -w / -inset`、`--sc-frame-inner`（双线框内线）、
+`--sc-strip-h` + `--sc-strip`（卡片顶缘色带）、`--sc-plate-shadow`、
+`--sc-cut`（clip-path 裁角）、`--sc-title-size-dossier` / `-score`。
+
+两条硬规则：
+
+1. **底与字成对声明**。只改 `--sc-ink` 不改 `--sc-sheet-bg` 会产生白底白字；
+   纸面主题必须同时把 `--sc-scrim-rgb` / `--sc-veil` 换成浅色。
+2. **不要在卡片里用 `opacity` 做次级文字**，用 `--sc-ink-2` 的颜色。
+
+验收：`node tools/_share-preview.tmp.js`（渲染 14 套 × 3 版式，出图到
+`../_shots/share-all/`）与真机导出（`tools/_share-e2e.tmp.js`，走宿主
+`capturePage` 的 `exact:true`，导出像素 = 设计尺寸 × 屏幕缩放）。
+
+### 16.10 沉稳模式的「身份板」插槽（2026-11-10 新增）
+
+沉稳模式（`html.calm`）把左侧信息簇画在一张**紧凑底板**上，
+锚点是 `.hero-inner::before`（共享几何在 `src/theme-slots.css`）。
+这是为了让主题材质回到沉浸页面——上一版把底板全删了，14 套看起来一模一样。
+
+| 令牌 | 作用 |
+| --- | --- |
+| `--im-plate-bg` / `-border` / `-radius` / `-shadow` / `-clip` | 板子的材质与形状 |
+| `--im-plate-pad` / `-pad-x` | 板子相对文字的留白（负 margin 实现） |
+| `--im-plate-ink` / `-ink-dim` | **板上的**文字色；与 `--im-ink`（封面/图标带）分开 |
+| `--im-plate-text-shadow` | 深色板保留封面投影，纸面板设 `none` |
+| `--im-chip-bg` / `-border` / `-radius` / `-ink` / `-pad` | 年龄分级芯片（原「12+」红框） |
+| `--im-count-ink` | 图标带上的「N 款」文字色（原红框之一；底板一律去掉） |
+| `--im-topbar-ink` | 沉稳模式顶栏文字色（纸面顶栏配深字，深色顶栏配浅字） |
+| `--im-title-ceiling` | 标题字号上限（默认 34px） |
+| `--im-kicker-ink` / `-dim` / `-tracking` / `-transform` | 眉标（不再有底板） |
+
+要点：
+
+1. **板与字成对**：纸面板（endfield / dusk / summer / riot / riso / mnemo /
+   grimoire / broadcast）必须同时给 `--im-plate-ink` 深墨与
+   `--im-plate-text-shadow: none`，否则深墨加封面投影会糊。
+2. **`--im-topbar-bg` 的 alpha 要够**（≥ .8）：顶栏压在封面上，半透明会让
+   浅字掉到 2:1。浅色顶栏的主题给深字（`--im-topbar-ink`）。
+3. **眉标、标签行、tagline 在沉稳模式一律无底色**：主题在窗口模式给它们画的
+   色带/贴纸必须在 `calm` 下归零，否则会变成 1200px 的长条（zerohour 的荧光
+   眉标、summer 的深色 tagline 条都踩过）。
+4. **`--im-ink` 与 `--im-plate-ink` 不能混用**：图标带在封面底部，板上文字在
+   纸面上，两者明暗可以相反。

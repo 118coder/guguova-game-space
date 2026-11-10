@@ -139,7 +139,10 @@
         return;
       }
       if (message.type === 'screenshot-done') {
-        finishExport(message.payload || {});
+        // One notification channel, two possible jobs: the page-long export
+        // and a share card. Only one of them can be in flight at a time.
+        if (shareExportJob) finishShareExport(message.payload || {});
+        else finishExport(message.payload || {});
         return;
       }
     });
@@ -525,6 +528,15 @@
     libSortDir: $('#libSortDir'),
     libGenre: $('#libGenre'),
     shotBtn: $('#shotBtn'),
+    shareOverlay: $('#shareOverlay'),
+    shareClose: $('#shareClose'),
+    shareChoices: $('#shareChoices'),
+    shareStage: $('#shareStage'),
+    shareMount: $('#shareMount'),
+    shareExport: $('#shareExport'),
+    shareLongPage: $('#shareLongPage'),
+    shareSubtitle: $('#shareSubtitle'),
+    shareExportStage: $('#shareExportStage'),
     settingsPlayerName: $('#settingsPlayerName'),
     settingsSaveName: $('#settingsSaveName'),
     settingsUseSystemName: $('#settingsUseSystemName'),
@@ -1785,8 +1797,317 @@
     }
   }
 
-  const findGame = (id) => state.games.find((game) => game.id === id) || null;
-  const fullName = (game) => {
+  /* ============================================================
+     SHARE CARDS — the camera button's real job
+     ------------------------------------------------------------
+     The camera used to export the current page and nothing else,
+     which is a debugging tool wearing a share button's icon. It now
+     opens a picker with three fixed-size cards:
+
+       poster   1600×900   full-bleed cover, giant hours
+       dossier  1200×1500  framed cover above a record sheet
+       score    1600×840   cover panel + milestone scoreboard
+
+     One DOM tree, three layouts, and all materials come from the
+     active theme (--sc-*), so an exported card looks like it came
+     out of the app it was taken from. The page-long screenshot is
+     still reachable from the same dialog, one level down.
+     ============================================================ */
+
+  const SHARE_VARIANTS = [
+    { id: 'poster', name: '封面海报', size: '1600 × 900', note: '全幅封面压巨型时长，横屏与动态最抓眼' },
+    { id: 'dossier', name: '档案卡', size: '1200 × 1500', note: '带画框的封面加资料栏，竖版长图' },
+    { id: 'score', name: '战绩卡', size: '1600 × 840', note: '时长与里程碑当主角，专门晒进度' }
+  ];
+  const SHARE_SIZES = { poster: [1600, 900], dossier: [1200, 1500], score: [1600, 840] };
+
+  let shareVariant = 'poster';
+  let shareExportJob = null;
+
+  /** 14.5 / 132 — the number only; the unit is set in type. */
+  function shareHourText(seconds) {
+    const hours = Math.max(0, seconds || 0) / 3600;
+    if (hours < 0.1) return '0';
+    if (hours < 100) return hours.toFixed(1);
+    return String(Math.round(hours));
+  }
+
+  function shareAddedText(game) {
+    const at = new Date(game.addedUtc || '');
+    if (!at || Number.isNaN(at.getTime())) return '本机';
+    return `${at.getFullYear()}.${String(at.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function shareDateText() {
+    const now = new Date();
+    return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+  }
+
+  /** The one line that makes the card worth posting: where the clock is. */
+  function shareTierText(seconds) {
+    const tier = playtimeTierIndex(seconds);
+    if (tier >= PLAYTIME_TIERS.length) return `里程碑 ${tier} / ${PLAYTIME_TIERS.length} · 已达最终阶段`;
+    return `里程碑 ${tier} / ${PLAYTIME_TIERS.length} · 下一阶段 ${PLAYTIME_TIERS[tier]} 小时`;
+  }
+
+  function shareGenres(game) {
+    const list = (game.genres && game.genres.length ? game.genres : [game.genre || ''])
+      .filter(Boolean)
+      .filter((genre) => PLATFORM_LABELS[String(genre).toLowerCase()] === undefined)
+      .filter((genre) => !(isPlatformGame(game) && String(genre).toLowerCase() === game.source));
+    if (!list.length) return [];
+    return list.slice(0, 2);
+  }
+
+  /**
+   * The card itself. Same children for every variant; the stylesheet gives
+   * each variant its own grid. Anything that needs a number is computed
+   * here, so a theme only ever decides how it looks.
+   */
+  function shareCardHTML(game) {
+    const variant = SHARE_VARIANTS.some((entry) => entry.id === shareVariant) ? shareVariant : 'poster';
+    const art = game.heroUrl || game.coverUrl || 'assets/backdrop.jpg';
+    const genres = shareGenres(game);
+    const tier = playtimeTierIndex(game.playtimeSeconds || 0);
+    const vars = tierVarsFor(game, game.playtimeSeconds || 0);
+    const tierStyle = vars.tier > 0
+      ? `--prog-fill:${vars.fill};--prog-fill-soft:${vars.soft};--prog-glow:${vars.glow}`
+      : '';
+    const ticks = PLAYTIME_TIERS.map((_, index) => {
+      const on = index < tier ? ' is-on' : (index === tier ? ' is-next' : '');
+      return `<i class="${on.trim()}"></i>`;
+    }).join('');
+    const index = recordIndexFor(game);
+    const total = state.games.length;
+    const meta = [];
+    genres.forEach((genre) => meta.push(`<span>${esc(genre)}</span>`));
+    meta.push(`<span class="sc-age">${esc(game.ageRating || '全年龄')}</span>`);
+    if (game.mode) meta.push(`<span>${esc(game.mode)}</span>`);
+    const platform = isPlatformGame(game) ? platformShort(game) : '';
+    const foot = [];
+    foot.push(`<span>启动 ${Math.max(0, game.launchCount || 0)} 次</span>`);
+    foot.push('<i></i>');
+    foot.push(`<span>${game.lastPlayedUtc ? `${esc(themeWord('lastPlayed', '上次游玩'))} ${relativeTime(game.lastPlayedUtc)}` : '尚未游玩'}</span>`);
+    if (game.favorite) { foot.push('<i></i>'); foot.push('<span>★ 收藏</span>'); }
+    const player = (state.settings && state.settings.playername) ? state.settings.playername : '播放器';
+    const zh = (game.zh || '').trim();
+    const name = (game.name || '').trim();
+    const showZh = zh && zh.toLowerCase() !== name.toLowerCase();
+
+    return `
+      <article class="share-card" data-variant="${variant}" data-prog-tier="${tier}"
+               data-no="${String(index).padStart(2, '0')}" data-total="${String(total).padStart(2, '0')}">
+        <div class="sc-art"><img src="${esc(art)}" alt="" draggable="false" style="object-position:${esc(game.heroPosition || '50% 45%')}"></div>
+        <div class="sc-wash" aria-hidden="true"></div>
+        <div class="sc-deco" aria-hidden="true"></div>
+        <div class="sc-frame" aria-hidden="true"></div>
+
+        <header class="sc-top">
+          <span class="sc-brand">GUGUOVA</span>
+          <span class="sc-no">No.${String(index).padStart(2, '0')} / ${String(total).padStart(2, '0')}</span>
+        </header>
+
+        <div class="sc-sheet" data-no="${String(index).padStart(2, '0')}" data-total="${String(total).padStart(2, '0')}">
+          <div class="sc-main">
+            <div class="sc-id">
+              <div class="sc-kicker"><i></i>${esc(sourceLabel(game))} · ${shareDateText()}</div>
+              <h1 class="sc-title">${esc(name || zh || '未命名游戏')}</h1>
+              ${showZh ? `<p class="sc-zh">${esc(zh)}</p>` : ''}
+              ${game.tagline ? `<p class="sc-tagline">${esc(game.tagline)}</p>` : ''}
+              <div class="sc-meta">${meta.join('<em>·</em>')}${platform ? `<em>·</em><span class="sc-plat">${esc(platform)}</span>` : ''}</div>
+            </div>
+
+            <div class="sc-score" style="${tierStyle}">
+              <span class="sc-label">累计游玩</span>
+              <div class="sc-hours"><b>${shareHourText(game.playtimeSeconds)}</b><em>小时</em></div>
+              <div class="sc-ladder" aria-hidden="true">${ticks}</div>
+              <span class="sc-tier">${shareTierText(game.playtimeSeconds || 0)}</span>
+              <div class="sc-facts">
+                <div class="sc-fact"><span>启动次数</span><b>${Math.max(0, game.launchCount || 0)}<em>次</em></b></div>
+                <div class="sc-fact"><span>里程碑</span><b>${tier}<em>/ ${PLAYTIME_TIERS.length}</em></b></div>
+                <div class="sc-fact"><span>${esc(themeWord('lastPlayed', '上次游玩'))}</span><b>${esc(game.lastPlayedUtc ? relativeTime(game.lastPlayedUtc) : '尚未游玩')}</b></div>
+                <div class="sc-fact"><span>收录于</span><b>${esc(shareAddedText(game))}</b></div>
+              </div>
+            </div>
+          </div>
+
+          <footer class="sc-foot">
+            ${foot.join('')}
+            <span class="sc-sign">${esc(player)} · ${shareDateText()}</span>
+          </footer>
+        </div>
+      </article>
+    `;
+  }
+
+  function shareGameForCard() {
+    const game = currentGame();
+    if (!game) {
+      toast('先选一款游戏再导出卡片', 'info');
+      return null;
+    }
+    return game;
+  }
+
+  function renderShareChoices() {
+    if (!els.shareChoices) return;
+    els.shareChoices.innerHTML = SHARE_VARIANTS.map((variant) => `
+      <button class="share-choice" type="button" role="radio"
+              data-variant="${variant.id}"
+              aria-selected="${variant.id === shareVariant}">
+        <span class="share-choice-art" aria-hidden="true"></span>
+        <span class="share-choice-copy">
+          <span class="share-choice-name">${variant.name}</span>
+          <span class="share-choice-note">${variant.note}</span>
+          <span class="share-choice-size">${variant.size}</span>
+        </span>
+      </button>
+    `).join('');
+  }
+
+  /** Scale the real card down into the preview box, centred both ways. */
+  function fitSharePreview() {
+    if (!els.shareMount || !els.shareStage) return;
+    const card = els.shareMount.querySelector('.share-card');
+    if (!card) return;
+    const [w, h] = SHARE_SIZES[shareVariant] || SHARE_SIZES.poster;
+    const style = getComputedStyle(els.shareStage);
+    const availW = els.shareStage.clientWidth - parseFloat(style.paddingLeft || 0) - parseFloat(style.paddingRight || 0);
+    const availH = els.shareStage.clientHeight - parseFloat(style.paddingTop || 0) - parseFloat(style.paddingBottom || 0);
+    const scale = Math.max(.05, Math.min(availW / w, availH / h));
+    card.style.transform = `scale(${scale})`;
+    els.shareMount.style.width = `${Math.round(w * scale)}px`;
+    els.shareMount.style.height = `${Math.round(h * scale)}px`;
+  }
+
+  function renderSharePreview() {
+    if (!els.shareMount) return;
+    const game = currentGame();
+    if (!game) {
+      els.shareMount.innerHTML = '';
+      return;
+    }
+    els.shareMount.innerHTML = shareCardHTML(game);
+    // The image decides the veil's job, so wait one frame for layout before
+    // measuring; the card's own size is fixed, only the scale is computed.
+    requestAnimationFrame(fitSharePreview);
+  }
+
+  function syncShareChoiceState() {
+    if (!els.shareChoices) return;
+    Array.from(els.shareChoices.querySelectorAll('.share-choice')).forEach((button) => {
+      button.setAttribute('aria-selected', button.dataset.variant === shareVariant ? 'true' : 'false');
+    });
+  }
+
+  function openShareDialog() {
+    if (state.overlay) return;
+    const game = shareGameForCard();
+    if (!game) return;
+    if (!hasBridge) {
+      toast('导出需要桌面版', 'info');
+      return;
+    }
+    state.lastFocus = document.activeElement;
+    state.overlay = 'share';
+    document.body.dataset.overlay = 'share';
+    renderShareChoices();
+    renderSharePreview();
+    if (els.shareSubtitle) els.shareSubtitle.textContent = `《${shortName(game) || game.name}》· 选一种版式，导出为图片`;
+    els.shareOverlay.classList.add('is-open');
+    els.shareOverlay.setAttribute('aria-hidden', 'false');
+    els.app.inert = true;
+    audio.open();
+    resizeInertSharePreview();
+    setTimeout(() => {
+      try {
+        const active = els.shareChoices && els.shareChoices.querySelector('[aria-selected="true"]');
+        (active || els.shareClose).focus({ preventScroll: true });
+      } catch (error) {}
+    }, 120);
+  }
+
+  /** Opening the dialog changes the stage size, so fit once more. */
+  function resizeInertSharePreview() {
+    requestAnimationFrame(() => {
+      fitSharePreview();
+      requestAnimationFrame(fitSharePreview);
+    });
+  }
+
+  function closeShareDialog() {
+    if (state.overlay !== 'share') return;
+    state.overlay = null;
+    els.shareOverlay.classList.remove('is-open');
+    els.shareOverlay.setAttribute('aria-hidden', 'true');
+    if (document.body.dataset.overlay === 'share') delete document.body.dataset.overlay;
+    els.app.inert = false;
+    restoreFocus();
+    audio.close();
+  }
+
+  function chooseShareVariant(id) {
+    if (!SHARE_VARIANTS.some((variant) => variant.id === id) || id === shareVariant) return;
+    shareVariant = id;
+    syncShareChoiceState();
+    renderSharePreview();
+    audio.select();
+  }
+
+  function finishShareExport(payload) {
+    if (!shareExportJob) return;
+    clearTimeout(shareExportJob.timer);
+    shareExportJob = null;
+    delete document.documentElement.dataset.shareExport;
+    if (els.shareExportStage) els.shareExportStage.innerHTML = '';
+    if (!payload || payload.ok === false) {
+      const reason = payload && payload.error ? ` · ${payload.error}` : '';
+      toast(`卡片导出失败${reason}`, 'alert');
+      return;
+    }
+    toast(`已导出 ${payload.width}×${payload.height} · ${payload.folder}`, 'camera');
+  }
+
+  async function exportShareCard() {
+    if (!hasBridge || shareExportJob || !els.shareExportStage) return;
+    const game = currentGame();
+    if (!game) return;
+    const variant = shareVariant;
+    audio.confirm();
+
+    // Build the card at full size in normal flow. While the capture runs the
+    // app is hidden and the document collapses to exactly the card, so the
+    // host's clip (0,0 → w×h) IS the card — no viewport-width widening.
+    els.shareExportStage.innerHTML = shareCardHTML(game);
+    closeShareDialog();
+    document.documentElement.dataset.shareExport = variant;
+
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await settleForExport(els.shareExportStage);
+
+    const card = els.shareExportStage.querySelector('.share-card');
+    if (!card) {
+      delete document.documentElement.dataset.shareExport;
+      els.shareExportStage.innerHTML = '';
+      return;
+    }
+    const width = Math.ceil(card.getBoundingClientRect().width);
+    const height = Math.ceil(card.getBoundingClientRect().height);
+    const background = getComputedStyle(card).backgroundColor;
+    shareExportJob = {
+      timer: setTimeout(() => finishShareExport({ ok: false, error: '导出超时' }), 25000)
+    };
+    try {
+      const result = await call('capturePage', {
+        view: `card-${variant}`, width, height, scale: 1, background, exact: true
+      });
+      if (result && result.ok === false) finishShareExport(result);
+    } catch (error) {
+      finishShareExport({ ok: false, error: '无法连接宿主' });
+    }
+  }
+
+  const findGame = (id) => state.games.find((game) => game.id === id) || null;  const fullName = (game) => {
     if (!game) return '';
     const zh = (game.zh || '').trim();
     const en = (game.name || '').trim();
@@ -7890,6 +8211,14 @@
         return;
       }
 
+      if (state.overlay === 'share') {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeShareDialog();
+        }
+        return;
+      }
+
       if (state.overlay === 'engine') {
         if (event.key === 'Escape') {
           event.preventDefault();
@@ -8005,10 +8334,13 @@
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (isTypingTarget(event.target)) return;
 
-      // Fullscreen home: arrows belong to the two focus rows first, so the
-      // player can walk onto a button and press Enter instead of having to
-      // remember a shortcut.
-      if (state.view === 'home' && state.fullscreen) {
+      // Calm home: arrows belong to the two focus rows first, so the player
+      // can walk onto a button and press Enter instead of having to remember
+      // a shortcut. The guard used to be `state.fullscreen`; since 沉稳模式
+      // owns the immersive layout, fullscreen alone no longer has those rows
+      // and the guard silently disabled keyboard navigation. immersiveStep
+      // returns false outside calm, so the switch below still sees the key.
+      if (state.view === 'home') {
         const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
         if (step && immersiveStep(step[0], step[1])) {
           event.preventDefault();
@@ -8786,7 +9118,31 @@
 
     els.allBtn.addEventListener('click', () => openLibrary());
     els.searchBtn.addEventListener('click', () => openLibrary({ search: true }));
-    if (els.shotBtn) els.shotBtn.addEventListener('click', () => exportScreenshot());
+    if (els.shotBtn) els.shotBtn.addEventListener('click', () => openShareDialog());
+    if (els.shareClose) els.shareClose.addEventListener('click', () => closeShareDialog());
+    if (els.shareChoices) {
+      els.shareChoices.addEventListener('click', (event) => {
+        const button = event.target.closest('.share-choice');
+        if (button) chooseShareVariant(button.dataset.variant);
+      });
+    }
+    if (els.shareExport) els.shareExport.addEventListener('click', () => exportShareCard());
+    if (els.shareLongPage) {
+      els.shareLongPage.addEventListener('click', () => {
+        closeShareDialog();
+        // The page export has its own overlay guard; it runs on the next
+        // frame so the dialog is already gone when the layout is released.
+        requestAnimationFrame(() => exportScreenshot());
+      });
+    }
+    if (els.shareOverlay) {
+      els.shareOverlay.addEventListener('pointerdown', (event) => {
+        if (event.target === els.shareOverlay) closeShareDialog();
+      });
+    }
+    window.addEventListener('resize', () => {
+      if (state.overlay === 'share') fitSharePreview();
+    });
     els.addBtn.addEventListener('click', () => openImport());
     els.railAddCard.addEventListener('click', () => openImport());
     els.brandBtn.addEventListener('click', () => {

@@ -181,6 +181,11 @@ html.calm body.layout-rail .view-home .hero {
 .status-card { display: contents; }
 
 html.calm .view-home .hero-inner {
+  position: relative;
+  /* The identity plate is a pseudo-element at z-index -1, so the cluster
+     needs its own stacking context or the plate would fall behind the
+     cover. */
+  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 560px) minmax(240px, 320px);
   justify-content: space-between;
@@ -194,15 +199,50 @@ html.calm .view-home .hero-inner {
   max-width: none !important;
   height: auto !important;
   min-height: 0;
-  margin: 0 auto clamp(12px, 1.8vh, 22px);
+  /* The plate hangs below the cluster by --im-plate-pad, so the cluster
+     claims that space instead of letting the plate slide under the strip. */
+  margin: 0 auto calc(var(--im-plate-pad, 24px) + clamp(8px, 1.2vh, 16px));
   padding: 0 !important;
   background: none !important;
   border: 0 !important;
   box-shadow: none !important;
   border-radius: 0 !important;
-  color: var(--im-ink, var(--im-dock-ink, #f7f4ee));
-  text-shadow: var(--im-dock-ink-shadow, 0 1px 2px rgba(0, 0, 0, .85));
+  color: var(--im-plate-ink, var(--im-ink, var(--im-dock-ink, #f7f4ee)));
+  text-shadow: var(--im-plate-text-shadow, var(--im-dock-ink-shadow, 0 1px 2px rgba(0, 0, 0, .85)));
   text-align: left;
+}
+
+/* THE IDENTITY PLATE.
+   One compact card behind the left cluster, sized by the cluster itself
+   (negative margin = the padding ring). This is what brings each theme's
+   paper / metal / glass back into the calm page: the previous version
+   stripped every plate and left fourteen themes looking identical.
+   It is ~600px wide at most — the complaint was a 1280px bar, not a card. */
+html.calm .view-home .hero-inner::before {
+  content: '';
+  grid-column: 1;
+  grid-row: 1 / span 5;
+  align-self: stretch;
+  justify-self: stretch;
+  margin: calc(var(--im-plate-pad, 24px) * -1) calc(var(--im-plate-pad-x, 28px) * -1);
+  /* A theme's windowed hero uses .hero-inner::before as a small absolutely
+     positioned tick (steam: 3×54px, inset from the corner). Reset BOTH the
+     positioning and the size, or the plate is a 3px sliver nobody can see. */
+  position: relative;
+  inset: auto;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  z-index: -1;
+  background: var(--im-plate-bg, transparent);
+  border: var(--im-plate-border, 0);
+  border-radius: var(--im-plate-radius, 0);
+  box-shadow: var(--im-plate-shadow, none);
+  clip-path: var(--im-plate-clip, none);
+  pointer-events: none;
 }
 
 /* Left cluster: one column, read top to bottom. */
@@ -221,20 +261,22 @@ html.calm .view-home .hero-inner > .cta-row {
    title → tagline → facts → actions, on every theme. Half the themes still
    carried an order list from the old left-column layout and two of them put
    the title above its own eyebrow, which reads as a caption under a heading. */
-html.calm .view-home .hero-inner > .kicker { order: 1 !important; }
-html.calm .view-home .hero-inner > .hero-logo { order: 2 !important; }
-html.calm .view-home .hero-inner > .tagline { order: 3 !important; }
-html.calm .view-home .hero-inner > .meta-row { order: 4 !important; }
-html.calm .view-home .hero-inner > .cta-row { order: 5 !important; }
-html.calm .view-home .hero-inner > .status-card { order: 6 !important; }
+/* Explicit rows: the plate occupies rows 1–5, so auto-placement would push
+   the cluster into rows 6–10. */
+html.calm .view-home .hero-inner > .kicker { order: 1 !important; grid-row: 1; }
+html.calm .view-home .hero-inner > .hero-logo { order: 2 !important; grid-row: 2; }
+html.calm .view-home .hero-inner > .tagline { order: 3 !important; grid-row: 3; }
+html.calm .view-home .hero-inner > .meta-row { order: 4 !important; grid-row: 4; }
+html.calm .view-home .hero-inner > .cta-row { order: 5 !important; grid-row: 5; }
+html.calm .view-home .hero-inner > .status-card { order: 6 !important; grid-row: 1 / span 5; }
 
 /* Right cluster: playtime on top, switch under it, one fused card. */
 html.calm .view-home .hero-inner > .status-card {
   display: flex;
   flex-direction: column;
   grid-column: 2;
-  /* Implicit rows: -1 is not the last line here, so span past them. */
-  grid-row: 1 / span 6;
+  /* Five cluster rows, so the card spans all of them. */
+  grid-row: 1 / span 5;
   align-self: end;
   width: 100%;
   min-width: 0;
@@ -272,22 +314,47 @@ html.calm .view-home .status-card > .hero-scale {
 html.calm .view-home .hero-inner > .kicker {
   display: flex;
   align-items: center;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
   gap: 9px;
+  padding: 0 !important;
   font-size: 11px;
-  letter-spacing: .16em;
+  letter-spacing: var(--im-kicker-tracking, .16em);
+  text-transform: var(--im-kicker-transform, none);
+  /* Several themes print the eyebrow on an acid plate. On artwork that
+     plate became a 1200px lime band (zerohour); in the calm page the
+     eyebrow is a caption, and only the dash marks it. */
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  transform: none !important;
   /* A muted theme tone disappears on artwork; the cluster's ink is the floor. */
-  color: var(--im-kicker-ink, var(--im-ink, var(--im-dock-ink, #f7f4ee))) !important;
+  color: var(--im-kicker-ink, var(--im-plate-ink, var(--im-ink, var(--im-dock-ink, #f7f4ee)))) !important;
 }
 /* The dim half of the kicker is darkened by colour, not by alpha: at .66
    opacity a 11px glyph on artwork drops under 3:1 and reads as a smudge. */
 html.calm .view-home .hero-inner .kicker-dim {
   opacity: 1 !important;
-  color: var(--im-kicker-dim, var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 84%, transparent))) !important;
+  color: var(--im-kicker-dim, var(--im-plate-ink-dim, color-mix(in srgb, var(--im-plate-ink, #f7f4ee) 82%, transparent))) !important;
 }
 html.calm .view-home .hero-inner .kicker-dot,
 html.calm .view-home .hero-inner .kicker-sep {
   opacity: 1 !important;
 }
+/* Whole-word plates inside the eyebrow. Summer prints #kickerLabel on a
+   navy block and would keep it: an ID rule outranks any class selector, so
+   the reset has to be !important on the child itself. */
+html.calm .view-home .hero-inner > .kicker span {
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: inherit !important;
+}
+html.calm .view-home .hero-inner > .kicker::after { content: none !important; }
 html.calm .view-home .hero-inner > .kicker::before {
   content: '';
   flex: none;
@@ -300,7 +367,7 @@ html.calm .view-home .hero-inner > .kicker::before {
    an extra attribute to outrank them without touching their files. */
 html[data-theme].calm .view-home .hero-inner .hero-logo,
 html[data-theme].calm body.layout-rail .view-home .hero-inner .hero-logo {
-  font-size: clamp(24px, 2.5vw, 34px) !important;
+  font-size: clamp(24px, 2.5vw, var(--im-title-ceiling, 34px)) !important;
   line-height: 1.05;
   max-width: 100%;
   margin-top: 2px !important;
@@ -312,24 +379,64 @@ html[data-theme].calm body.layout-rail .view-home .hero-inner .hero-logo {
 /* Secondary ink is a colour, never an opacity: a global opacity multiplies
    with the theme's own muted alpha and lands under 3:1 on artwork, which is
    exactly how "subtle" turns into "invisible". */
+/* A few themes print a ghost copy of the line behind it (mnemo's double
+   exposure); on a plate the two copies overlap into a smear. */
+html.calm .view-home .hero-inner > .tagline::before,
+html.calm .view-home .hero-inner > .tagline::after {
+  display: none !important;
+}
 html.calm .view-home .hero-inner > .tagline {
+  /* Windowed themes paint the tagline as a band or a ribbon; on the plate
+     that band becomes a full-width dark strip (summer). It is a sentence
+     here, not a surface. */
+  width: auto;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  transform: none !important;
   margin-top: 6px !important;
   font-size: var(--im-tagline-size, 13px);
   line-height: 1.5;
   max-width: 44ch;
-  color: var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 88%, transparent)) !important;
+  color: var(--im-plate-ink-dim, color-mix(in srgb, var(--im-plate-ink, #f7f4ee) 88%, transparent)) !important;
   font-family: var(--im-body-font, inherit);
   letter-spacing: var(--im-body-tracking, .01em);
 }
 html.calm .view-home .hero-inner > .meta-row {
+  width: auto;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
   margin-top: 9px !important;
   font-size: var(--im-meta-size, 11.5px);
-  color: var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 88%, transparent)) !important;
+  color: var(--im-plate-ink-dim, color-mix(in srgb, var(--im-plate-ink, #f7f4ee) 88%, transparent)) !important;
   font-family: var(--im-label-font, inherit);
   letter-spacing: var(--im-label-tracking, .08em);
 }
-html.calm .view-home .hero-inner > .meta-row :is(span, i, .age-badge) {
+html.calm .view-home .hero-inner > .meta-row :is(span, i) {
   color: inherit !important;
+}
+/* The age rating is the one chip in the facts row. It used to keep its
+   windowed plate (zerohour: black box with a red border), which read as a
+   foreign control on the cover. Every theme now draws it from --im-chip-*:
+   the default is a hairline bracket, paper themes keep their material. */
+html.calm .view-home .hero-inner > .meta-row .age-badge,
+html.calm .view-home .hero-inner > .meta-row .update-badge {
+  padding: var(--im-chip-pad, 2px 8px 3px) !important;
+  background: var(--im-chip-bg, transparent) !important;
+  border: var(--im-chip-border, 1px solid currentColor) !important;
+  border-radius: var(--im-chip-radius, 2px) !important;
+  box-shadow: none !important;
+  color: var(--im-chip-ink, inherit) !important;
+  font-size: var(--im-chip-size, 10.5px);
+  letter-spacing: var(--im-chip-tracking, .08em);
+}
+html.calm .view-home .hero-inner > .meta-row .meta-dot {
+  opacity: 1 !important;
+  background: var(--im-plate-ink-dim, currentColor);
 }
 
 /* Actions: 48px primary, 44px secondaries, never two lines of label.
@@ -434,7 +541,6 @@ html.calm .view-home .status-card .hero-scale-hint {
 /* Theme artwork inside the hero competes with the cover. */
 html.calm .view-home .hero::before,
 html.calm .view-home .hero::after,
-html.calm .view-home .hero-inner::before,
 html.calm .view-home .hero-inner::after {
   display: none !important;
 }
@@ -456,6 +562,8 @@ html.calm .view-home .hero-inner > .activity-strip { display: none; }
     justify-content: stretch;
   }
   html.calm .view-home .hero-inner > .status-card { grid-row: auto; }
+  html.calm .view-home .hero-inner > :is(.kicker, .hero-logo, .tagline, .meta-row, .cta-row) { grid-row: auto; }
+  html.calm .view-home .hero-inner::before { grid-row: 1 / span 5; }
   }
 
 /* ------------------------------------------------------------
@@ -499,9 +607,20 @@ html.calm .view-home .hero-logo {
 
 html.calm .topbar {
   height: clamp(50px, 6.4vh, 68px);
-  background: var(--im-topbar-bg, transparent);
-  border-bottom: var(--im-topbar-rule, 0);
+  /* !important: a theme's windowed `.topbar` has the same specificity and
+     loads later, so mnemo kept its opaque lavender bar over the artwork. */
+  background: var(--im-topbar-bg, transparent) !important;
+  border-bottom: var(--im-topbar-rule, 0) !important;
 }
+
+/* The bar sits on the cover now. A theme whose topbar ink was chosen for a
+   light window bar (mnemo's plum on lavender) turns into dark-on-dark the
+   moment the bar takes the calm ground, so the calm bar names its ink. The
+   active nav chip keeps its own pair — that pill is the theme's signature. */
+html.calm .topbar :is(.nav-btn:not(.is-active), .clock-time, .clock-date, .brand-word, .icon-btn) {
+  color: var(--im-topbar-ink, var(--im-dock-ink, #f4f0e7)) !important;
+}
+html.calm .topbar .icon-btn .ic { stroke: currentColor; }
 
 /* The switcher strip floats ON the artwork instead of taking a band of
    its own: the stage reserves its height, the strip sits in that space
@@ -554,7 +673,9 @@ html.calm body.layout-rail .view-home .dock-head {
   flex: 0 0 auto;
   margin-bottom: clamp(2px, .4vh, 5px);
   font-size: 9px;
-  opacity: .78;
+  /* No opacity on type (iron law 29): it multiplies with the theme's own
+     muted alpha and the pixel audit read 1.94:1 on endfield. */
+  opacity: 1 !important;
 }
 /* Some themes print the shelf title as display type (nightflight's
    DEPARTURES). Above a 72px strip that collides with the first card, so in
@@ -566,6 +687,32 @@ html.calm .view-home .dock-head .dock-count {
   line-height: 1.2 !important;
   min-height: 0 !important;
   letter-spacing: .12em !important;
+}
+/* Several themes print the shelf title as display type through ::after
+   (steam's 23px "最近游戏"). In the calm page the strip is a switcher; the
+   title drops to label size like every other theme's. */
+html.calm .view-home .dock-head .dock-title::after {
+  font-size: 10px !important;
+  letter-spacing: .12em !important;
+}
+/* Decorative ticks drawn on the facts row (positioned pseudo boxes) have no
+   job once the row sits on a plate. */
+html.calm .view-home .hero-inner > .meta-row::before,
+html.calm .view-home .hero-inner > .meta-row::after {
+  display: none !important;
+}
+
+/* "45 款" kept the theme's windowed chip (a grey bordered pill), which is
+   the second red-box the Owner flagged. The count is a caption on the
+   shelf, so its plate is dropped and the theme keeps the type. */
+html.calm .view-home .dock-head .dock-count {
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--im-count-ink, var(--im-ink-dim, color-mix(in srgb, var(--im-ink, #f7f4ee) 78%, transparent))) !important;
+  font-size: 10px !important;
 }
 
 /* The strip sits on artwork now, so its ink is supplied by the theme
@@ -624,7 +771,7 @@ html.calm body.layout-rail .view-home .tile {
   flex: 0 0 auto;
   /* Secondary by design: the switcher is a strip of small icons under the
      cover, never a second hero. */
-  width: min(var(--im-card-width, 126px), 72px);
+  width: min(var(--im-card-width, 126px), 92px);
   gap: 4px;
   scroll-snap-align: start;
 }
@@ -635,7 +782,7 @@ html.calm body.layout-rail .view-home .tile-art {
      icons are a switcher, so the height is capped instead of the width. */
   width: 100% !important;
   height: auto !important;
-  max-height: 46px !important;
+  max-height: 58px !important;
   aspect-ratio: var(--im-card-ratio, 16 / 10);
   object-fit: cover;
   border-radius: var(--im-card-radius, 8px);

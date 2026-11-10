@@ -440,7 +440,9 @@ async function main() {
           '</span></span>';
         rail.appendChild(tile);
       }
-      document.documentElement.classList.add('is-fullscreen');
+      const row = document.querySelector('#calmRow');
+      if (row && !document.documentElement.classList.contains('calm')) row.click();
+      document.documentElement.classList.add('calm');
       return 'ok';
     })()`);
     await wait(400);
@@ -497,14 +499,13 @@ async function main() {
       ring: !!document.querySelector('.view-home .is-pad-focus')
     })`);
 
-    // Enter immersive through the app (F), not by toggling the class, so the
-    // navigation guard sees the same state a player would.
-    await cdp.ev(`document.documentElement.classList.remove('is-fullscreen')`);
-    await wait(200);
-    await press('f');
+    // Enter immersive through the app (the 沉稳模式 switch), not by painting a
+    // class, so the navigation guard sees the same state a player would.
+    await cdp.ev(`(() => { const row = document.querySelector('#calmRow');
+      if (row && !document.documentElement.classList.contains('calm')) row.click(); return 1; })()`);
     await wait(700);
-    const entered = await evalJson(cdp, `JSON.stringify({ on: document.documentElement.classList.contains('is-fullscreen') })`);
-    check('F enters the immersive layout', entered.on === true, JSON.stringify(entered));
+    const entered = await evalJson(cdp, `JSON.stringify({ on: document.documentElement.classList.contains('calm') })`);
+    check('沉稳模式 enters the immersive layout', entered.on === true, JSON.stringify(entered));
 
     await press('ArrowRight');
     const f0 = await focused();

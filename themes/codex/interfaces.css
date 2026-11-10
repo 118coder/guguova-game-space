@@ -207,7 +207,8 @@ html[data-theme="codex"] {
   --im-title-size: 4.8vw;
   --im-title-max: 82px;
   --im-veil: linear-gradient(90deg, rgba(16,13,10,.92) 0%, rgba(16,13,10,.55) 42%, rgba(16,13,10,.12) 76%);
-  --im-topbar-bg: rgba(16,13,10,.66);
+  --im-topbar-bg: rgba(16, 13, 10, .9);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 1px solid rgba(226,199,142,.32);
   --im-dock-bg: rgba(16,13,10,.88);
   --im-dock-rule: 3px double rgba(226,199,142,.42);
@@ -282,4 +283,182 @@ html[data-theme="codex"] {
   --im-card-bg: linear-gradient(180deg, rgba(33, 22, 15, .93), rgba(15, 10, 7, .96));
   --im-card-border: 1px solid rgba(226, 199, 142, .3);
   --im-card-radius: 1px;
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="codex"] {
+  --sc-bg: #17130f;
+  --sc-ink: #e8dcc2;
+  --sc-ink-2: rgba(232, 220, 194, .7);
+  --sc-rule: rgba(201, 169, 97, .34);
+  --sc-accent: #c9a961;
+  --sc-accent-ink: #17130f;
+  --sc-plate: rgba(34, 27, 20, .94);
+  --sc-plate-line: rgba(201, 169, 97, .48);
+  --sc-sheet-bg: #1c1610;
+  --sc-sheet-line: rgba(201, 169, 97, .3);
+  --sc-radius: 0;
+  --sc-scrim-rgb: 23, 19, 15;
+  --sc-frame-line: rgba(201, 169, 97, .6);
+  --sc-frame-inner: rgba(201, 169, 97, .26);
+  --sc-frame-inner-inset: 8px;
+  --sc-frame-inset: 38px;
+  --sc-title-font: var(--font-serif);
+  --sc-title-weight: 600;
+  --sc-num-font: var(--font-serif);
+  --sc-label-tracking: .2em;
+  --sc-title-size: 74px;
+}
+/* Tooled leather: gold double rule and a faint plate glow. */
+html[data-theme="codex"] .share-card .sc-sheet {
+  background-image: radial-gradient(100% 70% at 50% 0%, rgba(201, 169, 97, .1), transparent 70%);
+}
+html[data-theme="codex"] .share-card .sc-brand::before { height: 2px; }
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="codex"] {
+  --im-plate-bg: rgba(28, 22, 16, .92);
+  --im-plate-border: 1px solid rgba(201, 169, 97, .62);
+  --im-plate-radius: 0;
+  --im-plate-pad: 26px;
+  --im-plate-pad-x: 30px;
+  --im-plate-shadow: 0 30px 70px -40px #000;
+  --im-plate-ink: #e8dcc2;
+  --im-plate-ink-dim: rgba(232, 220, 194, .72);
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: rgba(201, 169, 97, .08);
+  --im-chip-border: 1px solid rgba(201, 169, 97, .52);
+  --im-chip-radius: 0;
+  --im-chip-ink: #e8dcc2;
+  --im-title-ceiling: 38px;
+}
+
+html[data-theme="codex"] .view-home .hero-inner::before {
+  box-shadow: 0 30px 70px -40px #000, inset 0 0 0 4px rgba(201, 169, 97, .16);
+}
+
+/* ============================================================
+   CARD CHARACTER · CODEX
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Illuminated ledger: gold double rule, a painted plate in a gilt frame,
+   rubricated table rows. */
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-art {
+  inset: 56px 56px 56px auto;
+  width: 40%;
+  border: 1px solid rgba(201, 169, 97, .7);
+  box-shadow: 0 0 0 8px #17130f, 0 0 0 9px rgba(201, 169, 97, .35);
+}
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-sheet { inset: 0 46% 0 0; padding: 72px 52px 48px; }
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-top { inset: 64px 46px auto 52px; }
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  margin-top: auto;
+}
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-title::first-letter {
+  font-size: 1.5em;
+  color: #c9a961;
+}
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(201, 169, 97, .45);
+}
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-hours b { font-size: 96px; }
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-frame {
+  inset: 24px;
+  border-color: rgba(201, 169, 97, .4);
+}
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 52px;
+  top: 150px;
+  width: 200px;
+  height: 1px;
+  background: rgba(201, 169, 97, .5);
+  box-shadow: 0 4px 0 rgba(201, 169, 97, .3);
+}
+
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 52px 60px auto 60px;
+  height: 470px;
+  border: 1px solid rgba(201, 169, 97, .7);
+  box-shadow: 0 0 0 8px #17130f, 0 0 0 9px rgba(201, 169, 97, .35);
+  z-index: 4;
+}
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 580px 60px 48px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-top { inset: 60px 60px auto; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-frame { display: none; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-score {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  border-top: 1px solid rgba(201, 169, 97, .45);
+}
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: attr(data-no);
+  position: absolute;
+  right: 64px;
+  top: 470px;
+  font: 600 280px/1 var(--sc-title-font);
+  color: rgba(201, 169, 97, .14);
+  z-index: -1;
+}
+
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-art {
+  inset: 48px auto 48px 48px;
+  width: 30%;
+  border: 1px solid rgba(201, 169, 97, .7);
+  box-shadow: 0 0 0 8px #17130f, 0 0 0 9px rgba(201, 169, 97, .35);
+  z-index: 4;
+}
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0 0 0 38%;
+  padding: 64px 60px 44px;
+  background: #1c1610;
+  border-left: 0;
+}
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-top { inset: 56px 60px auto 38%; padding-left: 60px; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-main { gap: 20px; margin-top: auto; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-hours b { font-size: 140px; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 30px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(201, 169, 97, .35);
 }

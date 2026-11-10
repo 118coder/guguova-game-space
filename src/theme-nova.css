@@ -245,7 +245,8 @@ html[data-theme="nova"] {
   --im-title-size: 5.8vw;
   --im-title-max: 96px;
   --im-veil: linear-gradient(180deg, rgba(0,0,0,0) 8%, rgba(0,0,0,.24) 34%, rgba(0,0,0,.6) 62%, rgba(0,0,0,.92) 100%);
-  --im-topbar-bg: rgba(9,12,19,.42);
+  --im-topbar-bg: rgba(9, 12, 19, .74);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 1px solid rgba(255,255,255,.08);
   --im-dock-bg: rgba(9,12,19,.58);
   --im-dock-rule: 1px solid rgba(255,255,255,.1);
@@ -343,4 +344,67 @@ html[data-theme="nova"].calm .view-home .hero-inner > .cta-row .btn.ghost:hover 
 html[data-theme="nova"].calm .view-home .status-card {
   --im-card-ink: #f4f0e7;
   --im-card-muted: rgba(244, 240, 231, .84);
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="nova"] {
+  --sc-bg: #0a0d13;
+  --sc-ink: #f5f2ea;
+  --sc-ink-2: rgba(245, 242, 234, .74);
+  --sc-rule: rgba(255, 255, 255, .18);
+  --sc-accent: var(--accent);
+  --sc-accent-ink: #07100e;
+  --sc-plate: rgba(9, 12, 19, .68);
+  --sc-plate-line: rgba(255, 255, 255, .18);
+  --sc-sheet-bg: #0a0d13;
+  --sc-sheet-line: rgba(255, 255, 255, .13);
+  --sc-radius: 4px;
+  --sc-scrim-rgb: 6, 9, 14;
+  --sc-frame-line: rgba(255, 255, 255, .22);
+  --sc-frame-inset: 40px;
+  --sc-label-tracking: .22em;
+  --sc-label-transform: uppercase;
+  --sc-title-size: 78px;
+  --sc-plate-shadow: 0 40px 80px -40px #000;
+}
+html[data-theme="nova"] .share-card .sc-brand::before { height: 3px; border-radius: 999px; }
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="nova"] {
+  --im-plate-bg: rgba(9, 12, 19, .68);
+  --im-plate-border: 1px solid rgba(255, 255, 255, .15);
+  --im-plate-radius: 14px;
+  --im-plate-pad: 24px;
+  --im-plate-pad-x: 28px;
+  --im-plate-shadow: 0 40px 90px -50px #000;
+  --im-plate-ink: #f5f2ea;
+  --im-plate-ink-dim: rgba(245, 242, 234, .8);
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: rgba(255, 255, 255, .06);
+  --im-chip-border: 1px solid rgba(255, 255, 255, .36);
+  --im-chip-radius: 4px;
+  --im-chip-ink: #f5f2ea;
+  --im-title-ceiling: 36px;
 }

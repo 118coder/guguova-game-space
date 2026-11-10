@@ -208,7 +208,8 @@ html[data-theme="mnemo"] {
   --im-title-size: 5vw;
   --im-title-max: 88px;
   --im-veil: linear-gradient(90deg, rgba(28,24,44,.9) 0%, rgba(28,24,44,.52) 42%, rgba(28,24,44,0) 76%);
-  --im-topbar-bg: rgba(28,24,44,.6);
+  --im-topbar-bg: rgba(28, 24, 44, .88);
+  --im-topbar-ink: var(--im-dock-ink, #f4f0e7);
   --im-topbar-rule: 1px solid rgba(155,53,80,.36);
   --im-dock-bg: rgba(34,29,52,.82);
   --im-dock-rule: 1px solid rgba(91,74,140,.6);
@@ -279,4 +280,198 @@ html[data-theme="mnemo"].calm .view-home .hero-inner > .kicker {
 html[data-theme="mnemo"].calm .view-home .status-card {
   --im-card-ink: #241f33;
   --im-card-muted: rgba(36, 31, 51, .74);
+}
+
+/* ============================================================
+   SHARE CARDS · 分享卡片
+   ------------------------------------------------------------
+   Material for the three export cards (poster 1600×900,
+   dossier 1200×1500, score 1600×840). Geometry, typography
+   defaults and the export stage live in src/share-cards.css;
+   this block only answers what this theme's paper, ink, rule and
+   frame are made of, so an exported card carries the same
+   material as the app it came out of.
+   Contract: docs/THEME-INTERFACES.md §16.5
+   ============================================================ */
+
+html[data-theme="mnemo"] {
+  --sc-bg: #f0edf6;
+  --sc-ink: #241f33;
+  --sc-ink-2: #5d5673;
+  --sc-rule: rgba(91, 74, 140, .32);
+  --sc-accent: #5b4a8c;
+  --sc-accent-ink: #fbf9fd;
+  --sc-plate: rgba(251, 249, 253, .95);
+  --sc-plate-line: rgba(91, 74, 140, .46);
+  --sc-sheet-bg: #fbf9fd;
+  --sc-sheet-line: rgba(91, 74, 140, .26);
+  --sc-radius: 8px;
+  --sc-scrim-rgb: 240, 237, 246;
+  /* Paper ground: the veil lightens the artwork into the sheet instead of
+     smearing black over it — a dark veil on a paper theme reads as damage. */
+  --sc-veil:
+    linear-gradient(180deg, rgba(240, 237, 246, .34) 0%, rgba(240, 237, 246, .04) 20%,
+      rgba(240, 237, 246, .46) 52%, rgba(240, 237, 246, .86) 82%, var(--sc-bg) 100%);
+  --sc-veil-x:
+    linear-gradient(90deg, rgba(240, 237, 246, 0) 0%, rgba(240, 237, 246, .3) 46%, var(--sc-bg) 96%);
+  --sc-frame-line: rgba(91, 74, 140, .38);
+  --sc-frame-inset: 40px;
+  --sc-label-tracking: .16em;
+  --sc-title-size: 74px;
+  --sc-plate-shadow: 0 20px 44px -30px rgba(36, 31, 51, .45);
+}
+/* Archive plate: a plum node marks the record, numerals stay tabular. */
+html[data-theme="mnemo"] .share-card .sc-kicker i {
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+html[data-theme="mnemo"] .share-card .sc-brand::before { height: 3px; border-radius: 999px; }
+
+/* ============================================================
+   CALM MODE · IDENTITY PLATE
+   ------------------------------------------------------------
+   The calm page puts the identity cluster on one compact plate so the
+   theme's material survives the cinematic layout. Geometry lives in
+   src/theme-slots.css (.hero-inner::before); this block is the
+   material: plate, ink pair, age chip, title ceiling and reading
+   order. A dark plate keeps light ink and a paper plate switches to
+   dark ink — declaring one of the two is how a label disappears.
+   ============================================================ */
+
+html[data-theme="mnemo"] {
+  --im-plate-bg: rgba(251, 249, 253, .96);
+  --im-plate-border: 1px solid rgba(91, 74, 140, .45);
+  --im-plate-radius: 10px;
+  --im-plate-pad: 24px;
+  --im-plate-pad-x: 28px;
+  --im-plate-shadow: 0 30px 70px -44px rgba(36, 31, 51, .6);
+  --im-plate-ink: #241f33;
+  --im-plate-ink-dim: #5d5673;
+  --im-kicker-ink: var(--im-plate-ink);
+  --im-kicker-dim: var(--im-plate-ink-dim);
+  --im-chip-bg: rgba(91, 74, 140, .07);
+  --im-chip-border: 1px solid rgba(91, 74, 140, .5);
+  --im-chip-radius: 3px;
+  --im-chip-ink: #241f33;
+  --im-title-ceiling: 34px;
+  --im-plate-text-shadow: none;
+}
+
+/* ============================================================
+   CARD CHARACTER · MNEMO
+   ------------------------------------------------------------
+   The export card is not the same skeleton recoloured: each theme
+   answers with its own composition. Geometry lives in
+   src/share-cards.css; this block moves the artwork, re-shapes the
+   sheet and adds the theme's decoration.
+   ============================================================ */
+
+/* Archive folder: a tab at the top left, a clipped photograph, typed rows
+   with dotted leaders and an index stamp. */
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-art {
+  inset: 56px 56px auto auto;
+  width: 40%;
+  height: 56%;
+  border: 1px solid rgba(91, 74, 140, .45);
+  box-shadow: 10px 10px 0 rgba(91, 74, 140, .12);
+  transform: rotate(.8deg);
+}
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-sheet { inset: 0; padding: 96px 60px 52px; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-top { inset: 72px 60px auto; right: 46%; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin-top: auto;
+  max-width: 52%;
+}
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-score {
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px 0 0;
+  border-top: 1px dashed rgba(91, 74, 140, .4);
+}
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-hours b { font-size: 92px; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-deco::before {
+  content: 'ARCHIVE';
+  position: absolute;
+  left: 96px;
+  top: 24px;
+  padding: 5px 22px 6px;
+  border-radius: 8px 8px 0 0;
+  background: #e4dfee;
+  border: 1px solid rgba(91, 74, 140, .3);
+  font: 700 11px/1 var(--font-ui);
+  letter-spacing: .24em;
+  color: #5d5673;
+}
+
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 64px 64px auto auto;
+  width: 44%;
+  height: 430px;
+  border: 1px solid rgba(91, 74, 140, .45);
+  box-shadow: 10px 10px 0 rgba(91, 74, 140, .12);
+  z-index: 4;
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 110px 64px 52px; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-id { max-width: 42%; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-score {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  border-top: 1px dashed rgba(91, 74, 140, .4);
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: 'FILE ' attr(data-no);
+  position: absolute;
+  right: 64px;
+  top: 520px;
+  font: 700 96px/1 var(--sc-label-font);
+  letter-spacing: .06em;
+  color: rgba(91, 74, 140, .14);
+  z-index: -1;
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: 'ARCHIVE';
+  position: absolute;
+  left: 100px;
+  top: 28px;
+  padding: 6px 24px 7px;
+  border-radius: 10px 10px 0 0;
+  background: #e4dfee;
+  border: 1px solid rgba(91, 74, 140, .3);
+  font: 700 12px/1 var(--font-ui);
+  letter-spacing: .24em;
+  color: #5d5673;
+}
+
+/* Score: an index card — rows, a stamp, a big figure. */
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-art {
+  inset: 64px auto auto 64px;
+  width: 250px;
+  height: 156px;
+  border: 1px solid rgba(91, 74, 140, .45);
+  z-index: 4;
+}
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0;
+  padding: 250px 64px 48px;
+  background: #fbf9fd;
+  --sc-sheet-bg: #fbf9fd;
+}
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-top { inset: 72px 64px auto; }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 44px;
+  align-items: end;
+}
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-hours b { font-size: 140px; }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 26px;
 }
