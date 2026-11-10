@@ -483,13 +483,35 @@ public sealed class ThemeService
             if (sourceVersion != null && targetVersion != null && sourceVersion != targetVersion)
                 return sourceVersion > targetVersion;
 
-            // Same or unknown version: compare modification times.
-            return File.GetLastWriteTimeUtc(sourceManifest) > File.GetLastWriteTimeUtc(targetManifest);
+            // Same or unknown version: compare the newest file in each folder,
+            // not the manifest alone. A theme is far more than its manifest —
+            // theme.css and interfaces.css carry every visual decision, and
+            // shipping a style fix without bumping the version left the copy
+            // seeded on first run in place. The symptom is indistinguishable
+            // from "my edit did nothing": the app keeps rendering the old
+            // stylesheet because the manifest never changed. File.Copy keeps
+            // the source timestamp, so an untouched theme compares equal and
+            // a user's own edits (newer than the shipped files) still win.
+            var sourceStamp = NewestWriteUtc(source);
+            var targetStamp = NewestWriteUtc(target);
+            return sourceStamp > targetStamp;
         }
         catch
         {
             return false;
         }
+    }
+
+    /// <summary>Newest write time anywhere inside a theme folder.</summary>
+    private static DateTime NewestWriteUtc(string folder)
+    {
+        var newest = Directory.GetLastWriteTimeUtc(folder);
+        foreach (var file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
+        {
+            var stamp = File.GetLastWriteTimeUtc(file);
+            if (stamp > newest) newest = stamp;
+        }
+        return newest;
     }
 
     private static Version? ReadVersion(string manifestPath)
