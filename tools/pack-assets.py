@@ -25,6 +25,10 @@ def entries():
         base = ROOT / folder
         for item in sorted(base.rglob("*")):
             if item.is_file() and item.suffix.lower() not in {".pdb", ".tmp"}:
+                # src/app/ holds the un-assembled parts of app.js; only the
+                # assembled src/app.js ships (built by tools/build-app.js).
+                if folder == "src" and item.relative_to(base).parts[0] == "app":
+                    continue
                 yield f"{folder}/{item.relative_to(base).as_posix()}", item
 
 

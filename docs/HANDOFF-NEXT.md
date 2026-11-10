@@ -1,9 +1,11 @@
 # GUGUOVA 下一轮交接文档
 
-> 交接版本：**1.16.5 已发布；§1.18–§1.24 的全部改动已合并进 `main`（PR #37），但未发版**
+> 交接版本：**1.16.5 已发布；§1.18–§1.25 已全部合并进 `main`（PR #37/#38/#39），未发版**
 > ✅ **终末地导出卡片已按 endfield-ui 技能重做**（§1.25，2026-11-11）：黄线全部改黄块、
 > 分隔符 `·`→`/`、Saira 宽体上卡、档案卡重构（原构图有 700px 死白）、并修掉
 > **导出卡顶部烧进弹窗三色条**的导出 Bug（该 Bug 只影响 endfield）。13 套其他主题零改动。
+> ✅ **文件解耦与代码整合完成**（§1.26，2026-11-11）：app.js（9802 行）拆 29 个职责分片、
+> C# 三大文件 partial 化、tools 精简，**行为零变化**（切片字节级验证 + 11 项全量回归）。
 > 交接时间：2026-11-10（同日第四至十一轮）
 > 分支：`main` = `fcbcfe1`（PR [#37](https://github.com/118coder/guguova-game-space/pull/37) squash 合并，
 > 42 文件 +5094/−81，基于 `b40f19e`）；**版本号仍是 1.16.5，没有 bump、没有发行**
@@ -2302,6 +2304,119 @@ html[data-theme="endfield"][data-share-export] body::after { display: none; }
 4. endfield `theme.json` 1.0.24 → **1.0.25**（铁律 41）；已随 PR #39 合并进 `main`；版本仍 1.16.5，**未发行（等 Owner 批准）**；
 5. Owner 实机回访：真机导出一次 poster/dossier/score，确认 WebView2 下 Saira 与
    无头渲染一致（`font-display: block`，字体在 runtime assets 内已存在）。
+## 1.26 第十四轮（2026-11-11）：文件解耦与代码整合（重构轮，行为零变化）
+
+> Owner 指令：①在保证全功能正常的前提下，把大文件解成小文件与文件夹，各司其职、
+> 做好文档备注；②整合精简代码、保持高复用；③全自动执行。
+> 本轮**不新增功能、不改任何行为**：JS 拆分以字节级比对证明等价，C# 拆分是
+> partial 逐字搬运（构建 0 错误、警告逐条一致）。版本仍 1.16.5，未 bump、未发行。
+
+### 1.26.1 渲染端：app.js（9802 行）→ src/app/ 29 个分片
+
+**为什么用「拼装」而不是改造成多文件加载**：`src/app.js` 是单一 IIFE 闭包，
+42 个区块注释标记的区块共享同一作用域、互相直接引用。拆成多个 `<script>` 标签或 ES module
+都要重写全部跨区块引用（数千处），风险不可控；而**文本拼装能逐字节还原原文**，
+是行为零变化的唯一路径。这也是本产品 JS 侧的既定模式延续：`index.html` 本来
+就是「多文件 defer 按序加载」。
+
+- 切分依据原文件自己的 42 个区块注释 → 29 个分片（`01-runtime.js` …
+  `29-boot.js`），每个分片头部带中文职责说明；
+- **验证链**：①切片拼装 == 原文件逐字节一致（拆分脚本内置断言）；②加注释头
+  重建后 `git diff` 仅 **203 行纯插入、0 删除**（29 分片 × 7 行注释头）；
+  `node --check` 通过；③`feature-checks` 全过（无头 QA 用拆分后的分片真实
+  启动了渲染端）；
+- **拼装器** `tools/build-app.js`：按文件名序拼接（`--check` 校验 `src/app.js`
+  未过期）。接线五处：
+  | 入口 | 行为 |
+  | --- | --- |
+  | `tools/lib/headless-host.js` | 所有无头 QA 启动前自动拼装 |
+  | `tools/relaunch.sh` | 开发重启前自动拼装 |
+  | `tools/release.sh` | 审计阶段 `build-app --check`（发行闸门） |
+  | `tools/pack-assets.py` | 打包跳过 `src/app/`，只装拼装产物 |
+  | `legacy/NovaGameSpace.Legacy.csproj` | `<Content Remove="..\src\app\**">` |
+- 分片地图、规则、跨分片引用惯例：**`src/app/README.md`**（唯一权威）。
+- 修 CSS 层叠序、主题 `theme.json` 均未触碰；`index.html` 未动（`app.js` 仍是
+  唯一被加载的主程序文件，`?v=` 戳不需要变）。
+
+### 1.26.2 宿主 C#：三个大文件 partial 拆分（子代理执行）
+
+| 原文件 | 拆后 | 分片 |
+| --- | --- | --- |
+| `NativeBridge.cs` 2653 行 | 主文件 408 行（消息路由 + 参数解析）+ 10 个领域分片 | Capture / Engine / Games / Launch / Library / Media / Settings / System / Themes / Update |
+| `Services/LauncherService.cs` 1223 行 | 主文件 82 行（字段/事件/构造）+ 3 分片 | Launch 347 / Process 528 / Session 302 |
+| `Services/ScalingEngine.cs` 1030 行 | 主文件 58 行（常量/字段）+ 3 分片 | Detect 182 / Process 340 / Config 500 |
+
+- **零逻辑变更**：子代理用多重集校验证明原文件全部非空代码行（2445 + 1105 +
+  912 行）在新文件集合中出现且仅出现一次；`partial` 声明 + 中文职责头注释；
+  using 按分片实际需要补齐。
+- **csproj**：legacy 显式引用根目录桥文件，已补 10 条 `<Compile Include>`；
+  Services 分片两个 csproj 都是通配，零改动；modern csproj 是 SDK 通配，零改动。
+- **构建验证**：modern 0 错误 5 警告、legacy 0 错误 47 警告——与拆分前完全一致，
+  且 47 条 legacy 警告按「警告代码+消息」逐条比对一致（仅行号落到分片文件）。
+- **遗留提醒**：以后新增 `NativeBridge.*.cs` 要同步补 legacy csproj 的
+  `<Compile>` 条目（已在 `docs/ARCHITECTURE.md` §1.1 标注）。
+
+### 1.26.3 tools 精简（子代理执行）
+
+- **已删**（grep 全仓库零引用后直接删除，不进回收站）：`tools/_intro1.tmp.js`、
+  `_intros.tmp.js`、`_probe2.tmp.js`、`_reload.tmp.js`、`tools/__pycache__/`。
+- **保留**：`_eval/_hit/_layers/_probe` 四个 tmp 探针被 `docs/HANDOFF-THEMES.md`
+  引用（历史文档引用而非活代码依赖），等文档修订时一并处理。
+- **`pipeline.sh` 不删**：release.sh 未覆盖它的三处——`--modern` 自包含打包
+  （`PublishSingleFile` + `package-release.py --modern-dir`）、`--no-zip`、
+  真实宿主审计路线（probe-graphics.js 铁律 1 压字检测）；且有 3 处活引用
+  （verify-release.py / fetch-magpie.py / HANDOFF.md）。收编是 P2 原项，本轮
+  只记录差异不强行合并。
+- 疑似一次性调试脚本盘点（probe-logo / padtest / shot-theme / shot-view /
+  clear-cache / test-intro-theme 等约 8 个）：只盘点未删，清单见本轮 QA 报告；
+  `launch-legacy.cmd`（发行产物组成部分）、`measure-ratio.py`、
+  `probe-graphics.js`、`stress-dataset.py`、`dev-run.sh`、`immersive-audit.js`
+  确认仍在用，**不可删**。
+
+### 1.26.4 文档
+
+- **新建 `docs/ARCHITECTURE.md`**：仓库结构总览、宿主/渲染端文件职责速查表、
+  `src/app/` 分片机制（引用 `src/app/README.md`）、CSS 层叠序契约与「为什么
+  CSS 不拆文件」、构建链（双目标 / assets.zip 可复现 / release.sh 流水线图）、
+  铁律指路。**本轮最重要的新文档**，下一轮接手先读它再读交接。
+- **新建 `src/app/README.md`**：分片规则 + 29 分片地图。
+
+### 1.26.5 决策记录：CSS 为什么不拆
+
+`intro.css` 5063 行、`base.css` 2904 行等大 CSS 保持原样。理由：层叠序是本产品
+最脆弱的契约（交接铁律与 §1.5 反复强调），每多一张表就多一层叠边界与加载时序
+变量；且 19 张 CSS 每张已各自单一职责（base/app/type/views/…），「拆」已无收益
+只剩风险。JS 能拆是因为文本拼装可逐字节验证等价，CSS 拼装做不到等价性验证。
+完整论述在 `docs/ARCHITECTURE.md` §2。
+
+### 1.26.6 验证（全量回归，11 项）
+
+| 项 | 结果 | 基线 |
+| --- | --- | --- |
+| `build-app --check` | ✅ up to date（413377 B，29 分片） | — |
+| modern 构建（Rebuild 全量） | ✅ 0 错误 / 5 警告（全部既有，非本轮文件） | 5 |
+| legacy 构建（Rebuild 全量） | ✅ 0 错误 / 47 警告（既有可空类） | 47 |
+| `theme-slot-check --strict` | ✅ exit 0 | 一致 |
+| `feature-checks.js` | ✅ 63 项 [ok] / 0 失败 | 全过 |
+| `tier-shots --shots=false` | ✅ 98 组 / 294 captures 全过（288s） | 98 |
+| `headless-shots --views=all` | ✅ 294 张；26 条警告全是既有 aurum(5px)/dusk(2px) 磁贴名裁切，0 新增 | 26 条既有 |
+| `immersive-audit.js` | ✅ 196/196 | 196 |
+| `layout-fit.js` | ✅ 6/6（默认）+ 24/24（历史 4 主题跑法 `--themes=nova,broadcast,grimoire,steam`） | 24 |
+| `verify-hidden.js` | ✅ 7/7 | 7 |
+| `share-shots.js` | ✅ 42 卡 × 3 版式全按设计尺寸，`overflow:0` ×42 | 42 |
+| `text-audit --views=detail`（全视图） | ⚠️ 22 标签 < 4.5:1——**既有问题非本轮回归**：本轮零 CSS/主题改动、app.js 与 HEAD 仅差注释行；用 §1.22.6 的**原始基线命令**（`--selectors=#manageHiddenHint,#detailScaleHint,#manageDoneBtn`）复跑 = **0 失败 / 14 主题**，与基线一致。全视图的 22 处属于 §1.22.5 记录的 118 处窗口模式小字已知问题（dusk/grimoire/riot/broadcast 纸面主题的 stat-label 等） | 基线命令 0 失败 |
+
+> 构建坑（QA 代理实测）：用临时输出路径做增量 build 会因「已是最新」跳过编译报**假 0 警告**——验证警告数量必须 `-t:Rebuild` 强制全量。
+
+### 1.26.7 没做 / 下一步
+
+1. `pipeline.sh --modern` 收编进 release.sh 后删除（P2 原项，本轮记录了差异）；
+2. `HANDOFF-THEMES.md` 修订时清理 4 个仍被引用的 tmp 探针与过期提及
+   （文档里还提到一个不存在的 `_shot1.tmp.js`）；
+3. 盘点表中「疑似一次性」脚本的去留等 Owner 拍板（probe-logo、padtest、
+   shot-theme、shot-view、clear-cache、test-intro-theme）；
+4. 本轮为重构轮：**未 bump 版本、未发行**；14 套主题 `theme.json` 仍未 bump
+   （沿袭 §1.23.6 第 4 条，发版时统一处理）。
 
 ---
 
@@ -2728,6 +2843,9 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 | **分享卡片导出（宿主）** | `NativeBridge.CapturePageAsync` 的 `exact` 参数；导出态 `html[data-share-export]` |
 | **卡片截图工具** | `node tools/share-shots.js`（14 主题 × 3 版式 + 弹窗图） |
 | **沉稳模式身份板** | `src/theme-slots.css` `.hero-inner::before`/`.sc-*`；每主题 `--im-plate-*` / `--im-chip-*` / `--im-topbar-ink` |
+| **渲染端分片源码** | `src/app/*.js`（规则与分片地图：`src/app/README.md`；改代码改分片，直接改 app.js 会被拼装覆盖） |
+| **分片拼装器** | `tools/build-app.js`（`--check` 进 release.sh 审计；headless-host 启动前自动拼装；relaunch.sh 自动拼装） |
+| **架构总览** | `docs/ARCHITECTURE.md`（文件职责速查、CSS 层叠契约、构建链；下一轮先读它） |
 
 ---
 
@@ -2985,6 +3103,16 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [ ] **不发行**（Owner 要求）：版本仍 1.16.5，无 tag、无 Release；
 - [ ] 14 套主题 `theme.json` version 未 bump，发版时统一处理；
 - [ ] 图标带卡片形状/名字排布未定稿（Owner 认为「框太丑」）。
+
+本轮（第十四轮 · 文件解耦与代码整合，重构轮，详见 §1.26）：
+
+- [x] `src/app.js`（9802 行）→ `src/app/` 29 分片：切片拼装字节级一致验证 + git diff 仅 203 行注释插入 + feature-checks 全过；
+- [x] `tools/build-app.js` 拼装器 + 五处接线（headless-host / relaunch.sh / release.sh 审计 / pack-assets 排除 / legacy csproj 排除）；
+- [x] `src/app/README.md` 分片地图；`docs/ARCHITECTURE.md` 架构总览（新建）；
+- [x] C# 三大文件 partial 拆分（NativeBridge ×10 / LauncherService ×3 / ScalingEngine ×3），多重集校验零逻辑变更，双构建 0 错误、警告逐条一致，legacy csproj 补 10 条编译引用；
+- [x] tools 清理：4 个零引用 tmp 探针 + `__pycache__` 删除；pipeline.sh 保守保留（3 处未收编差异已记录）；一次性脚本盘点表；
+- [ ] `pipeline.sh --modern` 收编进 release.sh（P2 原项延续）；
+- [ ] 盘点表中「疑似一次性」脚本去留等 Owner 拍板。
 
 未完成（下一轮）：
 

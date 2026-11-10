@@ -22,6 +22,8 @@ const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 
+const buildApp = require('../build-app');
+
 const ROOT = path.resolve(__dirname, '..', '..');
 const COVERS = path.resolve(ROOT, '..', '_shots', 'covers', 'jpg');
 
@@ -688,6 +690,9 @@ async function startHost(options = {}) {
   const width = options.width || 1439;
   const height = options.height || 1124;
   const scale = options.scale || 1;
+  // src/app.js is assembled from src/app/* parts; every QA session gets a
+  // fresh assembly so a stale build can never produce misleading screenshots.
+  buildApp.build({ quiet: true });
   const server = await startServer();
   const browser = await launchBrowser({
     width, height, scale,

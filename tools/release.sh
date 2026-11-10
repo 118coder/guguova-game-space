@@ -97,6 +97,9 @@ fi
 # ---------------------------------------------------------------- 2. audit (optional)
 # The theme contract gate is cheap and needs no host, so it always runs.
 run "audit: theme interface slots" node tools/theme-slot-check.js --strict
+# src/app.js must be the fresh assembly of src/app/* parts — a stale file here
+# would ship dead renderer code and any parts-only edit would be silently lost.
+run "audit: app.js assembled from src/app/*" node tools/build-app.js --check
 
 if [ "$DO_AUDIT" -eq 1 ]; then
   run "audit: static contrast" node tools/audit-contrast.js
