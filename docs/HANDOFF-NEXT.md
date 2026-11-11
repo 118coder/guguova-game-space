@@ -45,7 +45,10 @@
 > riso 1.4.17、broadcast 1.4.19，应用版本仍 1.16.5，未发 Release。
 > ✅ **深夜广播卡片去掉扫描线**（§1.38，2026-11-11，Owner：「卡片导出那里把深夜广播的
 > 扫描线去掉」）：三处 `.sc-wash` 的 1px/4px CRT 横纹删掉，只留底部暗角与顶部纱层；
-> 齿孔条、刻度尺、ON AIR 章、时码牌不动。broadcast 1.4.20，应用版本仍 1.16.5。
+> 齿孔条、刻度尺、ON AIR 章、时码牌不动。broadcast 1.4.20。
+> ✅ **1.17.0 已发布**（§1.39，2026-11-11）：PR [#43](https://github.com/118coder/guguova-game-space/pull/43)
+> squash 合并 `ecd63a2`；`f425df9` bump 到 1.17.0；`release.sh --publish` 七阶段全过，
+> 三资产已上传 [v1.17.0](https://github.com/118coder/guguova-game-space/releases/tag/v1.17.0)（单文件 9.63 MB）。
 > ✅ **PR #42 已合并**（§1.35，2026-11-11）：§1.31–§1.34 全部进 `main`（`1c0ecfb`，squash，
 > 42 文件 +2288/−36），源分支 `feat/share-card-editor` 已推远端。**应用版本仍 1.16.5，
 > 未发 Release**——14 套 `theme.json` 已逐套 bump，发版时一次性做。
@@ -3229,6 +3232,50 @@ repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px,
 
 ---
 
+### 1.39 发布 1.17.0（2026-11-11，Owner：「提交PR并合并，然后发布新的发行包」）
+
+#### 1.39.1 合并
+
+| 项 | 值 |
+| --- | --- |
+| PR | [#43](https://github.com/118coder/guguova-game-space/pull/43) |
+| 合并提交 | `ecd63a2`（squash） |
+| 规模 | 8 文件 +318 / −26 |
+| 源分支 | `fix/card-tint-and-scanlines`（已推远端） |
+| 保险分支 | `local/pre-43-main`（指向 `d1a7d0c`，未推） |
+
+合并前 `git diff HEAD origin/main` 为空，squash 结果与本地树逐字节一致；之后
+`reset --hard origin/main` 没有任何文件变化。
+
+#### 1.39.2 版本与资产
+
+`chore(release): 1.17.0` = `f425df9`，bump 覆盖 4 个文件（`version.json`、两个 csproj、
+`src/index.html` 的资源戳）。
+
+| 资产 | 大小 | sha256（前 12） |
+| --- | --- | --- |
+| `GUGUOVA-1.17.0-single.exe` | 9.63 MB | `e34abaf43eab` |
+| `GUGUOVA-1.17.0-legacy-single.zip` | 13.82 MB | `83d7ce13879a` |
+| `GUGUOVA-1.17.0-legacy-full.zip` | 17.34 MB | `97d2690e6b30` |
+
+`bash tools/release.sh --version 1.17.0 --publish` 七阶段全过：主题槽守门、`app.js`
+分片装配检查、net48 构建、签名（无证书，跳过）、打包、`verify-release`、空目录冒烟、
+上传。签名仍是跳过状态，SmartScreen 提示照旧。
+
+#### 1.39.3 Release 文案
+
+脚本只生成「下载 / 系统要求 / SmartScreen / 校验」四段。发布后用 API 补了一段
+「这一版有什么」，用玩家能看懂的话写卡片编辑器（风格化开关、取景、两处修复），
+不写 `--sc-tint-filter` 这类实现细节。
+
+#### 1.39.4 发版后状态
+
+- 应用版本 **1.17.0**，`version.json` 与远端资产对齐，已装 1.16.5 的机器查更新能拿到；
+- 14 套主题 `theme.json` 已逐套 bump（本轮最新：broadcast 1.4.20、riso 1.4.17）；
+- 用户主题目录在发版前已同步；`dist/` 与 `*.zip` 不进 git。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -3855,13 +3902,24 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 | 1.16.1 | 编辑器补齐（路径即输即预览、资料格式化、路径栏可输入、收藏角标，PR #30/#31/#32）；用户回访四修 + 检查更新（PR #29）；实例接管策略 |
 | **1.16.2** | **名称自然序 + 升降序切换（PR #34）；整页长截图导出（PR #34）；同包启动不再杀热实例、首启解压移到闪屏之后、`pack-assets` 可复现、`Log.Stage` 宿主计时（PR #33）** |
 | **1.16.3** | **游玩时长进度条里程碑变色：21 节点（50→10000h）× 每主题 6 锚点（`--prog-l0..l5`）HSL 最短弧插值；填充宽度改「指向下一节点」；纯色平涂 + 宽弧重排（Owner 两轮回访）；详情页下一阶段预告；`tools/tier-shots.js` 验证工具（98 组检查 0 失败）；13 套主题 + nova 全部 bump；PR #35，已发布 v1.16.3** |
-| **未发版<br>（1.16.5 之后）** | **PR #37 沉浸＝沉稳模式 + 图标带自适应；PR #40 大文件解耦（app.js 拆 29 分片、C# partial 化）；PR #41 12 套分享卡片按开场终帧重做（14 套 theme.json bump）；PR #42 风格化封面开关（14 套端点色）+ 卡片专属取景 + 导出弹窗九交互 + 封面露白修复 + 电波改蓝。版本仍 1.16.5，等 Owner 验收后一次性发版** |
+| **1.17.0** | **分享卡片做成小编辑器并发布：PR #37 沉浸＝沉稳模式 + 图标带自适应；PR #40 大文件解耦（app.js 拆 29 分片、C# partial 化）；PR #41 12 套分享卡片按开场终帧重做（14 套 theme.json bump）；PR #42 风格化封面开关 + 卡片专属取景 + 导出弹窗九交互 + 封面露白修复；PR #43 电波海报改蓝墨、两套纸面主题复用首页滤镜、深夜广播卡片去 CRT 扫描线；三资产 + Release 文案（§1.39）** |
 
 ---
 
 ## 14. 交接清单
 
-本轮（第二十一轮 · 分享卡片做成小编辑器，**已合并 PR #42**，详见 §1.31–§1.35）：
+本轮（第二十二轮 · 三项卡片修正 + **发布 1.17.0**，详见 §1.36–§1.39）：
+
+- [x] 深挖「电波海报 = riso、深夜广播 = broadcast」——回退广播的深夜蓝，蓝色改到 riso；
+- [x] 两套纸面主题的卡片封面改用首页 hero 那条滤镜链（`--sc-tint-filter` / `--sc-tint-opacity`）；
+- [x] 深夜广播三版式删掉 `.sc-wash` 第一层 CRT 横纹，只留暗角与顶部纱层；
+- [x] 新增 `tools/tint-probe.js`（带层次的滤镜探针）；
+- [x] PR [#43](https://github.com/118coder/guguova-game-space/pull/43) squash 合并 `ecd63a2`（8 文件 +318/−26）；
+- [x] bump **1.17.0**（`f425df9`），`release.sh --publish` 七阶段全过，三资产已上传；
+- [x] Release 文案补「这一版有什么」（玩家视角）；
+- [x] `theme-slot-check --strict` exit 0；用户主题目录已同步（broadcast 1.4.20 / riso 1.4.17）。
+
+上一轮（第二十一轮 · 分享卡片做成小编辑器，**已合并 PR #42**，详见 §1.31–§1.35）：
 
 - [x] 风格化封面开关（默认关，存 `settings.shareTint`）+ 14 套双色调端点色；
 - [x] 卡片专属取景 `cardPosition` / `cardZoom`（0 = 未设置，跟随 hero），前后端白名单接线；
@@ -3971,9 +4029,15 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
-下一轮从 **§1.35** 开始：分享卡片这条线（§1.27–§1.34）已经全部进 `main`，`1c0ecfb`
-之后工作区是干净的。先等 Owner 实机验收 14 套主题的卡片弹窗，再决定「就这一批发版」
-还是先把五套冻结主题改完一起发。发版顺序固定：`bump-version.js` → 双目标构建 →
-`release.sh --publish`，不能先 bump。
+下一轮从 **§1.39** 开始：1.17.0 已发行（`v1.17.0` 三资产 + Release 文案），
+分享卡片这条线（§1.24–§1.38）全部进 `main` 并已随包发出。
+
+优先做三件事：
+
+1. **Owner 实机验收**——用刚发的 1.17.0 打开 14 套主题的卡片弹窗，重点看风格化开关与取景；
+2. **五套冻结主题拍板**（nightflight / mnemo / aurum / grimoire / riso），其中 riso 的 score
+   有真结构问题要重做，不是微调；
+3. **发版节奏改回「先合 PR、再 bump、然后 `release.sh --publish`」**——顺序反了会让
+   `version.json` 指向还没上传的资产，已装用户查更新会 404。
 其余沿用：Owner 旧实例退出后删归档里的两个 `.old` 文件、§7 的实机回访；
 平台真机（P0-2）仍是最大空白。
