@@ -64,10 +64,20 @@ function prepare() {
       stdio: 'ignore',
       shell: 'C:/Program Files/Git/bin/bash.exe'
     });
-    fs.mkdirSync(UPDATES, { recursive: true });
+  }
+  fs.mkdirSync(UPDATES, { recursive: true });
+  /* A kept fixture is dirty: last run's swap left the package AS the exe and
+     the waiter then deleted the package. Put the pristine build back so
+     "size changed" still proves the copy, and rebuild the package. */
+  const buildExe = path.join(BUILD, 'GUGUOVA.exe');
+  const pristine = fs.existsSync(buildExe) ? fs.statSync(buildExe).size : -1;
+  if (pristine > 0 && fs.statSync(EXE).size !== pristine) {
+    fs.copyFileSync(buildExe, EXE);
+  }
+  if (!fs.existsSync(PKG)) {
     // A real package is bigger than the running exe, so "size changed" is proof
     // the copy happened. The trailing bytes do not stop the PE from loading.
-    const data = fs.readFileSync(EXE);
+    const data = fs.readFileSync(buildExe);
     fs.writeFileSync(PKG, Buffer.concat([data, Buffer.alloc(1024 * 1024)]));
   }
   return { sizeBefore: fs.statSync(EXE).size, sizePkg: fs.statSync(PKG).size };

@@ -601,10 +601,21 @@ function mockScript() {
   // 隐藏 view can be exercised; ?novaTags=<1-3> sets the cover tag count.
   // Neither touches any default (headless-shots and the audits never pass
   // these parameters).
+  //
+  // Two more readings of the same knob cover the edges of hiding (§1.41.5):
+  //   ?novaHidden=all      every game hidden → empty stage, "0 款" dock
+  //   ?novaHidden=missing  two hidden, one of them with a deleted exe
   try {
     const params = new URLSearchParams(location.search);
-    if (params.get('novaHidden') === '1') {
+    const hiddenKnob = params.get('novaHidden');
+    if (hiddenKnob === '1') {
       DATA.boot.games.filter((game) => !game.favorite).slice(0, 2).forEach((game) => { game.hidden = true; });
+    } else if (hiddenKnob === 'all') {
+      DATA.boot.games.forEach((game) => { game.hidden = true; });
+    } else if (hiddenKnob === 'missing') {
+      const victims = DATA.boot.games.filter((game) => !game.favorite).slice(0, 2);
+      victims.forEach((game) => { game.hidden = true; });
+      if (victims.length) victims[victims.length - 1].exists = false;
     }
     const tagCount = parseInt(params.get('novaTags'), 10);
     if (Number.isFinite(tagCount) && tagCount >= 1 && tagCount <= 3) {
