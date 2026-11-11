@@ -606,26 +606,70 @@ html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet {
   display: flex;
   flex-direction: column;
 }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main { max-width: 760px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main { max-width: 830px; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-title { font-size: 64px; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-zh { font-size: 28px; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tagline { margin-top: 14px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta { margin-top: 18px; }
+/* 数据行收成一行：平台标签和 kicker 的「Steam · 日期」是同一个信息，
+   留着会把这一行挤成两行、还在行尾吊一个孤立的分隔点。给这一行 500px，
+   借用右侧 72px 栏距的空档（数据块从 614 起，仍留 30px 气口），
+   字号收到 13px 让四段信息落在一行内。 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta {
+  margin-top: 18px;
+  width: 500px;
+  font-size: 13px;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta .sc-plat { display: none; }
+/* 只掐掉平台标签前面那一个分隔点（用 :has 精确点名，避免误伤
+   普通分隔符——不重定义 --sc-plate 的代价是这里要收尾）。 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta em:has(+ .sc-plat) { display: none; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
   left: 930px;
   top: 120px;
   width: 550px;
   height: 580px;
 }
+/* 数据块：纸面主题不该有玻璃底板。夏天是白纸 + 墨规 + 色块，
+   而共享层的 poster 底板是 rgba(10,13,19,.62) 的深色玻璃（为压住
+   深封面而设），叠在白纸上就糊成一块灰板——夏天是唯一没重定义
+   --sc-plate 的主题，所以只有它露出来。这里整块去掉底板，改成一列
+   瑞士制表：左对齐、顶部一道蓝规、标签前挂酸黄小方块（与 kicker、
+   品牌行同族），数字自己那块黑底已经负责「压得住」。 */
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score {
   margin-top: auto;
+  width: 300px;
   max-width: 760px;
-  padding-top: 18px;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 3px solid #17739f;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  align-items: flex-start;
+  text-align: left;
 }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 52px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-label::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  flex: none;
+  background: #e8f21f;
+  box-shadow: inset 0 0 0 1px #101820;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours em { font-size: 14px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder { max-width: 340px; margin-top: 12px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier { margin-top: 10px; max-width: 340px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder {
+  width: 100%;
+  margin: 16px 0 0;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier {
+  margin: 10px 0 0;
+}
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-foot { margin-top: 18px; padding-top: 14px; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 50px 160px auto 60px; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-brand { color: #101820; }
