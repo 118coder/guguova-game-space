@@ -63,6 +63,9 @@
     state.backupsFolder = boot.backupsFolder || '';
     state.liveSignature = liveSignature();
     state.version = boot.version || '1.5.3';
+    // A package an interrupted upgrade left in updates/ — offered again once
+    // the shell is up, never acted on silently.
+    state.pendingUpdate = boot.pendingUpdate || null;
     // Daily auto-check is opt-in and fires long after boot; the host no-ops
     // unless the player turned it on. Failures are silent here — a toast on
     // every startup hiccup would be worse than a missed check.
@@ -147,8 +150,9 @@
     initThemedSelects();
     document.body.classList.toggle('is-empty', shelfCount() === 0);
     applyAccent(currentGame());
-    // Every game hidden is the same empty shelf as no game at all.
-    renderHero(shelfCount() ? currentGame() : null, false);
+    // Every game hidden is the same empty shelf as no game at all; the stage
+    // helper also keeps a hidden entry off the hero (§1.41.5).
+    renderHero(stageGame(), false);
     applyStyleModeUI();
     syncSoundUI();
     syncFullscreenLabels();
@@ -164,6 +168,13 @@
     }
 
     if (currentGame()) setBackdrop(currentGame(), true);
+
+    /* An interrupted upgrade (blocked script, closed mid-swap, reboot) leaves
+       its package behind. The panel already knows how to finish it — surface
+       the fact instead of letting the file rot in updates/ (§1.41.5). */
+    if (adoptPendingUpdate(state.pendingUpdate) && !state.firstRun) {
+      setTimeout(() => toast('上次升级没有完成 · 设置里可再次执行', 'up'), 2600);
+    }
 
     // Diagnostics are not on the first-frame path: let the shell settle, then
     // fill in the Steam/Magpie rows so the settings page is ready when opened.

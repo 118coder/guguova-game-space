@@ -265,7 +265,7 @@
       refitLogos();
       // A theme may rename fixed phrases (DUSK: 上次游玩 → 上次委托), so the
       // hero and an open detail sheet must be repainted with the new lexicon.
-      if (currentGame()) renderHero(currentGame(), false);
+      if (stageGame()) renderHero(stageGame(), false);
       if (state.overlay === 'details') populateDetails(currentGame());
       if (state.appearanceEditing) requestAnimationFrame(layoutAppearanceCrop);
       // The theme changes nav paddings and font metrics. Without this the
@@ -326,7 +326,7 @@
     renderThemes();
     applyStyleModeUI();
     applyAccent(currentGame());
-    renderHero(currentGame(), false);
+    renderHero(stageGame(), false);
     updateRail();
 
     // Warm the stylesheet cache after the first frame: the first switch to
@@ -377,6 +377,7 @@
         call('downloadUpdate', { url: info.assetUrl, name: info.assetName });
       });
     }
+    if (els.updateApplyBtn) els.updateApplyBtn.addEventListener('click', applyUpdateAndRestart);
     if (els.updateFolderBtn) els.updateFolderBtn.addEventListener('click', () => call('openUpdateFolder'));
     if (els.updateAutoRow) els.updateAutoRow.addEventListener('click', toggleUpdateAuto);
     if (els.settingsStartupRow) els.settingsStartupRow.addEventListener('click', toggleStartup);

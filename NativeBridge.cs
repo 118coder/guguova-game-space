@@ -256,6 +256,7 @@ public sealed partial class NativeBridge
                 "downloadUpdate" => BeginUpdateDownload(args),
                 "cancelUpdateDownload" => CancelUpdateDownload(),
                 "openUpdateFolder" => OpenUpdateFolder(),
+                "applyUpdate" => ApplyUpdate(args),
                 "windowState" => WindowStatePayload(),
                 _ => new { error = $"unknown method {method}" }
             };
@@ -316,6 +317,10 @@ public sealed partial class NativeBridge
             storage = _store.BuildStorage(),
             system = SystemProfile.Detect(library.Settings.CompatibilityTier),
             steamRoot = GameScanner.FindSteamRoot(),
+            // A package left behind by an interrupted swap is the only memory
+            // of that upgrade: hand it to the page so the update panel can
+            // offer it again (§1.41.5).
+            pendingUpdate = PendingUpdate(),
             startedByWindows = Environment.GetCommandLineArgs()
                 .Any(arg => arg.StartsWith("--startup", StringComparison.OrdinalIgnoreCase))
         };

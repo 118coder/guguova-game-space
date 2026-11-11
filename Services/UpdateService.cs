@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,26 +107,37 @@ internal static class UpdateService
         var target = Path.Combine(UpdatesDir, asset.Name);
         var temp = target + ".part";
 
-        using (var response = await Http.GetAsync(asset.Url, HttpCompletionOption.ResponseHeadersRead, cancellation))
+        try
         {
-            response.EnsureSuccessStatusCode();
-            var total = response.Content.Headers.ContentLength ?? asset.Size;
-            using var remote = await response.Content.ReadAsStreamAsync();
-            using var file = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
-            var buffer = new byte[81920];
-            long received = 0;
-            int read;
-            while ((read = await remote.ReadAsync(buffer, 0, buffer.Length, cancellation)) > 0)
+            using (var response = await Http.GetAsync(asset.Url, HttpCompletionOption.ResponseHeadersRead, cancellation))
             {
-                await file.WriteAsync(buffer, 0, read, cancellation);
-                received += read;
-                progress?.Invoke(received, total);
+                response.EnsureSuccessStatusCode();
+                var total = response.Content.Headers.ContentLength ?? asset.Size;
+                using var remote = await response.Content.ReadAsStreamAsync();
+                using var file = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+                var buffer = new byte[81920];
+                long received = 0;
+                int read;
+                while ((read = await remote.ReadAsync(buffer, 0, buffer.Length, cancellation)) > 0)
+                {
+                    await file.WriteAsync(buffer, 0, read, cancellation);
+                    received += read;
+                    progress?.Invoke(received, total);
+                }
             }
-        }
 
-        if (File.Exists(target)) File.Delete(target);
-        File.Move(temp, target);
-        return target;
+            if (File.Exists(target)) File.Delete(target);
+            File.Move(temp, target);
+            return target;
+        }
+        catch
+        {
+            // A cancelled or failed transfer must not leave a .part behind: the
+            // updates folder is the only copy the player sees, and it used to
+            // grow a fresh partial file on every retry.
+            try { if (File.Exists(temp)) File.Delete(temp); } catch { }
+            throw;
+        }
     }
 
     public static void CancelDownload()
@@ -140,16 +152,57 @@ internal static class UpdateService
         return _downloadCts.Token;
     }
 
-    /// <summary>exe first, then the legacy single-folder zip, then anything else.</summary>
+    /// <summary>exe first, then the legacy single-folder zip, then anything else.
+    ///
+    /// A package naming another CPU is ranked below *every* usable one, so the
+    /// day the release also ships arm64 the x64 build is still the pick on x64
+    /// (§1.41.5). Names are the only hint the API gives; the package's own PE
+    /// header is verified before anything is swapped.
+    /// </summary>
     private static int Rank(UpdateCandidate? candidate)
     {
         if (candidate == null) return 99;
         var name = candidate.Name;
-        if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return 0;
+        var foreignArch = NamesAnotherArch(name) ? 4 : 0;
+        if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) return foreignArch;
         if (name.IndexOf("legacy-single", StringComparison.OrdinalIgnoreCase) >= 0
-            && name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) return 1;
-        if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) return 2;
-        return 3;
+            && name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) return 1 + foreignArch;
+        if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) return 2 + foreignArch;
+        return 3 + foreignArch;
+    }
+
+    private static readonly string[] ArchTokens = { "arm64", "aarch64", "x64", "amd64", "x86", "win32" };
+
+    private static string CurrentArchToken => RuntimeInformation.ProcessArchitecture switch
+    {
+        Architecture.Arm64 => "arm64",
+        Architecture.X64 => "x64",
+        Architecture.X86 => "x86",
+        _ => ""
+    };
+
+    /// <summary>True when the file name points at a CPU other than this one.
+    /// A name with no token at all is "unknown", not "foreign" — single-file
+    /// builds are usually published without one.</summary>
+    private static bool NamesAnotherArch(string name)
+    {
+        var wanted = CurrentArchToken;
+        if (wanted.Length == 0) return false;
+        var lower = name.ToLowerInvariant();
+        var seen = false;
+        foreach (var token in ArchTokens)
+        {
+            if (lower.IndexOf(token, StringComparison.Ordinal) < 0) continue;
+            // "x64" also appears inside nothing else, but "x86" is a prefix of
+            // no other token here; treat a hit as "the name states an arch".
+            var sameFamily = token == wanted
+                || (wanted == "x64" && token == "amd64")
+                || (wanted == "x86" && token == "win32")
+                || (wanted == "arm64" && token == "aarch64");
+            if (sameFamily) return false;
+            seen = true;
+        }
+        return seen;
     }
 
     /// <summary>Three-part numeric compare; pre-release suffixes after the third part are ignored.</summary>

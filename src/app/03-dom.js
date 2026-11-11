@@ -378,6 +378,7 @@
     settingsVersion: $('#settingsVersion'),
     updateCheckBtn: $('#updateCheckBtn'),
     updateDownloadBtn: $('#updateDownloadBtn'),
+    updateApplyBtn: $('#updateApplyBtn'),
     updateFolderBtn: $('#updateFolderBtn'),
     updateState: $('#updateState'),
     updateProgress: $('#updateProgress'),

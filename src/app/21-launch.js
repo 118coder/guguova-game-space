@@ -404,20 +404,7 @@
       const sub = $('.lib-sub', card);
       if (sub) sub.innerHTML = librarySubHTML(game);
     });
-    const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
-    const favorites = state.games.filter((game) => game.favorite).length;
-    const platformCount = state.games.filter(isPlatformGame).length;
-    const missingCount = state.games.filter((game) => !game.exists).length;
-    els.libStats.innerHTML = `
-      <span><b>${state.games.length}</b> 款游戏</span>
-      <span class="lib-sep"></span>
-      <span>累计 <b>${formatHoursShort(totalSeconds)}</b></span>
-      <span class="lib-sep"></span>
-      <span><b>${platformCount}</b> 款来自平台</span>
-      <span class="lib-sep"></span>
-      <span><b>${favorites}</b> 款收藏</span>
-      ${missingCount ? `<span class="lib-sep"></span><span><b>${missingCount}</b> 款程序缺失</span>` : ''}
-    `;
+    els.libStats.innerHTML = libraryStatsHTML();
   }
 
   function refreshLive() {
@@ -428,6 +415,6 @@
     state.liveSignature = signature;
     updateRail();
     if (state.view === 'library') refreshLibraryLive();
-    if (!state.overlay && state.view === 'home' && currentGame()) renderHero(currentGame(), false);
+    if (!state.overlay && state.view === 'home' && stageGame()) renderHero(stageGame(), false);
   }
 

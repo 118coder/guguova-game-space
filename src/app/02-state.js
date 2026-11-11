@@ -65,6 +65,8 @@
     libFilter: 'all',
     libQuery: '',
     libGenre: '',
+    // What the empty state's single button does: 'add' | 'clear' | 'show-hidden'.
+    libEmptyAction: 'clear',
     lastFocus: null,
     toastTimer: null,
     launchTimers: [],
@@ -105,7 +107,13 @@
     appearanceSaveTimers: new Map(),
     dataFolder: '',
     backupsFolder: '',
-    version: '1.5.3'
+    version: '1.5.3',
+    /* Update flow. Every host status message carries the run it belongs to
+       (`seq`), so a slow check can never overwrite the result of a newer one;
+       `0` means "nothing seen yet". */
+    update: { phase: 'idle' },
+    updateSeq: 0,
+    updateDownloadSeq: 0
   };
 
   const notices = [];
