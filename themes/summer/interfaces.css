@@ -404,296 +404,336 @@ html[data-theme="summer"] {
 }
 
 /* ============================================================
-   CARD CHARACTER · SUMMER · 向开场终帧（intro-draft）看齐
+   CARD CHARACTER · SUMMER · 数字理性夏日（Owner 设计宪法，见 CARD-DESIGN §3）
    ------------------------------------------------------------
-   终帧语言：白纸 + 96px 制图网格 + 黑块白字标题 + 黄块错位副题 +
-   空心描边幽灵字 + 45° 斜纹方格 + 左缘黄条。主题天蓝做制图线。
-   卡片 = 一张排好版的制图底稿：
-     poster   左栏黑块标题排版 + 右侧硬阴影图片块 + 描边编号
-     dossier  左上标题栏 + 右上图片块 + 中部幽灵字与斜纹 + 底部数据表
-     score    左栏排版 + 右侧图片块，黄条压住中缝
+   瑞士国际主义 + 数字科技 + 酸性设计：白纸蓝图网格 + 两根荧光黄
+   竖线画框（左缘出血、右缘内收制造向内挤压）+ 巨黑块白字标题 +
+   酸黄块黑字中文（微压黑块底边）+ 等宽 kicker/数据行（日期行上方
+   一根克制的蓝色短横线）+ 科技蓝斜线/圆弧/右下像素棋盘格。
+   封面照片 = 期刊图版（蓝框 + 墨色硬偏移影）。
    ============================================================ */
 
-/* ---- 墨色与材质：白纸为底，制图蓝为线，黑黄块为版面 ---- */
 html[data-theme="summer"] .share-card {
-  --sc-bg: #ffffff;
   --sc-ink: #101820;
-  --sc-ink-2: #1f6f9c;
-  --sc-rule: #9cc6d9;
-  --sc-accent: #1a9bd7;
-  --sc-accent-ink: #ffffff;
-  --sc-plate: #eef7fa;
-  --sc-plate-line: #9cc6d9;
-  --sc-sheet-bg: #ffffff;
-  --sc-sheet-line: #9cc6d9;
-  --sc-radius: 0;
-  --sc-scrim-rgb: 255, 255, 255;
-  --sc-veil: linear-gradient(180deg, rgba(255, 255, 255, .88) 0%, rgba(255, 255, 255, .3) 30%, rgba(255, 255, 255, .92) 78%, #ffffff 100%);
-  --sc-veil-x: linear-gradient(90deg, rgba(255, 255, 255, .92) 0%, rgba(255, 255, 255, .4) 40%, #ffffff 94%);
-  --sc-frame-line: #1a9bd7;
-  --sc-frame-w: 1px;
-  --sc-frame-inset: 24px;
-  --sc-frame-inner: rgba(26, 155, 215, .4);
-  --sc-frame-inner-inset: 6px;
-  /* 顶缘黄条下线：theme.css 的 body::after（fixed 3px 双色顶条）在导出态
-     压在它上面，读成「上缘被裁半截」——整条改走统一左缘黄条（见下）。 */
+  --sc-ink-2: #17739f;
+  --sc-bg: #ffffff;
+  --sc-frame-w: 0;
   --sc-strip-h: 0px;
-  --sc-strip: none;
-  --sc-title-font: var(--font-display);
-  --sc-title-weight: 800;
-  --sc-title-tracking: .02em;
-  --sc-title-size: 76px;
-  --sc-title-size-dossier: 48px;
-  --sc-title-size-score: 52px;
-  --sc-label-font: var(--font-ui);
-  --sc-label-tracking: .22em;
-  --sc-num-font: var(--font-display);
-  --sc-num-tracking: -.01em;
-  --sc-track: #e2eef5;
+  --sc-radius: 0px;
+  --sc-title-font: "Segoe UI", "思源黑体", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  --sc-label-font: "Cascadia Mono", "Consolas", "JetBrains Mono", "Courier New", monospace;
+  --sc-num-font: "Segoe UI", "思源黑体", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  --sc-label-transform: none;
+  --sc-label-tracking: .1em;
 }
 
-/* 导出态抑制：theme.css 的 body::before（fixed 制图网点/网格）与
-   body::after（fixed 3px 双色顶条）会串进截卡画面——只在导出时隐藏，
-   应用本体不受影响；卡片自带 96px 制图网格与黄条母题，装饰不丢。 */
-html[data-theme="summer"][data-share-export] body::before,
-html[data-theme="summer"][data-share-export] body::after { display: none; }
+/* ---------- 共享原料 ---------- */
 
-/* 制图网格铺在卡片底上；黄条统一为「左缘黄条」——离四缘各留 ≥32px、
-   三张变体同一位置（由各变体的 .sc-deco 伪元素承载，见下）。 */
-html[data-theme="summer"] .share-card {
-  background:
-    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
-    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
-    #ffffff;
+/* 纸面（网格/斜线/圆弧/棋盘格全部画在 wash 里，逐变体覆写） */
+html[data-theme="summer"] .share-card .sc-wash {
+  background-color: #ffffff;
 }
-html[data-theme="summer"] .share-card .sc-wash { display: none; }
 
-/* 统一左缘黄条：x 40..52、y 72..828（dossier 72..1428），完整落卡不贴边 */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-deco::after,
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::after {
-  content: '';
+/* 双荧光黄竖线画框：左缘出血 + 右缘内收（向内挤压势能） */
+html[data-theme="summer"] .share-card .sc-deco::before {
+  content: "";
   position: absolute;
-  left: 40px;
-  top: 72px;
-  bottom: 72px;
-  width: 12px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 14px;
   background: #e8f21f;
 }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-deco::before {
-  content: '';
+html[data-theme="summer"] .share-card .sc-deco::after {
+  content: "";
   position: absolute;
-  left: 40px;
-  top: 72px;
-  bottom: 72px;
-  width: 12px;
+  right: 118px;
+  top: 0;
+  bottom: 0;
+  width: 14px;
   background: #e8f21f;
 }
 
-/* ---- 通用修正 ------------------------------------------------
-   1) dossier 页脚去重：sc-foot 的「启动次数 / 上次游玩」与 sc-facts
-      数据列重复，dossier 变体整组隐藏（保留收藏与签名）。
-   2) 0/21 阶梯空节点：空档收成安静细轨（去边框、6px 高、极淡制图蓝，
-      底边对齐成轨），已点亮档位用制图蓝加高；is-next 保留共享层
-      的 inset 描边。 */
+/* 期刊图版（封面照片）：蓝框 + 墨色硬偏移影 */
+html[data-theme="summer"] .share-card .sc-art {
+  box-sizing: border-box;
+  border: 4px solid #17739f;
+  border-radius: 0;
+  transform: none;
+  box-shadow: 10px 10px 0 rgba(16, 24, 32, .92);
+  z-index: 4;
+}
+
+/* 黑块巨题（白字）与酸黄块中文（黑字，微压黑块底边） */
+html[data-theme="summer"] .share-card .sc-title {
+  display: inline-block;
+  max-width: 100%;
+  background: #101820;
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.14;
+  padding: 10px 22px 14px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+html[data-theme="summer"] .share-card .sc-zh {
+  display: inline-block;
+  position: relative;
+  margin: -12px 0 0 34px;
+  background: #e8f21f;
+  color: #101820;
+  font-family: "Segoe UI", "思源黑体", "Source Han Sans SC", sans-serif;
+  font-weight: 800;
+  letter-spacing: .06em;
+  padding: 7px 18px 9px;
+}
+html[data-theme="summer"] .share-card .sc-kicker {
+  color: #17739f;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .26em;
+}
+html[data-theme="summer"] .share-card .sc-kicker i { background: #e8f21f; box-shadow: 0 0 0 1px #101820; border-radius: 0; }
+html[data-theme="summer"] .share-card .sc-kicker em,
+html[data-theme="summer"] .share-card .sc-sign em { color: #17739f; }
+html[data-theme="summer"] .share-card .sc-tagline {
+  color: #17739f;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 44ch;
+}
+/* 数据行：上方一根克制的蓝色短横线（微排版点睛） */
+html[data-theme="summer"] .share-card .sc-meta {
+  color: #17739f;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 14px;
+  letter-spacing: .08em;
+}
+html[data-theme="summer"] .share-card .sc-meta::before {
+  content: "";
+  display: block;
+  width: 210px;
+  height: 3px;
+  background: #17739f;
+  margin-bottom: 12px;
+}
+html[data-theme="summer"] .share-card .sc-meta em { color: #17739f; opacity: 1; }
+html[data-theme="summer"] .share-card .sc-meta .sc-age,
+html[data-theme="summer"] .share-card .sc-meta .sc-plat {
+  color: #101820;
+  border: 1.5px solid #17739f;
+  border-radius: 0;
+  background: transparent;
+}
+html[data-theme="summer"] .share-card .sc-label {
+  color: #17739f;
+  font-size: 12px;
+  font-weight: 700;
+}
+html[data-theme="summer"] .share-card .sc-tier { color: #17739f; font-family: inherit; }
+html[data-theme="summer"] .share-card .sc-fact span { color: #17739f; }
+html[data-theme="summer"] .share-card .sc-fact b { color: #101820; }
+html[data-theme="summer"] .share-card .sc-fact b em { color: #17739f; }
+html[data-theme="summer"] .share-card .sc-foot {
+  color: #101820;
+  border-top: 2px solid #101820;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+}
+html[data-theme="summer"] .share-card .sc-foot i { background: #17739f; opacity: 1; border-radius: 0; }
+html[data-theme="summer"] .share-card .sc-sign { color: #101820; letter-spacing: .1em; }
+
+/* dossier 页脚与数据列去重（全局项） */
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+
+/* 导出态：隐藏 theme.css 的 body 装饰（网点网格 + 双色条会串进截卡） */
+html[data-theme="summer"][data-share-export] body::before,
+html[data-theme="summer"][data-share-export] body::after { display: none; }
+
+/* 里程碑阶梯：安静细轨 + 酸黄点亮（描墨边保定义） */
 html[data-theme="summer"] .share-card .sc-ladder i {
-  height: 6px;
-  align-self: end;
+  height: 5px;
   border: 0;
-  background: rgba(26, 155, 215, .14);
+  border-radius: 0;
+  background: rgba(16, 24, 32, .16);
+  align-self: end;
 }
 html[data-theme="summer"] .share-card .sc-ladder i.is-on {
-  height: 13px;
-  border: 0;
-  background: var(--prog-fill, #1a9bd7);
-}
-
-/* 黑块白字标题（长标题逐行成块）+ 黄块副题，来自开机的标题排法 */
-html[data-theme="summer"] .share-card .sc-kicker { display: flex; width: fit-content; }
-html[data-theme="summer"] .share-card .sc-title {
-  display: inline;
-  color: #ffffff;
-  background: #101820;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  /* 只留横向 padding：内联块的纵向 padding 画在行盒之外，会和后续
-     元素的排版脱节；纵向节奏全部交给 line-height。行距放宽到 1.58，
-     两行标题的黑块之间留出白缝，不再读成一整块 L 形。 */
-  padding: 0 20px;
-  line-height: 1.58;
-}
-html[data-theme="summer"] .share-card .sc-zh {
-  display: block;
-  width: fit-content;
-  margin-top: 12px;
-  padding: 4px 14px 7px;
+  height: 12px;
   background: #e8f21f;
-  color: #101820;
-  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(16, 24, 32, .85);
+  border-color: #e8f21f;
 }
+html[data-theme="summer"] .share-card .sc-ladder i.is-next { border-color: #17739f; box-shadow: none; }
 
-/* -- POSTER · 制图海报 ------------------------------------------
-   左栏排版（黑块标题 → 黄块副题 → 蓝线数据），右侧图片块压黑色
-   硬阴影，编号以蓝色描边幽灵字落在右下，斜纹方格填中缝。 */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
-  inset: 110px 88px auto auto;
-  width: 620px;
-  height: 520px;
-  border: 2px solid #1a9bd7;
-  box-shadow: 20px 20px 0 #101820;
+/* 时长数字：黑块白字（em 小字酸黄） */
+html[data-theme="summer"] .share-card .sc-hours {
+  display: inline-block;
+  background: #101820;
+  color: #ffffff;
+  padding: 6px 16px 10px;
+  margin-top: 6px;
+}
+html[data-theme="summer"] .share-card .sc-hours b { color: #ffffff; }
+html[data-theme="summer"] .share-card .sc-hours em { color: #e8f21f; }
+
+/* ============================================================
+   POSTER 1600×900 —— 期刊封面
+   左中黑块巨题 + 酸黄中文压边，右侧期刊图版，蓝图网格/斜线/
+   圆弧铺满，右下棋盘格，双黄竖线画框。
+   ============================================================ */
+
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-wash {
+  background-image:
+    repeating-conic-gradient(rgba(120, 170, 205, .32) 0 25%, #ffffff 0 50%),
+    linear-gradient(61deg, transparent 49.7%, rgba(33, 150, 214, .5) 50%, transparent 50.3%),
+    linear-gradient(-24deg, transparent 49.6%, rgba(33, 150, 214, .45) 50%, transparent 50.4%),
+    radial-gradient(circle at 78% 4%, transparent 0 268px, rgba(33, 150, 214, .55) 269px 272px, transparent 273px),
+    radial-gradient(circle at 97% 42%, transparent 0 178px, rgba(33, 150, 214, .45) 179px 182px, transparent 183px),
+    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px);
+  background-position: right 64px bottom 52px, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  background-size: 230px 160px, auto, auto, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat;
 }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet {
   inset: 0;
-  padding: 88px 820px 64px 88px;
+  padding: 96px 200px 44px 84px;
   background: transparent;
+  display: flex;
+  flex-direction: column;
 }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 88px 820px auto 88px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
-  margin-top: auto;
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main { max-width: 760px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-title { font-size: 64px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-zh { font-size: 28px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tagline { margin-top: 14px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta { margin-top: 18px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
+  left: 930px;
+  top: 120px;
+  width: 550px;
+  height: 580px;
 }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score {
-  align-items: flex-start;
-  text-align: left;
-  margin-top: 22px;
-  padding: 18px 0 0;
-  background: transparent;
-  border: 0;
-  border-top: 2px solid #1a9bd7;
-  border-radius: 0;
-  box-shadow: none;
+  margin-top: auto;
+  max-width: 760px;
+  padding-top: 18px;
 }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 92px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder,
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
-/* 描边幽灵编号：开机终帧的空心字 */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet::after {
-  content: attr(data-no);
-  position: absolute;
-  right: 96px;
-  bottom: 20px;
-  font: 800 200px/1 var(--sc-title-font);
-  color: transparent;
-  -webkit-text-stroke: 3px rgba(26, 155, 215, .45);
-  letter-spacing: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-/* 45° 斜纹方格：锚进制图网格（96px 整数倍），不再悬空 */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-deco::before {
-  content: '';
-  position: absolute;
-  left: 768px;
-  top: 672px;
-  width: 96px;
-  height: 96px;
-  background:
-    linear-gradient(45deg, rgba(26, 155, 215, .18) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .18) 75%) 0 0 / 24px 24px,
-    linear-gradient(45deg, rgba(26, 155, 215, .18) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .18) 75%) 12px 12px / 24px 24px;
-}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 52px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours em { font-size: 14px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder { max-width: 340px; margin-top: 12px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier { margin-top: 10px; max-width: 340px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-foot { margin-top: 18px; padding-top: 14px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 50px 160px auto 60px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-brand { color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-brand::before { background: #e8f21f; box-shadow: 0 0 0 1.5px #101820; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-no { color: #17739f; }
 
-/* -- DOSSIER · 制图档案 ------------------------------------------
-   整张重排：画框从「上半截提前收口」改为贯穿全卡的完整图框
-   （inset 52px），全部内容收进框内；左上标题栏，右上图片块
-   （黑硬阴影、离框留边），中段用斜纹方格 + 幽灵编号 + 制图注释
-   填实，底部数据表由蓝线起头，页脚收在框内。 */
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-frame {
-  inset: 52px;
-  height: auto;
+/* ============================================================
+   DOSSIER 1200×1500 —— 期刊专题页
+   上段图版横陈，下段制表：黑块标题 + 酸黄中文 + 等宽数据行 +
+   台账虚线行 + 巨额时长（黄块黑字）。
+   ============================================================ */
+
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-wash {
+  background-image:
+    repeating-conic-gradient(rgba(120, 170, 205, .32) 0 25%, #ffffff 0 50%),
+    linear-gradient(58deg, transparent 49.7%, rgba(33, 150, 214, .45) 50%, transparent 50.3%),
+    radial-gradient(circle at 108% 30%, transparent 0 208px, rgba(33, 150, 214, .5) 209px 212px, transparent 213px),
+    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px);
+  background-position: right 64px bottom 60px, 0 0, 0 0, 0 0, 0 0;
+  background-size: 230px 160px, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 120px 128px auto auto;
-  width: 460px;
-  height: 460px;
-  border: 2px solid #1a9bd7;
-  box-shadow: 16px 16px 0 #101820;
-  z-index: 4;
-}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::after { right: 96px; }
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet {
   inset: 0;
-  padding: 120px 100px 92px;
+  padding: 726px 90px 44px 84px;
   background: transparent;
+  display: flex;
+  flex-direction: column;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-top { inset: 70px 100px auto 100px; }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-id { max-width: 500px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-art {
+  left: 84px;
+  top: 108px;
+  width: 928px;
+  height: 556px;
+}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-kicker { margin-top: 6px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-title { font-size: 54px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-zh { font-size: 26px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-meta { margin-top: 16px; }
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-score {
+  margin-top: 22px;
   padding-top: 20px;
-  border-top: 2px solid #1a9bd7;
+  border-top: 2px solid #101820;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px 46px;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 112px; }
-/* 制图注释：中段左中的图纸说明行（等宽制图字），填实原 y850-1120 空档 */
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet::before {
-  content: 'FIG. 02 — 游玩时长台账 PLAYTIME LEDGER\A比例 1 : 21 · 制图网格 96PX · 单位 小时\A图号 D-01 · 校对 GUGUOVA 绘图室\A日期 2026.10.21 · 签署 GUGUOVA';
-  position: absolute;
-  left: 340px;
-  top: 930px;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  line-height: 2;
-  letter-spacing: .1em;
-  color: #1f6f9c;
-  white-space: pre-line;
-  pointer-events: none;
-}
-/* 幽灵编号挪进框内（不再压框线） */
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet::after {
-  content: attr(data-no);
-  position: absolute;
-  right: 96px;
-  top: 620px;
-  font: 800 240px/1 var(--sc-title-font);
-  color: transparent;
-  -webkit-text-stroke: 3px rgba(26, 155, 215, .4);
-  letter-spacing: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-/* 斜纹方格挪进框内、锚到 96px 网格 */
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::before {
-  content: '';
-  position: absolute;
-  left: 88px;
-  top: 640px;
-  width: 220px;
-  height: 220px;
-  background:
-    linear-gradient(45deg, rgba(26, 155, 215, .16) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .16) 75%) 0 0 / 28px 28px,
-    linear-gradient(45deg, rgba(26, 155, 215, .16) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .16) 75%) 14px 14px / 28px 28px;
-}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-score > :is(.sc-label, .sc-hours, .sc-ladder, .sc-tier) { grid-column: 1; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-facts { grid-column: 2; grid-row: 1 / span 4; display: grid; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-fact { padding: 9px 0; border-bottom: 1.5px solid rgba(23, 115, 159, .45); }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours { background: #e8f21f; color: #101820; padding: 8px 18px 12px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours b { color: #101820; font-size: 84px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours em { color: #101820; font-size: 15px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 16px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot { margin-top: auto; padding-top: 14px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-top { inset: 50px 130px auto 60px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-brand { color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-brand::before { background: #e8f21f; box-shadow: 0 0 0 1.5px #101820; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-no { color: #17739f; }
 
-/* -- SCORE · 制图战绩 --------------------------------------------
-   左栏排版承载标题与数据，右侧图片块压黑色硬阴影；黄条统一走左缘
-   （中缝黄条下线，栏间留干净的制图留白）。四项事实打开成四栏
-   数据条，填实原中段空档。 */
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-art {
-  inset: 96px 96px 96px auto;
-  width: 42%;
-  border: 2px solid #1a9bd7;
-  box-shadow: 20px 20px 0 #101820;
+/* ============================================================
+   SCORE 1600×840 —— 封底数据页
+   左栏黑块标题 + 数据行 + 黄块巨额时长 + 里程碑，右上图版，
+   棋盘格/圆弧收尾。
+   ============================================================ */
+
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-wash {
+  background-image:
+    repeating-conic-gradient(rgba(120, 170, 205, .32) 0 25%, #ffffff 0 50%),
+    linear-gradient(-32deg, transparent 49.7%, rgba(33, 150, 214, .45) 50%, transparent 50.3%),
+    radial-gradient(circle at 100% -8%, transparent 0 238px, rgba(33, 150, 214, .5) 239px 242px, transparent 243px),
+    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px);
+  background-position: right 64px bottom 52px, 0 0, 0 0, 0 0, 0 0;
+  background-size: 230px 160px, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
 }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-deco::after { right: 118px; }
 html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet {
   inset: 0;
-  padding: 118px 810px 56px 88px;
+  padding: 60px 210px 40px 84px;
   background: transparent;
+  display: flex;
+  flex-direction: column;
 }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 72px 810px auto 88px; }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-score {
-  margin-top: 8px;
-  padding: 18px 0 0;
-  border-top: 2px solid #1a9bd7;
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-main,
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-score { max-width: 700px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-title { font-size: 50px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-zh { font-size: 24px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-meta { margin-top: 14px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-art {
+  left: 890px;
+  top: 120px;
+  width: 520px;
+  height: 440px;
 }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours b { font-size: 116px; }
-/* 四栏数据条：制表数据行填实中段 */
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-facts {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0 18px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #9cc6d9;
-}
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-fact b { font-size: 15px; }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-score { margin-top: 18px; padding-top: 16px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours { background: #e8f21f; color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours b { color: #101820; font-size: 96px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours em { color: #101820; font-size: 15px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-facts { display: grid; margin-top: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-fact { padding: 7px 0; border-bottom: 1.5px solid rgba(23, 115, 159, .45); }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-ladder { margin-top: 12px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-foot { margin-top: auto; padding-top: 12px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 50px 160px auto 60px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-brand { color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-brand::before { background: #e8f21f; box-shadow: 0 0 0 1.5px #101820; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-no { color: #17739f; }
