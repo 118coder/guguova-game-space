@@ -359,89 +359,304 @@ html[data-theme="dusk"] .view-home .hero-inner::before {
 }
 
 /* ============================================================
-   CARD CHARACTER · DUSK
+   CARD CHARACTER · DUSK · 委托信（Owner 定调：首页的「魔法阵 + 信封」）
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   首页语言 = 暮色工房板上的一封委托信：撕边羊皮纸（clip-path 锯齿）、
+   黄铜图钉、游戏封面当「贴上去的委托人照片」（米白相纸边 + 两道胶带）、
+   火漆印封口、「已受理 · ACCEPTED」斜盖章、衬线签名；天上悬细线炼金环
+   （魔法阵：同心圆 + 内接方 + 刻度，禁发光）。三规格全部采用这套构图。
+   配方逐字取自 theme.css 首页（炼金环 SVG / 火漆 / 相纸 / 图钉 / 撕边）。
    ============================================================ */
 
-/* Alchemist's archive: the type lives in an arched parchment window,
-   the cover keeps the right side, gold double rules hold it together. */
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-sheet {
-  inset: 40px auto 40px 40px;
-  width: 640px;
-  padding: 120px 52px 44px;
-  border: 1px solid #b58a4b;
-  border-radius: 320px 320px 2px 2px;
-  background: #f7edd8;
-}
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-top { inset: 64px auto auto 84px; }
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-main {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 26px;
-  margin-top: auto;
-}
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-score {
-  align-items: flex-start;
-  text-align: left;
-  padding: 18px 0 0;
-  border-top: 1px solid rgba(90, 66, 38, .35);
-}
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-hours b { font-size: 104px; }
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-ladder,
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-foot { padding-right: 84px; }
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-frame {
-  inset: 22px;
-  border-color: rgba(181, 138, 75, .5);
-  --sc-frame-inner: rgba(181, 138, 75, .35);
-}
-/* A wax seal sits where a passport would put it. */
-html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-deco::after {
-  content: '';
-  position: absolute;
-  left: 588px;
-  bottom: 44px;
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 38% 34%, #b5452f, #7a1f2b 62%, #5d1620);
-  box-shadow: inset 0 0 0 4px rgba(247, 237, 216, .35), 0 12px 26px -14px #000;
+html[data-theme="dusk"] .share-card {
+  /* 天空元素用米金墨；纸面文字用深褐墨（下让逐条覆写） */
+  --sc-ink: #f2e5c9;
+  --sc-ink-2: #d9c39a;
+  --sc-frame-w: 0;
+  --sc-strip-h: 0px;
+  --sc-radius: 2px;
+  --sc-title-font: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+  --sc-label-font: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+  --sc-num-font: "思源宋体", "Source Han Serif SC", "Noto Serif SC", "SimSun", serif;
+  --sc-label-transform: none;
 }
 
-html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 0 0 auto 0;
-  height: 660px;
-  border-radius: 0 0 50% 50% / 0 0 16% 16%;
-  border-bottom: 2px solid #b58a4b;
+/* ---------- 共享原料（逐字取自 theme.css 首页） ---------- */
+
+/* 撕边羊皮纸（hero-inner 的 clip-path 与纸面配方） */
+html[data-theme="dusk"] .share-card .sc-sheet {
+  background:
+    radial-gradient(circle at 22px 22px, #edd09a 0 3.5px, #7a5330 4.5px, rgba(50, 30, 16, .4) 6px, transparent 7px),
+    radial-gradient(circle at calc(100% - 22px) 22px, #edd09a 0 3.5px, #7a5330 4.5px, rgba(50, 30, 16, .4) 6px, transparent 7px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 92% 72% at 50% 50%, transparent 54%, rgba(116, 74, 36, .24) 100%),
+    linear-gradient(158deg, #fbf3e3 0%, #f2e3c6 48%, #e5d0aa 100%);
+  box-shadow: 0 46px 86px -42px rgba(18, 10, 6, .95), inset 0 0 110px rgba(140, 94, 44, .22);
+  clip-path: polygon(0.4% 0.8%, 9% 0.1%, 18% 0.9%, 27% 0.2%, 36% 0.8%, 45% 0.1%, 54% 0.9%, 63% 0.2%, 72% 0.8%, 81% 0.1%, 90% 0.9%, 99.6% 0.3%, 100% 99.2%, 91% 99.9%, 82% 99.1%, 73% 99.8%, 64% 99.2%, 55% 99.9%, 46% 99.1%, 37% 99.8%, 28% 99.2%, 19% 99.9%, 10% 99.1%, 0.3% 99.7%);
+  transform: rotate(-.5deg);
+  border-radius: 0;
 }
-html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-sheet {
-  inset: 660px 0 0;
-  padding: 64px 76px 44px;
-  background: transparent;
+
+/* 信纸内框：金线 + 四角铜点 + 两道折痕（hero-inner::before 配方） */
+html[data-theme="dusk"] .share-card .sc-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(181, 138, 75, .5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35);
+  background:
+    linear-gradient(180deg, transparent 32.8%, rgba(106, 87, 64, .14) 33%, transparent 33.25%),
+    linear-gradient(180deg, transparent 65.8%, rgba(106, 87, 64, .12) 66%, transparent 66.25%),
+    radial-gradient(circle at 0 0, #b58a4b 0 2px, transparent 2.6px),
+    radial-gradient(circle at 100% 0, #b58a4b 0 2px, transparent 2.6px),
+    radial-gradient(circle at 0 100%, #b58a4b 0 2px, transparent 2.6px),
+    radial-gradient(circle at 100% 100%, #b58a4b 0 2px, transparent 2.6px);
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
-html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-frame {
-  inset: 26px 26px auto 26px;
-  height: 640px;
-  border-radius: 50% 50% 0 0 / 16% 16% 0 0;
+
+/* 已受理 · ACCEPTED 斜盖章 */
+html[data-theme="dusk"] .share-card .sc-sheet::after {
+  content: "已受理 · ACCEPTED";
+  position: absolute;
+  right: 26px;
+  top: 22px;
+  padding: 5px 11px 6px;
+  border: 2px solid rgba(122, 47, 36, .55);
+  color: #7a2f24;
+  font-family: "思源宋体", "Source Han Serif SC", serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  transform: rotate(-7deg);
+}
+
+/* 委托人照片（封面 = 贴在信纸上的相片：米白相纸边 + 两道胶带） */
+html[data-theme="dusk"] .share-card .sc-art {
+  box-sizing: border-box;
+  border: 10px solid #fbf3e2;
+  border-radius: 2px;
+  transform: rotate(1.6deg);
+  box-shadow: 0 0 0 1px rgba(181, 138, 75, .75), 0 26px 44px -22px rgba(60, 36, 20, .8);
+  z-index: 4;
+}
+html[data-theme="dusk"] .share-card .sc-art::before,
+html[data-theme="dusk"] .share-card .sc-art::after {
+  content: "";
+  position: absolute;
+  top: -16px;
+  width: 96px;
+  height: 22px;
+  background: linear-gradient(100deg, rgba(226, 208, 170, .85), rgba(226, 208, 170, .5));
+  box-shadow: 0 1px 2px rgba(60, 36, 20, .3);
+}
+html[data-theme="dusk"] .share-card .sc-art::before { left: 20px; transform: rotate(-3deg); }
+html[data-theme="dusk"] .share-card .sc-art::after { right: 20px; transform: rotate(3deg); }
+
+/* 火漆封口（压在信纸右下角） */
+html[data-theme="dusk"] .share-card .sc-deco::after {
+  content: "";
+  position: absolute;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #c4654b 0%, #a34a35 34%, #7f2f24 68%, #5d2019 100%);
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 221, 180, .2),
+    inset 0 0 0 7px rgba(80, 20, 12, .3),
+    inset 0 0 18px rgba(0, 0, 0, .45),
+    0 16px 30px -12px #000;
+}
+
+/* 炼金环（魔法阵）：细线，禁发光。亮金版悬在暮色天上 */
+html[data-theme="dusk"] .share-card .sc-deco::before {
+  content: "";
+  position: absolute;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' fill='none' stroke='%23e8b478' stroke-width='1.1'%3E%3Ccircle cx='300' cy='300' r='282' opacity='.5'/%3E%3Ccircle cx='300' cy='300' r='238'/%3E%3Ccircle cx='300' cy='300' r='150'/%3E%3Ccircle cx='300' cy='300' r='96' stroke-dasharray='3 9'/%3E%3Cpath d='M300 18 582 300 300 582 18 300Z'/%3E%3Cpath d='M300 62 538 300 300 538 62 300Z' opacity='.6'/%3E%3Cpath d='M300 150 450 300 300 450 150 300Z' opacity='.7'/%3E%3Cpath d='M300 150v-58M300 450v58M150 300h-58M450 300h58'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ---------- 信纸上的文字（衬线 + 褐墨，全部对纸面算对比度） ---------- */
+
+html[data-theme="dusk"] .share-card .sc-kicker {
+  color: #7a2f24;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+html[data-theme="dusk"] .share-card .sc-kicker i { background: #a9503a; }
+html[data-theme="dusk"] .share-card .sc-title { color: #2e2317; font-weight: 700; }
+html[data-theme="dusk"] .share-card .sc-zh { color: #5c4a30; }
+html[data-theme="dusk"] .share-card .sc-tagline { color: #5c4a30; max-width: 30ch; }
+html[data-theme="dusk"] .share-card .sc-meta { color: #5c4a30; }
+html[data-theme="dusk"] .share-card .sc-meta .sc-age,
+html[data-theme="dusk"] .share-card .sc-meta .sc-plat { color: #4a3a26; border-color: rgba(106, 87, 64, .5); background: transparent; }
+html[data-theme="dusk"] .share-card .sc-label { color: #5c4a30; }
+html[data-theme="dusk"] .share-card .sc-hours { color: #2e2317; }
+html[data-theme="dusk"] .share-card .sc-hours em { color: #5c4a30; }
+html[data-theme="dusk"] .share-card .sc-tier { color: #5c4a30; }
+html[data-theme="dusk"] .share-card .sc-fact span { color: #5c4a30; }
+html[data-theme="dusk"] .share-card .sc-fact b { color: #2e2317; }
+html[data-theme="dusk"] .share-card .sc-fact b em { color: #5c4a30; }
+html[data-theme="dusk"] .share-card .sc-foot {
+  color: #5c4a30;
+  border-top: 1px solid rgba(106, 87, 64, .35);
+}
+html[data-theme="dusk"] .share-card .sc-sign {
+  color: #4a3a26;
+  font-style: italic;
+  letter-spacing: .08em;
+}
+html[data-theme="dusk"] .share-card .sc-foot i { background: #a9503a; opacity: 1; }
+
+/* dossier 页脚与数据列去重（本轮全局项） */
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+
+/* 里程碑阶梯：安静细轨 + 古金点亮 */
+html[data-theme="dusk"] .share-card .sc-ladder i {
+  height: 5px;
+  border: 0;
+  border-radius: 0;
+  background: rgba(90, 66, 38, .25);
+  align-self: end;
+}
+html[data-theme="dusk"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  background: #b58a4b;
   border-color: #b58a4b;
 }
-html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-score { padding-top: 20px; }
+html[data-theme="dusk"] .share-card .sc-ladder i.is-next { border-color: #b58a4b; }
 
-html[data-theme="dusk"] .share-card[data-variant="score"] .sc-art {
-  inset: 40px 40px 40px auto;
-  width: 34%;
-  border-radius: 50% 50% 2px 2px / 22% 22% 2px 2px;
-  border: 1px solid #b58a4b;
+/* ============================================================
+   POSTER 1600×900 —— 暮色天幕上一封摊开的委托信
+   信纸居左（撕边、微倾），封面相片斜贴着信纸右缘探到天上，
+   炼金环悬右上，剪影山丘压底，火漆封住信纸右下角。
+   ============================================================ */
+
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-wash {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' fill='none' stroke='%23e8b478' stroke-width='1.1'%3E%3Ccircle cx='300' cy='300' r='282' opacity='.5'/%3E%3Ccircle cx='300' cy='300' r='238'/%3E%3Ccircle cx='300' cy='300' r='150'/%3E%3Ccircle cx='300' cy='300' r='96' stroke-dasharray='3 9'/%3E%3Cpath d='M300 18 582 300 300 582 18 300Z'/%3E%3Cpath d='M300 62 538 300 300 538 62 300Z' opacity='.6'/%3E%3Cpath d='M300 150 450 300 300 450 150 300Z' opacity='.7'/%3E%3Cpath d='M300 150v-58M300 450v58M150 300h-58M450 300h58'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 520' preserveAspectRatio='none'%3E%3Cpath d='M0 292 C 180 250 300 318 486 282 C 660 248 790 306 958 272 C 1120 238 1280 300 1600 258 L1600 520 L0 520Z' fill='%23251e33' opacity='.9'/%3E%3Cpath d='M0 352 C 170 320 330 378 512 346 C 700 312 872 372 1058 342 C 1238 312 1412 366 1600 336 L1600 520 L0 520Z' fill='%231b1626' opacity='.95'/%3E%3Cpath d='M0 432 C 240 402 420 448 646 422 C 866 396 1080 452 1300 426 C 1440 410 1520 430 1600 420 L1600 520 L0 520Z' fill='%23120f1b'/%3E%3C/svg%3E"),
+    radial-gradient(120% 90% at 50% 118%, rgba(20, 12, 8, .5), transparent 62%),
+    linear-gradient(180deg, #0f0d20 0%, #26203c 36%, #6d4a58 66%, #b57355 84%, #d99a63 100%);
+  background-position: right -30px top -50px, bottom center, center, center;
+  background-size: 620px 620px, 100% 40%, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+}
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 92px auto 92px 110px;
+  width: 620px;
+  padding: 44px 44px 34px;
+  display: flex;
+  flex-direction: column;
+}
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-art {
+  inset: 158px auto auto 704px;
+  width: 700px;
+  height: 462px;
+}
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-deco::after { left: 716px; top: 742px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-no { color: #e9d9b8; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-brand::before { background: #d9b57c; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-title { font-size: 40px; line-height: 1.12; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-zh { font-size: 18px; margin-top: 10px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-tagline { font-size: 14px; margin-top: 10px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-meta { font-size: 12.5px; margin-top: 14px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-score { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(106, 87, 64, .35); }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-hours { margin-top: 4px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-hours b { font-size: 84px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-hours em { font-size: 16px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-ladder { margin-top: 14px; }
+html[data-theme="dusk"] .share-card[data-variant="poster"] .sc-foot { margin-top: auto; padding-top: 14px; }
+
+/* ============================================================
+   DOSSIER 1200×1500 —— 天幕上一张放大的委托信
+   相片横陈上段（悬在信纸上方），信纸占下 2/3：委托正文、台账、
+   火漆封口；炼金环在左上天幕探出半环。
+   ============================================================ */
+
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-wash {
+  background-image:
+    radial-gradient(130% 60% at 50% 112%, rgba(20, 12, 8, .45), transparent 60%),
+    linear-gradient(180deg, #171331 0%, #2b2342 30%, #6d4a58 62%, #b57355 86%, #d99a63 100%);
+  background-position: center, center;
+  background-size: auto, auto;
+  background-repeat: no-repeat, no-repeat;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-deco::before {
+  left: -80px;
+  top: -60px;
+  width: 340px;
+  height: 340px;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 118px auto auto 90px;
+  width: 1020px;
+  height: 530px;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 688px 56px 56px;
+  padding: 44px 60px 38px;
+  display: flex;
+  flex-direction: column;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-deco::after { left: 1058px; top: 1368px; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-title { font-size: 46px; line-height: 1.1; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-zh { font-size: 19px; margin-top: 10px; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-tagline { font-size: 14px; margin-top: 10px; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-meta { font-size: 12.5px; margin-top: 12px; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-score {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(106, 87, 64, .35);
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 20px 44px;
+}
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-score > :is(.sc-label, .sc-hours, .sc-ladder, .sc-tier) { grid-column: 1; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-facts { grid-column: 2; grid-row: 1 / span 4; display: grid; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-fact { padding: 8px 0; border-bottom: 1px dashed rgba(106, 87, 64, .4); }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 104px; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 16px; }
+html[data-theme="dusk"] .share-card[data-variant="dossier"] .sc-foot { margin-top: auto; padding-top: 14px; }
+
+/* ============================================================
+   SCORE 1600×840 —— 左信纸右相片，炼金环悬在相片后
+   信纸承载委托文头 + 巨额时长 + 台账，相片贴右，火漆封左下角。
+   ============================================================ */
+
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-wash {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' fill='none' stroke='%23e8b478' stroke-width='1.1'%3E%3Ccircle cx='300' cy='300' r='282' opacity='.5'/%3E%3Ccircle cx='300' cy='300' r='238'/%3E%3Ccircle cx='300' cy='300' r='150'/%3E%3Ccircle cx='300' cy='300' r='96' stroke-dasharray='3 9'/%3E%3Cpath d='M300 18 582 300 300 582 18 300Z'/%3E%3Cpath d='M300 62 538 300 300 538 62 300Z' opacity='.6'/%3E%3Cpath d='M300 150 450 300 300 450 150 300Z' opacity='.7'/%3E%3Cpath d='M300 150v-58M300 450v58M150 300h-58M450 300h58'/%3E%3C/svg%3E"),
+    radial-gradient(120% 100% at 100% 100%, rgba(20, 12, 8, .45), transparent 60%),
+    linear-gradient(180deg, #171331 0%, #2b2342 34%, #6d4a58 68%, #b57355 88%, #d99a63 100%);
+  background-position: right -60px top -70px, center, center;
+  background-size: 480px 480px, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat;
 }
 html[data-theme="dusk"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0 38% 0 0;
-  padding: 64px 56px 48px;
-  background: #f7edd8;
-  border-left: 0;
+  inset: 96px auto 70px 90px;
+  width: 700px;
+  padding: 42px 44px 32px;
+  display: flex;
+  flex-direction: column;
 }
-html[data-theme="dusk"] .share-card[data-variant="score"] .sc-top { inset: 56px auto auto 56px; }
-html[data-theme="dusk"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
-html[data-theme="dusk"] .share-card[data-variant="score"] .sc-main { gap: 20px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-art {
+  inset: 128px auto auto 872px;
+  width: 600px;
+  height: 470px;
+}
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-deco::after { left: 726px; top: 704px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-no { color: #e9d9b8; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-brand::before { background: #d9b57c; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-title { font-size: 40px; line-height: 1.12; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-zh { font-size: 17px; margin-top: 8px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-meta { font-size: 12.5px; margin-top: 12px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-score { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(106, 87, 64, .35); }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-hours b { font-size: 92px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-facts { display: grid; margin-top: 16px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-fact { padding: 7px 0; border-bottom: 1px dashed rgba(106, 87, 64, .4); }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-ladder { margin-top: 14px; }
+html[data-theme="dusk"] .share-card[data-variant="score"] .sc-foot { margin-top: auto; padding-top: 12px; }

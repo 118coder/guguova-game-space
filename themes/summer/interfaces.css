@@ -374,55 +374,6 @@ html[data-theme="summer"].calm .view-home .hero-inner > .kicker {
 }
 
 /* ============================================================
-   SHARE CARDS · 分享卡片
-   ------------------------------------------------------------
-   Material for the three export cards (poster 1600×900,
-   dossier 1200×1500, score 1600×840). Geometry, typography
-   defaults and the export stage live in src/share-cards.css;
-   this block only answers what this theme's paper, ink, rule and
-   frame are made of, so an exported card carries the same
-   material as the app it came out of.
-   Contract: docs/THEME-INTERFACES.md §16.5
-   ============================================================ */
-
-html[data-theme="summer"] {
-  --sc-bg: #fdfbf6;
-  --sc-ink: #101820;
-  --sc-ink-2: #53677a;
-  --sc-rule: #9cc6d9;
-  --sc-accent: #1f93c8;
-  --sc-accent-ink: #ffffff;
-  --sc-plate: #ffffff;
-  --sc-plate-line: #1f93c8;
-  --sc-sheet-bg: #ffffff;
-  --sc-sheet-line: #9cc6d9;
-  --sc-radius: 12px;
-  --sc-scrim-rgb: 253, 251, 246;
-  /* Paper ground: the veil lightens the artwork into the sheet instead of
-     smearing black over it — a dark veil on a paper theme reads as damage. */
-  --sc-veil:
-    linear-gradient(180deg, rgba(253, 251, 246, .34) 0%, rgba(253, 251, 246, .04) 20%,
-      rgba(253, 251, 246, .46) 52%, rgba(253, 251, 246, .86) 82%, var(--sc-bg) 100%);
-  --sc-veil-x:
-    linear-gradient(90deg, rgba(253, 251, 246, 0) 0%, rgba(253, 251, 246, .3) 46%, var(--sc-bg) 96%);
-  --sc-frame-line: #1f93c8;
-  --sc-frame-w: 2px;
-  --sc-frame-inset: 38px;
-  --sc-label-tracking: .16em;
-  --sc-title-size: 76px;
-  --sc-plate-shadow: 0 18px 40px -26px rgba(16, 24, 32, .5);
-}
-/* Acid-lime tape behind the eyebrow, the theme's own label language. */
-html[data-theme="summer"] .share-card .sc-kicker {
-  padding: 5px 10px;
-  border-radius: 2px;
-  background: #e2f53c;
-  color: #101820;
-}
-html[data-theme="summer"] .share-card .sc-kicker i { background: #1f93c8; }
-html[data-theme="summer"] .share-card .sc-brand::before { border-radius: 999px; height: 4px; }
-
-/* ============================================================
    CALM MODE · IDENTITY PLATE
    ------------------------------------------------------------
    The calm page puts the identity cluster on one compact plate so the
@@ -453,122 +404,380 @@ html[data-theme="summer"] {
 }
 
 /* ============================================================
-   CARD CHARACTER · SUMMER
+   CARD CHARACTER · SUMMER · 数字理性夏日（Owner 设计宪法，见 CARD-DESIGN §3）
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   瑞士国际主义 + 数字科技 + 酸性设计：白纸蓝图网格 + 两根荧光黄
+   竖线画框（左缘出血、右缘内收制造向内挤压）+ 巨黑块白字标题 +
+   酸黄块黑字中文（微压黑块底边）+ 等宽 kicker/数据行（日期行上方
+   一根克制的蓝色短横线）+ 科技蓝斜线/圆弧/右下像素棋盘格。
+   封面照片 = 期刊图版（蓝框 + 墨色硬偏移影）。
    ============================================================ */
 
-/* Summer postcard: a photo taped to the card, lime tape, a round hours
-   badge and a lot of white. */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
-  inset: 64px 64px auto auto;
-  width: 42%;
-  height: 58%;
-  border: 14px solid #ffffff;
-  box-shadow: 0 24px 50px -24px rgba(16, 24, 32, .45);
-  transform: rotate(-2.4deg);
-}
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-wash { display: none; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet {
-  inset: 0;
-  padding: 76px;
-}
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 64px 0 auto 76px; right: 46%; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 30px;
-  margin-top: auto;
-  max-width: 48%;
-}
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score {
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: #e2f53c;
-  border: 2px solid #101820;
-  box-shadow: 8px 8px 0 rgba(31, 147, 200, .9);
-  padding: 0;
-}
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours { gap: 6px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 74px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder { display: none; }
-/* A round badge holds two lines; the milestone sentence belongs to the
-   dossier, not to a 250px circle. */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier { display: none; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score { padding: 0 26px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-deco::before {
-  content: '';
-  position: absolute;
-  right: 34%;
-  top: 52px;
-  width: 170px;
-  height: 40px;
-  background: rgba(226, 245, 60, .92);
-  transform: rotate(-4deg);
-  box-shadow: 0 6px 14px -8px rgba(16, 24, 32, .4);
+html[data-theme="summer"] .share-card {
+  --sc-ink: #101820;
+  --sc-ink-2: #17739f;
+  --sc-bg: #ffffff;
+  --sc-frame-w: 0;
+  --sc-strip-h: 0px;
+  --sc-radius: 0px;
+  --sc-title-font: "Segoe UI", "思源黑体", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  --sc-label-font: "Cascadia Mono", "Consolas", "JetBrains Mono", "Courier New", monospace;
+  --sc-num-font: "Segoe UI", "思源黑体", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  --sc-label-transform: none;
+  --sc-label-tracking: .1em;
 }
 
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 56px 70px auto auto;
-  width: 50%;
-  height: 460px;
-  border: 16px solid #ffffff;
-  box-shadow: 0 26px 54px -26px rgba(16, 24, 32, .45);
-  transform: rotate(1.8deg);
+/* ---------- 共享原料 ---------- */
+
+/* 纸面（网格/斜线/圆弧/棋盘格全部画在 wash 里，逐变体覆写） */
+html[data-theme="summer"] .share-card .sc-wash {
+  background-color: #ffffff;
+}
+
+/* 双荧光黄竖线画框：左缘出血 + 右缘内收（向内挤压势能） */
+html[data-theme="summer"] .share-card .sc-deco::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  background: #e8f21f;
+}
+html[data-theme="summer"] .share-card .sc-deco::after {
+  content: "";
+  position: absolute;
+  right: 118px;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  background: #e8f21f;
+}
+
+/* 期刊图版（封面照片）：蓝框 + 墨色硬偏移影 */
+html[data-theme="summer"] .share-card .sc-art {
+  box-sizing: border-box;
+  border: 4px solid #17739f;
+  border-radius: 0;
+  transform: none;
+  box-shadow: 10px 10px 0 rgba(16, 24, 32, .92);
   z-index: 4;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 150px 64px 52px; }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-frame {
-  inset: 26px;
-  height: auto;
-  border-color: #9cc6d9;
+
+/* 黑块巨题（白字）与酸黄块中文（黑字，微压黑块底边） */
+html[data-theme="summer"] .share-card .sc-title {
+  display: inline-block;
+  max-width: 100%;
+  background: #101820;
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.14;
+  padding: 10px 22px 14px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-id { max-width: 40%; }
+html[data-theme="summer"] .share-card .sc-zh {
+  display: inline-block;
+  position: relative;
+  margin: -12px 0 0 34px;
+  background: #e8f21f;
+  color: #101820;
+  font-family: "Segoe UI", "思源黑体", "Source Han Sans SC", sans-serif;
+  font-weight: 800;
+  letter-spacing: .06em;
+  padding: 7px 18px 9px;
+}
+html[data-theme="summer"] .share-card .sc-kicker {
+  color: #17739f;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .26em;
+}
+html[data-theme="summer"] .share-card .sc-kicker i { background: #e8f21f; box-shadow: 0 0 0 1px #101820; border-radius: 0; }
+html[data-theme="summer"] .share-card .sc-kicker em,
+html[data-theme="summer"] .share-card .sc-sign em { color: #17739f; }
+html[data-theme="summer"] .share-card .sc-tagline {
+  color: #17739f;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 44ch;
+}
+/* 数据行：上方一根克制的蓝色短横线（微排版点睛） */
+html[data-theme="summer"] .share-card .sc-meta {
+  color: #17739f;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 14px;
+  letter-spacing: .08em;
+}
+html[data-theme="summer"] .share-card .sc-meta::before {
+  content: "";
+  display: block;
+  width: 210px;
+  height: 3px;
+  background: #17739f;
+  margin-bottom: 12px;
+}
+html[data-theme="summer"] .share-card .sc-meta em { color: #17739f; opacity: 1; }
+html[data-theme="summer"] .share-card .sc-meta .sc-age,
+html[data-theme="summer"] .share-card .sc-meta .sc-plat {
+  color: #101820;
+  border: 1.5px solid #17739f;
+  border-radius: 0;
+  background: transparent;
+}
+html[data-theme="summer"] .share-card .sc-label {
+  color: #17739f;
+  font-size: 12px;
+  font-weight: 700;
+}
+html[data-theme="summer"] .share-card .sc-tier { color: #17739f; font-family: inherit; }
+html[data-theme="summer"] .share-card .sc-fact span { color: #17739f; }
+html[data-theme="summer"] .share-card .sc-fact b { color: #101820; }
+html[data-theme="summer"] .share-card .sc-fact b em { color: #17739f; }
+html[data-theme="summer"] .share-card .sc-foot {
+  color: #101820;
+  border-top: 2px solid #101820;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+}
+html[data-theme="summer"] .share-card .sc-foot i { background: #17739f; opacity: 1; border-radius: 0; }
+html[data-theme="summer"] .share-card .sc-sign { color: #101820; letter-spacing: .1em; }
+
+/* dossier 页脚与数据列去重（全局项） */
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+
+/* 导出态：隐藏 theme.css 的 body 装饰（网点网格 + 双色条会串进截卡） */
+html[data-theme="summer"][data-share-export] body::before,
+html[data-theme="summer"][data-share-export] body::after { display: none; }
+
+/* 里程碑阶梯：安静细轨 + 酸黄点亮（描墨边保定义） */
+html[data-theme="summer"] .share-card .sc-ladder i {
+  height: 5px;
+  border: 0;
+  border-radius: 0;
+  background: rgba(16, 24, 32, .16);
+  align-self: end;
+}
+html[data-theme="summer"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  background: #e8f21f;
+  box-shadow: inset 0 0 0 1px rgba(16, 24, 32, .85);
+  border-color: #e8f21f;
+}
+html[data-theme="summer"] .share-card .sc-ladder i.is-next { border-color: #17739f; box-shadow: none; }
+
+/* 时长数字：黑块白字（em 小字酸黄） */
+html[data-theme="summer"] .share-card .sc-hours {
+  display: inline-block;
+  background: #101820;
+  color: #ffffff;
+  padding: 6px 16px 10px;
+  margin-top: 6px;
+}
+html[data-theme="summer"] .share-card .sc-hours b { color: #ffffff; }
+html[data-theme="summer"] .share-card .sc-hours em { color: #e8f21f; }
+
+/* ============================================================
+   POSTER 1600×900 —— 期刊封面
+   左中黑块巨题 + 酸黄中文压边，右侧期刊图版，蓝图网格/斜线/
+   圆弧铺满，右下棋盘格，双黄竖线画框。
+   ============================================================ */
+
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-wash {
+  background-image:
+    repeating-conic-gradient(rgba(120, 170, 205, .32) 0 25%, #ffffff 0 50%),
+    linear-gradient(61deg, transparent 49.7%, rgba(33, 150, 214, .5) 50%, transparent 50.3%),
+    linear-gradient(-24deg, transparent 49.6%, rgba(33, 150, 214, .45) 50%, transparent 50.4%),
+    radial-gradient(circle at 78% 4%, transparent 0 268px, rgba(33, 150, 214, .55) 269px 272px, transparent 273px),
+    radial-gradient(circle at 97% 42%, transparent 0 178px, rgba(33, 150, 214, .45) 179px 182px, transparent 183px),
+    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px);
+  background-position: right 64px bottom 52px, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+  background-size: 230px 160px, auto, auto, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0;
+  padding: 96px 200px 44px 84px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main { max-width: 830px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-title { font-size: 64px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-zh { font-size: 28px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tagline { margin-top: 14px; }
+/* 数据行收成一行：平台标签和 kicker 的「Steam · 日期」是同一个信息，
+   留着会把这一行挤成两行、还在行尾吊一个孤立的分隔点。给这一行 500px，
+   借用右侧 72px 栏距的空档（数据块从 614 起，仍留 30px 气口），
+   字号收到 13px 让四段信息落在一行内。 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta {
+  margin-top: 18px;
+  width: 500px;
+  font-size: 13px;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta .sc-plat { display: none; }
+/* 只掐掉平台标签前面那一个分隔点（用 :has 精确点名，避免误伤
+   普通分隔符——不重定义 --sc-plate 的代价是这里要收尾）。 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-meta em:has(+ .sc-plat) { display: none; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
+  left: 930px;
+  top: 120px;
+  width: 550px;
+  height: 580px;
+}
+/* 数据块：纸面主题不该有玻璃底板。夏天是白纸 + 墨规 + 色块，
+   而共享层的 poster 底板是 rgba(10,13,19,.62) 的深色玻璃（为压住
+   深封面而设），叠在白纸上就糊成一块灰板——夏天是唯一没重定义
+   --sc-plate 的主题，所以只有它露出来。这里整块去掉底板，改成一列
+   瑞士制表：左对齐、顶部一道蓝规、标签前挂酸黄小方块（与 kicker、
+   品牌行同族），数字自己那块黑底已经负责「压得住」。 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score {
+  margin-top: auto;
+  width: 300px;
+  max-width: 760px;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 3px solid #17739f;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  align-items: flex-start;
+  text-align: left;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-label::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  flex: none;
+  background: #e8f21f;
+  box-shadow: inset 0 0 0 1px #101820;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours em { font-size: 14px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder {
+  width: 100%;
+  margin: 16px 0 0;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier {
+  margin: 10px 0 0;
+}
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-foot { margin-top: 18px; padding-top: 14px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 50px 160px auto 60px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-brand { color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-brand::before { background: #e8f21f; box-shadow: 0 0 0 1.5px #101820; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-no { color: #17739f; }
+
+/* ============================================================
+   DOSSIER 1200×1500 —— 期刊专题页
+   上段图版横陈，下段制表：黑块标题 + 酸黄中文 + 等宽数据行 +
+   台账虚线行 + 巨额时长（黄块黑字）。
+   ============================================================ */
+
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-wash {
+  background-image:
+    repeating-conic-gradient(rgba(120, 170, 205, .32) 0 25%, #ffffff 0 50%),
+    linear-gradient(58deg, transparent 49.7%, rgba(33, 150, 214, .45) 50%, transparent 50.3%),
+    radial-gradient(circle at 108% 30%, transparent 0 208px, rgba(33, 150, 214, .5) 209px 212px, transparent 213px),
+    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px);
+  background-position: right 64px bottom 60px, 0 0, 0 0, 0 0, 0 0;
+  background-size: 230px 160px, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
+}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::after { right: 96px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 726px 90px 44px 84px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-art {
+  left: 84px;
+  top: 108px;
+  width: 928px;
+  height: 556px;
+}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-kicker { margin-top: 6px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-title { font-size: 54px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-zh { font-size: 26px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-meta { margin-top: 16px; }
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-score {
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  border-top: 2px solid #1f93c8;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 2px solid #101820;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px 46px;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::before {
-  content: '';
-  position: absolute;
-  right: 30%;
-  top: 42px;
-  width: 150px;
-  height: 34px;
-  background: rgba(226, 245, 60, .92);
-  transform: rotate(-3.5deg);
-}
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-score > :is(.sc-label, .sc-hours, .sc-ladder, .sc-tier) { grid-column: 1; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-facts { grid-column: 2; grid-row: 1 / span 4; display: grid; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-fact { padding: 9px 0; border-bottom: 1.5px solid rgba(23, 115, 159, .45); }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours { background: #e8f21f; color: #101820; padding: 8px 18px 12px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours b { color: #101820; font-size: 84px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours em { color: #101820; font-size: 15px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 16px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot { margin-top: auto; padding-top: 14px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-top { inset: 50px 130px auto 60px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-brand { color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-brand::before { background: #e8f21f; box-shadow: 0 0 0 1.5px #101820; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-no { color: #17739f; }
 
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-art {
-  inset: 70px 70px 70px auto;
-  width: 34%;
-  border-radius: 50%;
-  border: 14px solid #e2f53c;
-  box-shadow: 0 26px 60px -30px rgba(16, 24, 32, .5);
+/* ============================================================
+   SCORE 1600×840 —— 封底数据页
+   左栏黑块标题 + 数据行 + 黄块巨额时长 + 里程碑，右上图版，
+   棋盘格/圆弧收尾。
+   ============================================================ */
+
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-wash {
+  background-image:
+    repeating-conic-gradient(rgba(120, 170, 205, .32) 0 25%, #ffffff 0 50%),
+    linear-gradient(-32deg, transparent 49.7%, rgba(33, 150, 214, .45) 50%, transparent 50.3%),
+    radial-gradient(circle at 100% -8%, transparent 0 238px, rgba(33, 150, 214, .5) 239px 242px, transparent 243px),
+    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px);
+  background-position: right 64px bottom 52px, 0 0, 0 0, 0 0, 0 0;
+  background-size: 230px 160px, auto, auto, auto, auto;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
 }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-deco::after { right: 118px; }
 html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0 40% 0 0;
-  padding: 64px 60px 48px;
-  background: #ffffff;
-  border-left: 0;
+  inset: 0;
+  padding: 60px 210px 40px 84px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
 }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 56px auto auto 60px; }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
-
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet::after {
-  content: attr(data-no);
-  position: absolute;
-  right: 60px;
-  top: 520px;
-  font: 700 260px/1 var(--sc-title-font);
-  color: rgba(16, 24, 32, .07);
-  z-index: -1;
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-main,
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-score { max-width: 700px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-title { font-size: 50px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-zh { font-size: 24px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-meta { margin-top: 14px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-art {
+  left: 890px;
+  top: 120px;
+  width: 520px;
+  height: 440px;
 }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-score { margin-top: 18px; padding-top: 16px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours { background: #e8f21f; color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours b { color: #101820; font-size: 96px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours em { color: #101820; font-size: 15px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-facts { display: grid; margin-top: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-fact { padding: 7px 0; border-bottom: 1.5px solid rgba(23, 115, 159, .45); }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-ladder { margin-top: 12px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-foot { margin-top: auto; padding-top: 12px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 50px 160px auto 60px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-brand { color: #101820; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-brand::before { background: #e8f21f; box-shadow: 0 0 0 1.5px #101820; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-no { color: #17739f; }

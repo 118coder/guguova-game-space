@@ -391,99 +391,317 @@ html[data-theme="zerohour"] {
 /* ============================================================
    CARD CHARACTER · ZEROHOUR
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   终帧（intro-zh2「CRT 信号接入」）：#07080b 玻璃屏、荧光青柠
+   #c6ff2e 屏框、黑扫描线、信号条、切角面板、酸柠硬偏移字。
+   卡片把封面装进 CRT：屏框 + 暗角 + 扫描线 + 玻璃反光，文案
+   面板切角带信号条，标题与时长压青柠硬影，里程碑翻成青柠色带；
+   青蓝 #59e3ff 只做次级信号，黄色只留给警示。
    ============================================================ */
 
-/* Command console: a black rail on the left with a lime edge, brackets,
-   scanlines and a mission readout. */
-html[data-theme="zerohour"] .share-card .sc-deco {
-  background-image: repeating-linear-gradient(0deg, rgba(198, 255, 46, .05) 0 1px, transparent 1px 4px);
+/* 里程碑阶梯：0/21 的空档收成待机细轨（无边框、极淡青柠），
+   点亮的档位青柠实色加高，读作信号段；.is-next 保留共享 inset 描边。 */
+html[data-theme="zerohour"] .share-card .sc-ladder i {
+  height: 6px;
+  border: 0;
+  background: rgba(198, 255, 46, .14);
 }
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-art { inset: 0 0 0 52%; }
+html[data-theme="zerohour"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: #c6ff2e;
+}
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-ladder i.is-on { height: 14px; }
+
+/* dossier 页脚去重：.sc-facts 已含「启动次数 / 上次游玩」，
+   页脚只留收藏与签名行。 */
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) {
+  display: none;
+}
+
+/* 顶缘警示条：应用的 body::after 是 fixed 警示带（z300），截卡时
+   贴着画布顶边像被裁切——导出态整条下线，改由卡片自带一条留边
+   警示带（见各变体的 .sc-deco::before）。 */
+html[data-theme="zerohour"][data-share-export] body::after { display: none; }
+/* 卡内警示带：完整落在卡内、左右留边，不贴画布边。收薄到 6px 并抬到
+   10px，让下方 CRT 屏体的机壳上沿有独立气口，不被读成「屏幕的顶边框」。 */
+html[data-theme="zerohour"] .share-card .sc-deco::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 44px;
+  right: 44px;
+  height: 6px;
+  background: repeating-linear-gradient(-45deg, #ffe600 0 10px, #0a0b0c 10px 20px);
+}
+
+/* 信号灯方点 / 标题硬偏移 / 里程碑色带 / 时码挂牌 */
+html[data-theme="zerohour"] .share-card .sc-kicker i {
+  width: 7px;
+  height: 7px;
+  border-radius: 0;
+  box-shadow: 0 0 10px rgba(198, 255, 46, .55);
+}
+html[data-theme="zerohour"] .share-card .sc-title {
+  text-shadow: 4px 4px 0 rgba(198, 255, 46, .9);
+}
+html[data-theme="zerohour"] .share-card .sc-tier {
+  display: inline-block;
+  width: auto;
+  max-width: none;
+  margin-left: 0;
+  padding: 5px 14px 6px;
+  background: #c6ff2e;
+  color: #0a0b0c;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+html[data-theme="zerohour"] .share-card .sc-ladder i.is-next {
+  box-shadow: inset 0 0 0 1px #c6ff2e, 0 0 12px rgba(198, 255, 46, .45);
+}
+html[data-theme="zerohour"] .share-card .sc-no {
+  padding: 5px 12px;
+  background: rgba(8, 9, 10, .88);
+  border: 1px solid rgba(198, 255, 46, .45);
+  color: #f1efe7;
+}
+
+/* --- poster · 左侧任务面板 + 右侧 CRT 信号画面 --- */
+/* CRT 屏框：右/下不再全出血——屏体收进卡内留边，深灰机壳描边
+   + 青柠玻璃内线，让「屏幕」读得出。上沿比左右多让 8px：警示带与
+   机壳之间留出气口，否则屏顶会被读成被警示带压住（旧 40px 时只剩
+   13px，且机壳色 #0d0f11 与页面 #0a0b0c 几乎同色、读不出边）。 */
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-art {
+  inset: 48px 40px 40px 44%;
+  border: 2px solid #262b2e;
+  box-shadow:
+    inset 0 0 0 2px rgba(198, 255, 46, .14),
+    0 0 0 7px #151a1c,
+    0 0 0 8px #3b444a,
+    0 26px 60px -26px rgba(0, 0, 0, .9);
+}
 html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-wash {
-  inset: 0 0 0 52%;
-  background-image: linear-gradient(90deg, #0a0b0c 0%, rgba(10, 11, 12, .55) 18%, rgba(10, 11, 12, .15) 60%);
+  inset: 48px 40px 40px 44%;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .42) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
+    radial-gradient(120% 96% at 60% 42%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .58) 100%),
+    repeating-linear-gradient(135deg, rgba(198, 255, 46, 0) 0 9px, rgba(198, 255, 46, .1) 9px 10px),
+    radial-gradient(52% 36% at 66% 6%, rgba(198, 255, 46, .12), rgba(198, 255, 46, 0) 70%),
+    radial-gradient(64% 34% at 58% 106%, rgba(89, 227, 255, .14), rgba(89, 227, 255, 0) 72%);
+  background-size: cover, cover, cover, cover, cover;
 }
 html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-sheet {
-  inset: 0 48% 0 0;
-  padding: 64px 44px 44px;
-  background: rgba(8, 9, 10, .82);
+  inset: 0 44% 0 0;
+  padding: 60px 120px 44px 48px;
+  background: #0a0b0c;
   border-right: 2px solid #c6ff2e;
+  clip-path: polygon(0 0, 100% 0, 100% 84%, 90% 100%, 0 100%);
 }
 html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-top { inset: 52px 48px auto 48px; }
 html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr);
-  gap: 26px;
+  gap: 24px;
   margin-top: auto;
 }
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-id { padding-left: 22px; border-left: 3px solid #c6ff2e; }
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-title { font-size: 62px; }
 html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-score {
   align-items: flex-start;
   text-align: left;
-  padding: 16px 18px 14px;
-  border: 1px solid rgba(198, 255, 46, .45);
-  background: rgba(10, 11, 12, .7);
+  padding: 16px 20px 14px;
+  border: 1px solid rgba(198, 255, 46, .5);
+  border-radius: 0;
+  background: rgba(8, 9, 10, .88);
+  box-shadow: none;
 }
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-ladder,
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-facts {
-  display: grid;
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-hours b {
+  font-size: 88px;
+  text-shadow: 3px 3px 0 rgba(198, 255, 46, .8);
+}
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-ladder { width: 100%; margin-left: 0; }
+/* 信号条：面板顶部的接入指示（青柠 / 青蓝 / 纸白轮替） */
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-sheet::before {
+  content: '';
   position: absolute;
   left: 48px;
-  right: 48px;
   top: 112px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0 18px;
+  width: 207px;
+  height: 20px;
+  background:
+    linear-gradient(#f1efe7, #f1efe7) no-repeat 0 0 / 32px 20px,
+    linear-gradient(#c6ff2e, #c6ff2e) no-repeat 35px 0 / 32px 20px,
+    linear-gradient(#59e3ff, #59e3ff) no-repeat 70px 0 / 32px 20px,
+    linear-gradient(#f1efe7, #f1efe7) no-repeat 105px 0 / 32px 20px,
+    linear-gradient(#c6ff2e, #c6ff2e) no-repeat 140px 0 / 32px 20px,
+    linear-gradient(#59e3ff, #59e3ff) no-repeat 175px 0 / 32px 20px;
 }
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-fact b { font-size: 15px; }
-html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-facts :is(span, b) {
-  font-family: var(--font-mono, var(--font-ui));
+/* 任务读数：填信号条与标题之间的纯黑段；三行收口，给两行标题
+   预留余量（基线 §2.5），不与上浮的标题相撞。 */
+html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-sheet::after {
+  content: '任务读数 MISSION FEED\A 信号强度 ■■■■□ · 锁定\A 载波 CH 01 · 电平 -6dB';
+  position: absolute;
+  left: 48px;
+  top: 164px;
+  padding: 14px 18px;
+  border: 1px solid rgba(198, 255, 46, .32);
+  white-space: pre-line;
+  font: 600 12px/2.2 var(--font-ui);
+  letter-spacing: .1em;
+  color: #9fb0a3;
 }
 
+/* --- dossier · 整屏 CRT + 档案页 --- */
 html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-art {
   inset: 44px 44px auto 44px;
-  height: 430px;
-  border: 1px solid rgba(198, 255, 46, .35);
+  height: 690px;
+  border: 1px solid rgba(198, 255, 46, .5);
 }
-html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-wash {
+  inset: 44px 44px auto 44px;
+  height: 690px;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .42) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
+    radial-gradient(120% 96% at 50% 42%, rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, .55) 100%),
+    var(--sc-top-veil),
+    radial-gradient(52% 34% at 62% 8%, rgba(198, 255, 46, .1), rgba(198, 255, 46, 0) 70%),
+    radial-gradient(60% 30% at 50% 104%, rgba(89, 227, 255, .12), rgba(89, 227, 255, 0) 72%);
+  background-size: cover, cover, cover, cover, cover;
+}
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 30px 30px auto 30px;
+  height: 718px;
+  border: 1px solid rgba(198, 255, 46, .4);
+  --sc-frame-inner: rgba(198, 255, 46, .16);
+  --sc-frame-inner-inset: 8px;
+}
 html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-sheet {
-  inset: 0;
-  padding: 530px 56px 48px;
-  background: rgba(8, 9, 10, .92);
+  inset: 748px 0 0;
+  padding: 42px 56px 48px;
+  background: #0a0b0c;
+  border-top: 2px solid #c6ff2e;
+  box-shadow: none;
 }
 html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-top { inset: 56px 56px auto; }
-html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-frame { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-title { font-size: 56px; }
+/* 长标题安全：identity 列限宽，换行不侵入右栏接入日志。 */
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-id { max-width: 660px; }
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-hours b {
+  font-size: 118px;
+  text-shadow: 3px 3px 0 rgba(198, 255, 46, .8);
+}
 html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-score {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   border-top: 1px solid rgba(198, 255, 46, .3);
 }
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-fact span { color: #59e3ff; }
+/* 事实栏纵向撑满所在行，收掉日志板与数据块之间的黑档。 */
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-facts {
+  align-self: stretch;
+  align-content: space-between;
+}
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-sheet::before {
+  content: '';
+  position: absolute;
+  left: 56px;
+  top: 14px;
+  width: 207px;
+  height: 20px;
+  background:
+    linear-gradient(#f1efe7, #f1efe7) no-repeat 0 0 / 32px 20px,
+    linear-gradient(#c6ff2e, #c6ff2e) no-repeat 35px 0 / 32px 20px,
+    linear-gradient(#59e3ff, #59e3ff) no-repeat 70px 0 / 32px 20px,
+    linear-gradient(#f1efe7, #f1efe7) no-repeat 105px 0 / 32px 20px,
+    linear-gradient(#c6ff2e, #c6ff2e) no-repeat 140px 0 / 32px 20px,
+    linear-gradient(#59e3ff, #59e3ff) no-repeat 175px 0 / 32px 20px;
+}
+/* 接入日志：屏下右半原来是一整块纯黑（页码重复且无内容）——
+   页码去重后，这块改挂接入日志，与左栏文案齐平。 */
+html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: '接入日志 FEED LOG\A 23:58　信号接入 · CH 01\A 00:00　画面稳定 · 载波 -52dB\A 00:24　监看 A/B 切换\A 00:47　时码入带 · 帧率 60\A 01:06　备份带就位\A 01:30　驻留监看中';
+  position: absolute;
+  right: 56px;
+  top: 90px;
+  width: 434px;
+  padding: 12px 16px;
+  border: 1px solid rgba(198, 255, 46, .3);
+  white-space: pre-line;
+  font: 600 12px/2.2 var(--font-ui);
+  letter-spacing: .08em;
+  color: #9fb0a3;
+}
 
+/* --- score · 监视器面板 + 战绩面板 --- */
 html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-art {
-  inset: 48px auto auto 48px;
-  width: 260px;
-  height: 160px;
-  border: 1px solid rgba(198, 255, 46, .4);
-  z-index: 4;
+  inset: 48px auto 48px 48px;
+  width: 32%;
+  border: 1px solid rgba(198, 255, 46, .5);
 }
-html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-wash {
+  inset: 48px auto 48px 48px;
+  width: 32%;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .42) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
+    radial-gradient(120% 96% at 50% 42%, rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, .55) 100%),
+    radial-gradient(56% 38% at 66% 10%, rgba(198, 255, 46, .12), rgba(198, 255, 46, 0) 70%),
+    radial-gradient(64% 34% at 50% 106%, rgba(89, 227, 255, .14), rgba(89, 227, 255, 0) 72%);
+  background-size: cover, cover, cover, cover;
+}
 html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0;
-  padding: 268px 56px 44px;
-  background: #0a0b0c;
+  padding: 128px 64px 44px;
 }
-html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-top { inset: 52px 56px auto; }
-html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-top { inset: 52px 64px auto 40%; }
+/* 信号条：数据栏上缘 */
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 664px;
+  top: 104px;
+  width: 207px;
+  height: 16px;
+  background:
+    linear-gradient(#f1efe7, #f1efe7) no-repeat 0 0 / 32px 16px,
+    linear-gradient(#c6ff2e, #c6ff2e) no-repeat 35px 0 / 32px 16px,
+    linear-gradient(#59e3ff, #59e3ff) no-repeat 70px 0 / 32px 16px,
+    linear-gradient(#f1efe7, #f1efe7) no-repeat 105px 0 / 32px 16px,
+    linear-gradient(#c6ff2e, #c6ff2e) no-repeat 140px 0 / 32px 16px,
+    linear-gradient(#59e3ff, #59e3ff) no-repeat 175px 0 / 32px 16px;
+}
 html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-main {
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: 44px;
   align-items: end;
 }
-html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
-html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-ladder i.is-on,
-html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-ladder i.is-next {
-  box-shadow: 0 0 12px rgba(198, 255, 46, .55);
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-id { align-self: end; }
+/* 左栏轻量遥测：三行读数垫住标题上方的黑档，层级低于右栏读数板。 */
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-id::before {
+  content: 'CH 01 · 主监看\A B 磁带 · 备援就绪\A 时码 00:47:12';
+  display: block;
+  margin: 0 0 30px;
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid rgba(198, 255, 46, .35);
+  white-space: pre-line;
+  font: 600 12px/2.1 var(--font-ui);
+  letter-spacing: .12em;
+  color: #7d8a80;
+}
+/* 任务读数：右栏原先只有 y 42-66% 一段内容——读数板垫高右栏，
+   把数据栏铺到信号条下方。 */
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-score {
+  align-self: stretch;
+}
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-score::before {
+  content: '任务读数 MISSION FEED\A 信号强度 ■■■■□ · 锁定\A 载波 CH 01 · 电平 -6dB\A 磁带 02 · B 面待命\A 帧同步 60Hz · 稳定';
+  display: block;
+  margin: 0 0 30px;
+  padding: 14px 18px;
+  border: 1px solid rgba(198, 255, 46, .32);
+  white-space: pre-line;
+  font: 600 12px/2.2 var(--font-ui);
+  letter-spacing: .1em;
+  color: #9fb0a3;
+}
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-title { font-size: 48px; }
+html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-hours b {
+  font-size: 150px;
+  text-shadow: 4px 4px 0 rgba(198, 255, 46, .8);
 }

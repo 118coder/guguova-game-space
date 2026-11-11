@@ -374,112 +374,360 @@ html[data-theme="broadcast"] {
 /* ============================================================
    CARD CHARACTER · BROADCAST
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   终帧（intro-bc「调频播出」）：#101010 信号夜、频率刻度盘与
+   指针、扫描线、ON AIR 灯、宽字距粗标。卡片排成一张播出单：
+   照片是当班播出画面（扫描线压顶、刻度盘收底），下方 rundown
+   纸面排标题与数据，ON AIR 灯挂角、时码入牌。
    ============================================================ */
 
-/* Broadcast still: 4:3 frame with sprockets, a lower-third band, a time
-   code, and a rundown sheet underneath. */
-html[data-theme="broadcast"] .share-card .sc-deco {
-  background: none;
+/* 时码挂牌 */
+html[data-theme="broadcast"] .share-card .sc-no {
+  padding: 5px 12px;
+  border: 1px solid #141414;
+  background: #f3f3f0;
+  color: #141414;
+  font-weight: 700;
 }
+/* 里程碑入框（rundown 栏目框） */
+html[data-theme="broadcast"] .share-card .sc-tier {
+  align-self: flex-start;
+  padding: 4px 12px 5px;
+  border: 1px solid #141414;
+}
+
+/* 里程碑阶梯：0/21 的空档收成安静细轨（去边框、6px 高、极淡墨），
+   像待播的空档；已点亮的档位用 REC 红实色并加高，读作阶梯。 */
+html[data-theme="broadcast"] .share-card .sc-ladder i {
+  height: 6px;
+  border: 0;
+  background: rgba(16, 16, 16, .14);
+}
+html[data-theme="broadcast"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: var(--prog-fill, #8f2b2b);
+}
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-ladder i.is-on {
+  height: 14px;
+}
+
+/* 小号灰标签加深：档案页的 10px 字段签在暖白纸面上要压得住。 */
+html[data-theme="broadcast"] .share-card :is(.sc-kicker, .sc-label, .sc-fact span, .sc-meta) {
+  color: #3d3d3a;
+}
+
+/* dossier 页脚去重：.sc-facts 已含「启动次数 / 上次游玩」，
+   页脚只留收藏与签名行。 */
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) {
+  display: none;
+}
+
+/* --- poster · 播出画面 + 下方 rundown --- */
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-art {
-  inset: 0 0 38% 0;
-  border-bottom: 6px solid #141414;
+  inset: 0 0 auto 0;
+  height: 54%;
 }
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-wash {
-  inset: 0 0 38% 0;
-  background-image: linear-gradient(180deg, rgba(20, 20, 20, .1), rgba(20, 20, 20, .42));
+  inset: 0 0 auto 0;
+  height: 54%;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px, rgba(16, 16, 16, 0) 1px 4px),
+    linear-gradient(180deg, rgba(16, 16, 16, .05) 40%, rgba(16, 16, 16, .52) 100%),
+    var(--sc-top-veil);
+  background-size: cover, cover, cover;
 }
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-sheet {
-  inset: 62% 0 0;
-  padding: 40px 56px 40px;
+  inset: 54% 0 0;
+  padding: 36px 64px 36px;
   background: #f3f3f0;
-  border-top: 0;
+  border-top: 2px solid #141414;
 }
-html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-top { inset: 44px 56px auto; }
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-top { inset: 44px 64px auto; }
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-kicker { margin-bottom: 14px; }
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-title {
+  font-size: 48px;
+  letter-spacing: .03em;
+}
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-zh { margin-top: 10px; }
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-tagline {
+  margin-top: 10px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-meta { margin-top: 14px; }
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-main {
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 44px;
   align-items: end;
 }
-html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-title { font-size: 58px; }
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-score {
-  border-left: 1px solid #141414;
-  padding-left: 24px;
+  border: 0;
+  border-left: 2px solid #141414;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0 0 0 26px;
 }
-html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-hours b { font-size: 78px; }
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-hours b { font-size: 84px; }
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-ladder,
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; max-width: none; }
-html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-deco::before {
-  content: 'REC';
-  position: absolute;
-  left: auto;
-  right: 150px;
-  top: 40px;
-  padding-left: 24px;
-  font: 800 13px/1 var(--font-ui);
-  letter-spacing: .2em;
-  color: #f3f3f0;
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-foot {
+  border-top: 2px solid #141414;
+  padding-top: 14px;
+  margin-top: 16px;
 }
+/* ON AIR 灯：暗红字压暗红封面读不出，改挂暖白小牌——红字落白底，
+   灯罩描墨线，红晕保留在牌外。 */
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-deco::before {
+  content: 'ON AIR';
+  position: absolute;
+  right: 220px;
+  top: 40px;
+  padding: 8px 16px 9px;
+  background: #f2efe7;
+  color: #8f2b2b;
+  font: 800 14px/1 var(--font-ui);
+  letter-spacing: .24em;
+  box-shadow: 0 0 0 1px #141414, 0 0 18px rgba(143, 43, 43, .5);
+}
+/* rundown 报眉：纸面顶端加一行播出单栏目行，配重上半段空纸。 */
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-sheet::before {
+  content: 'RUNDOWN · CH ' attr(data-no);
+  position: absolute;
+  left: 64px;
+  top: 40px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(20, 20, 20, .4);
+  font: 700 13px/1 var(--font-ui);
+  letter-spacing: .3em;
+  color: #141414;
+}
+/* 播出时码牌：rundown 报眉右端挂当班时码，和左端的栏目行成一对，
+   收掉纸面右上角那块空白（终帧里时码是入牌的，不是裸字）。 */
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-sheet::after {
+  content: 'TC 00:47:12';
+  position: absolute;
+  right: 64px;
+  top: 34px;
+  padding: 6px 14px 7px;
+  border: 1px solid #141414;
+  background: #f3f3f0;
+  font: 700 13px/1 var(--font-ui);
+  letter-spacing: .22em;
+  color: #141414;
+}
+/* 调频读数：刻度尺左端（dossier 同款口径），把「电视感」扳回调频。
+   只写读数，不动尺标本体。 */
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-frame::after {
+  content: 'FM 98.6 · 87.5 — 108.0 MHz';
+  position: absolute;
+  inset: auto;
+  left: 20px;
+  top: 380px;
+  width: auto;
+  border: 0;
+  font: 700 12px/1 var(--font-ui);
+  letter-spacing: .22em;
+  color: rgba(242, 239, 231, .92);
+}
+/* 频率刻度盘 + 指针：压画面底缘 */
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-deco::after {
   content: '';
   position: absolute;
-  left: auto;
-  right: 164px;
-  top: 41px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #c8342c;
-  box-shadow: 0 0 0 3px rgba(200, 52, 44, .28);
+  left: 0;
+  right: 0;
+  top: 450px;
+  height: 36px;
+  border-top: 1px solid rgba(242, 239, 231, .5);
+  background:
+    linear-gradient(#f2efe7, #f2efe7) no-repeat 62% 0 / 3px 26px,
+    repeating-linear-gradient(90deg, rgba(242, 239, 231, .7) 0 1px, rgba(242, 239, 231, 0) 1px 26px);
 }
 
+/* --- dossier · 监视器画框 + rundown 档案 --- */
 html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 40px 40px auto 40px;
-  height: 520px;
-  border-bottom: 5px solid #141414;
+  inset: 104px 46px auto 46px;
+  height: 640px;
 }
 html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-wash {
-  inset: 40px 40px auto 40px;
-  height: 520px;
-  background-image: linear-gradient(180deg, rgba(20, 20, 20, .08), rgba(20, 20, 20, .4));
+  inset: 104px 46px auto 46px;
+  height: 640px;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px, rgba(16, 16, 16, 0) 1px 4px),
+    linear-gradient(180deg, rgba(16, 16, 16, .08) 30%, rgba(16, 16, 16, .48) 100%);
+  background-size: cover, cover;
+}
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 98px 40px auto 40px;
+  height: 652px;
+  border: 2px solid #141414;
 }
 html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-sheet {
-  inset: 560px 0 0;
-  padding: 44px 56px 56px;
+  inset: 790px 0 0;
+  padding: 44px 64px 48px;
   background: #f3f3f0;
+  border-top: 2px solid #141414;
+  box-shadow: none;
 }
-html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-top { inset: 48px 56px auto; }
-html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-frame { display: none; }
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-top { inset: 58px 76px auto; }
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-title { font-size: 56px; }
 html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-score {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   border-top: 2px solid #141414;
 }
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 118px; }
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: 'CH ' attr(data-no);
+  position: absolute;
+  right: 64px;
+  top: 16px;
+  font: 700 120px/1 var(--sc-title-font);
+  letter-spacing: .04em;
+  color: rgba(20, 20, 20, .08);
+  z-index: -1;
+}
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: 'ON AIR';
+  position: absolute;
+  right: 64px;
+  top: 122px;
+  padding: 8px 16px 9px;
+  background: #f2efe7;
+  color: #8f2b2b;
+  font: 800 14px/1 var(--font-ui);
+  letter-spacing: .24em;
+  box-shadow: 0 0 0 1px #141414, 0 0 18px rgba(143, 43, 43, .5);
+}
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 46px;
+  right: 46px;
+  top: 710px;
+  height: 34px;
+  border-top: 1px solid rgba(242, 239, 231, .5);
+  background:
+    linear-gradient(#f2efe7, #f2efe7) no-repeat 62% 0 / 3px 24px,
+    repeating-linear-gradient(90deg, rgba(242, 239, 231, .7) 0 1px, rgba(242, 239, 231, 0) 1px 26px);
+}
+/* 调频读数：挂在刻度尺左端，把「电视感」扳回调频。 */
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-frame::after {
+  content: 'FM 87.5 — 108.0 MHz';
+  position: absolute;
+  inset: auto;
+  left: 14px;
+  bottom: 12px;
+  width: auto;
+  border: 0;
+  font: 700 12px/1 var(--font-ui);
+  letter-spacing: .22em;
+  color: rgba(242, 239, 231, .92);
+}
+/* 数据块与页脚拉开：底部留出档案页的页脚气口。 */
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 14px; }
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-tier { margin-top: 8px; }
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-score { padding-bottom: 30px; }
+html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-sheet { padding-bottom: 56px; }
 
+/* --- score · 监视器面板 + 数据面板 --- */
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-art {
-  inset: 44px 44px auto 44px;
-  height: 300px;
-  border-bottom: 5px solid #141414;
-  z-index: 4;
+  inset: 44px auto 44px 44px;
+  width: 33%;
 }
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-wash {
-  inset: 44px 44px auto 44px;
-  height: 300px;
-  background-image: linear-gradient(180deg, rgba(20, 20, 20, .06), rgba(20, 20, 20, .34));
+  inset: 44px auto 44px 44px;
+  width: 33%;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px, rgba(16, 16, 16, 0) 1px 4px),
+    linear-gradient(180deg, rgba(16, 16, 16, .08) 30%, rgba(16, 16, 16, .48) 100%);
+  background-size: cover, cover;
+}
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-frame {
+  inset: 38px 1022px 38px 38px;
+  border: 2px solid #141414;
 }
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0;
-  padding: 380px 56px 44px;
+  padding: 120px 64px 44px;
   background: #f3f3f0;
+  border-left: 2px solid #141414;
 }
-html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-top { inset: 52px 56px auto; }
-html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-top { inset: 52px 64px auto 40%; }
+/* 刻度盘收在数据栏上缘 */
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-sheet::before {
+  content: '';
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  width: auto;
+  top: 100px;
+  height: 26px;
+  border-top: 1px solid rgba(20, 20, 20, .55);
+  background:
+    linear-gradient(#141414, #141414) no-repeat 62% 0 / 3px 22px,
+    repeating-linear-gradient(90deg, rgba(20, 20, 20, .6) 0 1px, rgba(20, 20, 20, 0) 1px 26px);
+}
+/* 调频读数：挂在刻度尺左端上方（尺标本体在 .sc-sheet::before 上，
+   读数用 .sc-id::after 绝对定位到同一栏，左端与尺标齐口）。
+   放右端会被页号码牌压掉，实测裁字。 */
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-id::after {
+  content: 'FM 98.6 · 87.5 — 108.0 MHz';
+  position: absolute;
+  left: 64px;
+  top: 78px;
+  font: 700 12px/1 var(--font-ui);
+  letter-spacing: .22em;
+  color: #3d3d3a;
+}
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-main {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 44px;
   align-items: end;
+  margin: auto 0 0;
+}
+/* 播出日志：接住刻度尺下的空档，rundown 行填数据栏上段。 */
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-id::before {
+  content: '播出日志 LOG\A 23:52　信号校准 · 电平 -6dB\A 23:58　转播车上线 · 备份带就位\A 00:00　正式开播\A 00:47　第一段时码入带\A 01:30　收看峰值 · 4.2 万人';
+  display: block;
+  margin: 0 0 40px;
+  padding: 14px 0 2px 18px;
+  border-left: 3px solid #141414;
+  white-space: pre-line;
+  font: 600 13px/2.3 var(--font-ui);
+  letter-spacing: .08em;
+  color: #3d3d3a;
+}
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-title {
+  font-size: 46px;
+  letter-spacing: .03em;
 }
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-hours b { font-size: 140px; }
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-sheet::after {
+  content: 'CH ' attr(data-no);
+  position: absolute;
+  right: 64px;
+  top: 170px;
+  font: 700 150px/1 var(--sc-title-font);
+  letter-spacing: .04em;
+  color: rgba(20, 20, 20, .07);
+  z-index: -1;
+}
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-foot {
+  border-top: 2px solid #141414;
+  padding-top: 14px;
+  margin-top: 20px;
+}
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-deco::before {
+  content: 'ON AIR';
+  position: absolute;
+  left: 60px;
+  top: 60px;
+  padding: 8px 16px 9px;
+  background: #8f2b2b;
+  color: #f3f3f0;
+  font: 800 14px/1 var(--font-ui);
+  letter-spacing: .24em;
+  box-shadow: 0 0 0 1px rgba(243, 243, 240, .35), 0 0 18px rgba(143, 43, 43, .45);
+}

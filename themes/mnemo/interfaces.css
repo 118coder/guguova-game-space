@@ -364,114 +364,393 @@ html[data-theme="mnemo"] {
    answers with its own composition. Geometry lives in
    src/share-cards.css; this block moves the artwork, re-shapes the
    sheet and adds the theme's decoration.
+
+   终帧（intro-mn 神秘管理局档案地图）：月紫纸 #f0edf6 + 72px 紫
+   网格、墨 #241f33、梅红 #9b3550、琥珀 #c99b3f、紫罗兰 #5b4a8c。
+   母题：梅红印章块（900 白字、右下切角、白左粗边、-45° 斜纹、
+   8px 硬偏移影）、地图双环（实线紫 + 虚线梅红 + 白晕节点）、空
+   心描边幽灵字、等宽字段、三色顶条。
+   卡片即「管理局的解密档案」：封面 = 贴着相片的档案，档位 = 印章。
    ============================================================ */
 
-/* Archive folder: a tab at the top left, a clipped photograph, typed rows
-   with dotted leaders and an index stamp. */
+/* 顶缘装饰条：三色顶条整条下线（见下），共享层预留位归零。 */
+html[data-theme="mnemo"] .share-card {
+  --sc-strip-h: 0px;
+}
+/* 卡片上缘那条品红/蓝/黄细条其实是应用层的顶缘装饰（theme.css 的
+   body::after，fixed + z300）：截卡时被画布顶边裁切、右端断在视口
+   边缘，像 riso 的语言串了进来。导出态整条隐藏它——只作用于
+   share-export，应用本体不受影响。 */
+html[data-theme="mnemo"][data-share-export] body::after {
+  display: none;
+}
+/* 分类色条：原来的品红/蓝/黄三色顶条是 riso 的语言（且被画布顶边
+   裁切、右端似断），intro-mn 没有它——整条删除，换成管理局自己的
+   梅红分类窄带：全宽、完整落在卡内、不贴边。 */
+html[data-theme="mnemo"] .share-card::before {
+  top: 36px;
+  height: 6px;
+  left: 48px;
+  right: 48px;
+  background: #9b3550;
+}
+/* 眉标 = 档案字段芯片（intro-mn-kicker）。 */
+html[data-theme="mnemo"] .share-card .sc-kicker {
+  align-self: flex-start;
+  justify-self: start;
+  padding: 3px 8px 4px;
+  border: 1px solid #9b3550;
+  background: rgba(155, 53, 80, .08);
+  color: #9b3550;
+  letter-spacing: .14em;
+}
+/* 档位 = 梅红印章（intro-mn-mark：900 白字 + 右下切角）。 */
+html[data-theme="mnemo"] .share-card .sc-tier {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 5px 12px 6px;
+  background: #9b3550;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .14em;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+/* 里程碑阶梯：0/21 的空档收成安静细轨（去边框、6px 高、极淡紫），
+   像未归档的空格；已点亮的档位用梅红实色并加高。 */
+html[data-theme="mnemo"] .share-card .sc-ladder i {
+  height: 6px;
+  border: 0;
+  background: rgba(91, 74, 140, .16);
+}
+html[data-theme="mnemo"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: #9b3550;
+}
+/* 地图双环：实线紫环（intro-mn-map::before）+ 虚线梅红内环与
+   白晕节点（::after），从照片后探出。 */
+html[data-theme="mnemo"] .share-card .sc-deco::before {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(91, 74, 140, .34);
+  box-shadow: inset 0 0 0 34px rgba(91, 74, 140, .035), inset 0 0 0 35px rgba(91, 74, 140, .2);
+}
+html[data-theme="mnemo"] .share-card .sc-deco::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dashed rgba(155, 53, 80, .24);
+  background:
+    radial-gradient(circle at 50% 95%, rgba(240, 237, 246, .9) 0 8px, rgba(155, 53, 80, .28) 9px 10px, transparent 11px),
+    radial-gradient(circle at 50% 95%, #9b3550 0 5px, transparent 6px),
+    radial-gradient(circle at 97% 81%, rgba(240, 237, 246, .9) 0 8px, rgba(155, 53, 80, .28) 9px 10px, transparent 11px),
+    radial-gradient(circle at 97% 81%, #9b3550 0 5px, transparent 6px),
+    radial-gradient(circle at 31% 56%, rgba(240, 237, 246, .9) 0 10px, rgba(155, 53, 80, .3) 11px 12px, transparent 13px),
+    radial-gradient(circle at 31% 56%, #ffffff 0 8px, #9b3550 8px 9px, transparent 10px);
+}
+
+/* -- POSTER · 解密档案 -----------------------------------------
+   月紫网格纸打底，封面右上斜贴成档案相片；梅红双环地图从相片后
+   探出。左下身份区纵排；时长坐在紫罗兰「DECRYPTED」解密板上
+   （斜纹叠印 + 琥珀左粗边 + 硬偏移影），档位盖梅红印章。 */
 html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-art {
   inset: 56px 56px auto auto;
   width: 40%;
   height: 56%;
+  z-index: 5;
   border: 1px solid rgba(91, 74, 140, .45);
   box-shadow: 10px 10px 0 rgba(91, 74, 140, .12);
   transform: rotate(.8deg);
 }
 html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-wash { display: none; }
-html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-sheet { inset: 0; padding: 96px 60px 52px; }
-html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-top { inset: 72px 60px auto; right: 46%; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0;
+  padding: 96px 60px 52px;
+  background-image:
+    linear-gradient(rgba(91, 74, 140, .1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 74, 140, .1) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-top {
+  inset: 72px 60px auto;
+  right: 46%;
+}
 html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
+  gap: 22px;
   margin-top: auto;
   max-width: 52%;
 }
+/* 解密板（intro-mn-error.is-ok：紫底斜纹 + 琥珀左粗边 + 切角）。
+   共享 poster 给 .sc-score 自带白底板，这里整体重置，改由 ::before
+   画解密板（z -1 落到纸面，文字浮在上层）。 */
 html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-score {
-  align-items: flex-start;
+  position: relative;
+  align-items: stretch;
   text-align: left;
-  padding: 16px 0 0;
-  border-top: 1px dashed rgba(91, 74, 140, .4);
+  width: 100%;
+  max-width: 580px;
+  padding: 18px 22px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
-html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-hours b { font-size: 92px; }
-html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-ladder,
-html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
-html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-deco::before {
-  content: 'ARCHIVE';
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-score::before {
+  content: '';
   position: absolute;
-  left: 96px;
-  top: 24px;
-  padding: 5px 22px 6px;
-  border-radius: 8px 8px 0 0;
-  background: #e4dfee;
-  border: 1px solid rgba(91, 74, 140, .3);
-  font: 700 11px/1 var(--font-ui);
-  letter-spacing: .24em;
-  color: #5d5673;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 132px;
+  background:
+    repeating-linear-gradient(-45deg, rgba(251, 249, 253, .08) 0 6px, transparent 6px 12px),
+    #5b4a8c;
+  border-left: 10px solid #c99b3f;
+  box-shadow: 8px 8px 0 rgba(36, 31, 51, .16);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-score .sc-label { color: rgba(251, 249, 253, .78); }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-hours {
+  color: #ffffff;
+}
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-hours em { color: rgba(251, 249, 253, .78); }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-ladder { margin-top: 28px; }
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-foot { padding-right: 40px; }
+/* 双环地图从相片后探出（相片 z5 > 环 z4）。 */
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-deco::before {
+  left: 910px;
+  top: 240px;
+  width: 480px;
+  height: 480px;
+}
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-deco::after {
+  left: 970px;
+  top: 300px;
+  width: 360px;
+  height: 360px;
+}
+/* FILE 01 空心幽灵编号（poster 此前缺失），垫在题区上方的空档里。 */
+html[data-theme="mnemo"] .share-card[data-variant="poster"] .sc-sheet::after {
+  content: 'FILE ' attr(data-no);
+  position: absolute;
+  right: calc(46% + 40px);
+  top: 112px;
+  font: 700 100px/1 var(--sc-label-font);
+  letter-spacing: .06em;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(91, 74, 140, .28);
+  z-index: -1;
 }
 
+/* -- DOSSIER · 档案卷宗 ----------------------------------------
+   上段档案相片横陈（双环地图从上缘探出），下段纸面：等宽字段身份
+   区、巨型时长 + 21 格里程碑 + 梅红印章档位，四项事实收成虚线
+   档案行；FILE 01 空心幽灵编号垫在纸下。 */
 html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 64px 64px auto auto;
-  width: 44%;
-  height: 430px;
+  inset: 128px 64px auto 64px;
+  height: 470px;
+  z-index: 5;
   border: 1px solid rgba(91, 74, 140, .45);
   box-shadow: 10px 10px 0 rgba(91, 74, 140, .12);
-  z-index: 4;
 }
 html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
-html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 110px 64px 52px; }
-html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-id { max-width: 42%; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 640px 64px 52px;
+  background-color: #fbf9fd;
+  background-image:
+    linear-gradient(rgba(91, 74, 140, .1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 74, 140, .1) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-top {
+  inset: 72px 64px auto 64px;
+  right: auto;
+  width: 560px;
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-title { font-size: 54px; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-zh { margin-top: 10px; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-tagline { margin-top: 10px; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-meta { margin-top: 16px; }
 html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-score {
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0 44px;
+  padding-top: 24px;
   border-top: 1px dashed rgba(91, 74, 140, .4);
 }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 116px; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 20px; }
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-facts {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: 24px;
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-fact {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 13px 2px 12px;
+  border-top: 1px dashed rgba(91, 74, 140, .35);
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-fact:last-child {
+  border-bottom: 1px dashed rgba(91, 74, 140, .35);
+}
+/* FILE 01 空心幽灵编号（intro-mn-hollow 的描边字）：从右下数据列
+   （曾与「0/21 / 刚刚」相撞）挪到标题行右侧的空区，与标题同排。 */
 html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-sheet::after {
   content: 'FILE ' attr(data-no);
   position: absolute;
   right: 64px;
-  top: 520px;
-  font: 700 96px/1 var(--sc-label-font);
+  top: 660px;
+  font: 700 100px/1 var(--sc-label-font);
   letter-spacing: .06em;
-  color: rgba(91, 74, 140, .14);
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(91, 74, 140, .28);
   z-index: -1;
 }
-html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-deco::before {
-  content: 'ARCHIVE';
+/* 标题区与数据区之间的 350px 空网格，用管理局档案语言填实：
+   密级行 + 档案说明行 + 时间戳行（琥珀左粗边呼应解密板）。 */
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-sheet::before {
+  content: '密级 普密 · 阅览权限 全员 · 复核 管理局第七科\A档案说明 —— 本页记录启动档与 21 格里程碑进度，跨档需复核换发。\A归档时间 —— 导出日建档 · 档号 FILE ' attr(data-no);
   position: absolute;
-  left: 100px;
-  top: 28px;
-  padding: 6px 24px 7px;
-  border-radius: 10px 10px 0 0;
-  background: #e4dfee;
-  border: 1px solid rgba(91, 74, 140, .3);
-  font: 700 12px/1 var(--font-ui);
-  letter-spacing: .24em;
-  color: #5d5673;
+  left: 64px;
+  right: 64px;
+  top: 920px;
+  padding: 14px 18px 15px;
+  border: 1px dashed rgba(91, 74, 140, .4);
+  border-left: 6px solid #9b3550;
+  background: rgba(155, 53, 80, .05);
+  white-space: pre-line;
+  font: 600 12px/1.9 var(--sc-label-font);
+  letter-spacing: .08em;
+  color: rgba(36, 31, 51, .8);
+}
+/* 双环地图从相片上缘后探出（相片 z5 > 环 z4）。 */
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-deco::before {
+  left: 900px;
+  top: 20px;
+  width: 280px;
+  height: 280px;
+}
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-deco::after {
+  left: 940px;
+  top: 60px;
+  width: 200px;
+  height: 200px;
 }
 
-/* Score: an index card — rows, a stamp, a big figure. */
+/* -- SCORE · 案头索引卡 ----------------------------------------
+   左上档案相片，双环地图从相片右上后探出；右下主区双栏：左身份、
+   右紫罗兰解密板（巨型白字时长）+ 里程碑 + 梅红印章档位。 */
 html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-art {
   inset: 64px auto auto 64px;
-  width: 250px;
-  height: 156px;
+  width: 30%;
+  height: 300px;
+  z-index: 5;
   border: 1px solid rgba(91, 74, 140, .45);
-  z-index: 4;
+  box-shadow: 10px 10px 0 rgba(91, 74, 140, .12);
 }
 html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-wash { display: none; }
 html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-sheet {
   inset: 0;
-  padding: 250px 64px 48px;
+  padding: 420px 64px 48px;
+  background-color: #fbf9fd;
+  background-image:
+    linear-gradient(rgba(91, 74, 140, .1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 74, 140, .1) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+/* 品牌行自带纸面小色带作地面：原品牌字直接压在封面相片上
+   （深藏青压暗棕不可读）。 */
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-brand {
+  padding: 5px 12px 6px;
   background: #fbf9fd;
-  --sc-sheet-bg: #fbf9fd;
+  border: 1px solid rgba(91, 74, 140, .4);
+}
+/* 右上 FILE 01 与数据板之间的空网格，用等宽档案字段行配重。
+   （共享层此处是 4px 竖脊线：width/bottom/background 一并复位。） */
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-sheet::before {
+  content: '档号 FILE ' attr(data-no) ' · 密级 普密 · 阅览权限 全员 · 解密状态 已解密\A归档时间 —— 导出日建档 · 复核 管理局第七科';
+  position: absolute;
+  left: 572px;
+  right: 64px;
+  top: 280px;
+  bottom: auto;
+  width: auto;
+  background: rgba(155, 53, 80, .06);
+  padding: 12px 16px 13px;
+  border-top: 1px dashed rgba(91, 74, 140, .4);
+  border-bottom: 1px dashed rgba(91, 74, 140, .4);
+  white-space: pre-line;
+  font: 600 12px/1.8 var(--sc-label-font);
+  letter-spacing: .1em;
+  color: rgba(36, 31, 51, .78);
 }
 html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-top { inset: 72px 64px auto; }
-html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-title { font-size: 50px; }
 html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-main {
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 44px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: 0 44px;
   align-items: end;
+  margin-top: 26px;
 }
-html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-hours b { font-size: 140px; }
-html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 26px;
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-score {
+  position: relative;
+  padding: 16px 20px 0;
 }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-score::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 142px;
+  background:
+    repeating-linear-gradient(-45deg, rgba(251, 249, 253, .08) 0 6px, transparent 6px 12px),
+    #5b4a8c;
+  border-left: 10px solid #c99b3f;
+  box-shadow: 8px 8px 0 rgba(36, 31, 51, .16);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-score .sc-label { color: rgba(251, 249, 253, .78); }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-hours { color: #ffffff; }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-hours em { color: rgba(251, 249, 253, .78); }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-hours b { font-size: 112px; }
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-ladder { margin-top: 22px; }
+/* 双环地图从相片右上后探出。 */
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-deco::before {
+  left: 394px;
+  top: 50px;
+  width: 300px;
+  height: 300px;
+}
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-deco::after {
+  left: 434px;
+  top: 90px;
+  width: 220px;
+  height: 220px;
+}
+/* FILE 01 空心幽灵编号（sheet 水印钩子，垫在纸下）。 */
+html[data-theme="mnemo"] .share-card[data-variant="score"] .sc-sheet::after {
+  content: 'FILE ' attr(data-no);
+  position: absolute;
+  right: 64px;
+  top: 124px;
+  font: 700 96px/1 var(--sc-label-font);
+  letter-spacing: .06em;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(91, 74, 140, .28);
+  z-index: -1;
+}
+
+/* dossier 页脚与数据列去重：sc-foot 的「启动/上次游玩」与 sc-facts 重复 */
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="mnemo"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }

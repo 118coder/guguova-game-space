@@ -309,168 +309,424 @@ html[data-theme="nightflight"] {
 }
 
 /* ============================================================
-   CARD CHARACTER · NIGHTFLIGHT
+   CARD CHARACTER · NIGHTFLIGHT · 向开场终帧（intro-nf）看齐
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   终帧语言：深夜蓝天 + 蓝色经纬网 + 荧光虚线航线与地平线 +
+   翻牌格（深格、细蓝边、格底荧光透光）+ 等宽航班行 +
+   米白登机牌（虚线撕口 + 条码票根）。
+   卡片 = 三种票据与屏面：
+     poster   米白登机牌 + 圆形舷窗封面 + 票根条码
+     dossier  居中舷窗封面 + 登机牌资料页
+     score    整卡离港信息板：翻牌格封面 + 荧光大数字
    ============================================================ */
 
-/* Night flight: a paper boarding pass with a dashed seam, a window on the
-   cover, mono data rows and a barcode at the bottom. */
+/* ---- 墨色与材质：夜空为底，登机牌为面，荧光航线为信号 ---- */
+html[data-theme="nightflight"] .share-card {
+  --sc-bg: #04070d;
+  --sc-ink: #e9edf2;
+  --sc-ink-2: #93a6b8;
+  --sc-rule: #1c3348;
+  --sc-accent: #d9ff45;
+  --sc-accent-ink: #101400;
+  --sc-plate: rgba(10, 15, 20, .9);
+  --sc-plate-line: #2f5474;
+  --sc-sheet-bg: #f4f0e0;
+  --sc-sheet-line: #b8b09a;
+  --sc-radius: 0;
+  --sc-scrim-rgb: 4, 7, 13;
+  --sc-veil: linear-gradient(180deg, rgba(4, 7, 13, .72) 0%, rgba(7, 16, 28, .3) 30%, rgba(4, 7, 13, .8) 78%, #04070d 100%);
+  --sc-veil-x: linear-gradient(90deg, rgba(4, 7, 13, .85) 0%, rgba(7, 16, 28, .35) 38%, #04070d 92%);
+  --sc-frame-line: #2f5474;
+  --sc-frame-w: 1px;
+  --sc-frame-inset: 22px;
+  --sc-frame-inner: transparent;
+  --sc-strip-h: 0px;
+  --sc-title-font: var(--font-mono);
+  --sc-title-weight: 700;
+  --sc-title-tracking: .01em;
+  --sc-title-size: 58px;
+  --sc-title-size-dossier: 50px;
+  --sc-title-size-score: 42px;
+  --sc-label-font: var(--font-mono);
+  --sc-label-tracking: .16em;
+  --sc-num-font: var(--font-mono);
+  --sc-num-tracking: 0;
+  --sc-track: #16293c;
+}
+
+/* 米白登机牌：票面的墨色整套换深，橄榄绿做票面信号色 */
 html[data-theme="nightflight"] .share-card .sc-sheet {
   --sc-ink: #0a0f14;
   --sc-ink-2: #3b4652;
   --sc-rule: #c9c2ad;
-  --sc-plate: #efe9d6;
+  --sc-plate: #e7e1cd;
   --sc-plate-line: #b8b09a;
   --sc-accent: #6f8a12;
-  --sc-accent-ink: #f4f0e0;
+  --sc-track: #ded5bd;
+  color: #0a0f14;
   background: #f4f0e0;
+  border: 1px solid #b8b09a;
 }
-html[data-theme="nightflight"] .share-card .sc-brand,
-html[data-theme="nightflight"] .share-card .sc-no { color: #0a0f14; }
-html[data-theme="nightflight"] .share-card .sc-brand::before { background: #6f8a12; }
+/* 虚线撕口 + 右侧票根 */
+html[data-theme="nightflight"] .share-card .sc-sheet::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 156px;
+  width: 0;
+  border-left: 2px dashed rgba(47, 84, 116, .6);
+  background: none;
+  pointer-events: none;
+}
 
+/* ---- 通用修正 ------------------------------------------------
+   1) dossier 页脚去重：sc-foot 的「启动次数 / 上次游玩」与 sc-facts
+      数据列重复，dossier 变体整组隐藏（保留收藏与签名）。
+   2) 0/21 阶梯空节点：空档收成安静细轨（去边框、6px 高、极淡蓝灰，
+      底边对齐成轨），已点亮档位用主题信号色加高；is-next 保留共享层
+      的 inset 描边。 */
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+html[data-theme="nightflight"] .share-card .sc-ladder i {
+  height: 6px;
+  align-self: end;
+  border: 0;
+  background: rgba(59, 70, 82, .22);
+}
+html[data-theme="nightflight"] .share-card .sc-ladder i.is-on {
+  height: 13px;
+  border: 0;
+  background: var(--prog-fill, var(--sc-accent));
+}
+
+/* 翻牌格母题（intro-nf split-flap）：大数字压在一块深蓝翻牌上——
+   #0a0f14 底 + 1px #1c3348 边 + 2px 圆角，格底一条荧光透光，
+   数字用荧光色，像离港板翻出来的字。三张变体共用。
+   分格：上半亮 / 下半暗的翻牌明暗差 + 一条 1px 中缝横线贯穿
+   数字中部，让「翻牌」读得出来。 */
+html[data-theme="nightflight"] .share-card .sc-hours {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 14px;
+  position: relative;
+  padding: 10px 26px 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .05) 0 50%, rgba(0, 0, 0, .24) 50% 100%),
+    #0a0f14;
+  border: 1px solid #1c3348;
+  border-radius: 2px;
+  color: #e9edf2;
+  box-shadow: inset 0 -3px 0 rgba(217, 255, 69, .16), 0 18px 40px -28px #000;
+}
+/* split-flap 中缝：横贯数字正中（内容带几何中心，不吃上下 padding） */
+html[data-theme="nightflight"] .share-card .sc-hours::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(10px + (100% - 26px) / 2);
+  height: 1px;
+  background: rgba(255, 255, 255, .1);
+}
+html[data-theme="nightflight"] .share-card .sc-hours b { color: #d9ff45; }
+html[data-theme="nightflight"] .share-card .sc-hours em { color: #93a6b8; }
+
+/* 开场天幕：经纬网 + 虚线航线 + 星点，原样搬上卡片底 */
+html[data-theme="nightflight"] .share-card[data-variant="poster"] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000'%3E%3Cg stroke='%236fa8ff' stroke-width='1' opacity='.06'%3E%3Cpath d='M0 160h1600M0 320h1600M0 480h1600M0 640h1600M0 800h1600M0 960h1600'/%3E%3Cpath d='M160 0v1000M320 0v1000M480 0v1000M640 0v1000M800 0v1000M960 0v1000M1120 0v1000M1280 0v1000M1440 0v1000'/%3E%3C/g%3E%3Cpath d='M-40 820 C 300 742 520 512 760 410 S 1240 218 1660 128' stroke='%23d9ff45' stroke-width='9' stroke-dasharray='2 11' fill='none' opacity='.2'/%3E%3Cpath d='M-40 820 C 300 742 520 512 760 410 S 1240 218 1660 128' stroke='%23d9ff45' stroke-width='2.5' stroke-dasharray='2 11' fill='none' opacity='1'/%3E%3Cg fill='%23f4f0e0'%3E%3Ccircle cx='120' cy='148' r='1.4' opacity='.6'/%3E%3Ccircle cx='236' cy='72' r='1' opacity='.45'/%3E%3Ccircle cx='318' cy='196' r='1.6' opacity='.7'/%3E%3Ccircle cx='404' cy='110' r='1.1' opacity='.5'/%3E%3Ccircle cx='488' cy='58' r='1.3' opacity='.6'/%3E%3Ccircle cx='642' cy='96' r='1.5' opacity='.66'/%3E%3Ccircle cx='728' cy='42' r='1.1' opacity='.5'/%3E%3Ccircle cx='812' cy='132' r='1.3' opacity='.58'/%3E%3Ccircle cx='896' cy='76' r='1' opacity='.44'/%3E%3Ccircle cx='978' cy='184' r='1.4' opacity='.62'/%3E%3Ccircle cx='1064' cy='102' r='1.2' opacity='.52'/%3E%3Ccircle cx='1148' cy='48' r='1.5' opacity='.66'/%3E%3Ccircle cx='1234' cy='156' r='1' opacity='.42'/%3E%3Ccircle cx='1320' cy='88' r='1.3' opacity='.56'/%3E%3Ccircle cx='1406' cy='192' r='1.1' opacity='.48'/%3E%3Ccircle cx='1488' cy='64' r='1.4' opacity='.6'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
+    linear-gradient(180deg, #07101c 0%, #04070d 58%, #03060a 100%);
+}
+
+/* -- POSTER · 登机牌 + 舷窗 ------------------------------------
+   左侧一整张米白登机牌承载文字（撕口右侧是条码票根），封面装进
+   右侧圆形舷窗，跑道中线从卡底掠过。 */
 html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-art {
-  inset: 28px 28px 28px auto;
-  width: 33%;
-  border-left: 3px dashed #2f5474;
+  inset: 150px 84px auto auto;
+  width: 560px;
+  height: 560px;
+  border: 12px solid #f4f0e0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #2f5474, 0 0 0 3px rgba(217, 255, 69, .22), 0 34px 70px -34px #000;
 }
 html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-wash {
-  inset: 28px 28px 28px auto;
-  width: 33%;
-  background-image: linear-gradient(180deg, rgba(4, 7, 13, .1), rgba(4, 7, 13, .3));
+  inset: 150px 84px auto auto;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background-image:
+    radial-gradient(circle at 32% 24%, rgba(111, 168, 255, .16), transparent 58%),
+    linear-gradient(205deg, rgba(4, 7, 13, .12) 0%, rgba(4, 7, 13, .46) 86%);
 }
 html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-sheet {
-  inset: 28px 34% 28px 28px;
-  padding: 44px 48px 100px;
+  inset: 64px auto 64px 64px;
+  width: 880px;
+  padding: 56px 208px 44px 52px;
+  box-shadow: 0 40px 90px -40px #000, inset 0 0 60px rgba(111, 168, 255, .07);
 }
-html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-top { inset: 52px auto auto 48px; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-top { inset: 116px 864px auto 116px; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-brand,
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-no { color: #0a0f14; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-brand::before { background: #6f8a12; }
 html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
+  gap: 0;
   margin-top: auto;
 }
-html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-title { font-size: 62px; }
 html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-score {
   align-items: flex-start;
   text-align: left;
+  margin-top: 22px;
   padding: 16px 0 0;
-  border-top: 1px dashed #b8b09a;
+  background: transparent;
+  border: 0;
+  border-top: 2px dashed #b8b09a;
+  box-shadow: none;
 }
-html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-hours b { font-size: 92px; }
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
 html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-ladder,
 html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
-html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-facts {
-  display: grid;
-  position: absolute;
-  left: 48px;
-  right: 48px;
-  top: 150px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-frame {
+  inset: 22px;
+  border: 1px dashed rgba(47, 84, 116, .8);
 }
-html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-fact b { font-family: var(--font-mono); font-size: 17px; }
-html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-foot {
-  position: absolute;
-  left: 48px;
-  right: 48px;
-  bottom: 40px;
-  border-top: 0;
-  padding-top: 0;
-}
-html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-deco::after {
+/* 票根条码 */
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-deco::before {
   content: '';
   position: absolute;
-  left: 48px;
-  bottom: 96px;
-  width: 220px;
-  height: 30px;
+  left: 812px;
+  bottom: 100px;
+  width: 72px;
+  height: 230px;
   background: repeating-linear-gradient(90deg, #0a0f14 0 2px, transparent 2px 5px,
     #0a0f14 5px 6px, transparent 6px 11px);
 }
+/* 票根航班行：撕口右侧的票根补航班信息（等宽小字，逐行 pre-line）；
+   左缘距中缝虚线 24px（≥16），不再贴着撕口 */
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-sheet::after {
+  content: 'FLT  NF-0101\ASEAT  14A\AGATE  C07\AMILE  14.5K';
+  position: absolute;
+  top: 132px;
+  right: 26px;
+  width: 106px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 2.1;
+  letter-spacing: .08em;
+  color: #0a0f14;
+  white-space: pre-line;
+  text-align: left;
+}
+/* 跑道中线掠过卡底：收进票页下缘与虚线框之间的净空带 */
+html[data-theme="nightflight"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 72px;
+  right: 72px;
+  bottom: 40px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(217, 255, 69, .75) 0 30px, transparent 30px 64px);
+}
 
+/* -- DOSSIER · 舷窗登机牌 --------------------------------------
+   封面装进居中的圆形舷窗，下方登机牌资料页收全部记录，
+   条码落在票根里，跑道中线压在卡底留白上。 */
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000'%3E%3Cg stroke='%236fa8ff' stroke-width='1' opacity='.06'%3E%3Cpath d='M0 160h1600M0 320h1600M0 480h1600M0 640h1600M0 800h1600M0 960h1600'/%3E%3Cpath d='M160 0v1000M320 0v1000M480 0v1000M640 0v1000M800 0v1000M960 0v1000M1120 0v1000M1280 0v1000M1440 0v1000'/%3E%3C/g%3E%3Cpath d='M-40 820 C 300 742 520 512 760 410 S 1240 218 1660 128' stroke='%23d9ff45' stroke-width='9' stroke-dasharray='2 11' fill='none' opacity='.2'/%3E%3Cpath d='M-40 820 C 300 742 520 512 760 410 S 1240 218 1660 128' stroke='%23d9ff45' stroke-width='2.5' stroke-dasharray='2 11' fill='none' opacity='1'/%3E%3Cg fill='%23f4f0e0'%3E%3Ccircle cx='120' cy='148' r='1.4' opacity='.6'/%3E%3Ccircle cx='236' cy='72' r='1' opacity='.45'/%3E%3Ccircle cx='318' cy='196' r='1.6' opacity='.7'/%3E%3Ccircle cx='404' cy='110' r='1.1' opacity='.5'/%3E%3Ccircle cx='488' cy='58' r='1.3' opacity='.6'/%3E%3Ccircle cx='642' cy='96' r='1.5' opacity='.66'/%3E%3Ccircle cx='728' cy='42' r='1.1' opacity='.5'/%3E%3Ccircle cx='812' cy='132' r='1.3' opacity='.58'/%3E%3Ccircle cx='896' cy='76' r='1' opacity='.44'/%3E%3Ccircle cx='978' cy='184' r='1.4' opacity='.62'/%3E%3Ccircle cx='1064' cy='102' r='1.2' opacity='.52'/%3E%3Ccircle cx='1148' cy='48' r='1.5' opacity='.66'/%3E%3Ccircle cx='1234' cy='156' r='1' opacity='.42'/%3E%3Ccircle cx='1320' cy='88' r='1.3' opacity='.56'/%3E%3Ccircle cx='1406' cy='192' r='1.1' opacity='.48'/%3E%3Ccircle cx='1488' cy='64' r='1.4' opacity='.6'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
+    linear-gradient(180deg, #07101c 0%, #04070d 58%, #03060a 100%);
+}
 html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 36px 36px auto 36px;
-  height: 520px;
-  border-bottom: 3px dashed #2f5474;
+  inset: 110px auto auto calc(50% - 280px);
+  width: 560px;
+  height: 560px;
+  border: 12px solid #f4f0e0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #2f5474, 0 0 0 3px rgba(217, 255, 69, .22), 0 34px 70px -34px #000;
 }
 html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-wash {
-  inset: 36px 36px auto 36px;
-  height: 520px;
-  background-image: linear-gradient(180deg, rgba(4, 7, 13, 0), rgba(4, 7, 13, .28));
+  inset: 110px auto auto calc(50% - 280px);
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background-image:
+    radial-gradient(circle at 32% 24%, rgba(111, 168, 255, .16), transparent 58%),
+    linear-gradient(205deg, rgba(4, 7, 13, .12) 0%, rgba(4, 7, 13, .46) 86%);
 }
 html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-sheet {
-  inset: 520px 0 0;
-  padding: 48px 64px 110px;
+  inset: 768px 72px 72px;
+  padding: 40px 208px 36px 52px;
 }
-html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-top { inset: 44px 64px auto; }
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-top { inset: 48px 76px auto 76px; }
 html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-frame {
   inset: 22px;
   height: auto;
-  border-color: #2f5474;
+  border: 1px dashed rgba(47, 84, 116, .8);
 }
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-score {
+  padding-top: 18px;
+  border-top: 2px dashed #b8b09a;
+}
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 112px; }
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  right: 108px;
+  bottom: 104px;
+  width: 76px;
+  height: 230px;
+  background: repeating-linear-gradient(90deg, #0a0f14 0 2px, transparent 2px 5px,
+    #0a0f14 5px 6px, transparent 6px 11px);
+}
+/* 票根航班行：右侧票根补航班信息（等宽小字） */
+html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: 'FLT  NF-0101\ASEAT  14A\AGATE  C07\AMILE  14.5K';
+  position: absolute;
+  top: 96px;
+  right: 28px;
+  width: 120px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 2.1;
+  letter-spacing: .08em;
+  color: #0a0f14;
+  white-space: pre-line;
+  text-align: left;
+}
+/* 跑道中线压在卡底留白上：左右收进卡内，不再被画布下缘裁断 */
 html[data-theme="nightflight"] .share-card[data-variant="dossier"] .sc-deco::after {
   content: '';
   position: absolute;
-  left: 64px;
-  right: 64px;
-  bottom: 44px;
-  height: 40px;
-  background: repeating-linear-gradient(90deg, #0a0f14 0 3px, transparent 3px 7px,
-    #0a0f14 7px 8px, transparent 8px 15px);
+  left: 88px;
+  right: 88px;
+  bottom: 52px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(217, 255, 69, .75) 0 30px, transparent 30px 64px);
 }
 
-/* Score: the split-flap departure board. */
+/* -- SCORE · 离港信息板 ----------------------------------------
+   整卡就是终帧的信息板：荧光顶条、深蓝屏面，封面装进左侧翻牌格
+   （蓝线分格 + 格底荧光透光），大数字落在深色翻牌上。 */
+html[data-theme="nightflight"] .share-card[data-variant="score"] {
+  --sc-strip-h: 4px;
+  --sc-strip: #d9ff45;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000'%3E%3Cg stroke='%236fa8ff' stroke-width='1' opacity='.06'%3E%3Cpath d='M0 160h1600M0 320h1600M0 480h1600M0 640h1600M0 800h1600M0 960h1600'/%3E%3Cpath d='M160 0v1000M320 0v1000M480 0v1000M640 0v1000M800 0v1000M960 0v1000M1120 0v1000M1280 0v1000M1440 0v1000'/%3E%3C/g%3E%3Cpath d='M-40 820 C 300 742 520 512 760 410 S 1240 218 1660 128' stroke='%23d9ff45' stroke-width='9' stroke-dasharray='2 11' fill='none' opacity='.2'/%3E%3Cpath d='M-40 820 C 300 742 520 512 760 410 S 1240 218 1660 128' stroke='%23d9ff45' stroke-width='2.5' stroke-dasharray='2 11' fill='none' opacity='1'/%3E%3Cg fill='%23f4f0e0'%3E%3Ccircle cx='120' cy='148' r='1.4' opacity='.6'/%3E%3Ccircle cx='236' cy='72' r='1' opacity='.45'/%3E%3Ccircle cx='318' cy='196' r='1.6' opacity='.7'/%3E%3Ccircle cx='404' cy='110' r='1.1' opacity='.5'/%3E%3Ccircle cx='488' cy='58' r='1.3' opacity='.6'/%3E%3Ccircle cx='642' cy='96' r='1.5' opacity='.66'/%3E%3Ccircle cx='728' cy='42' r='1.1' opacity='.5'/%3E%3Ccircle cx='812' cy='132' r='1.3' opacity='.58'/%3E%3Ccircle cx='896' cy='76' r='1' opacity='.44'/%3E%3Ccircle cx='978' cy='184' r='1.4' opacity='.62'/%3E%3Ccircle cx='1064' cy='102' r='1.2' opacity='.52'/%3E%3Ccircle cx='1148' cy='48' r='1.5' opacity='.66'/%3E%3Ccircle cx='1234' cy='156' r='1' opacity='.42'/%3E%3Ccircle cx='1320' cy='88' r='1.3' opacity='.56'/%3E%3Ccircle cx='1406' cy='192' r='1.1' opacity='.48'/%3E%3Ccircle cx='1488' cy='64' r='1.4' opacity='.6'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
+    linear-gradient(180deg, #07101c 0%, #04070d 58%, #03060a 100%);
+}
 html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-art {
-  inset: 72px auto auto 64px;
-  width: 300px;
-  height: 210px;
-  border: 1px solid #2f5474;
+  /* 封面恢复圆形舷窗：米白厚框 + 蓝环 + 荧光晕，居中挂在深蓝屏面左区 */
+  inset: 140px auto 140px 72px;
+  width: 560px;
+  height: 560px;
+  border: 12px solid #f4f0e0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #2f5474, 0 0 0 3px rgba(217, 255, 69, .22), 0 34px 70px -34px #000;
   z-index: 4;
 }
 html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-wash { display: none; }
 html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-sheet {
   inset: 0;
-  padding: 56px 72px 40px;
-  background: #0b1724;
-  --sc-ink: #f4f0e0;
+  /* 内容列整体让到舷窗右侧（窗占 x72..644），左缘 680 起 */
+  padding: 72px 72px 44px 680px;
+  --sc-ink: #e9edf2;
   --sc-ink-2: #93a6b8;
   --sc-rule: #1c3348;
-  --sc-plate: rgba(11, 23, 36, .9);
+  --sc-plate: rgba(10, 15, 20, .9);
   --sc-plate-line: #2f5474;
   --sc-accent: #d9ff45;
+  --sc-track: #16293c;
+  color: #e9edf2;
+  background: linear-gradient(180deg, #0b1724 0%, #040a12 100%);
+  border: 0;
 }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-brand,
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-no { color: #f4f0e0; }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-brand::before { background: #d9ff45; }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-top { inset: 56px 72px auto; }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-main {
-  grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 48px;
-  align-items: end;
-  margin: 300px 0 0;
+/* 等距网格只压数据区（离港板屏面质感），舷窗封面区保持干净；
+   复用 sheet::before 承载，避免盖过文字的独立装饰层。 */
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-sheet::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 680px;
+  right: 84px;
+  top: 84px;
+  bottom: 84px;
+  width: auto;
+  border: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(28, 51, 72, .42) 0 1px, transparent 1px 84px),
+    repeating-linear-gradient(90deg, rgba(28, 51, 72, .42) 0 1px, transparent 1px 80px);
 }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-foot { margin-top: auto; }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-title { font-size: 44px; }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
+/* 顶部荧光细线收边：不再贴 y=0，离画布四缘各留 24px */
+html[data-theme="nightflight"] .share-card[data-variant="score"]::before {
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+}
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-top { inset: 60px 72px auto 680px; }
+/* 航班行：四项事实排成离港表的一行 */
 html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-facts {
   display: grid;
   position: absolute;
-  left: 400px;
+  left: 680px;
   right: 72px;
-  top: 88px;
+  top: 148px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0 20px;
   padding-bottom: 14px;
   border-bottom: 1px solid #1c3348;
 }
 html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-fact b { font-size: 16px; }
-html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-ladder i {
-  height: 16px;
-  border-radius: 0;
-  background: #16293c;
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin: 168px 0 0;
+}
+/* 大数字压在深色翻牌上（全局翻牌格样式），格底透出荧光 */
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-hours b { font-size: 144px; }
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-ladder { margin-top: 30px; }
+/* 页脚配重：加界线钉底，吃掉右栏下段的空档 */
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-foot {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid #1c3348;
+}
+
+/* 成套母题补齐：score 此前只剩网格 + 舷窗，这里把登机牌一族的两样
+   搬进左区（deco 层 z4，压在整卡 sheet 之上，与右栏数据互不相扰）——
+   1) 荧光航线：虚线 + 三枚航点（带晕），贴着舷窗左缘绕行；
+   2) 纸面票根窄条：米白票面 + 竖向撕口虚线 + 橄榄色票签 +
+      横置条码 + 航班行，与 poster/dossier 的票根同一语言。 */
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 840'%3E%3Cpath d='M40 796 C 36 600 36 320 104 180 C 164 70 350 44 610 60' stroke='%23d9ff45' stroke-width='9' stroke-dasharray='2 11' fill='none' opacity='.2'/%3E%3Cpath d='M40 796 C 36 600 36 320 104 180 C 164 70 350 44 610 60' stroke='%23d9ff45' stroke-width='2.5' stroke-dasharray='2 11' fill='none' opacity='1'/%3E%3Cg fill='%23d9ff45'%3E%3Ccircle cx='40' cy='796' r='9' opacity='.22'/%3E%3Ccircle cx='40' cy='796' r='3.5'/%3E%3Ccircle cx='104' cy='180' r='9' opacity='.22'/%3E%3Ccircle cx='104' cy='180' r='3.5'/%3E%3Ccircle cx='610' cy='60' r='9' opacity='.22'/%3E%3Ccircle cx='610' cy='60' r='3.5'/%3E%3C/g%3E%3C/svg%3E") no-repeat;
+}
+html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-deco::after {
+  content: 'NF-0101 · SEAT 14A · GATE C07';
+  position: absolute;
+  left: 72px;
+  top: 718px;
+  width: 572px;
+  height: 82px;
+  box-sizing: border-box;
+  padding-left: 302px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 80px;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  color: #0a0f14;
+  background:
+    /* 航班行左侧的橄榄色票签 */
+    linear-gradient(#6f8a12, #6f8a12) 28px 34px / 14px 14px no-repeat,
+    /* 竖向撕口虚线 */
+    repeating-linear-gradient(180deg, rgba(47, 84, 116, .6) 0 7px, transparent 7px 14px) 84px 10px / 2px 62px no-repeat,
+    /* 横置条码 */
+    repeating-linear-gradient(90deg, #0a0f14 0 2px, transparent 2px 5px, #0a0f14 5px 6px, transparent 6px 11px) 104px 19px / 172px 44px no-repeat,
+    #f4f0e0;
+  border: 1px solid #b8b09a;
 }

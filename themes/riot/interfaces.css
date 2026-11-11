@@ -397,108 +397,303 @@ html[data-theme="riot"] {
    answers with its own composition. Geometry lives in
    src/share-cards.css; this block moves the artwork, re-shapes the
    sheet and adds the theme's decoration.
+
+   终帧（intro-vinyl 黑胶唱片）：#0a0a0a 盘底、#f2efe7 唱片标签、
+   信号红（intro 端 #d92b1f，与主题 accent #cf0017 同族，统一取
+   accent）。母题：沟槽盘面（repeating-radial-gradient）、断口红环
+   （透明右下、-24°）、硬偏移（5px 5px 0 红）、宽字距小注。
+   卡片即「把封面裱进唱片」：封面 = 唱片套，时长 = 唱片标签。
    ============================================================ */
 
-/* Punk collage: the cover is a taped strip on the tilt, the title is a
-   black sticker, and the score sits on a red offcut. */
+/* 里程碑阶梯：0/21 的空档收成安静细轨（去边框、6px 高、极淡墨），
+   不再是一片豆腐块；已点亮的档位回到实心红条并加高，读作阶梯。 */
+html[data-theme="riot"] .share-card .sc-ladder i {
+  height: 6px;
+  border: 0;
+  background: rgba(17, 17, 17, .13);
+}
+html[data-theme="riot"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: #cf0017;
+}
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-ladder i.is-on {
+  height: 16px;
+}
+
+/* -- POSTER · 唱片套正面 --------------------------------------
+   纸面打底，封面右上斜贴成唱片套（红色硬偏移），右下角黑胶盘与
+   断口红环从套后探出；左下身份区纵排，时长坐在唱片标签板上。 */
 html[data-theme="riot"] .share-card[data-variant="poster"] .sc-art {
-  inset: 56px 76px auto auto;
+  inset: 56px 56px auto auto;
   width: 44%;
-  height: 52%;
+  height: 62%;
+  z-index: 5;
   border: 4px solid #111111;
-  transform: rotate(1.6deg);
-  box-shadow: 10px 10px 0 rgba(17, 17, 17, .85);
+  transform: rotate(1.4deg);
+  box-shadow: 14px 14px 0 #cf0017;
 }
 html[data-theme="riot"] .share-card[data-variant="poster"] .sc-wash { display: none; }
-html[data-theme="riot"] .share-card[data-variant="poster"] .sc-sheet { inset: 0; padding: 68px 76px 56px; }
-html[data-theme="riot"] .share-card[data-variant="poster"] .sc-top { inset: 56px 76px auto; }
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0;
+  padding: 68px 76px 56px;
+  /* 沟槽扫过的纸面：圆心在画外左侧的同心细弧。 */
+  background: repeating-radial-gradient(circle at -680px 60%,
+    rgba(17, 17, 17, 0) 0 5px, rgba(17, 17, 17, .05) 5px 6px);
+}
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-top {
+  inset: 56px 76px auto;
+  width: 730px;
+}
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-kicker { letter-spacing: .3em; }
 html[data-theme="riot"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr);
-  gap: 26px;
+  gap: 22px;
   margin-top: auto;
-  max-width: 56%;
+  max-width: 730px;
 }
+/* 标题 = 黑色贴纸 + 硬偏移红影（intro 大字的签名处理）。 */
 html[data-theme="riot"] .share-card[data-variant="poster"] .sc-title {
   display: inline-block;
-  padding: 4px 14px 10px;
+  max-width: 100%;
+  padding: 8px 20px 14px;
   background: #111111;
-  color: #fffaf2;
+  color: #f2efe7;
   transform: rotate(-1deg);
-  box-shadow: 7px 7px 0 #cf0017;
+  text-shadow: 6px 6px 0 #cf0017;
 }
+/* 时长板 = 唱片标签：奶白盘面 + 沟槽弧 + 红色硬偏移。 */
 html[data-theme="riot"] .share-card[data-variant="poster"] .sc-score {
-  align-items: flex-start;
+  align-items: stretch;
   text-align: left;
-  width: 320px;
-  padding: 16px 20px 14px;
-  background: #cf0017;
+  width: 640px;
+  padding: 18px 26px;
+  background:
+    repeating-radial-gradient(circle at -160px 50%,
+      rgba(17, 17, 17, 0) 0 5px, rgba(17, 17, 17, .13) 5px 6px),
+    #f2efe7;
   border: 3px solid #111111;
-  transform: rotate(1.2deg);
-  color: #fffaf2;
+  box-shadow: 10px 10px 0 #cf0017;
 }
-html[data-theme="riot"] .share-card[data-variant="poster"] .sc-score :is(.sc-label, .sc-hours, .sc-tier) { color: #fffaf2 !important; }
-html[data-theme="riot"] .share-card[data-variant="poster"] .sc-hours b { font-size: 84px; }
-html[data-theme="riot"] .share-card[data-variant="poster"] .sc-ladder { display: none; }
-html[data-theme="riot"] .share-card[data-variant="poster"] .sc-score { width: 372px; }
-html[data-theme="riot"] .share-card[data-variant="poster"] .sc-tier { font-size: 10px; }
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-hours { margin-top: 6px; }
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-hours b { font-size: 96px; }
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-ladder { margin-top: 16px; }
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-tier { margin-top: 12px; }
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-foot {
+  width: 730px;
+  margin-right: auto;
+}
+/* 黑胶盘：中心黑芯 + 奶白标签 + 沟槽盘面，从唱片套后探出。 */
 html[data-theme="riot"] .share-card[data-variant="poster"] .sc-deco::before {
   content: '';
   position: absolute;
-  right: 96px;
-  top: 40px;
-  width: 190px;
-  height: 40px;
-  background: rgba(242, 238, 230, .85);
-  transform: rotate(-4deg);
-  box-shadow: 0 4px 10px -6px rgba(17, 17, 17, .4);
+  right: 70px;
+  bottom: 50px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #0a0a0a 0 18px, #f2efe7 19px 84px, rgba(16, 16, 16, 0) 85px),
+    repeating-radial-gradient(circle, #1b1b1b 0 1px, #0d0d0d 1px 6px);
+  box-shadow: inset 0 0 0 1px rgba(242, 239, 231, .16), 8px 8px 0 rgba(17, 17, 17, .85);
+}
+/* 断口红环（intro-vn-ring：透明右下、-24°），与盘同心。 */
+html[data-theme="riot"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  right: 50px;
+  bottom: 40px;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  border: 10px solid #cf0017;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  transform: rotate(-24deg);
 }
 
+/* -- DOSSIER · 唱片内页 ----------------------------------------
+   封面 = 斜贴唱片套横陈上段；下段资料页里，巨型时长压在一张
+   380px 黑胶标签盘上（奶白标签、黑芯、红色硬偏移），右侧四项
+   事实收成单列台账，No. 幽灵编号垫在纸下。 */
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 54px 60px auto 60px;
-  height: 430px;
+  inset: 130px 60px auto 60px;
+  height: 420px;
+  z-index: 5;
   border: 4px solid #111111;
   transform: rotate(-1.2deg);
   box-shadow: 12px 12px 0 #cf0017;
-  z-index: 4;
 }
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-sheet {
   inset: 0;
-  padding: 64px 64px 48px;
-  background: #f2eee6;
+  padding: 600px 72px 44px;
+  background:
+    repeating-radial-gradient(circle at -680px 40%,
+      rgba(17, 17, 17, 0) 0 5px, rgba(17, 17, 17, .05) 5px 6px),
+    #f2eee6;
 }
-html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-top { inset: 52px 64px auto; }
-html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-id { padding-top: 470px; }
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-top { inset: 58px 72px auto; }
+/* kicker 收成独立行，与黑贴纸标题之间留足一行呼吸（原来两者挤在
+   同一行里，间距只剩约 10px）。 */
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-kicker {
+  display: flex;
+  letter-spacing: .3em;
+  margin-bottom: 20px;
+}
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-title {
+  display: inline-block;
+  max-width: 100%;
+  font-size: 52px;
+  padding: 6px 16px 12px;
+  background: #111111;
+  color: #f2efe7;
+  transform: rotate(-1deg);
+  text-shadow: 5px 5px 0 #cf0017;
+}
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-zh { margin-top: 10px; }
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-tagline { margin-top: 10px; }
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-meta { margin-top: 16px; }
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-score {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 40px;
+  padding-top: 24px;
   border-top: 3px solid #111111;
 }
-html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-frame { display: none; }
-
-html[data-theme="riot"] .share-card[data-variant="score"] .sc-art {
-  inset: 46px auto 46px 46px;
-  width: 30%;
-  border: 4px solid #111111;
-  transform: rotate(-1.4deg);
-  box-shadow: 10px 10px 0 #cf0017;
+/* 巨型时长 = 唱片标签盘。 */
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-hours {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 380px;
+  height: 380px;
+  margin-top: 12px;
+  border-radius: 50%;
+  line-height: 1;
+  background:
+    radial-gradient(circle, #f2efe7 0 148px, rgba(16, 16, 16, 0) 149px),
+    repeating-radial-gradient(circle, #1b1b1b 0 1px, #0d0d0d 1px 6px);
+  box-shadow: inset 0 0 0 1px rgba(242, 239, 231, .16), 10px 10px 0 rgba(17, 17, 17, .85);
 }
-html[data-theme="riot"] .share-card[data-variant="score"] .sc-wash { display: none; }
-html[data-theme="riot"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0 0 0 36%;
-  padding: 64px 64px 48px;
-  background: #f2eee6;
-  border-left: 0;
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-hours b {
+  font-size: 78px;
+  line-height: 1;
 }
-html[data-theme="riot"] .share-card[data-variant="score"] .sc-top { inset: 56px 64px auto 36%; padding-left: 64px; }
-html[data-theme="riot"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
-html[data-theme="riot"] .share-card[data-variant="score"] .sc-ladder i { height: 14px; }
-
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-hours em {
+  font-size: 14px;
+  letter-spacing: .3em;
+  text-indent: .3em;
+}
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 22px; }
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-tier { margin-top: 12px; }
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-facts {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: 24px;
+}
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-fact {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 13px 2px 12px;
+  border-top: 1px solid rgba(17, 17, 17, .3);
+}
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-fact:last-child {
+  border-bottom: 1px solid rgba(17, 17, 17, .3);
+}
+/* No. 幽灵编号：从右下统计列（曾与「0/21 / 刚刚」相撞）挪到标题
+   行右侧的空纸面上，塞进唱片套红影下缘，右边距收到 88px。 */
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-sheet::after {
   content: attr(data-no);
   position: absolute;
-  right: 64px;
-  top: 560px;
-  font: 700 260px/1 var(--sc-title-font);
-  color: rgba(17, 17, 17, .08);
+  right: 88px;
+  top: 570px;
+  font: 800 200px/1 var(--sc-title-font);
+  letter-spacing: -.02em;
+  color: rgba(17, 17, 17, .07);
   z-index: -1;
 }
+
+/* -- SCORE · 双面内页 ------------------------------------------
+   左侧封面斜贴成唱片套，右侧纸面数据栏以沟槽弧打底：标题贴纸、
+   巨型时长带红色硬偏移，21 格里程碑拉成沟槽刻度；黑胶盘与断口
+   红环分别从套后的上下缝里探出。 */
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-art {
+  inset: 46px auto 46px 46px;
+  width: 31%;
+  z-index: 5;
+  border: 4px solid #111111;
+  transform: rotate(-1.2deg);
+  box-shadow: 12px 12px 0 #cf0017;
+}
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0 0 0 35%;
+  padding: 128px 72px 44px;
+  border-left: 0;
+  background:
+    repeating-radial-gradient(circle at -560px 45%,
+      rgba(17, 17, 17, 0) 0 5px, rgba(17, 17, 17, .05) 5px 6px),
+    #f2eee6;
+}
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+/* 数据栏加宽（38% → 35%），标题贴纸浮顶、数据块沉底，中部留白
+   让位给从套后探出的黑胶盘，右下不再整片空。 */
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0;
+  flex: 1 1 auto;
+}
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-top { inset: 52px 72px auto 632px; }
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-kicker { letter-spacing: .3em; }
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-title {
+  display: inline-block;
+  max-width: 100%;
+  padding: 6px 18px 12px;
+  background: #111111;
+  color: #f2efe7;
+  transform: rotate(-1deg);
+}
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-hours b {
+  font-size: 180px;
+  text-shadow: 8px 8px 0 #cf0017;
+}
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-ladder { margin-top: 20px; }
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-tier { margin-top: 12px; }
+/* 黑胶盘从套后探出：整体上移，盘底离画布下缘留足 70px，不再被
+   底边切掉；同时收进数据栏左缘之内，不碰里程碑。 */
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  left: 350px;
+  top: 500px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #0a0a0a 0 12px, #f2efe7 13px 54px, rgba(16, 16, 16, 0) 55px),
+    repeating-radial-gradient(circle, #1b1b1b 0 1px, #0d0d0d 1px 6px);
+  box-shadow: inset 0 0 0 1px rgba(242, 239, 231, .16), 8px 8px 0 rgba(17, 17, 17, .85);
+}
+html[data-theme="riot"] .share-card[data-variant="score"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 345px;
+  top: 495px;
+  width: 270px;
+  height: 270px;
+  border-radius: 50%;
+  border: 9px solid #cf0017;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  transform: rotate(156deg);
+}
+
+/* dossier 页脚与数据列去重：sc-foot 的「启动/上次游玩」与 sc-facts 重复 */
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }

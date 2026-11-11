@@ -387,117 +387,277 @@ html[data-theme="aurum"] .view-home .hero-inner::before {
 /* ============================================================
    CARD CHARACTER · AURUM
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   终帧（intro-au「鎏金门」）：暗绿黑门扉与 46px 金细纹、门缝
+   金线、放射日晕、五枚宝石菱。卡片是「门后的圣物龛」：封面裱进
+   双金线门洞，日晕在门洞后展开，门缝金线夹住龛位，数字做宝石
+   切面，菱饰点在 kicker 与签名行。
    ============================================================ */
 
-/* Engraved plaque: a round medallion, a centred inscription, a bronze
-   rail of statistics. */
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-art {
-  inset: 52px auto auto 50%;
-  width: 268px;
-  height: 268px;
-  border-radius: 50%;
-  transform: translateX(-50%);
-  border: 2px solid rgba(232, 201, 138, .8);
-  box-shadow: 0 0 0 10px #101613, 0 0 0 11px rgba(232, 201, 138, .3), 0 30px 60px -30px #000;
+/* 菱形宝石：kicker 信号点与签名行前置 */
+html[data-theme="aurum"] .share-card .sc-kicker i {
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #f6e3b8, #c9a15e);
 }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-wash { display: none; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-sheet {
+html[data-theme="aurum"] .share-card .sc-sign::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 10px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #f6e3b8, #c9a15e);
+}
+/* 宝石切面数字 */
+html[data-theme="aurum"] .share-card .sc-hours b {
+  background: linear-gradient(166deg, #f6e3b8 6%, #e8c98a 36%, #cfa75f 52%, #e8c98a 68%, #f6e3b8 94%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 里程碑阶梯：0/21 的空档收成极淡金轨（无边框），点亮档位用
+   青铜金实色加高，读作门钉列；.is-next 保留共享 inset 描边。 */
+html[data-theme="aurum"] .share-card .sc-ladder i {
+  height: 6px;
+  border: 0;
+  background: rgba(232, 201, 138, .14);
+}
+html[data-theme="aurum"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: #e8c98a;
+}
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-ladder i.is-on { height: 14px; }
+
+/* dossier 页脚去重：.sc-facts 已含「启动次数 / 上次游玩」，
+   页脚只留收藏与签名行。 */
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) {
+  display: none;
+}
+
+/* 应用背板的斜纹层（theme.css 的 body::after，fixed + z2）会以
+   半透明叠进导出画布；卡片自带的 46px 门细纹已承担同样语言，
+   导出态整条下线，应用本体不受影响。 */
+html[data-theme="aurum"][data-share-export] body::after { display: none; }
+
+/* --- poster · 圣物龛：门洞封面 + 日晕 + 门缝金线 --- */
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-art {
+  inset: 56px auto auto 50%;
+  width: 520px;
+  height: 300px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(232, 201, 138, .85);
+  box-shadow:
+    0 0 0 9px #0b100e,
+    0 0 0 10px rgba(232, 201, 138, .55),
+    0 0 0 11px rgba(232, 201, 138, .2),
+    0 30px 70px -34px rgba(0, 0, 0, .85);
+}
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-wash {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(232, 201, 138, .05) 0 1px, rgba(232, 201, 138, 0) 1px 46px),
+    linear-gradient(180deg, rgba(7, 11, 10, 0) 46%, rgba(7, 11, 10, .6) 72%, #0b100e 88%),
+    radial-gradient(circle at 50% 23%, rgba(11, 16, 14, 0) 0 330px, #0b100e 440px),
+    repeating-conic-gradient(from 8deg at 50% 23%, rgba(232, 201, 138, .09) 0deg 1.1deg, rgba(232, 201, 138, 0) 1.1deg 10deg);
+  background-size: cover, cover, cover, cover;
+}
+/* 门缝金线贴住龛位（左右各 1px），门楣横梁压在龛位上方——
+   三件合起来读作一扇门，而不是普通双线画框。 */
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
   inset: 0;
-  padding: 372px 80px 48px;
-  background: transparent;
+  background:
+    linear-gradient(180deg, rgba(232, 201, 138, .05), #e8c98a 30%, #8a6a34 55%, #e8c98a 80%, rgba(232, 201, 138, .05)) no-repeat 500px 22px / 600px 8px,
+    linear-gradient(180deg, rgba(232, 201, 138, 0), rgba(232, 201, 138, .6) 22%, rgba(232, 201, 138, .6) 78%, rgba(232, 201, 138, 0)) no-repeat 539px 44px / 1px 324px,
+    linear-gradient(180deg, rgba(232, 201, 138, 0), rgba(232, 201, 138, .6) 22%, rgba(232, 201, 138, .6) 78%, rgba(232, 201, 138, 0)) no-repeat 1061px 44px / 1px 324px;
+}
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-sheet {
+  padding: 380px 80px 44px;
   align-items: center;
   text-align: center;
 }
 html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-top { inset: 56px 80px auto; }
 html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-main {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-  justify-items: center;
   width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
 }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-id { text-align: center; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-title { font-size: 54px; letter-spacing: .08em; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-tagline { display: none; }
 html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-score {
+  width: 100%;
   align-items: center;
   text-align: center;
-  width: 100%;
-  padding-top: 20px;
-  border-top: 1px solid rgba(232, 201, 138, .3);
+  margin-top: 18px;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid rgba(232, 201, 138, .35);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-hours { justify-content: center; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-hours b { font-size: 72px; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-tagline { display: none; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-title { font-size: 64px; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-main { gap: 14px; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-foot { gap: 8px 10px; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-ladder,
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; max-width: none; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-frame {
-  inset: 26px;
-  border-color: rgba(232, 201, 138, .32);
-  --sc-frame-inner: rgba(232, 201, 138, .2);
-  --sc-frame-inner-inset: 9px;
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-hours b { font-size: 76px; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-ladder { width: 480px; margin: 16px auto 0; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-tier { margin: 10px auto 0; max-width: none; }
+html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-foot {
+  width: 100%;
+  justify-content: center;
+  margin-top: 18px;
+  padding-top: 12px;
 }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-foot { justify-content: center; }
 html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-sign { margin-left: 0; }
-html[data-theme="aurum"] .share-card[data-variant="poster"] .sc-sign::before {
-  content: '·';
-  margin-right: 10px;
-  opacity: .6;
-}
 
+/* --- dossier · 门洞封面 + 档案铭牌页 --- */
 html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 56px auto auto 50%;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
+  inset: 120px auto auto 50%;
+  width: 480px;
+  height: 300px;
   transform: translateX(-50%);
-  border: 2px solid rgba(232, 201, 138, .8);
-  box-shadow: 0 0 0 10px #0b100e, 0 0 0 11px rgba(232, 201, 138, .3);
+  border: 1px solid rgba(232, 201, 138, .85);
+  box-shadow:
+    0 0 0 9px #0b100e,
+    0 0 0 10px rgba(232, 201, 138, .55),
+    0 0 0 11px rgba(232, 201, 138, .2),
+    0 26px 60px -30px rgba(0, 0, 0, .85);
   z-index: 4;
 }
-html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-wash {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(232, 201, 138, .05) 0 1px, rgba(232, 201, 138, 0) 1px 46px),
+    radial-gradient(circle at 50% 18%, rgba(11, 16, 14, 0) 0 310px, #0b100e 420px),
+    repeating-conic-gradient(from 8deg at 50% 18%, rgba(232, 201, 138, .08) 0deg 1.1deg, rgba(232, 201, 138, 0) 1.1deg 10deg);
+  background-size: cover, cover, cover;
+}
+/* 门缝金线贴住收窄后的门洞（洞宽 600，封面 480，肩位 60），
+   线体略出洞口上下，读作门框合缝。 */
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(232, 201, 138, 0), rgba(232, 201, 138, .55) 22%, rgba(232, 201, 138, .55) 78%, rgba(232, 201, 138, 0)) no-repeat 292px 84px / 1px 372px,
+    linear-gradient(180deg, rgba(232, 201, 138, 0), rgba(232, 201, 138, .55) 22%, rgba(232, 201, 138, .55) 78%, rgba(232, 201, 138, 0)) no-repeat 908px 84px / 1px 372px;
+}
+/* 门洞收窄：洞宽从 1024 收到 600，肩位的空黑消失，封面占满门洞。 */
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 92px 300px auto 300px;
+  height: 356px;
+}
 html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-sheet {
   inset: 0;
-  padding: 430px 72px 56px;
+  padding: 540px 84px 56px;
+  background: transparent;
   align-items: center;
   text-align: center;
 }
-html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-top { inset: 52px 72px auto; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-top { inset: 56px 76px auto; }
 html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-main { width: 100%; }
 html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-id { text-align: center; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-tagline { margin-left: auto; margin-right: auto; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-meta { justify-content: center; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-title { font-size: 60px; letter-spacing: .08em; }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 120px; }
 html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-score {
-  border-top: 1px solid rgba(232, 201, 138, .3);
+  border-top: 1px solid rgba(232, 201, 138, .35);
   text-align: left;
 }
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-foot {
+  width: 100%;
+  justify-content: center;
+}
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-sign { margin-left: 0; }
+/* 门洞下 350px 空黑补门语言：铭文行随文案流（门楣饰线 + 铭文），
+   幽灵 No.01 提亮成亮金宝石切面，居中沉在洞底。 */
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-id::after {
+  content: '门启一线 · 光落成龛';
+  display: block;
+  width: 620px;
+  margin: 36px auto 0;
+  padding-top: 26px;
+  background: linear-gradient(90deg, rgba(232, 201, 138, .05), #e8c98a 18%, #8a6a34 50%, #e8c98a 82%, rgba(232, 201, 138, .05)) no-repeat 50% 0 / 100% 8px;
+  text-align: center;
+  font: 600 13px/1 var(--font-ui);
+  letter-spacing: .42em;
+  text-indent: .42em;
+  color: #e8c98a;
+}
+html[data-theme="aurum"] .share-card[data-variant="dossier"] .sc-sheet::after {
+  content: 'No.' attr(data-no);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 896px;
+  text-align: center;
+  font: 600 190px/1 var(--sc-title-font);
+  letter-spacing: .04em;
+  background: linear-gradient(166deg, #f6e3b8 6%, #e8c98a 36%, #cfa75f 52%, #e8c98a 68%, #f6e3b8 94%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  z-index: -1;
+}
 
+/* --- score · 左龛右铭牌 --- */
 html[data-theme="aurum"] .share-card[data-variant="score"] .sc-art {
-  inset: 60px auto 60px 60px;
-  width: 360px;
-  border-radius: 50%;
-  border: 2px solid rgba(232, 201, 138, .8);
-  box-shadow: 0 0 0 10px #0b100e, 0 0 0 11px rgba(232, 201, 138, .3);
-  z-index: 4;
+  inset: 56px auto 56px 56px;
+  width: 33%;
+  border: 1px solid rgba(232, 201, 138, .85);
+  box-shadow:
+    0 0 0 9px #0b100e,
+    0 0 0 10px rgba(232, 201, 138, .55),
+    0 0 0 11px rgba(232, 201, 138, .2),
+    0 26px 60px -30px rgba(0, 0, 0, .85);
 }
-html[data-theme="aurum"] .share-card[data-variant="score"] .sc-wash { display: none; }
+/* 日晕进卡：放射层以封面圆心展开，封面自身遮挡圆心，
+   46px 门细纹照旧铺满。 */
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-wash {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(232, 201, 138, .05) 0 1px, rgba(232, 201, 138, 0) 1px 46px),
+    radial-gradient(circle at 320px 420px, rgba(11, 16, 14, 0) 0 300px, #0b100e 430px),
+    repeating-conic-gradient(from 8deg at 320px 420px, rgba(232, 201, 138, .09) 0deg 1.1deg, rgba(232, 201, 138, 0) 1.1deg 10deg);
+  background-size: cover, cover, cover;
+}
 html[data-theme="aurum"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0 0 0 34%;
-  padding: 64px 64px 48px;
-  background: #0b100e;
-  border-left: 0;
+  padding: 120px 72px 48px;
+  border-left: 1px solid rgba(232, 201, 138, .4);
 }
-html[data-theme="aurum"] .share-card[data-variant="score"] .sc-top { inset: 56px 64px auto 34%; padding-left: 64px; }
-html[data-theme="aurum"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
-html[data-theme="aurum"] .share-card[data-variant="score"] .sc-main { gap: 18px; margin-top: auto; }
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-top { inset: 56px 72px auto 40%; }
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-main { gap: 20px; }
+/* 铭牌头：数据列上方加一行圣物档号眉，压住上段的空档。 */
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-score::before {
+  content: '圣物档案 RELIC FILE';
+  display: block;
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(232, 201, 138, .3);
+  font: 600 12px/1 var(--font-ui);
+  letter-spacing: .3em;
+  color: #d9b877;
+}
+/* 悬空金线两端收口：竖线改由背景画出，上下各一道门楣/门槛横线。 */
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-sheet::before {
+  width: 30px;
+  background:
+    linear-gradient(#e8c98a, #e8c98a) no-repeat 0 0 / 4px 100%,
+    linear-gradient(#e8c98a, #e8c98a) no-repeat 0 0 / 30px 3px,
+    linear-gradient(#e8c98a, #e8c98a) no-repeat 0 100% / 30px 3px;
+}
+/* 右下配重：页脚上方压一行鎏金铭牌行。 */
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-sheet::after {
+  content: '鎏金门 · 圣物龛 · No.' attr(data-no);
+  position: absolute;
+  left: 72px;
+  bottom: 92px;
+  font: 600 12px/1 var(--font-ui);
+  letter-spacing: .3em;
+  color: rgba(232, 201, 138, .72);
+}
+html[data-theme="aurum"] .share-card[data-variant="score"] .sc-title { font-size: 50px; letter-spacing: .08em; }
 html[data-theme="aurum"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
-html[data-theme="aurum"] .share-card[data-variant="score"] .sc-facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 26px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(232, 201, 138, .28);
-}
