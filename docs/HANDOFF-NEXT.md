@@ -10,6 +10,11 @@
 > 三规格卡片全部重写，设计基准固化在 docs/CARD-DESIGN.md；两轮视觉验收修复 + dossier
 > 页脚去重；发现并修掉 body 装饰串进导出卡的系统性问题（mnemo/summer）。
 > **14 套 theme.json 已全部 bump**，等 Owner 看图定稿后统一发行。
+> ✅ **收官复核**（§1.28，2026-11-11）：§1.27.7 要求补跑的四套终轮渲染验证全过
+> （12 卡 overflow 0、尺寸精确）；broadcast 补齐时码牌与 poster/score 调频读数、
+> zerohour 修掉「警示带压住屏框上沿」；另两条旧待办经放大复核**不成立**（红点被栏线
+> 切开、里程碑文字浮条外）。broadcast 1.4.15、zerohour 1.0.21。仍**未推送、未 PR、
+> 未发版**，五套待 Owner 拍板的一律未动。
 > 交接时间：2026-11-10（同日第四至十一轮）
 > 分支：`main` = `fcbcfe1`（PR [#37](https://github.com/118coder/guguova-game-space/pull/37) squash 合并，
 > 42 文件 +5094/−81，基于 `b40f19e`）；**版本号仍是 1.16.5，没有 bump、没有发行**
@@ -2531,10 +2536,12 @@ aurum 差门楣收口、grimoire 冲击环实现不对——aurum/grimoire 因�
   +poster 内缩 ✓ / riso score 粉块锚定 ✓ / 四套阶梯安静轨 ✓ / 四套 dossier 去重 ✓（都在快照里）。
   **接手第一件事**：`node tools/share-shots.js --themes=riot,riso,codex,mnemo --out=../_shots/share-v4`
   确认 overflow 0，再派 png-one 抽查终轮修复项（对照复核①清单）。
+  → **这一步已在 §1.28 完成**（12 卡 overflow 0、逐卡看图通过），不必重跑。
 - **待定冻结五套**：nightflight / mnemo / aurum / grimoire / riso——等 Owner 逐套拍板后再按终帧
   重做；其间不要动它们的卡片块（nightflight/steam 小修已落工作区，保留）。
-- **broadcast / zerohour 复核尾巴未修**（broadcast：poster 时码牌、poster/score 刻度盘频率读数、
-  score 红点被栏线切开；zerohour：score 里程碑条文字浮条外、poster 屏框上沿被危险带压住）。
+- **broadcast / zerohour 复核尾巴**：→ **已在 §1.28 修完**（broadcast 补时码牌 +
+  poster/score 调频读数、zerohour 修警示带压屏顶）；其中「score 红点被栏线切开」
+  「里程碑文字浮条外」两条经放大复核不成立，原因见 §1.28.3。
 - **现场已有 WIP 快照**：`702e99e`（本地提交，未推送）——12 套 interfaces.css + 12 套 theme.json（已 bump）+ docs（CARD-DESIGN.md 新建、
   本文件 §1.27）。分支 design/share-cards-v2 未推送、未 PR——summer 定稿复核后在此基础上继续提交并走 PR。
 
@@ -2546,6 +2553,86 @@ aurum 差门楣收口、grimoire 冲击环实现不对——aurum/grimoire 因�
 3. 分享卡片复制到剪贴板 / JPG 出口仍是 §8 P1 原项。
 
 ---
+## 1.28 第十六轮（2026-11-11）：收官复核——四套终轮修复验证 + broadcast/zerohour 尾巴收尾
+
+> 起点是 §1.27.7 留的现场：riot/riso/codex/mnemo 的终轮 CSS 已落地但**渲染验证没跑**，
+> broadcast/zerohour 的复核尾巴未修。本轮只做这两件事，**没碰任何冻结主题、没碰
+> nova/endfield、没 bump 应用版本、没推送、没 PR**。改动 4 文件：2 份 interfaces.css +
+> 2 份 theme.json（版本号）。
+
+### 1.28.1 四套终轮修复：渲染验证全过
+
+`node tools/share-shots.js --themes=riot,riso,codex,mnemo --out=../_shots/share-v4`
+→ 12 卡全部 `overflow: 0`，尺寸精确（1600×900 / 1200×1500 / 1600×840）。逐卡看图复核：
+
+| 主题 | 终轮修复项 | 判定 |
+| --- | --- | --- |
+| riot | 沟槽弧 / 盘面被底边裁切 | ✅ 弧线完整；盘与断口红环「探出卡片底边」是**设计稿的出血**，不是裁切 bug，保留 |
+| codex | 星座图 420 | ✅ dossier 里星座图（外环虚线 + 连线 + 点位）完整成图；poster 里同一母题按规格缩小，位置在标题上方，不压字 |
+| mnemo | 分类窄带 + poster 内缩 | ✅ 顶部的三色条（错误母题）已删，不再被卡边裁掉；poster 版面收回版心 |
+| riso | score 粉块锚定 | ✅ 粉块已落版心内；但整张 score 的**构图结构**仍有问题（见 1.28.4），因 riso 在冻结名单，本轮不动 |
+
+### 1.28.2 broadcast：补齐时码牌与调频读数
+
+调频电台的终帧语言在 poster 上缺两样东西：**时码牌**和**刻度盘的频率读数**——
+尺标画出来了却没有读数，读作「电视测试图」而不是调频台。dossier 早有
+`FM 87.5 — 108.0 MHz`，poster/score 一直空着。
+
+| 变体 | 缺什么 | 修法 | 落位 |
+| --- | --- | --- | --- |
+| poster | 时码牌 | 新增 `.sc-sheet::after`：白底墨框牌 `TC 00:47:12` | 纸面右上，与左端 `RUNDOWN · CH 01` 报眉同一行、左右成对，顺手收掉那块空纸 |
+| poster | 频率读数 | 新增 `.sc-frame::after`（dossier 同款口径） | 尺标左端上方（卡内 y≈424），浅色字压封面暗部 |
+| score | 频率读数 | 新增 `.sc-id::after` 绝对定位 | 尺标左端上方，与尺标左口对齐 |
+
+> **踩坑记录**：score 的读数第一版放右端（`right: 64px`），实测被右上角的页号码牌
+> `No.01 / 06` 压掉，只剩「FM 98.6 · 87.5」半句（截图存 `_shots/share-v5` 的旧版）。
+> 改左端即好。以后往这张卡右上角加东西先量 sc-no 的盒子。
+
+### 1.28.3 zerohour：修掉「警示带压住屏框上沿」
+
+复核结论：**不是重叠，是机壳看不见**。量出来：警示带 12–19px，CRT 屏体上沿 40px，
+机壳环止于 32px —— 中间有 13px 气口，但机壳色 `#0d0f11` 与页面底色 `#0a0b0c`
+几乎同色（差 3 个色阶），所以「机壳上沿」整圈读不出来，屏幕看起来直接顶在警示带上。
+
+| 项 | 改前 | 改后 |
+| --- | --- | --- |
+| 卡内警示带 | `top 12px / height 7px` | `top 10px / height 6px`（收薄抬升，不再像屏顶边框） |
+| 屏体上沿 | `inset: 40px …` | `inset: 48px …`（上沿比左右多让 8px） |
+| 机壳双环 | `0 0 0 7px #0d0f11` / `0 0 0 8px #262b2e` | `0 0 0 7px #151a1c` / `0 0 0 8px #3b444a`（抬亮到视觉可辨） |
+
+实测新版：带下沿 15px、机壳上沿 40px、屏内画面 50px 起，**25px 气口 + 可见机壳**。
+dossier 同步受益（同一套警示带与屏体语言），已看图确认无副作用。
+
+**另一条复核不成立**：`score 里程碑条文字浮条外` —— 量色带范围 x 641–1535，
+正好撑满数据栏（右缘 = 卡宽 1600 − padding 64），文字上下居中在条内，
+阶梯与色带间距 10px。保持原样不动，免得为一条不存在的缺陷改坏已经对齐的东西。
+
+### 1.28.4 没做 / 下一步
+
+1. **五套冻结**（nightflight / mnemo / aurum / grimoire / riso）等 Owner 逐套拍板，
+   其间不动它们的卡片块。其中 **riso score 有真结构问题**：顶部画面被黑边裁断成
+   一条 35% 高的横带、粉色方块悬在中间无归属、下半张大片空白——拍板时和终帧一起重做。
+2. nova / endfield 卡片未动（Owner 明确排除）。
+3. 本轮**未 bump 应用版本（仍 1.16.5）、未推送、未 PR**；分支 `design/share-cards-v2`
+   在本地，等 Owner 看图定稿后统一走 PR + 发版。
+4. 分享卡片的「复制到剪贴板 / JPG 出口」仍是 §8 P1 原项。
+
+### 1.28.5 验证
+
+| 项 | 结果 |
+| --- | --- |
+| `share-shots --themes=riot,riso,codex,mnemo` | ✅ 12 卡 overflow 0、尺寸精确 |
+| `share-shots`（全量 14 套 × 3 版式） | ✅ 42 卡全部导出、0 报错、overflow 全 0 |
+| `theme-slot-check --strict` | ✅ exit 0（14 套各 62–138 条规则，共享表零主题名） |
+| `feature-checks.js` | ✅ 全过（11 组） |
+| `headless-shots --views=all` | ✅ 294 张 / exit 0；警告仍只有既有 dusk 2px 磁贴名裁切，0 新增 |
+| 视觉复核 | broadcast poster/score、zerohour poster/score/dossier、四套终轮卡逐张看图；新增元素另做 3× 放大裁剪确认不裁字 |
+
+> 探针工具 `tools/_cardrect.tmp.js`（量卡片元素与伪元素几何）用完即删，未入库。
+> 需要复现时照 `share-shots.js` 的启动段重写，约 60 行。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）

@@ -84,3 +84,31 @@ score=封底数据页）；封面照片作为期刊图版进入构图；时长�
    标题预留余量；dossier 的 4 项事实文本超长用省略号（共享层已有）。
 6. 卡片要经得起截图发出去：构图完成度高（背景材质铺满、边缘处理干净）、
    装饰不压文字（铁律 1）。
+7. **仪表类母题必须带读数**：刻度盘/尺标/信号条画出来就一定要有它对应的数字
+   （频率、电平、时码），只画骨架会被读成测试图。（broadcast 曾只有尺标没有读数。）
+8. **相邻色阶差不小于 ~18 级才算一条边**：机壳、边框、纸边这类「结构线」如果和
+   底色同明度，等于没有画。zerohour 的 CRT 机壳曾用 `#0d0f11` 压 `#0a0b0c`，
+   13px 的气口被读成「屏幕顶在警示带上」。
+
+---
+
+## 4. 落地经验（2026-11-11 收官复核补充）
+
+**伪元素是稀缺资源，加装饰前先查占用**。共享 DOM 对所有主题固定
+（`.sc-art/.sc-wash/.sc-deco/.sc-frame/.sc-top/.sc-sheet/.sc-id/.sc-score/.sc-foot`），
+主题只能往伪元素里塞东西。broadcast 现状：
+
+| 变体 | 已占用 | 剩可用 |
+| --- | --- | --- |
+| poster | `.sc-deco::before`=ON AIR、`.sc-deco::after`=尺标、`.sc-frame::after`=FM 读数、`.sc-sheet::before`=报眉、`.sc-sheet::after`=时码牌 | `.sc-id::before/after`、`.sc-score::before/after`、`.sc-foot::before/after` |
+| dossier | `.sc-frame::after`=FM 读数、`.sc-deco::before/after`=ON AIR+尺标、`.sc-sheet::after`=CH 号底纹 | 同上 |
+| score | `.sc-sheet::before`=尺标（覆盖共享的竖脊）、`.sc-sheet::after`=CH 号底纹、`.sc-id::before`=播出日志、`.sc-id::after`=FM 读数、`.sc-deco::before`=ON AIR | `.sc-score::*`、`.sc-foot::*` |
+
+**绝对定位的坐标系别猜**：伪元素挂在 `.sc-id` 上时，因为 `.sc-id`/`.sc-main` 都是
+`static`，坐标实际以 `.sc-sheet` 为参照（会跑位，量过才知道）。往卡片右上角加东西
+先量 `.sc-no` 的盒子——页号码牌在那儿，很容易压掉文字（broadcast score 的 FM 读数
+第一版就是这么被裁掉半句的）。
+
+**复核旧待办要先量再改**：本轮两条待办（红点被栏线切开、里程碑文字浮条外）量完
+发现根本不成立，省下两处无谓改动。像素比色 + 放大裁剪比肉眼可靠。
+

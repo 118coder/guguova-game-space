@@ -506,6 +506,34 @@ html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-sheet::befor
   letter-spacing: .3em;
   color: #141414;
 }
+/* 播出时码牌：rundown 报眉右端挂当班时码，和左端的栏目行成一对，
+   收掉纸面右上角那块空白（终帧里时码是入牌的，不是裸字）。 */
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-sheet::after {
+  content: 'TC 00:47:12';
+  position: absolute;
+  right: 64px;
+  top: 34px;
+  padding: 6px 14px 7px;
+  border: 1px solid #141414;
+  background: #f3f3f0;
+  font: 700 13px/1 var(--font-ui);
+  letter-spacing: .22em;
+  color: #141414;
+}
+/* 调频读数：刻度尺左端（dossier 同款口径），把「电视感」扳回调频。
+   只写读数，不动尺标本体。 */
+html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-frame::after {
+  content: 'FM 98.6 · 87.5 — 108.0 MHz';
+  position: absolute;
+  inset: auto;
+  left: 20px;
+  top: 380px;
+  width: auto;
+  border: 0;
+  font: 700 12px/1 var(--font-ui);
+  letter-spacing: .22em;
+  color: rgba(242, 239, 231, .92);
+}
 /* 频率刻度盘 + 指针：压画面底缘 */
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-deco::after {
   content: '';
@@ -640,6 +668,18 @@ html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-sheet::before
   background:
     linear-gradient(#141414, #141414) no-repeat 62% 0 / 3px 22px,
     repeating-linear-gradient(90deg, rgba(20, 20, 20, .6) 0 1px, rgba(20, 20, 20, 0) 1px 26px);
+}
+/* 调频读数：挂在刻度尺左端上方（尺标本体在 .sc-sheet::before 上，
+   读数用 .sc-id::after 绝对定位到同一栏，左端与尺标齐口）。
+   放右端会被页号码牌压掉，实测裁字。 */
+html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-id::after {
+  content: 'FM 98.6 · 87.5 — 108.0 MHz';
+  position: absolute;
+  left: 64px;
+  top: 78px;
+  font: 700 12px/1 var(--font-ui);
+  letter-spacing: .22em;
+  color: #3d3d3a;
 }
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-main {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);

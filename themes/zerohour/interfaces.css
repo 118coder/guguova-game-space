@@ -424,14 +424,15 @@ html[data-theme="zerohour"] .share-card[data-variant="dossier"] .sc-foot > i:nth
    贴着画布顶边像被裁切——导出态整条下线，改由卡片自带一条留边
    警示带（见各变体的 .sc-deco::before）。 */
 html[data-theme="zerohour"][data-share-export] body::after { display: none; }
-/* 卡内警示带：完整落在卡内、左右留边，不贴画布边。 */
+/* 卡内警示带：完整落在卡内、左右留边，不贴画布边。收薄到 6px 并抬到
+   10px，让下方 CRT 屏体的机壳上沿有独立气口，不被读成「屏幕的顶边框」。 */
 html[data-theme="zerohour"] .share-card .sc-deco::before {
   content: '';
   position: absolute;
-  top: 12px;
+  top: 10px;
   left: 44px;
   right: 44px;
-  height: 7px;
+  height: 6px;
   background: repeating-linear-gradient(-45deg, #ffe600 0 10px, #0a0b0c 10px 20px);
 }
 
@@ -469,18 +470,20 @@ html[data-theme="zerohour"] .share-card .sc-no {
 
 /* --- poster · 左侧任务面板 + 右侧 CRT 信号画面 --- */
 /* CRT 屏框：右/下不再全出血——屏体收进卡内留边，深灰机壳描边
-   + 青柠玻璃内线，让「屏幕」读得出。 */
+   + 青柠玻璃内线，让「屏幕」读得出。上沿比左右多让 8px：警示带与
+   机壳之间留出气口，否则屏顶会被读成被警示带压住（旧 40px 时只剩
+   13px，且机壳色 #0d0f11 与页面 #0a0b0c 几乎同色、读不出边）。 */
 html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-art {
-  inset: 40px 40px 40px 44%;
+  inset: 48px 40px 40px 44%;
   border: 2px solid #262b2e;
   box-shadow:
     inset 0 0 0 2px rgba(198, 255, 46, .14),
-    0 0 0 7px #0d0f11,
-    0 0 0 8px #262b2e,
+    0 0 0 7px #151a1c,
+    0 0 0 8px #3b444a,
     0 26px 60px -26px rgba(0, 0, 0, .9);
 }
 html[data-theme="zerohour"] .share-card[data-variant="poster"] .sc-wash {
-  inset: 40px 40px 40px 44%;
+  inset: 48px 40px 40px 44%;
   background-image:
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .42) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
     radial-gradient(120% 96% at 60% 42%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .58) 100%),
