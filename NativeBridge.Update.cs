@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -20,19 +21,32 @@ public sealed partial class NativeBridge
 {
     /* ---------- update check + package download (GitHub releases) ---------- */
 
+    /* Every status message carries the run it belongs to. The page drops
+       anything older than what it already shows, and the check itself is
+       single-flight: 连点「检查更新」or the daily auto check landing on top of a
+       manual one used to interleave two answers and leave the panel printing
+       the loser's version (§1.41.5). */
+    private int _updateSeq;
+    private int _updateCheckRunning;
+
     private object BeginUpdateCheck()
     {
+        if (Interlocked.Exchange(ref _updateCheckRunning, 1) == 1)
+            return new { ok = true, checking = true, busy = true };
+
+        var seq = Interlocked.Increment(ref _updateSeq);
         _store.Library.Settings.LastUpdateCheckUtc = DateTime.UtcNow.ToString("o");
         _store.Save();
         Task.Run(async () =>
         {
             try
             {
-                Notify("update-status", new { phase = "checking" });
+                Notify("update-status", new { phase = "checking", seq });
                 var result = await UpdateService.CheckAsync(CancellationToken.None);
                 Notify("update-status", new
                 {
                     phase = "result",
+                    seq,
                     ok = result.Ok,
                     error = result.Error,
                     current = result.Current,
@@ -47,10 +61,14 @@ public sealed partial class NativeBridge
             catch (Exception ex)
             {
                 Log.Error("update check", ex);
-                Notify("update-status", new { phase = "error", error = ex.Message });
+                Notify("update-status", new { phase = "error", seq, error = ex.Message });
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _updateCheckRunning, 0);
             }
         });
-        return new { ok = true, checking = true };
+        return new { ok = true, checking = true, seq };
     }
 
     /// <summary>Runs once after boot when the player opted into daily checks;
@@ -74,31 +92,33 @@ public sealed partial class NativeBridge
         if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
             return new { ok = false, error = "缺少下载信息，请先检查更新" };
         var token = UpdateService.BeginDownloadScope();
+        var seq = Interlocked.Increment(ref _updateSeq);
         Task.Run(async () =>
         {
             try
             {
-                Notify("update-status", new { phase = "downloading", name });
+                Notify("update-status", new { phase = "downloading", seq, name });
                 var path = await UpdateService.DownloadAsync(new UpdateCandidate(name, 0, url!),
                     (received, total) => Notify("update-progress", new
                     {
+                        seq,
                         percent = total > 0 ? (int)(received * 100 / total) : 0,
                         receivedBytes = received,
                         totalBytes = total
                     }), token);
-                Notify("update-status", new { phase = "done", path, name });
+                Notify("update-status", new { phase = "done", seq, path, name });
             }
             catch (OperationCanceledException)
             {
-                Notify("update-status", new { phase = "cancelled" });
+                Notify("update-status", new { phase = "cancelled", seq });
             }
             catch (Exception ex)
             {
                 Log.Error("update download", ex);
-                Notify("update-status", new { phase = "error", error = ex.Message });
+                Notify("update-status", new { phase = "error", seq, error = ex.Message });
             }
         });
-        return new { ok = true };
+        return new { ok = true, seq };
     }
 
     private object CancelUpdateDownload()
@@ -148,7 +168,7 @@ public sealed partial class NativeBridge
         if (!source.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
             return new { ok = false, error = "这个更新包不是单文件程序，请手动安装" };
 
-        var target = Environment.ProcessPath;
+        var target = CurrentExecutablePath();
         if (string.IsNullOrWhiteSpace(target) || !File.Exists(target)
             || !target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
             return new { ok = false, error = "无法定位当前程序，请手动运行更新包" };
@@ -174,6 +194,11 @@ public sealed partial class NativeBridge
             return new { ok = false, error = "程序所在文件夹不可写，请用管理员身份运行后再升级" };
         if (string.Equals(source, target, StringComparison.OrdinalIgnoreCase))
             return new { ok = false, error = "更新包就是当前程序，无需替换" };
+        /* An arm64 image cannot start on x64 ("不是有效的 Win32 应用程序"), so the
+           swap would replace a working launcher with a dead file. The package's
+           own PE header is the only trustworthy source for this. */
+        if (!PackageMatchesThisMachine(source))
+            return new { ok = false, error = "这个更新包不是当前处理器架构的版本，已阻止替换" };
 
         /* The swap needs something outside this process, but the player's
            machine has no SDK of any kind: PowerShell ships with Windows, and
@@ -182,7 +207,7 @@ public sealed partial class NativeBridge
            blocked script can never leave the player with an exited app and no
            replacement. */
         var marker = Path.Combine(Path.GetTempPath(), "nova-swap-" + Guid.NewGuid().ToString("N") + ".flag");
-        var launched = LaunchSwapWaiter(marker, Environment.ProcessId, target, source, UpdateService.UpdatesDir)
+        var launched = LaunchSwapWaiter(marker, CurrentProcessId(), target, source, UpdateService.UpdatesDir)
             || LaunchVbsWaiter(marker, target, source, UpdateService.UpdatesDir);
         if (!launched)
         {
@@ -218,6 +243,65 @@ public sealed partial class NativeBridge
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>A downloaded build that was never installed. The swap waiter can
+    /// die — a blocked script, a killed process, a reboot mid-swap — and then the
+    /// only trace left is the package sitting in updates/. Read once at boot so
+    /// the settings page can offer the upgrade again instead of pretending the
+    /// download never happened (§1.41.5).</summary>
+    internal object? PendingUpdate()
+    {
+        var path = LatestDownloadedPackage();
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        try
+        {
+            var info = new FileInfo(path);
+            return new
+            {
+                path,
+                name = info.Name,
+                size = info.Length,
+                modifiedUtc = info.LastWriteTimeUtc.ToString("o")
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("pending update", ex);
+            return null;
+        }
+    }
+
+    /// <summary>Reads the CPU the package was built for out of its PE header.
+    /// The file name is not evidence — a "GUGUOVA-1.18.0-arm64.exe" and its x64
+    /// twin are told apart only here (§1.41.5).</summary>
+    private static bool PackageMatchesThisMachine(string path)
+    {
+        var expected = RuntimeInformation.ProcessArchitecture switch
+        {
+            Architecture.X64 => 0x8664,
+            Architecture.Arm64 => 0xAA64,
+            Architecture.X86 => 0x014C,
+            _ => 0
+        };
+        if (expected == 0) return true;
+        try
+        {
+            using var stream = File.OpenRead(path);
+            using var reader = new BinaryReader(stream);
+            if (stream.Length < 0x40) return false;
+            stream.Position = 0x3C;
+            var peOffset = reader.ReadInt32();
+            if (peOffset <= 0 || peOffset + 6 > stream.Length) return false;
+            stream.Position = peOffset;
+            if (reader.ReadUInt32() != 0x00004550) return false;  // "PE\0\0"
+            return reader.ReadUInt16() == expected;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("update package header", ex);
+            return false;
         }
     }
 
@@ -361,8 +445,8 @@ public sealed partial class NativeBridge
 
     private static bool WaitForMarker(string marker, int timeoutMs)
     {
-        var deadline = Environment.TickCount64 + timeoutMs;
-        while (Environment.TickCount64 < deadline)
+        var deadline = NowMs() + timeoutMs;
+        while (NowMs() < deadline)
         {
             if (File.Exists(marker))
             {
@@ -373,6 +457,28 @@ public sealed partial class NativeBridge
         }
         return false;
     }
+
+    /* Both hosts compile this file, and the folder (net48) build has none of
+       Environment.ProcessPath / ProcessId / TickCount64. These three wrappers
+       are the only difference the two runtimes need. */
+    private static string? CurrentExecutablePath()
+    {
+        try
+        {
+            return System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("current exe path", ex);
+            return null;
+        }
+    }
+
+    private static int CurrentProcessId() => System.Diagnostics.Process.GetCurrentProcess().Id;
+
+    /// <summary>Monotonic-enough milliseconds for a 1.6 s handshake; the wall
+    /// clock is only consulted inside one call.</summary>
+    private static long NowMs() => DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
 
     private static string? TruncateNotes(string? notes)
     {

@@ -39,7 +39,7 @@
             : info.phase === 'restarting' ? '正在替换程序并重启…'
               : info.phase === 'result' && info.available ? `发现新版本 v${info.latest} · 当前 v${info.current}`
                 : info.phase === 'result' ? `已是最新 · v${info.current}`
-                  : info.phase === 'done' ? `新版本${info.latest ? ` v${info.latest}` : ''}已下载 · 重启后自动完成升级`
+                  : info.phase === 'done' ? `新版本${info.latest ? ` v${info.latest} ` : ''}已下载 · 重启后自动完成升级`
                     : info.phase === 'cancelled' ? '下载已取消'
                       : info.phase === 'error' ? `检查失败：${info.error || '未知错误'}`
                         : `当前版本 ${state.version}`;
@@ -53,8 +53,64 @@
     }
   }
 
+  /** Host status messages carry the run they belong to. Anything older than the
+   *  run already on screen is dropped: a slow check, or a cancelled download
+   *  reporting late, used to repaint the panel with a result the player had
+   *  already replaced (§1.41.5). */
+  function acceptUpdateSeq(payload) {
+    const seq = Number(payload && payload.seq);
+    if (!Number.isFinite(seq) || seq <= 0) return true;  // host without seq
+    if (seq < state.updateSeq) return false;
+    state.updateSeq = seq;
+    return true;
+  }
+
+  /** "GUGUOVA-1.18.0-single.exe" → [1,18,0]; null when no version is readable. */
+  function versionFromAssetName(name) {
+    const match = String(name || '').match(/(\d+)\.(\d+)(?:\.(\d+))?/);
+    if (!match) return null;
+    return [Number(match[1]), Number(match[2]), Number(match[3] || 0)];
+  }
+
+  function versionParts(value) {
+    const match = String(value || '').match(/(\d+)\.(\d+)(?:\.(\d+))?/);
+    if (!match) return [0, 0, 0];
+    return [Number(match[1]), Number(match[2]), Number(match[3] || 0)];
+  }
+
+  function versionIsNewer(left, right) {
+    const a = Array.isArray(left) ? left : versionParts(left);
+    const b = Array.isArray(right) ? right : versionParts(right);
+    for (let i = 0; i < 3; i += 1) {
+      if (a[i] !== b[i]) return a[i] > b[i];
+    }
+    return false;
+  }
+
+  /**
+   * A package sitting in updates/ that nobody installed means the swap never
+   * completed (blocked script, killed waiter, reboot mid-upgrade). The panel
+   * opens on "已下载 · 重启后自动完成升级" instead of pretending nothing
+   * happened, so the player is one click from finishing it (§1.41.5).
+   */
+  function adoptPendingUpdate(pending) {
+    if (!pending || !pending.path) return false;
+    const version = versionFromAssetName(pending.name);
+    if (!version || !versionIsNewer(version, state.version)) return false;
+    state.update = {
+      phase: 'done',
+      path: pending.path,
+      name: pending.name,
+      latest: version.join('.')
+    };
+    updateRender();
+    return true;
+  }
+
   function onUpdateStatus(payload) {
-    state.update = { ...(state.update || {}), ...payload };
+    if (!acceptUpdateSeq(payload)) return;
+    const { seq, ...rest } = payload;
+    state.update = { ...(state.update || {}), ...rest };
     updateRender();
     if (payload.phase === 'result' && payload.available) {
       toast(`发现新版本 v${payload.latest} · 设置里可下载`, 'cloud');
@@ -66,12 +122,16 @@
   }
 
   function onUpdateProgress(payload) {
+    if (!acceptUpdateSeq(payload)) return;
     const percent = Math.max(0, Math.min(100, payload.percent || 0));
     if (els.updateProgressFill) els.updateProgressFill.style.width = `${percent}%`;
     if (els.updateProgressPct) els.updateProgressPct.textContent = `${percent}%`;
   }
 
   async function checkForUpdates() {
+    const phase = (state.update || {}).phase;
+    // Clicking twice queues two checks whose answers race each other.
+    if (phase === 'checking' || phase === 'downloading') return;
     const result = await call('checkUpdate');
     if (result && result.ok === false) toast(result.error || '无法启动检查', 'alert');
   }
@@ -91,12 +151,20 @@
       return;
     }
     const label = info.latest ? `v${info.latest}` : '新版本';
+    /* A running game is allowed to keep running — the launcher is not the game —
+       but this process owns the play clock and the scaling engine, so both stop
+       the moment the window closes. Naming the games beats a generic "请先退出
+       游戏" the player has no way to act on (§1.41.5). */
+    const running = [...state.running.keys()].map((id) => findGame(id)).filter(Boolean);
+    const runningNote = running.length
+      ? `\n注意：${running.map((game) => `《${shortName(game) || game.name}》`).join('、')}正在运行。启动器退出后这次游玩将不再计时（游戏本身不受影响）。`
+      : '';
     const choice = await window.NovaOverlays.dialog({
       title: `重启并升级到 ${label}`,
-      text: '启动器会关闭，用下载好的版本替换当前程序，然后自动重新打开。游戏库、主题与设置都不会改动，下载的安装包会在替换后清理。如果游戏正在运行，请先退出游戏再升级。',
+      text: '启动器会关闭，用下载好的版本替换当前程序，然后自动重新打开。游戏库、主题与设置都不会改动，下载的安装包会在替换后清理。' + runningNote,
       icon: 'up',
       actions: [
-        { label: '重启并升级', value: 'go', style: 'primary' },
+        { label: running.length ? '结束计时并升级' : '重启并升级', value: 'go', style: 'primary' },
         { label: '稍后再说', value: null }
       ]
     });
