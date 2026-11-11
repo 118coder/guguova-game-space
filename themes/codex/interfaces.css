@@ -606,3 +606,10 @@ html[data-theme="codex"] .share-card[data-variant="score"] .sc-fact b {
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="codex"] {
+  --sc-tint-shadow: #160f0a;
+  --sc-tint-high: #e8cfa0;
+}

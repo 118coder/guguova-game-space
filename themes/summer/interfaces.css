@@ -781,3 +781,10 @@ html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 50p
 html[data-theme="summer"] .share-card[data-variant="score"] .sc-brand { color: #101820; }
 html[data-theme="summer"] .share-card[data-variant="score"] .sc-brand::before { background: #e8f21f; box-shadow: 0 0 0 1.5px #101820; }
 html[data-theme="summer"] .share-card[data-variant="score"] .sc-no { color: #17739f; }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="summer"] {
+  --sc-tint-shadow: #0b3550;
+  --sc-tint-high: #eaf6ff;
+}

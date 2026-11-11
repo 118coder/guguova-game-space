@@ -230,6 +230,13 @@
       });
     }
     if (els.shareExport) els.shareExport.addEventListener('click', () => exportShareCard());
+    if (els.shareFraming) {
+      els.shareFraming.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-frame]');
+        if (button) stepShareFraming(button.dataset.frame);
+      });
+    }
+    if (els.shareTint) els.shareTint.addEventListener('click', () => toggleShareTint());
     if (els.shareLongPage) {
       els.shareLongPage.addEventListener('click', () => {
         closeShareDialog();

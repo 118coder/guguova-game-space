@@ -665,3 +665,10 @@ html[data-theme="grimoire"] .share-card[data-variant="score"] .sc-deco::after {
   transform: rotate(45deg);
   border: 2px solid rgba(176, 138, 62, .75);
 }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="grimoire"] {
+  --sc-tint-shadow: #3a1518;
+  --sc-tint-high: #e8d8b6;
+}

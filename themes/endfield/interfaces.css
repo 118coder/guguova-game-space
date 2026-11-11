@@ -782,3 +782,10 @@ html[data-theme="endfield"] .share-card[data-variant="score"] .sc-facts {
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-hours b { font-size: 120px; }
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-ladder { margin-top: 14px; }
 html[data-theme="endfield"] .share-card[data-variant="score"] .sc-tier { margin-top: 10px; }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="endfield"] {
+  --sc-tint-shadow: #161616;
+  --sc-tint-high: #f4f4f2;
+}

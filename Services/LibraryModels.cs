@@ -26,6 +26,14 @@ public sealed class GameEntry
     public string CoverPath { get; set; } = "";
     public string HeroPosition { get; set; } = "50% 45%";
     public double HeroZoom { get; set; } = 1;
+
+    /// <summary>Share-card framing. A card crops to a near-square plate while
+    /// the home backdrop is ultrawide, so the same percentages put the subject
+    /// in different places. Cards keep their own numbers and fall back to the
+    /// hero crop when empty / zero, which keeps old entries unchanged.</summary>
+    public string CardPosition { get; set; } = "";
+    public double CardZoom { get; set; }
+
     public string CoverPosition { get; set; } = "50% 45%";
     public string Accent { get; set; } = "#ffb45e";
     public string Accent2 { get; set; } = "#ff6b79";
@@ -144,6 +152,11 @@ public sealed class PlayerSettings
     /// runs when the player explicitly turns it on.</summary>
     public bool AutoCheckUpdates { get; set; }
     public string? LastUpdateCheckUtc { get; set; }
+
+    /// <summary>Share cards paint the cover in the active theme's duotone
+    /// when this is on. Off by default: the untouched cover is the safe
+    /// reading, and the switch in the card dialog is one click away.</summary>
+    public bool ShareTint { get; set; }
 
     /// <summary>Hide the launcher when a game process is attached, then bring
     /// it back on exit. On by default: the game window, not the overlay, should
@@ -270,7 +283,9 @@ public sealed record GamePayload(
     bool ClientInstalled,
     PlaySession[] RecentSessions,
     string LauncherPath,
-    bool Hidden);
+    bool Hidden,
+    string CardPosition,
+    double CardZoom);
 
 /// <summary>Result of turning a dropped file/folder into one launchable exe.</summary>
 public sealed record DropResolution(bool Ok, string? Error, string? ExePath, string? Name, string? WorkDir);

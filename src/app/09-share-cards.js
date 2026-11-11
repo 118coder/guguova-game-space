@@ -31,6 +31,9 @@
 
   let shareVariant = 'poster';
   let shareExportJob = null;
+  /** Live framing of the card on screen: { x, y, zoom }. Null until a card is
+   *  rendered; the dialog seeds it from the game's own card/hero numbers. */
+  let shareFraming = null;
 
   /** 14.5 / 132 — the number only; the unit is set in type. */
   function shareHourText(seconds) {
@@ -75,6 +78,8 @@
   function shareCardHTML(game) {
     const variant = SHARE_VARIANTS.some((entry) => entry.id === shareVariant) ? shareVariant : 'poster';
     const art = game.heroUrl || game.coverUrl || 'assets/backdrop.jpg';
+    const framing = shareFraming || shareFramingFor(game);
+    const artStyle = `object-position:${framing.x}% ${framing.y}%;--sc-art-zoom:${framing.zoom}`;
     const genres = shareGenres(game);
     const tier = playtimeTierIndex(game.playtimeSeconds || 0);
     const vars = tierVarsFor(game, game.playtimeSeconds || 0);
@@ -103,9 +108,9 @@
     const showZh = zh && zh.toLowerCase() !== name.toLowerCase();
 
     return `
-      <article class="share-card" data-variant="${variant}" data-prog-tier="${tier}"
+      <article class="share-card" data-variant="${variant}" data-prog-tier="${tier}" data-tint="${shareTintOn() ? '1' : '0'}"
                data-no="${String(index).padStart(2, '0')}" data-total="${String(total).padStart(2, '0')}">
-        <div class="sc-art"><img src="${esc(art)}" alt="" draggable="false" style="object-position:${esc(game.heroPosition || '50% 45%')}"></div>
+        <div class="sc-art"><img src="${esc(art)}" alt="" draggable="false" style="${artStyle}"></div>
         <div class="sc-wash" aria-hidden="true"></div>
         <div class="sc-deco" aria-hidden="true"></div>
         <div class="sc-frame" aria-hidden="true"></div>
@@ -146,6 +151,151 @@
         </div>
       </article>
     `;
+  }
+
+  /* ------------------------------------------------------------
+     COVER FRAMING + STYLISED COVER
+     ------------------------------------------------------------
+     A card crops its cover to a near-square plate while the home backdrop
+     is ultrawide, so the hero crop regularly cuts the wrong thing out of
+     the frame. The card therefore keeps its own numbers (cardPosition /
+     cardZoom) and only falls back to the hero ones when the player has
+     never touched it — old entries keep the picture they always had.
+
+     The stylised cover is one duotone filter shared by every theme: the
+     two ends of the ramp come from --sc-tint-shadow / --sc-tint-high, so
+     each theme decides its own ink and the filter is written once.
+     ------------------------------------------------------------ */
+
+  const SHARE_FRAME = { x: 50, y: 45, step: 2, minZoom: 1, maxZoom: 2.4, zoomStep: .1 };
+
+  function shareClamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function shareFramingFor(game) {
+    const match = String(game.cardPosition || game.heroPosition || '')
+      .match(/([\d.]+)\s*%\s+([\d.]+)\s*%/);
+    const ownZoom = Number(game.cardZoom);
+    const heroZoom = Number(game.heroZoom);
+    const zoom = ownZoom >= SHARE_FRAME.minZoom ? ownZoom
+      : (heroZoom >= SHARE_FRAME.minZoom ? heroZoom : 1);
+    return {
+      x: match ? shareClamp(Number(match[1]), 0, 100) : SHARE_FRAME.x,
+      y: match ? shareClamp(Number(match[2]), 0, 100) : SHARE_FRAME.y,
+      zoom: shareClamp(zoom, SHARE_FRAME.minZoom, SHARE_FRAME.maxZoom)
+    };
+  }
+
+  /** Move the picture without rebuilding the card, so stepping feels live. */
+  function paintShareFraming() {
+    if (els.shareZoomValue && shareFraming) {
+      els.shareZoomValue.textContent = `${Math.round(shareFraming.zoom * 100)}%`;
+    }
+    if (!shareFraming || !els.shareMount) return;
+    const img = els.shareMount.querySelector('.sc-art img');
+    if (!img) return;
+    img.style.objectPosition = `${shareFraming.x}% ${shareFraming.y}%`;
+    img.style.setProperty('--sc-art-zoom', String(shareFraming.zoom));
+  }
+
+  let shareFrameTimer = null;
+
+  function scheduleShareFramingSave() {
+    const game = currentGame();
+    if (!game || !shareFraming) return;
+    clearTimeout(shareFrameTimer);
+    shareFrameTimer = setTimeout(async () => {
+      shareFrameTimer = null;
+      if (!shareFraming) return;
+      const position = `${Math.round(shareFraming.x)}% ${Math.round(shareFraming.y)}%`;
+      const zoom = Number(shareFraming.zoom.toFixed(2));
+      game.cardPosition = position;
+      game.cardZoom = zoom;
+      if (!hasBridge) return;
+      const result = await call('updateGame', { id: game.id, cardPosition: position, cardZoom: zoom });
+      if (!result || !result.ok) {
+        toast(result?.error || '封面取景保存失败', 'alert');
+        return;
+      }
+      if (result.game) Object.assign(game, result.game);
+    }, 420);
+  }
+
+  function stepShareFraming(action) {
+    if (!shareFraming) return;
+    const game = currentGame();
+    if (action === 'reset') {
+      if (game) {
+        // Reset means "follow the hero crop again", not "jump to 50/45":
+        // clearing the override is the least surprising way back.
+        game.cardPosition = '';
+        game.cardZoom = 0;
+        if (hasBridge) call('updateGame', { id: game.id, cardPosition: '', cardZoom: 0 });
+      }
+      shareFraming = game ? shareFramingFor(game) : { x: SHARE_FRAME.x, y: SHARE_FRAME.y, zoom: 1 };
+      paintShareFraming();
+      audio.toggle();
+      return;
+    }
+    if (action === 'left') shareFraming.x -= SHARE_FRAME.step;
+    else if (action === 'right') shareFraming.x += SHARE_FRAME.step;
+    else if (action === 'up') shareFraming.y -= SHARE_FRAME.step;
+    else if (action === 'down') shareFraming.y += SHARE_FRAME.step;
+    else if (action === 'zoom-in') shareFraming.zoom += SHARE_FRAME.zoomStep;
+    else if (action === 'zoom-out') shareFraming.zoom -= SHARE_FRAME.zoomStep;
+    else return;
+    shareFraming.x = shareClamp(shareFraming.x, 0, 100);
+    shareFraming.y = shareClamp(shareFraming.y, 0, 100);
+    shareFraming.zoom = shareClamp(shareFraming.zoom, SHARE_FRAME.minZoom, SHARE_FRAME.maxZoom);
+    paintShareFraming();
+    scheduleShareFramingSave();
+    audio.toggle();
+  }
+
+  function shareTintOn() {
+    return !!(state.settings && state.settings.shareTint === true);
+  }
+
+  function syncShareTintState() {
+    const on = shareTintOn();
+    if (els.shareTint) els.shareTint.setAttribute('aria-checked', String(on));
+    if (els.shareTintSwitch) els.shareTintSwitch.classList.toggle('on', on);
+  }
+
+  function toggleShareTint() {
+    state.settings.shareTint = !shareTintOn();
+    syncShareTintState();
+    const card = els.shareMount && els.shareMount.querySelector('.share-card');
+    if (card) card.dataset.tint = state.settings.shareTint ? '1' : '0';
+    saveSettings();
+    audio.select();
+  }
+
+  /** Resolve any CSS colour expression (var() included) to [r, g, b]. */
+  function probeCssColor(expression, fallback) {
+    const probe = document.createElement('span');
+    probe.style.cssText = `position:absolute;left:-9999px;top:0;width:0;height:0;color:${expression}`;
+    document.body.appendChild(probe);
+    const resolved = getComputedStyle(probe).color;
+    probe.remove();
+    const parts = (resolved.match(/[\d.]+/g) || []).map(Number);
+    return parts.length >= 3 ? parts.slice(0, 3) : fallback;
+  }
+
+  /** Rewrite the shared duotone ramp from the active theme's two ends. */
+  function applyShareTintFilter() {
+    const channels = ['scDuoR', 'scDuoG', 'scDuoB'].map((id) => document.getElementById(id));
+    if (channels.some((node) => !node)) return;
+    const shadow = probeCssColor('var(--sc-tint-shadow, #0a0d13)', [10, 13, 19]);
+    const high = probeCssColor('var(--sc-tint-high, #dfe6f2)', [223, 230, 242]);
+    const mid = shadow.map((value, i) => Math.round(value + (high[i] - value) * .62));
+    const stops = [shadow, mid, high];
+    channels.forEach((node, channel) => {
+      node.setAttribute('tableValues', stops
+        .map((stop) => shareClamp(stop[channel] / 255, 0, 1).toFixed(3))
+        .join(' '));
+    });
   }
 
   function shareGameForCard() {
@@ -196,6 +346,9 @@
       return;
     }
     els.shareMount.innerHTML = shareCardHTML(game);
+    if (els.shareZoomValue && shareFraming) {
+      els.shareZoomValue.textContent = `${Math.round(shareFraming.zoom * 100)}%`;
+    }
     // The image decides the veil's job, so wait one frame for layout before
     // measuring; the card's own size is fixed, only the scale is computed.
     requestAnimationFrame(fitSharePreview);
@@ -219,6 +372,9 @@
     state.lastFocus = document.activeElement;
     state.overlay = 'share';
     document.body.dataset.overlay = 'share';
+    shareFraming = shareFramingFor(game);
+    syncShareTintState();
+    applyShareTintFilter();
     renderShareChoices();
     renderSharePreview();
     if (els.shareSubtitle) els.shareSubtitle.textContent = `《${shortName(game) || game.name}》· 选一种版式，导出为图片`;
@@ -544,7 +700,8 @@
         autoStartEngine: state.settings.autoStartEngine === true,
         startupFullscreen: state.settings.startupFullscreen === true,
         idlePauseMinutes: Number.isFinite(state.settings.idlePauseMinutes) ? state.settings.idlePauseMinutes : 10,
-        autoCheckUpdates: state.settings.autoCheckUpdates === true
+        autoCheckUpdates: state.settings.autoCheckUpdates === true,
+        shareTint: state.settings.shareTint === true
       });
     }, 180);
   }

@@ -731,3 +731,10 @@ html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-deco::before 
   letter-spacing: .24em;
   box-shadow: 0 0 0 1px rgba(243, 243, 240, .35), 0 0 18px rgba(143, 43, 43, .45);
 }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="broadcast"] {
+  --sc-tint-shadow: #141414;
+  --sc-tint-high: #e9e9e6;
+}

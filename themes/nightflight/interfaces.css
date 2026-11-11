@@ -730,3 +730,10 @@ html[data-theme="nightflight"] .share-card[data-variant="score"] .sc-deco::after
     #f4f0e0;
   border: 1px solid #b8b09a;
 }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="nightflight"] {
+  --sc-tint-shadow: #04070d;
+  --sc-tint-high: #9fc4ff;
+}

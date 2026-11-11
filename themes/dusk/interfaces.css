@@ -660,3 +660,10 @@ html[data-theme="dusk"] .share-card[data-variant="score"] .sc-facts { display: g
 html[data-theme="dusk"] .share-card[data-variant="score"] .sc-fact { padding: 7px 0; border-bottom: 1px dashed rgba(106, 87, 64, .4); }
 html[data-theme="dusk"] .share-card[data-variant="score"] .sc-ladder { margin-top: 14px; }
 html[data-theme="dusk"] .share-card[data-variant="score"] .sc-foot { margin-top: auto; padding-top: 12px; }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="dusk"] {
+  --sc-tint-shadow: #191233;
+  --sc-tint-high: #f0cfa4;
+}

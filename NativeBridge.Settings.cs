@@ -133,6 +133,8 @@ public sealed partial class NativeBridge
                 settings.DeveloperMode = developer.GetBoolean();
             if (args.TryGetProperty("autoCheckUpdates", out var autoCheck) && autoCheck.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 settings.AutoCheckUpdates = autoCheck.GetBoolean();
+            if (args.TryGetProperty("shareTint", out var shareTint) && shareTint.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                settings.ShareTint = shareTint.GetBoolean();
         }
         _store.Save();
         return new { ok = true };

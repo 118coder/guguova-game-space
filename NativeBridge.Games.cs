@@ -83,7 +83,9 @@ public sealed partial class NativeBridge
             game.Source == GamePlatform.Steam.Id || PlatformScanner.ClientInstalled(game.Source),
             RecentSessions(game),
             game.LauncherPath ?? "",
-            game.Hidden);
+            game.Hidden,
+            game.CardPosition ?? "",
+            game.CardZoom);
     }
 
     /// <summary>The last five real sessions, oldest first — the detail sheet
@@ -366,6 +368,13 @@ public sealed partial class NativeBridge
                 game.HeroPosition = NormalizeHeroPosition(heroPosition);
             if (TryGetNumber(args, "heroZoom", out var heroZoom))
                 game.HeroZoom = NormalizeHeroZoom(heroZoom);
+            // Share-card framing is independent of the hero crop: an empty
+            // position clears the override so the card follows the hero again.
+            if (TryGetString(args, "cardPosition", out var cardPosition))
+                game.CardPosition = string.IsNullOrWhiteSpace(cardPosition)
+                    ? "" : NormalizeHeroPosition(cardPosition);
+            if (TryGetNumber(args, "cardZoom", out var cardZoom))
+                game.CardZoom = NormalizeCardZoom(cardZoom);
 
             if (TryGetString(args, "exePath", out var exe) && !string.IsNullOrWhiteSpace(exe))
             {
@@ -448,6 +457,14 @@ public sealed partial class NativeBridge
 
     private static double NormalizeHeroZoom(double value) =>
         CompatUtil.Clamp(!double.IsNaN(value) && !double.IsInfinity(value) ? value : 1, 1, 2.4);
+
+    /// <summary>Card zoom keeps 0 as "not set" so the card can fall back to
+    /// the hero crop; any real value lives in the same 1–2.4 range.</summary>
+    private static double NormalizeCardZoom(double value)
+    {
+        if (double.IsNaN(value) || double.IsInfinity(value) || value <= 0) return 0;
+        return CompatUtil.Clamp(value, 1, 2.4);
+    }
 
     private static double ParseDouble(string text, double fallback) =>
         double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : fallback;
