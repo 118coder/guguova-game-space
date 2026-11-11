@@ -770,4 +770,7 @@ html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-
 html[data-theme="riso"] {
   --sc-tint-shadow: #0b2f63;
   --sc-tint-high: #c2ddff;
+  /* 与首页 hero 同一条链：灰阶 → 棕褐 → 色相转 188° → 提饱和 = 孔版蓝墨。
+     端点只留作 duotone 兜底；纸上的网点层仍是 multiply 的蓝点，一起读作套印。 */
+  --sc-tint-filter: grayscale(1) sepia(1) hue-rotate(188deg) saturate(2.2) contrast(1.04) brightness(.96);
 }

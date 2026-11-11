@@ -482,10 +482,17 @@
   transform-origin: 50% 50%;
 }
 
-/* Stylised cover: one document-wide duotone filter whose table values are
-   rewritten from the active theme's --sc-tint-* pair, so every theme gets its
-   own ink without shipping fourteen filters. Off unless the player opts in. */
-.share-card[data-tint="1"] .sc-art img { filter: url(#scDuotone); }
+/* Stylised cover. Default is one document-wide duotone filter whose table
+   values are rewritten from the active theme's --sc-tint-* pair, so every
+   theme gets its own ink without shipping fourteen filters. A theme whose
+   home hero already has a signature treatment names it in --sc-tint-filter
+   instead (a CSS filter chain), and the card reuses that exact recipe;
+   --sc-tint-opacity lets it lay the picture on the paper the way the hero
+   does. Off unless the player opts in. */
+.share-card[data-tint="1"] .sc-art img {
+  filter: var(--sc-tint-filter, url(#scDuotone));
+  opacity: var(--sc-tint-opacity, 1);
+}
 
 .sc-tint-defs {
   position: absolute;

@@ -739,4 +739,9 @@ html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-deco::before 
 html[data-theme="broadcast"] {
   --sc-tint-shadow: #141414;
   --sc-tint-high: #e9e9e6;
+  /* 与首页 hero 同款：压成高亮灰阶（grayscale + 低对比 + 提亮），再用 62%
+     不透明压在纸面上——hero 里那层纸色雾在这儿由卡片自己的纸替代，
+     所以画面读作「播出中的一帧」，不是一张染色的照片。 */
+  --sc-tint-filter: grayscale(1) contrast(.92) brightness(1.5);
+  --sc-tint-opacity: .62;
 }

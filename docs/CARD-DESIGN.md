@@ -103,6 +103,12 @@ score=封底数据页）；封面照片作为期刊图版进入构图；时长�
     色相决定整张图的色相——想让画面明显偏蓝，暗端也得带蓝，只染亮端会被暗端的
     灰把中间调拉回去。**暗端的绿通道不能压太低**：`#0d1a66` 这种靛蓝会把整张
     封面读成「紫」，抬到 `#0b2f63`（色相 ≈210°）才读作蓝（§1.36）。
+    **主题首页已经有签名级滤镜的，别自己再配一套端点**：直接写
+    `--sc-tint-filter`（滤镜链）和可选的 `--sc-tint-opacity`，卡片就会复用首页
+    那条链——riso 抄 hero 的 `grayscale → sepia → hue-rotate(188°) → saturate(2.2)`，
+    broadcast 抄 `grayscale + contrast(.92) + brightness(1.5)` 再压 62% 到纸上（§1.37）。
+    duotone 是**兜底**，适合没有 hero 滤镜可抄的主题；染色只改颜色不改层次，
+    玩家一眼能看出「蒙了层色纸」。
 11. **图版里的封面由脚本铺成 cover 足迹，主题别去改 `img` 的尺寸**：
     `.sc-art img` 的 `width/height` 会被 `paintShareArt()` 写成 `dw×dh`（cover 后的
     真实足迹），靠 `left/top: 50%` + `translate(-50%,-50%)` 锚在版心。主题如果给

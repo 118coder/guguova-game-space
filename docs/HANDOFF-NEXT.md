@@ -38,6 +38,11 @@
 > ⚠️ **§1.34 打偏了**（2026-11-11，见 §1.36）：Owner 说的「电波海报」是 **riso**，
 > 不是 broadcast（broadcast 叫「深夜广播」）。当时把广播改成了深夜蓝，现已**回退**，
 > 蓝色改到 riso 上（1.4.16）。广播回到墨色 → 纸白的中性双色调（1.4.18）。
+> ✅ **两套纸面主题改用首页同款滤镜**（§1.37，2026-11-11，Owner 贴首页截图）：
+> 共享层新增可选 `--sc-tint-filter` / `--sc-tint-opacity`，默认仍走 duotone；
+> riso 直接复用 hero 的 `grayscale → sepia → hue-rotate(188°) → saturate(2.2)` 蓝墨链，
+> broadcast 复用 `grayscale + contrast(.92) + brightness(1.5)` 配 62% 不透明压在纸面。
+> riso 1.4.17、broadcast 1.4.19，应用版本仍 1.16.5，未发 Release。
 > ✅ **PR #42 已合并**（§1.35，2026-11-11）：§1.31–§1.34 全部进 `main`（`1c0ecfb`，squash，
 > 42 文件 +2288/−36），源分支 `feat/share-card-editor` 已推远端。**应用版本仍 1.16.5，
 > 未发 Release**——14 套 `theme.json` 已逐套 bump，发版时一次性做。
@@ -3026,10 +3031,10 @@ node tools/frame-check.js summer       # 单主题
 | 主题 | 暗端 | 亮端 | 观感 |
 | --- | --- | --- | --- |
 | summer | `#0b3550` | `#eaf6ff` | 海蓝 → 冰白 |
-| broadcast | `#141414` | `#e9e9e6` | 墨色 → 纸白（黑白播出照，§1.36 已回退） |
+| broadcast | `#141414` | `#e9e9e6` | 墨色 → 纸白；§1.37 起改走 hero 的高亮灰阶链 |
 | zerohour | `#07100a` | `#c6ff2e` | 荧光绿 |
 | riot | `#141414` | `#ff3b30` | 黑 → 红 |
-| riso | `#0b2f63` | `#c2ddff` | 孔版蓝墨（§1.36 改，原洋红） |
+| riso | `#0b2f63` | `#c2ddff` | 孔版蓝墨；§1.37 起改走 hero 的蓝墨链 |
 | dusk | `#191233` | `#f0cfa4` | 夜紫 → 烛光 |
 | nightflight | `#04070d` | `#9fc4ff` | 夜航冷蓝 |
 | steam | `#0b0c0f` | `#a9c3da` | 石墨 → 钢蓝 |
@@ -3124,6 +3129,62 @@ node tools/frame-check.js summer       # 单主题
 | --- | --- | --- |
 | riso | `0.043 0.486 0.761` / `0.184 0.608 0.867` / `0.388 0.769 1.000` | 封面为明确的蓝，与纸面、酸黄块、蓝色网点协调 |
 | broadcast | `0.078 0.596 0.914` × 3（R=G=B 同值） | 回到中性黑白，ON AIR 章与时码牌如常 |
+
+---
+
+### 1.37 两套纸面主题改用「首页同款滤镜」（2026-11-11，Owner：「应该用首页里面同款滤镜风格」）
+
+#### 1.37.1 需求
+
+Owner 贴了两张首页截图：电波海报的首页封面是**蓝墨单色**（暗部深蓝、亮部近白、
+明暗层次完整），深夜广播的首页封面是**高亮灰阶**（像播出中的一帧，白纸显影）。
+他要求卡片的「风格化封面」用**同一套滤镜**，而不是现在这种把整张图均匀染成两个
+端点的双色调——duotone 只改颜色不改层次，看起来像给照片蒙了层色纸。
+
+#### 1.37.2 两套首页分别在用什么
+
+| 主题 | 首页 hero 的滤镜 | 位置 |
+| --- | --- | --- |
+| riso | `grayscale(1) sepia(1) hue-rotate(188deg) saturate(2.2) contrast(1.04) brightness(.96)` | `themes/riso/theme.css` `.scene > img` |
+| broadcast | `grayscale(1) contrast(.92) brightness(1.5)` + `opacity: .62` + 纸色雾/线性遮罩 | `themes/broadcast/theme.css` §v4 区块 |
+
+广播那条不是单独一行滤镜那么简单：hero 把图压到 62% 不透明，垫在 `#e7e5df`
+纸色上，再罩一层纸雾，所以读起来是「白纸上显影的播出画面」。卡片图版的底板
+本来就是纸（broadcast `--sc-plate: #f3f3f0`、riso `#ffffff`），因此只要给 `img`
+同一条链、同一个小透明度，就能在卡片里重建同一种叠印关系。
+
+#### 1.37.3 改法
+
+共享层加两个可选的变量，默认行为一点没变（另外 12 套仍走 duotone）：
+
+```css
+.share-card[data-tint="1"] .sc-art img {
+  filter: var(--sc-tint-filter, url(#scDuotone));
+  opacity: var(--sc-tint-opacity, 1);
+}
+```
+
+- `riso`：`--sc-tint-filter` 直接抄 hero 那条链（同一个色相 188°、同一档饱和 2.2）。
+- `broadcast`：`--sc-tint-filter: grayscale(1) contrast(.92) brightness(1.5)` +
+  `--sc-tint-opacity: .62`，纸面由卡片自己的底板提供。
+- 两套的 `--sc-tint-shadow/high` 保留不动，作为「主题没写滤镜时」的 duotone 兜底。
+- 版本：riso 1.4.16 → **1.4.17**，broadcast 1.4.18 → **1.4.19**。
+
+#### 1.37.4 验证工具（新增）
+
+`tools/tint-probe.js`：现有 `tint-shot.js` 用的是自带 demo 封面，而 demo 封面几乎是
+平色，滤镜链在平色上只会读成一块纯色，看不出层次。这个探针在页面里用 canvas 画一张
+**带层次的灰阶测试图**（高光核心 + 深色椭圆 + 竖条），换掉 `.sc-art img` 的 src，
+再截实时图版。
+
+**踩过的坑**：导出走 `shareCardHTML(game)` 重建卡片，探针换掉的 src 会被丢掉，
+所以只能截弹窗里的实时图版，不能截导出的成图。
+
+#### 1.37.5 结果
+
+- riso：图版 = 蓝墨单色，暗部深海军蓝、高光近白，圆形高光与深色椭圆的层次都在，
+  与纸面上的蓝网点（multiply）读作同一套套印。
+- broadcast：图版 = 高亮灰阶 + 扫描线，像播出中的一帧，不再是染色照片。
 
 ---
 
