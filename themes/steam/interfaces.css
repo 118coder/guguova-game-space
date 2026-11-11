@@ -331,93 +331,269 @@ html[data-theme="steam"] .view-home .hero-inner::before {
 }
 
 /* ============================================================
-   CARD CHARACTER · STEAM
+   CARD CHARACTER · STEAM · 向开场终帧（intro-st2）看齐
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   终帧语言：Big Picture 开机 —— 深炭控制台面板、1px 灰蓝线、
+   16:9 封面导轨 + 焦点蓝环辉光、4px 进度轨道（蓝渐变）、
+   等宽状态行。绿只给「就绪」语义（眉标 LED），其余一律蓝。
+   卡片 = 三块控制台面板：
+     poster   焦点蓝环大封面 + 底部信息面板 + 开机进度轨
+     dossier  焦点封面 + 库详情资料面板（进度轨做缝线）
+     score    左封面导轨位 + 右侧控制台数据面板（蓝色主线）
    ============================================================ */
 
-/* Store page: a wide capsule on top, a stats rail beside the copy, one
-   blue strip and a hairline table. */
+/* ---- 墨色与材质：炭黑面板为底，蓝线为结构，绿只做就绪灯 ---- */
+html[data-theme="steam"] .share-card {
+  --sc-bg: #0b0c0f;
+  --sc-ink: #f3f4f6;
+  --sc-ink-2: #b4b8c1;
+  --sc-rule: #30333b;
+  --sc-accent: #1a9fff;
+  --sc-accent-ink: #03101d;
+  --sc-plate: rgba(19, 20, 24, .82);
+  --sc-plate-line: #4b505b;
+  --sc-sheet-bg: #131418;
+  --sc-sheet-line: #30333b;
+  --sc-radius: 4px;
+  --sc-scrim-rgb: 11, 12, 15;
+  --sc-veil: linear-gradient(180deg, rgba(11, 12, 15, .8) 0%, rgba(11, 12, 15, .28) 34%, rgba(11, 12, 15, .82) 80%, #0b0c0f 100%);
+  --sc-veil-x: linear-gradient(90deg, rgba(11, 12, 15, .85) 0%, rgba(11, 12, 15, .3) 40%, #0b0c0f 94%);
+  --sc-frame-line: #30333b;
+  --sc-frame-w: 0px;
+  --sc-frame-inset: 0px;
+  --sc-frame-inner: transparent;
+  --sc-strip-h: 0px;
+  --sc-title-font: var(--font-display);
+  --sc-title-weight: 700;
+  --sc-title-tracking: -.01em;
+  --sc-title-size: 54px;
+  --sc-title-size-dossier: 50px;
+  --sc-title-size-score: 48px;
+  --sc-label-font: var(--font-mono);
+  --sc-label-tracking: .18em;
+  --sc-num-font: var(--font-mono);
+  --sc-num-tracking: -.02em;
+  --sc-track: #1d2026;
+}
+/* 就绪 LED：全场唯一的绿，来自开机的 is-ready 语义 */
+html[data-theme="steam"] .share-card .sc-kicker i {
+  background: #8fbc1c;
+  box-shadow: 0 0 8px rgba(143, 188, 28, .55);
+}
+/* 绿色纪律：品牌短线与全部结构线锁纯蓝 #1a9fff 系，绿色只留眉标 LED */
+html[data-theme="steam"] .share-card .sc-brand::before { background: #1a9fff; }
+
+/* ---- 通用修正 ------------------------------------------------
+   1) dossier 页脚去重：sc-foot 的「启动次数 / 上次游玩」与 sc-facts
+      数据列重复，dossier 变体整组隐藏（保留收藏与签名）。
+   2) 0/21 阶梯空节点：空档收成安静细轨（去边框、5px 高、极淡蓝，
+      底边对齐成轨），已点亮档位用焦点蓝加高；is-next 保留共享层
+      的 inset 描边。 */
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+html[data-theme="steam"] .share-card .sc-ladder i {
+  height: 5px;
+  align-self: end;
+  border: 0;
+  background: rgba(26, 159, 255, .12);
+}
+html[data-theme="steam"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: var(--prog-fill, #1a9fff);
+}
+
+/* ---- POSTER · Big Picture 主页 -------------------------------
+   顶部一张带焦点蓝环的 16:9 大封面，底部长信息面板收全部数据，
+   封面与面板之间拉一条开机进度轨。 */
 html[data-theme="steam"] .share-card[data-variant="poster"] .sc-art {
-  inset: 40px 40px auto 40px;
+  inset: 100px 44px auto 44px;
+  height: 380px;
+  border: 1px solid #30333b;
+  border-radius: 4px;
+  /* 焦点蓝环双层辉光：贴身亮环 + 外扩柔光（intro-st2 的焦点态） */
+  box-shadow:
+    0 0 0 1px #1a9fff,
+    0 0 0 3px rgba(26, 159, 255, .32),
+    0 0 36px rgba(26, 159, 255, .3),
+    0 26px 60px -34px #000;
+  z-index: 4;
+}
+html[data-theme="steam"] .share-card[data-variant="poster"] .sc-wash {
+  inset: 100px 44px auto 44px;
   height: 380px;
   border-radius: 4px;
-  box-shadow: 0 18px 40px -24px #000;
+  background-image: linear-gradient(180deg, rgba(11, 12, 15, .14) 52%, rgba(11, 12, 15, .44) 100%);
 }
 html[data-theme="steam"] .share-card[data-variant="poster"] .sc-sheet {
   inset: 0;
   padding: 0 44px 40px;
 }
-html[data-theme="steam"] .share-card[data-variant="poster"] .sc-top { inset: 56px 56px auto; }
+html[data-theme="steam"] .share-card[data-variant="poster"] .sc-top { inset: 46px 44px auto 44px; }
 html[data-theme="steam"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: 44px;
-  margin-top: 46px;
   align-items: start;
+  margin-top: 0;
+  padding: 26px 34px;
+  background: #131418;
+  border: 1px solid #30333b;
+  border-radius: 4px;
+  position: relative;
+}
+/* 开机进度轨：锚在信息面板上沿。统一做法——暗轨 #262b34 画满整条，
+   蓝段叠在上面到真实比例（62%）为止，填充头一枚亮蓝光点收口，
+   轨道两端各加 3px 亮蓝竖线端帽，整条读作有起止的进度仪。 */
+html[data-theme="steam"] .share-card[data-variant="poster"] .sc-main::before {
+  content: '';
+  position: absolute;
+  left: -34px;
+  right: -34px;
+  top: -23px;
+  height: 10px;
+  background:
+    linear-gradient(#1a9fff, #1a9fff) 0 0 / 3px 10px no-repeat,
+    linear-gradient(#1a9fff, #1a9fff) 100% 0 / 3px 10px no-repeat,
+    radial-gradient(circle, #bfe3ff 0 1.5px, #1a9fff 1.5px 4px, transparent 4.5px) 62% 50% / 12px 12px no-repeat,
+    linear-gradient(90deg, #0f5f9e, #1a9fff 70%, #7fd0ff) 0 3px / 62% 4px no-repeat,
+    linear-gradient(#262b34, #262b34) 0 3px / 100% 4px no-repeat;
+}
+/* 左中配重：面板中段补控制台状态行（等宽小字，库详情语言） */
+html[data-theme="steam"] .share-card[data-variant="poster"] .sc-main::after {
+  content: '> STATUS ........ READY\A> BUILD ......... 1.15.0\A> LIBRARY ....... E:/GUGUOVA/THING-AS-THEY-ARE';
+  position: absolute;
+  right: 420px;
+  bottom: 34px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 2;
+  letter-spacing: .06em;
+  color: #7c8593;
+  white-space: pre-line;
+  text-align: left;
+  pointer-events: none;
 }
 html[data-theme="steam"] .share-card[data-variant="poster"] .sc-score {
-  border-left: 1px solid #30333b;
-  padding: 18px 20px 22px 26px;
+  align-items: flex-start;
+  text-align: left;
+  border: 0;
+  border-left: 1px solid #24262d;
+  border-radius: 0;
+  padding: 0 0 0 26px;
+  background: transparent;
+  box-shadow: none;
 }
-html[data-theme="steam"] .share-card[data-variant="poster"] .sc-hours b { font-size: 96px; }
+html[data-theme="steam"] .share-card[data-variant="poster"] .sc-hours b { font-size: 88px; }
 html[data-theme="steam"] .share-card[data-variant="poster"] .sc-ladder { width: 100%; margin-left: 0; }
 html[data-theme="steam"] .share-card[data-variant="poster"] .sc-tier { max-width: none; margin-left: 0; }
-html[data-theme="steam"] .share-card[data-variant="poster"] .sc-facts {
-  display: grid;
-  position: static;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 18px;
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid #24262d;
-}
+html[data-theme="steam"] .share-card[data-variant="poster"] .sc-facts { display: none; }
 
+/* ---- DOSSIER · 库详情 ----------------------------------------
+   焦点蓝环封面在上，下方库详情资料面板（flex 撑满），
+   进度轨做封面与面板之间的缝线。 */
 html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 44px 44px auto 44px;
-  height: 520px;
+  inset: 100px 48px auto 48px;
+  height: 660px;
+  border: 1px solid #30333b;
   border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(26, 159, 255, .45), 0 26px 60px -34px #000;
   z-index: 4;
 }
-html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 600px 44px 40px; }
-html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-top { inset: 56px 56px auto; }
-html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-frame { display: none; }
-html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-sheet::after {
-  content: attr(data-no);
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-wash {
+  inset: 100px 48px auto 48px;
+  height: 660px;
+  border-radius: 4px;
+  background-image: linear-gradient(180deg, rgba(11, 12, 15, .12) 56%, rgba(11, 12, 15, .4) 100%);
+}
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 800px 48px 44px;
+}
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-top { inset: 46px 48px auto 48px; }
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-main {
+  flex: 1 1 auto;
+  position: relative;
+  padding: 30px 34px;
+  background: #131418;
+  border: 1px solid #30333b;
+  border-radius: 4px;
+}
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 100px; }
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-score { border-top: 1px solid #24262d; }
+/* 右半配重：资料面板补控制台状态行（状态/版本/库路径/云同步）。
+   钉在数据区上方（bottom 锚定），不再悬在面板顶部——
+   状态行与统计分隔线之间 ~270px 的空带就此收掉。 */
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-main::after {
+  content: '> STATUS ....... READY\A> BUILD ........ 1.15.0\A> LIBRARY ...... E:/GUGUOVA/THING-AS-THEY-ARE\A> CLOUD SYNC ... ON';
   position: absolute;
   right: 44px;
-  top: 560px;
-  font: 700 240px/1 var(--sc-title-font);
-  color: rgba(255, 255, 255, .06);
-  z-index: -1;
+  top: auto;
+  bottom: 306px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 2.1;
+  letter-spacing: .06em;
+  color: #7c8593;
+  white-space: pre-line;
+  text-align: left;
+  pointer-events: none;
 }
-html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-score { border-top: 1px solid #30333b; }
+/* 缝线蓝轨：与 poster 同一做法——暗轨全程 + 蓝段到真实比例 +
+   填充头光点 + 两端 3px 亮蓝竖线端帽，蓝段不再读成断线。 */
+html[data-theme="steam"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  top: 781px;
+  height: 10px;
+  background:
+    linear-gradient(#1a9fff, #1a9fff) 0 0 / 3px 10px no-repeat,
+    linear-gradient(#1a9fff, #1a9fff) 100% 0 / 3px 10px no-repeat,
+    radial-gradient(circle, #bfe3ff 0 1.5px, #1a9fff 1.5px 4px, transparent 4.5px) 62% 50% / 12px 12px no-repeat,
+    linear-gradient(90deg, #0f5f9e, #1a9fff 70%, #7fd0ff) 0 3px / 62% 4px no-repeat,
+    linear-gradient(#262b34, #262b34) 0 3px / 100% 4px no-repeat;
+}
 
-/* Score: shelf row — thumbnail, then a console table. */
+/* ---- SCORE · 控制台战绩 --------------------------------------
+   左侧封面占据导轨位（焦点蓝环），右侧数据面板用一条蓝色主线，
+   大数字、里程碑、离港式事实行一次排开。 */
 html[data-theme="steam"] .share-card[data-variant="score"] .sc-art {
-  inset: 44px auto 44px 44px;
-  width: 34%;
+  inset: 48px auto 48px 48px;
+  width: 560px;
+  border: 1px solid #30333b;
   border-radius: 4px;
+  /* 焦点蓝环双层辉光，与 poster 同一语言 */
+  box-shadow:
+    0 0 0 1px #1a9fff,
+    0 0 0 3px rgba(26, 159, 255, .32),
+    0 0 36px rgba(26, 159, 255, .3),
+    0 26px 60px -34px #000;
   z-index: 4;
 }
+html[data-theme="steam"] .share-card[data-variant="score"] .sc-wash {
+  inset: 48px auto 48px 48px;
+  width: 560px;
+  background-image: linear-gradient(180deg, rgba(11, 12, 15, .16) 0%, rgba(11, 12, 15, .42) 100%);
+}
 html[data-theme="steam"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0 0 0 40%;
-  padding: 64px 64px 44px;
-  background: #0f1116;
+  inset: 0 0 0 640px;
+  padding: 64px 56px 44px;
+  background: #131418;
   border-left: 0;
 }
-html[data-theme="steam"] .share-card[data-variant="score"] .sc-top { inset: 52px 64px auto 40%; padding-left: 64px; }
+html[data-theme="steam"] .share-card[data-variant="score"] .sc-top { inset: 52px 56px auto 696px; }
+/* 竖向蓝主线收进卡内：上下各留足余量，不再直插画布下缘 */
 html[data-theme="steam"] .share-card[data-variant="score"] .sc-sheet::before {
   left: 0;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: #30333b;
+  top: 64px;
+  bottom: 96px;
+  width: 3px;
+  background: #1a9fff;
 }
-html[data-theme="steam"] .share-card[data-variant="score"] .sc-main { gap: 22px; margin-top: auto; }
-html[data-theme="steam"] .share-card[data-variant="score"] .sc-hours b { font-size: 132px; }
+html[data-theme="steam"] .share-card[data-variant="score"] .sc-main { gap: 24px; margin: auto 0; }
+html[data-theme="steam"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
 html[data-theme="steam"] .share-card[data-variant="score"] .sc-facts {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -425,4 +601,34 @@ html[data-theme="steam"] .share-card[data-variant="score"] .sc-facts {
   margin-top: 22px;
   padding-top: 18px;
   border-top: 1px solid #24262d;
+}
+/* 数据行到页脚的空档：一行控制台回执补配重 */
+html[data-theme="steam"] .share-card[data-variant="score"] .sc-sheet::after {
+  content: '> SESSION SAVED · CLOUD SYNC OK · NEXT TIER 50H';
+  position: absolute;
+  left: 56px;
+  bottom: 108px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  color: #7c8593;
+  white-space: pre-line;
+  pointer-events: none;
+}
+/* 底部开机进度轨收尾：与 poster/dossier 同一做法——暗轨全程 +
+   蓝段到真实比例 + 填充头光点 + 两端 3px 亮蓝竖线端帽，
+   页脚下方的蓝段不再读成悬空残留线。 */
+html[data-theme="steam"] .share-card[data-variant="score"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  left: 696px;
+  right: 56px;
+  bottom: 37px;
+  height: 10px;
+  background:
+    linear-gradient(#1a9fff, #1a9fff) 0 0 / 3px 10px no-repeat,
+    linear-gradient(#1a9fff, #1a9fff) 100% 0 / 3px 10px no-repeat,
+    radial-gradient(circle, #bfe3ff 0 1.5px, #1a9fff 1.5px 4px, transparent 4.5px) 62% 50% / 12px 12px no-repeat,
+    linear-gradient(90deg, #0f5f9e, #1a9fff 70%, #7fd0ff) 0 3px / 62% 4px no-repeat,
+    linear-gradient(#262b34, #262b34) 0 3px / 100% 4px no-repeat;
 }

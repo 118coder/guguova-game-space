@@ -395,16 +395,31 @@ html[data-theme="riso"] {
    answers with its own composition. Geometry lives in
    src/share-cards.css; this block moves the artwork, re-shapes the
    sheet and adds the theme's decoration.
+
+   终帧（intro-rs 三色版套准）：纸 #f4f2e9 / 墨 #101014 / 蓝版
+   #2f3fd4 / 酸黄 #e8ff2a / 玫红 #ff5b9e（multiply）。母题：错位印
+   （字与色块的蓝/黄 ghost 偏移）、8px 蓝点网点（intro 原版 SVG
+   瓦片）、三色 multiply 色版、纸面标签小字与套准角标。
+   卡片即「一张三版套印的活页」：封面 = 图版，标题 = 错位印大字。
    ============================================================ */
 
-/* Two-ink print: halftone field, crop marks, a blue title block and acid
-   overprint blocks. */
-html[data-theme="riso"] .share-card .sc-deco {
-  background-image: radial-gradient(rgba(43, 47, 168, .5) 1.1px, transparent 1.3px);
-  background-size: 11px 11px;
-  opacity: .16;
-  mix-blend-mode: multiply;
+/* 里程碑阶梯：0/21 的空档收成安静细轨（去边框、6px 高、极淡墨点），
+   像一道待套印的空版；已点亮的档位回实色墨条并加高，读作阶梯。 */
+html[data-theme="riso"] .share-card .sc-ladder i {
+  height: 6px;
+  border: 0;
+  background: rgba(16, 16, 20, .14);
 }
+html[data-theme="riso"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: var(--prog-fill, #2f3fd4);
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-ladder i.is-on {
+  height: 14px;
+}
+
+/* 套准角标：四角对位刻度（印刷裁切标记），全规格通用。 */
 html[data-theme="riso"] .share-card .sc-frame {
   border: 0;
   background:
@@ -417,81 +432,332 @@ html[data-theme="riso"] .share-card .sc-frame {
     linear-gradient(#101014, #101014) right bottom / 34px 2px no-repeat,
     linear-gradient(#101014, #101014) right bottom / 2px 34px no-repeat;
 }
+/* 小字压标签：intro-rs-kicker 的纸面标签配方。 */
+html[data-theme="riso"] .share-card .sc-kicker {
+  align-self: flex-start;
+  justify-self: start;
+  background: #f4efe1;
+  padding: 3px 10px 4px;
+  box-shadow: 0 0 0 1px rgba(47, 63, 212, .18);
+  color: #2f3fd4;
+  letter-spacing: .3em;
+}
+/* 错位印大字：墨字 + 蓝版左下 ghost + 酸黄右上 ghost。 */
+html[data-theme="riso"] .share-card .sc-title {
+  color: #101014;
+  text-shadow: -.045em .012em 0 #2f3fd4, .045em -.012em 0 #e8ff2a;
+}
+
+/* -- POSTER · 封面活页 ----------------------------------------
+   右半 = 蓝版罩印的封面图版，左半纸面；蓝缝线分版，酸黄时长版
+   压蓝偏移，玫红小色版叠在黄版角上（multiply 套印）。 */
 html[data-theme="riso"] .share-card[data-variant="poster"] .sc-art { inset: 0 0 0 46%; }
 html[data-theme="riso"] .share-card[data-variant="poster"] .sc-wash {
   inset: 0 0 0 46%;
-  background-image: linear-gradient(90deg, #faf8ef 0%, rgba(250, 248, 239, .1) 26%, rgba(43, 47, 168, .28) 100%);
+  /* 版缝留白收成 30px 实条：原来的 24% 渐隐奶油雾罩在深图版上
+     读作一条全高「粉雾脏带」，现在只剩一道有意图的窄条。 */
+  background-image:
+    linear-gradient(90deg, #faf8ef 0 30px, rgba(250, 248, 239, 0) 30px),
+    linear-gradient(rgba(47, 63, 212, .16), rgba(47, 63, 212, .16));
 }
-html[data-theme="riso"] .share-card[data-variant="poster"] .sc-sheet { inset: 0 54% 0 0; padding: 60px 40px 48px; }
-html[data-theme="riso"] .share-card[data-variant="poster"] .sc-top { inset: 48px 40px auto 48px; }
+/* 网点只罩图版（multiply），像一道网屏。 */
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-deco {
+  inset: 0 0 0 46%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%232f3fd4' opacity='.3'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+  mix-blend-mode: multiply;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0 54% 0 0;
+  padding: 56px 44px 48px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%232f3fd4' opacity='.3'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-top {
+  inset: 48px 44px auto 48px;
+  /* 收窄给版缝套准标让位：右上角标从图版上挪回纸面区（见下方
+     poster 专属 .sc-frame），No.01/06 不与之相撞。 */
+  width: 620px;
+}
 html[data-theme="riso"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr);
-  gap: 26px;
+  gap: 24px;
   margin-top: auto;
 }
-html[data-theme="riso"] .share-card[data-variant="poster"] .sc-title {
-  display: inline-block;
-  padding: 6px 14px 12px;
-  background: #2b2fa8;
-  color: #f7f5ea;
-  box-shadow: 7px 7px 0 #e8ff2a;
-}
+/* 酸黄时长版：版块本身错位印（蓝偏移）。共享 poster 给 .sc-score
+   自带白底板，这里整体重置，改由 ::before 画酸黄版。 */
 html[data-theme="riso"] .share-card[data-variant="poster"] .sc-score {
-  align-items: flex-start;
+  position: relative;
+  align-items: stretch;
   text-align: left;
-  padding: 16px 18px 14px;
-  border: 2px solid #101014;
-  background: #e8ff2a;
-  box-shadow: 7px 7px 0 #2b2fa8;
+  width: 100%;
+  max-width: 600px;
+  padding: 16px 22px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
-html[data-theme="riso"] .share-card[data-variant="poster"] .sc-hours b { font-size: 86px; }
-html[data-theme="riso"] .share-card[data-variant="poster"] .sc-ladder { display: none; }
-
-html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 56px 56px auto auto;
-  width: 46%;
-  height: 420px;
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-score::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 122px;
+  background: #e8ff2a;
   border: 2px solid #101014;
-  box-shadow: 9px 9px 0 #2b2fa8;
+  box-shadow: 7px 7px 0 #2f3fd4;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-hours b {
+  font-size: 84px;
+  text-shadow: -.045em .012em 0 #2f3fd4;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-ladder {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 26px;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-tier {
+  max-width: none;
+  margin-left: 0;
+  margin-top: 12px;
+  text-align: left;
+}
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-foot { padding-right: 40px; }
+/* 玫红小色版：从悬空的 x≈42% 挪到纸|图版缝的下段，multiply 骑缝
+   （避开黄版、阶梯与页脚；deco 已右移到 46%，left 相对 deco）。 */
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: -64px;
+  bottom: 120px;
+  width: 128px;
+  height: 128px;
+  background: #ff5b9e;
+  opacity: .82;
+  mix-blend-mode: multiply;
+}
+/* 套准角标（poster 专属）：图版盖住了右上/右下两只角标，把它们
+   挪到纸面右缘的版缝一侧（x≈700-734），左边两只仍守卡角。 */
+html[data-theme="riso"] .share-card[data-variant="poster"] .sc-frame {
+  background:
+    linear-gradient(#101014, #101014) left top / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) left top / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) left bottom / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) left bottom / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) 656px 0 / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) 688px 0 / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) 656px 100% / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) 688px 100% / 2px 34px no-repeat;
+}
+
+/* -- DOSSIER · 校样页 ------------------------------------------
+   上段封面 = 带蓝偏移的校样图版；下段纸面：错位印巨型时长 +
+   21 格里程碑，右侧四项事实收成蓝发丝线台账，玫红小色版压图版
+   右下角。 */
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-art {
+  inset: 128px 56px auto 56px;
+  height: 430px;
+  border: 2px solid #101014;
+  box-shadow: 10px 10px 0 #2f3fd4;
   z-index: 4;
 }
 html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
-html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 140px 60px 52px; }
-html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-id { max-width: 42%; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 612px 64px 48px;
+  background-color: #faf8ef;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%232f3fd4' opacity='.3'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+}
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-top { inset: 56px 64px auto; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-title { font-size: 54px; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-zh { margin-top: 10px; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-tagline { margin-top: 10px; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-meta { margin-top: 16px; }
 html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-score {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 44px;
+  padding-top: 24px;
   border-top: 2px solid #101014;
 }
-
-/* Score: the number is printed twice, one blue plate slightly off. */
-html[data-theme="riso"] .share-card[data-variant="score"] .sc-art {
-  inset: 44px 44px auto 44px;
-  height: 210px;
-  border-bottom: 2px solid #101014;
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-hours b {
+  font-size: 108px;
+  text-shadow: -.045em .012em 0 #2f3fd4, .045em -.012em 0 #e8ff2a;
 }
-html[data-theme="riso"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 254px 0 0;
-  padding: 34px 60px 40px;
-  background: #faf8ef;
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 20px; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-tier { margin-top: 12px; }
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-facts {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: 24px;
 }
-html[data-theme="riso"] .share-card[data-variant="score"] .sc-top { inset: 52px 56px auto; }
-html[data-theme="riso"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
-html[data-theme="riso"] .share-card[data-variant="score"] .sc-main {
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 44px;
-  align-items: end;
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-fact {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 13px 2px 12px;
+  border-top: 1px solid rgba(47, 63, 212, .4);
 }
-html[data-theme="riso"] .share-card[data-variant="score"] .sc-hours b {
-  font-size: 150px;
-  text-shadow: 6px 6px 0 rgba(43, 47, 168, .9);
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-fact:last-child {
+  border-bottom: 1px solid rgba(47, 63, 212, .4);
 }
-
 html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-sheet::after {
   content: attr(data-no);
   position: absolute;
-  right: 60px;
-  top: 520px;
-  font: 700 260px/1 var(--sc-title-font);
-  color: rgba(43, 47, 168, .1);
+  right: 64px;
+  top: 540px;
+  font: 700 240px/1 var(--sc-title-font);
+  color: rgba(47, 63, 212, .12);
   z-index: -1;
 }
+/* 玫红小色版：从右下（曾压住幽灵 01 右半并越过内容右边距）挪到
+   图版左下角，multiply 骑在图版下缘上，不再碰台账与幽灵。 */
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 120px;
+  top: 470px;
+  width: 140px;
+  height: 140px;
+  background: #ff5b9e;
+  opacity: .82;
+  mix-blend-mode: multiply;
+}
+/* 标题区与数据区之间的空网格，用 riso 印刷语言的套准说明填实。 */
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-sheet::before {
+  content: '套准说明 —— B 版先印 · Y 版叠印 60% · M 版网点 45°\A校样签样：色偏 ±5% 内付印 · 裁切线外出血 3mm · 版缝误差 ≤ 0.3mm';
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  top: 872px;
+  padding-top: 16px;
+  border-top: 2px dashed rgba(47, 63, 212, .45);
+  white-space: pre-line;
+  font: 600 12px/1.9 var(--sc-label-font);
+  letter-spacing: .14em;
+  color: rgba(47, 63, 212, .8);
+}
+/* 色版表：三版小色块 + 版名，落在说明与数据区之间。 */
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: '色版表 PLATE KEY';
+  position: absolute;
+  left: 64px;
+  top: 1010px;
+  padding-top: 22px;
+  font: 700 11px/1 var(--sc-label-font);
+  letter-spacing: .3em;
+  color: rgba(16, 16, 20, .62);
+  background:
+    linear-gradient(#2f3fd4, #2f3fd4) 0 0 / 44px 12px no-repeat,
+    linear-gradient(#e8ff2a, #e8ff2a) 52px 0 / 44px 12px no-repeat,
+    linear-gradient(#ff5b9e, #ff5b9e) 104px 0 / 44px 12px no-repeat;
+}
+
+/* -- SCORE · 双栏拼版 ------------------------------------------
+   上 300px = 蓝罩网点的封面图版带，下段纸面双栏：左错位印标题、
+   右酸黄时长版 + 沟槽里程碑；玫红小色版骑在版缝上。 */
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-art {
+  inset: 0 0 auto 0;
+  height: 300px;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-wash {
+  inset: 0 0 auto 0;
+  height: 300px;
+  background-image: linear-gradient(rgba(47, 63, 212, .16), rgba(47, 63, 212, .16));
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-deco {
+  inset: 0 0 auto 0;
+  height: 300px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%232f3fd4' opacity='.3'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+  mix-blend-mode: multiply;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 300px 0 0;
+  padding: 40px 64px 40px;
+  background-color: #faf8ef;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%232f3fd4' opacity='.3'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+}
+/* 图版横带下的 y≈35-64% 全宽空白，用一条套准说明细行填实。
+   （共享层把它当作 4px 竖脊线：width/bottom 必须一并复位。） */
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-sheet::before {
+  content: '套准说明 —— B 版先印 · Y 版叠印 60% · M 版网点 45° · 版缝误差 ≤ 0.3mm';
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  top: 175px;
+  bottom: auto;
+  width: auto;
+  background: none;
+  padding-top: 14px;
+  border-top: 2px dashed rgba(47, 63, 212, .45);
+  font: 600 12px/1.7 var(--sc-label-font);
+  letter-spacing: .14em;
+  color: rgba(47, 63, 212, .8);
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-top { inset: 344px 64px auto; }
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-title { font-size: 50px; }
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-main {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: 0 48px;
+  align-items: end;
+  margin: auto 0 0;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-score {
+  position: relative;
+  padding: 18px 22px 0;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-score::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 148px;
+  background: #e8ff2a;
+  border: 2px solid #101014;
+  box-shadow: 7px 7px 0 #2f3fd4;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-hours b {
+  font-size: 108px;
+  text-shadow: -.045em .012em 0 #2f3fd4;
+}
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-ladder { margin-top: 34px; }
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-tier { margin-top: 12px; }
+/* 玫红小色版：从横跨图版|纸面接缝（上半被图压暗、下半亮粉）挪进
+   单一定义域——完全落在纸面上，缝下留 20px。 */
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: calc(46% + 24px);
+  top: 320px;
+  width: 128px;
+  height: 128px;
+  background: #ff5b9e;
+  opacity: .82;
+  mix-blend-mode: multiply;
+}
+/* 套准角标（score 专属）：上段整条是图版，两只上角标挪到版缝下的
+   纸面里（y≈308），下角标仍守卡角。 */
+html[data-theme="riso"] .share-card[data-variant="score"] .sc-frame {
+  background:
+    linear-gradient(#101014, #101014) 0 264px / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) 0 264px / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) left bottom / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) left bottom / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) 100% 264px / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) 100% 264px / 2px 34px no-repeat,
+    linear-gradient(#101014, #101014) right bottom / 34px 2px no-repeat,
+    linear-gradient(#101014, #101014) right bottom / 2px 34px no-repeat;
+}
+
+/* dossier 页脚与数据列去重：sc-foot 的「启动/上次游玩」与 sc-facts 重复 */
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }

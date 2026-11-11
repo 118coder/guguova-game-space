@@ -6,6 +6,10 @@
 > **导出卡顶部烧进弹窗三色条**的导出 Bug（该 Bug 只影响 endfield）。13 套其他主题零改动。
 > ✅ **文件解耦与代码整合完成**（§1.26，2026-11-11）：app.js（9802 行）拆 29 个职责分片、
 > C# 三大文件 partial 化、tools 精简，**行为零变化**（切片字节级验证 + 11 项全量回归）。
+> ✅ **分享卡片按开场终帧重做**（§1.27，2026-11-11）：12 套主题（endfield/nova 除外）
+> 三规格卡片全部重写，设计基准固化在 docs/CARD-DESIGN.md；两轮视觉验收修复 + dossier
+> 页脚去重；发现并修掉 body 装饰串进导出卡的系统性问题（mnemo/summer）。
+> **14 套 theme.json 已全部 bump**，等 Owner 看图定稿后统一发行。
 > 交接时间：2026-11-10（同日第四至十一轮）
 > 分支：`main` = `fcbcfe1`（PR [#37](https://github.com/118coder/guguova-game-space/pull/37) squash 合并，
 > 42 文件 +5094/−81，基于 `b40f19e`）；**版本号仍是 1.16.5，没有 bump、没有发行**
@@ -2420,6 +2424,120 @@ html[data-theme="endfield"][data-share-export] body::after { display: none; }
 
 ---
 
+## 1.27 第十五轮（2026-11-11）：分享卡片 × 12 套主题按开场终帧重做
+
+> Owner 指令：参考封面设计，再次优化除「明日方舟（endfield）/默认（nova）」之外的
+> 全部卡片样式，要符合本主题设计——参照物是 **开场动画的最终画面**（Owner 设计，
+> `src/intro.css` 为唯一权威）。本轮只动 12 套主题的 `interfaces.css` CARD CHARACTER
+> 块 + `theme.json` bump；`nova` / `endfield` / 共享层 / DOM 全部未动。
+
+### 1.27.1 设计基准与方法
+
+- 新文档 **`docs/CARD-DESIGN.md`**：卡片设计基准的正式契约——「怎么向开场看齐」
+  （色板 hex / 母题×2 / 字体 / 材质四要素提取法）+ 12 套主题的终帧→卡片母题对照表
+  + 硬规则（画布固定、不溢出、对比度、禁 opacity 压字、封面是主角）。以后卡片再
+  迭代以它为准。
+- 主题→开场 preset 映射（`intro.js` 注册表覆盖序）：dusk→`intro-dk2`、
+  nightflight→`intro-nf`、steam→`intro-st2`、summer→`intro-dr`(draft)、
+  riot→`intro-vn`、riso→`intro-rs`、codex→`intro-cx`(v2)、mnemo→`intro-mn`、
+  grimoire→`intro-gs`、broadcast→`intro-bc`、aurum→`intro-au`(v2)、
+  zerohour→`intro-zh2`。共享 DOM 固定（.sc-art/.sc-wash/.sc-deco/.sc-frame/.sc-top/
+  .sc-sheet/.sc-id/.sc-score/.sc-foot），构图全部在主题 CSS 完成。
+
+### 1.27.2 12 套卡片新构图（一句话版）
+
+| 主题 | 终帧语言 | 构图要点 |
+| --- | --- | --- |
+| dusk 2.0.16 | **委托信（Owner 定调：首页的魔法阵+信封）** | 撕边委托信+封面相片（相纸边+胶带）+火漆封口+已受理章+衬线签名；炼金环（魔法阵）悬暮色天；配方逐字取自 theme.css 首页 |
+| nightflight 1.0.16 | 出发信息板+登机牌+舷窗 | 米白登机牌+撕口票根+航班行、舷窗封面、跑道中线；score 全卡信息板+翻牌大数字 |
+| steam 2.0.15 | Big Picture 控制台+焦点蓝辉光 | 蓝环辉光封面+信息面板+进度轨缝线；绿色全卡只留眉标 LED（铁律 13） |
+| summer 1.8.17 | 白纸制图+黑块标题+黄条 | 黑块白字标题逐行成块+黄块+幽灵编号+斜纹方格；黄条统一左缘 |
+| riot 1.5.15 | 黑胶唱片+硬偏移 | 封面斜贴唱片套+盘与断口红环探出+时长坐沟槽标签板 |
+| riso 1.4.14 | 三色版套准 | 蓝罩网点图版+酸黄时长版带错位印+玫红骑缝+色版表 |
+| codex 1.7.13 | 星轨秘典卷轴 | 行线卷轴页+鎏金画框封面+星座图（外环/虚线/罗盘针） |
+| mnemo 1.1.19 | 神秘管理局档案 | 网格纸+斜贴档案相片+双环地图+琥珀解密板+梅红印章+FILE 01 |
+| grimoire 1.5.16 | 归档仪式 | 金线画框（卡纸+外金晕）+火漆菱印+冲击环+烫金档号 |
+| broadcast 1.4.14 | 调频播出 | 播出画面（齿孔+扫描线+暗角）+频率刻度盘+ON AIR 灯+时码牌 |
+| aurum 1.0.19 | 鎏金门+日晕 | 封面装进双金线门洞、日晕在门洞后展开、宝石切面数字 |
+| zerohour 1.0.20 | CRT 信号接入 | CRT 玻璃屏（扫描线+双色反光）+信号条+切角面板+青柠硬影 |
+
+### 1.27.3 修复轮（视觉验收驱动的两轮迭代）
+
+实现即自检（share-shots overflow 0 + 尺寸精确）只是第一关；像素级视觉验收抓出的
+真问题分两批修完：
+
+- **批一（组2/组3 的 24 卡）**：四套 dossier 中段 300px+ 空洞（用各自主题语言补实：
+  riso 色版表 / codex 书志条目 / mnemo 档案字段 / grimoire 馆藏条目）、0/21 阶梯空
+  节点像乱码（统一改安静细轨：空节点 5-6px 无边框、点亮节点加高回 12px+）、
+  mnemo 顶部三色条被裁（判定为错误母题删除）、broadcast 顶部站名重复被裁、
+  riot 盘面被底边裁切、riso 粉雾带失控等。
+- **批二（组1 的 12 卡）**：summer-dossier 结构断裂（画框提前收口、正文溢出框外）
+  整张重排、dusk poster/score 同构（score 重排为左拱窗+右数据栏）、nightflight
+  翻牌格母题三张全缺（大数字统一落翻牌块）、steam 蓝轨断头（贯通+两端收口）等。
+- **全局去重**：dossier 变体的页脚「启动 N 次/上次游玩」与 .sc-facts 数据重复
+  （共享 DOM 的固有冗余），12 套统一在 dossier 变体隐藏这两个页脚项
+  （nova/endfield 未动）。
+
+### 1.27.4 发现的系统性问题：body 装饰串进导出卡
+
+导出态（`html[data-share-export]`）只隐藏 `.app`/浮层/开场层，**不管 theme.css 里
+`body::before/::after` 的 fixed 装饰**。实测 mnemo（三色顶条）与 summer（网点网格+
+双色条）都会压进导出卡画面，已在两套的 CARD CHARACTER 块加
+`html[data-theme="<id>"][data-share-export] body::x { display:none }`（仅导出态隐藏，
+应用不受影响）。**普查：10 套主题的 theme.css 有 body 装饰，endfield 也在内**——
+nova/endfield 本轮未动，若它们的导出卡也受影响，属下一轮候选修复（等 Owner 看图定）。
+
+### 1.27.5 验证
+
+**确定性 QA（全绿）**：
+
+| 项 | 结果 |
+| --- | --- |
+| `theme-slot-check --strict` | exit 0（12 套卡片块不带主题前缀的纪律审计也干净） |
+| `feature-checks.js` | 全过 |
+| `share-shots.js` 全量 14 套（含 nova/endfield 未动确认） | 导出无错误 |
+| `headless-shots.js --views=all` | 294 张 exit 0；警告仅既有 dusk 2px / aurum 5px 磁贴名裁切，卡片 CSS 对页面零回归 |
+
+**视觉验收两轮 + 修复两轮**（png-one 逐卡对照）：验收① 24 卡 12 条必修→修复代理 A/B 修完；
+验收② 组1 12 卡 8 条→修复；复核① dusk/summer 当时 PASS、六套剩小尾巴→终轮小修①②（夜航翻牌中缝、
+steam 蓝轨端帽、riot 沟槽弧等）基本收齐；复核②（组3）zerohour 验收项全过、broadcast 差时码牌/频率读数、
+aurum 差门楣收口、grimoire 冲击环实现不对——aurum/grimoire 因待定冻结，broadcast/zerohour 尾巴排队未修。
+
+**Owner 两度介入改向（下轮必读）**：
+
+1. **dusk 推翻重做**：定调「首页的魔法阵+信封」→ 卡片改为**委托信构图**（撕边羊皮纸、封面相片
+   米白相纸边+胶带、火漆封口、已受理章、衬线签名、细线炼金环悬暮色天），配方逐字取自 theme.css
+   首页，三规格渲染 overflow 0 尺寸精确。**待视觉复核**。
+2. **Owner 提供六张终帧截图**并指出六套没按终帧改：summer（图一，确认重做）、nightflight（图二）、
+   mnemo（图三）、aurum（图四）、grimoire（图五）、riso（图六，中文名「电波海报」）。随即收窄：
+   **只有 summer 确定重做，其余五套（夜航/神秘管理局/圣所/冒险者档案/电波海报）待定冻结**。截图
+   在 `C:/Users/12290/.zcode/cli/image-cache/sess_1e7f2882-d90d-4196-a825-954572418f1f/` 下
+   image-0f9dbd43…png(summer) / image-01f9460a…png(nightflight) / image-c6890ea3…png(mnemo) /
+   image-65c47f76…png(aurum) / image-71577cd8…png(grimoire) / image-e36381f2…png(riso)，
+   general-purpose 代理可直接 Read。
+
+### 1.27.7 会话结束时的现场（下一轮从这里接手）
+
+- **summer 重设计进行中**（后台代理，图一基准=「期刊封面」构图：右缘出血黄条、黑块巨题+黄块中文、
+  蓝 kicker、制图网格/斜线/圆弧、棋盘格；要求渲完自己看图迭代 ≥2 轮）。接手第一件事：确认交卷、
+  `node tools/share-shots.js --themes=summer` 复核、派 png-one 对照图一复核；未完成则按基准重派。
+- **riot/riso/codex/mnemo 终轮小修代理可能仍在跑**（在途改动属当前设计内打磨，与待定不冲突，
+  交卷后同样复核）。
+- **待定冻结五套**：nightflight / mnemo / aurum / grimoire / riso——等 Owner 逐套拍板后再按终帧
+  重做；其间不要动它们的卡片块（nightflight/steam 小修已落工作区，保留）。
+- **broadcast / zerohour 复核尾巴未修**（broadcast：poster 时码牌、poster/score 刻度盘频率读数、
+  score 红点被栏线切开；zerohour：score 里程碑条文字浮条外、poster 屏框上沿被危险带压住）。
+- **工作区未提交**：12 套 interfaces.css + 12 套 theme.json（已 bump）+ docs（CARD-DESIGN.md 新建、
+  本文件 §1.27）。本轮未 commit、未 PR——summer 定稿复核后一并提交。
+
+### 1.27.6 没做 / 下一步
+
+1. nova / endfield 的卡片本轮未动（Owner 明确排除）；endfield 若有 body 装饰串卡，
+   待 Owner 确认后按 §1.27.4 的方案修；
+2. 卡片目前是「文本可读、构图达标」的验收线，Owner 看图后逐套微调是预期流程；
+3. 分享卡片复制到剪贴板 / JPG 出口仍是 §8 P1 原项。
+
+---
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -2846,6 +2964,7 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
 | **渲染端分片源码** | `src/app/*.js`（规则与分片地图：`src/app/README.md`；改代码改分片，直接改 app.js 会被拼装覆盖） |
 | **分片拼装器** | `tools/build-app.js`（`--check` 进 release.sh 审计；headless-host 启动前自动拼装；relaunch.sh 自动拼装） |
 | **架构总览** | `docs/ARCHITECTURE.md`（文件职责速查、CSS 层叠契约、构建链；下一轮先读它） |
+| **分享卡片设计基准** | `docs/CARD-DESIGN.md`（终帧→卡片母题对照 + 硬规则；主题卡片块在 `themes/<id>/interfaces.css` 的 CARD CHARACTER） |
 
 ---
 
@@ -3103,6 +3222,19 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [ ] **不发行**（Owner 要求）：版本仍 1.16.5，无 tag、无 Release；
 - [ ] 14 套主题 `theme.json` version 未 bump，发版时统一处理；
 - [ ] 图标带卡片形状/名字排布未定稿（Owner 认为「框太丑」）。
+
+本轮（第十五轮 · 分享卡片按开场终帧重做，**工作区未提交**，详见 §1.27）：
+
+- [x] docs/CARD-DESIGN.md 设计基准（终帧→卡片母题对照 + 硬规则）；
+- [x] 12 套主题三规格卡片实现 + theme.json 全部 bump（overflow 0、尺寸精确）；
+- [x] 两轮视觉验收 + 两轮修复 + 终轮小修；确定性 QA 全绿（卡片 CSS 对页面零回归）；
+- [x] 修掉 body 装饰串进导出卡的系统性问题（mnemo/summer/zerohour/grimoire/aurum 导出态隐藏）；
+- [x] dossier 页脚与数据列去重（12 套统一，nova/endfield 未动）；
+- [x] dusk 按 Owner「魔法阵+信封」定调推翻重做（委托信构图，渲染通过，待视觉复核）；
+- [ ] summer 重设计进行中（代理在跑，期刊封面构图，接手先验收）；
+- [ ] 待定冻结五套（夜航/神秘管理局/圣所/冒险者档案/电波海报）等 Owner 按终帧截图拍板；
+- [ ] broadcast/zerohour 复核尾巴小修；
+- [ ] 提交 / PR（等 summer 定稿）。
 
 本轮（第十四轮 · 文件解耦与代码整合，重构轮，**已合并 PR #40**，详见 §1.26）：
 

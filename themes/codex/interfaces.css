@@ -366,10 +366,52 @@ html[data-theme="codex"] .view-home .hero-inner::before {
    answers with its own composition. Geometry lives in
    src/share-cards.css; this block moves the artwork, re-shapes the
    sheet and adds the theme's decoration.
+
+   终帧（intro-cx 星轨秘典卷轴）：卷轴深棕 #1d130c→#160f0a、金线
+   #c9a961 / #e2c78e / #e8d5ac。母题：星座图（金线连线 + 星点 +
+   4-7 虚线副线）、罗盘（2-6 虚线环 + 金针）、卷轴（上下金边 +
+   68px 暗金行线）、衬线宽字距金字 + 首字鎏金。
+   卡片即「一页摊开的秘典」：封面 = 鎏金画框的插图版。
    ============================================================ */
 
-/* Illuminated ledger: gold double rule, a painted plate in a gilt frame,
-   rubricated table rows. */
+/* 秘典排版：衬线宽字距 + 首字鎏金（彩绘手抄本的首字母）。 */
+html[data-theme="codex"] .share-card .sc-title {
+  letter-spacing: .14em;
+}
+html[data-theme="codex"] .share-card .sc-title::first-letter {
+  font-size: 1.5em;
+  color: #c9a961;
+}
+/* 时长数字 = 星金。 */
+html[data-theme="codex"] .share-card .sc-hours { color: #e2c78e; }
+/* 里程碑阶梯：0/21 的空档收成安静细轨（去边框、6px 高、极淡金），
+   像一段未点亮的星轨；已点亮的档位用亮金实色并加高。 */
+html[data-theme="codex"] .share-card .sc-ladder i {
+  height: 6px;
+  border: 0;
+  background: rgba(226, 199, 142, .16);
+}
+html[data-theme="codex"] .share-card .sc-ladder i.is-on {
+  height: 12px;
+  border: 0;
+  background: #c9a961;
+}
+/* 星座图 + 罗盘（intro-cx-chart 的复刻：虚线环、金针、金线连星）。
+   金线全部改亮金实色、不再靠低 opacity 压暗——深金压深棕的两个
+   母题（星座 × 幽灵字）叠在一起会互相抵消，虚线环与罗盘针必须
+   在深棕纸面上读得出来。 */
+html[data-theme="codex"] .share-card .sc-deco::before {
+  content: '';
+  position: absolute;
+  width: 340px;
+  height: 240px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='240' viewBox='0 0 340 240'%3E%3Ccircle cx='170' cy='120' r='96' fill='none' stroke='%23c9a961' stroke-opacity='.6' stroke-width='1' stroke-dasharray='2 6'/%3E%3Cpath d='M96 158 L142 96 L204 118 L252 74' fill='none' stroke='%23e2c78e' stroke-width='1.2'/%3E%3Cpath d='M142 96 L188 158 L252 74' fill='none' stroke='%23c9a961' stroke-opacity='.55' stroke-width='1' stroke-dasharray='4 7'/%3E%3Cg fill='%23e8d5ac'%3E%3Ccircle cx='96' cy='158' r='3'/%3E%3Ccircle cx='142' cy='96' r='2.4'/%3E%3Ccircle cx='204' cy='118' r='3.4'/%3E%3Ccircle cx='252' cy='74' r='2.4'/%3E%3Ccircle cx='188' cy='158' r='2'/%3E%3C/g%3E%3Cline x1='170' y1='120' x2='214' y2='58' stroke='%23c9a961' stroke-width='1.8'/%3E%3Ccircle cx='170' cy='120' r='2.6' fill='%23c9a961'/%3E%3C/svg%3E") no-repeat;
+  background-size: 100% 100%;
+}
+
+/* -- POSTER · 摊开的卷轴 --------------------------------------
+   左页深棕纸面铺 68px 暗金行线，星座图悬在题区上方；右侧封面
+   装进鎏金画框（8px 卡纸 + 金环），时长压金，题记首字鎏金。 */
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-art {
   inset: 56px 56px 56px auto;
   width: 40%;
@@ -377,16 +419,18 @@ html[data-theme="codex"] .share-card[data-variant="poster"] .sc-art {
   box-shadow: 0 0 0 8px #17130f, 0 0 0 9px rgba(201, 169, 97, .35);
 }
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-wash { display: none; }
-html[data-theme="codex"] .share-card[data-variant="poster"] .sc-sheet { inset: 0 46% 0 0; padding: 72px 52px 48px; }
-html[data-theme="codex"] .share-card[data-variant="poster"] .sc-top { inset: 64px 46px auto 52px; }
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-sheet {
+  inset: 0 46% 0 0;
+  padding: 72px 52px 48px;
+  background: repeating-linear-gradient(0deg,
+    rgba(201, 169, 97, .035) 0 1px, transparent 1px 68px);
+}
+/* No.01/06 从封面图版上（浅金压暗红偏弱）挪回左页纸面右缘。 */
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-top { inset: 64px calc(46% + 14px) auto 52px; }
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr);
   gap: 22px;
   margin-top: auto;
-}
-html[data-theme="codex"] .share-card[data-variant="poster"] .sc-title::first-letter {
-  font-size: 1.5em;
-  color: #c9a961;
 }
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-score {
   align-items: flex-start;
@@ -397,46 +441,116 @@ html[data-theme="codex"] .share-card[data-variant="poster"] .sc-score {
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-hours b { font-size: 96px; }
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-ladder,
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
-html[data-theme="codex"] .share-card[data-variant="poster"] .sc-frame {
-  inset: 24px;
-  border-color: rgba(201, 169, 97, .4);
+/* 星座图：从 240px 小图放大成横贯左页题区上方空带的 420px 宽幅
+   （品牌行下、标题上、界栏线右侧），虚线环与罗盘针按宽幅重排。 */
+html[data-theme="codex"] .share-card[data-variant="poster"] .sc-deco::before {
+  left: 390px;
+  top: 96px;
+  width: 420px;
+  height: 184px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='190' viewBox='0 0 420 190'%3E%3Ccircle cx='214' cy='96' r='74' fill='none' stroke='%23c9a961' stroke-opacity='.6' stroke-width='1' stroke-dasharray='2 6'/%3E%3Cpath d='M96 140 L156 82 L226 104 L286 60 L352 96' fill='none' stroke='%23e2c78e' stroke-width='1.2'/%3E%3Cpath d='M156 82 L214 142 L286 60' fill='none' stroke='%23c9a961' stroke-opacity='.55' stroke-width='1' stroke-dasharray='4 7'/%3E%3Cg fill='%23e8d5ac'%3E%3Ccircle cx='96' cy='140' r='3'/%3E%3Ccircle cx='156' cy='82' r='2.4'/%3E%3Ccircle cx='226' cy='104' r='3.4'/%3E%3Ccircle cx='286' cy='60' r='2.4'/%3E%3Ccircle cx='352' cy='96' r='2.6'/%3E%3Ccircle cx='214' cy='142' r='2'/%3E%3C/g%3E%3Cline x1='214' y1='96' x2='262' y2='40' stroke='%23c9a961' stroke-width='1.8'/%3E%3Ccircle cx='214' cy='96' r='2.6' fill='%23c9a961'/%3E%3C/svg%3E");
 }
+/* 卷轴的「界栏」双金线，横在品牌行下。 */
 html[data-theme="codex"] .share-card[data-variant="poster"] .sc-deco::after {
   content: '';
   position: absolute;
   left: 52px;
-  top: 150px;
-  width: 200px;
+  top: 112px;
+  width: 240px;
   height: 1px;
   background: rgba(201, 169, 97, .5);
   box-shadow: 0 4px 0 rgba(201, 169, 97, .3);
 }
 
+/* -- DOSSIER · 秘典档案页 --------------------------------------
+   上段封面 = 鎏金画框插图；下段资料页铺行线：题记限宽靠左，星座
+   图占右上留白，巨型时长压金，四项事实收成鎏金发丝线台账。 */
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 52px 60px auto 60px;
-  height: 470px;
+  inset: 128px 60px auto 60px;
+  height: 420px;
   border: 1px solid rgba(201, 169, 97, .7);
   box-shadow: 0 0 0 8px #17130f, 0 0 0 9px rgba(201, 169, 97, .35);
   z-index: 4;
 }
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
-html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 580px 60px 48px; }
-html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-top { inset: 60px 60px auto; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 600px 60px 48px;
+  background:
+    repeating-linear-gradient(0deg,
+      rgba(201, 169, 97, .035) 0 1px, transparent 1px 68px),
+    #17130f;
+}
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-top { inset: 58px 60px auto; }
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-frame { display: none; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-id { max-width: 760px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-title { font-size: 54px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-zh { margin-top: 10px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-tagline { margin-top: 10px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-meta { margin-top: 16px; }
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-score {
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 44px;
+  padding-top: 24px;
   border-top: 1px solid rgba(201, 169, 97, .45);
+}
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 108px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-ladder { margin-top: 20px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-tier { margin-top: 12px; }
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-facts {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: 24px;
+}
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-fact {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 13px 2px 12px;
+  border-top: 1px solid rgba(201, 169, 97, .32);
+}
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-fact:last-child {
+  border-bottom: 1px solid rgba(201, 169, 97, .32);
 }
 html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-sheet::after {
   content: attr(data-no);
   position: absolute;
   right: 64px;
-  top: 470px;
-  font: 600 280px/1 var(--sc-title-font);
-  color: rgba(201, 169, 97, .14);
+  top: 560px;
+  font: 600 240px/1 var(--sc-title-font);
+  color: rgba(201, 169, 97, .12);
   z-index: -1;
 }
+/* 标题/题记区与数据区之间的 350px 空档，用秘典语言的书志条目填实
+   （界栏框 + 题记 + 书志），星座图错位到它的右端，与幽灵 01 上下
+   分层、不再同处一格互相抵消。 */
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-sheet::before {
+  content: '题记 —— 雾起于河，城醒于人；抄录既竟，校对三过。\A书志 —— 甲编第一 · 附星图一幅、罗盘一具 · 藏于总局书库戊架。';
+  position: absolute;
+  left: 60px;
+  top: 890px;
+  width: 500px;
+  padding: 16px 20px 18px;
+  border: 1px solid rgba(201, 169, 97, .42);
+  box-shadow: inset 0 0 0 3px rgba(201, 169, 97, .1);
+  white-space: pre-line;
+  font: 500 13px/1.9 var(--sc-label-font);
+  letter-spacing: .08em;
+  color: rgba(226, 199, 142, .85);
+}
+/* 星座图占数据区上方右端留白（题记限宽 760，右缘 840 起为星图）。 */
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-deco::before {
+  right: 60px;
+  top: 878px;
+  left: auto;
+  width: 360px;
+  height: 250px;
+}
 
+/* -- SCORE · 双栏星图页 ----------------------------------------
+   左 30% 封面鎏金画框；右栏深棕行线纸面：星座图悬右上，标题
+   首字鎏金，巨型时长压金 + 21 格金轨里程碑 + 双列事实。 */
 html[data-theme="codex"] .share-card[data-variant="score"] .sc-art {
   inset: 48px auto 48px 48px;
   width: 30%;
@@ -444,16 +558,27 @@ html[data-theme="codex"] .share-card[data-variant="score"] .sc-art {
   box-shadow: 0 0 0 8px #17130f, 0 0 0 9px rgba(201, 169, 97, .35);
   z-index: 4;
 }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-wash { display: none; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-frame { display: none; }
 html[data-theme="codex"] .share-card[data-variant="score"] .sc-sheet {
   inset: 0 0 0 38%;
   padding: 64px 60px 44px;
-  background: #1c1610;
-  border-left: 0;
+  background:
+    repeating-linear-gradient(0deg,
+      rgba(201, 169, 97, .035) 0 1px, transparent 1px 68px),
+    #1c1610;
+  border-left: 1px solid rgba(201, 169, 97, .45);
 }
-html[data-theme="codex"] .share-card[data-variant="score"] .sc-top { inset: 56px 60px auto 38%; padding-left: 60px; }
 html[data-theme="codex"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-top {
+  inset: 56px 60px auto 38%;
+  padding-left: 60px;
+}
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-title { font-size: 50px; }
 html[data-theme="codex"] .share-card[data-variant="score"] .sc-main { gap: 20px; margin-top: auto; }
-html[data-theme="codex"] .share-card[data-variant="score"] .sc-hours b { font-size: 140px; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-ladder { margin-top: 20px; }
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-tier { margin-top: 12px; }
 html[data-theme="codex"] .share-card[data-variant="score"] .sc-facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -462,3 +587,22 @@ html[data-theme="codex"] .share-card[data-variant="score"] .sc-facts {
   padding-top: 16px;
   border-top: 1px solid rgba(201, 169, 97, .35);
 }
+/* 星座图：从封面画框左上角（像贴纸）挪进数据栏右上空区——照片区
+   永远无文字无装饰；右缘与内容边线对齐。 */
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-deco::before {
+  left: auto;
+  right: 60px;
+  top: 100px;
+  width: 244px;
+  height: 172px;
+}
+/* 事实台账的数值沿各自列右缘对齐：第二列右缘即内容右线，与上方
+   里程碑行的右端（x≈96%）取齐。 */
+html[data-theme="codex"] .share-card[data-variant="score"] .sc-fact b {
+  align-self: flex-end;
+}
+
+/* dossier 页脚与数据列去重：sc-foot 的「启动/上次游玩」与 sc-facts 重复 */
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="codex"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }

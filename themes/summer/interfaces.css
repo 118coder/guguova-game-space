@@ -374,55 +374,6 @@ html[data-theme="summer"].calm .view-home .hero-inner > .kicker {
 }
 
 /* ============================================================
-   SHARE CARDS · 分享卡片
-   ------------------------------------------------------------
-   Material for the three export cards (poster 1600×900,
-   dossier 1200×1500, score 1600×840). Geometry, typography
-   defaults and the export stage live in src/share-cards.css;
-   this block only answers what this theme's paper, ink, rule and
-   frame are made of, so an exported card carries the same
-   material as the app it came out of.
-   Contract: docs/THEME-INTERFACES.md §16.5
-   ============================================================ */
-
-html[data-theme="summer"] {
-  --sc-bg: #fdfbf6;
-  --sc-ink: #101820;
-  --sc-ink-2: #53677a;
-  --sc-rule: #9cc6d9;
-  --sc-accent: #1f93c8;
-  --sc-accent-ink: #ffffff;
-  --sc-plate: #ffffff;
-  --sc-plate-line: #1f93c8;
-  --sc-sheet-bg: #ffffff;
-  --sc-sheet-line: #9cc6d9;
-  --sc-radius: 12px;
-  --sc-scrim-rgb: 253, 251, 246;
-  /* Paper ground: the veil lightens the artwork into the sheet instead of
-     smearing black over it — a dark veil on a paper theme reads as damage. */
-  --sc-veil:
-    linear-gradient(180deg, rgba(253, 251, 246, .34) 0%, rgba(253, 251, 246, .04) 20%,
-      rgba(253, 251, 246, .46) 52%, rgba(253, 251, 246, .86) 82%, var(--sc-bg) 100%);
-  --sc-veil-x:
-    linear-gradient(90deg, rgba(253, 251, 246, 0) 0%, rgba(253, 251, 246, .3) 46%, var(--sc-bg) 96%);
-  --sc-frame-line: #1f93c8;
-  --sc-frame-w: 2px;
-  --sc-frame-inset: 38px;
-  --sc-label-tracking: .16em;
-  --sc-title-size: 76px;
-  --sc-plate-shadow: 0 18px 40px -26px rgba(16, 24, 32, .5);
-}
-/* Acid-lime tape behind the eyebrow, the theme's own label language. */
-html[data-theme="summer"] .share-card .sc-kicker {
-  padding: 5px 10px;
-  border-radius: 2px;
-  background: #e2f53c;
-  color: #101820;
-}
-html[data-theme="summer"] .share-card .sc-kicker i { background: #1f93c8; }
-html[data-theme="summer"] .share-card .sc-brand::before { border-radius: 999px; height: 4px; }
-
-/* ============================================================
    CALM MODE · IDENTITY PLATE
    ------------------------------------------------------------
    The calm page puts the identity cluster on one compact plate so the
@@ -453,122 +404,296 @@ html[data-theme="summer"] {
 }
 
 /* ============================================================
-   CARD CHARACTER · SUMMER
+   CARD CHARACTER · SUMMER · 向开场终帧（intro-draft）看齐
    ------------------------------------------------------------
-   The export card is not the same skeleton recoloured: each theme
-   answers with its own composition. Geometry lives in
-   src/share-cards.css; this block moves the artwork, re-shapes the
-   sheet and adds the theme's decoration.
+   终帧语言：白纸 + 96px 制图网格 + 黑块白字标题 + 黄块错位副题 +
+   空心描边幽灵字 + 45° 斜纹方格 + 左缘黄条。主题天蓝做制图线。
+   卡片 = 一张排好版的制图底稿：
+     poster   左栏黑块标题排版 + 右侧硬阴影图片块 + 描边编号
+     dossier  左上标题栏 + 右上图片块 + 中部幽灵字与斜纹 + 底部数据表
+     score    左栏排版 + 右侧图片块，黄条压住中缝
    ============================================================ */
 
-/* Summer postcard: a photo taped to the card, lime tape, a round hours
-   badge and a lot of white. */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
-  inset: 64px 64px auto auto;
-  width: 42%;
-  height: 58%;
-  border: 14px solid #ffffff;
-  box-shadow: 0 24px 50px -24px rgba(16, 24, 32, .45);
-  transform: rotate(-2.4deg);
+/* ---- 墨色与材质：白纸为底，制图蓝为线，黑黄块为版面 ---- */
+html[data-theme="summer"] .share-card {
+  --sc-bg: #ffffff;
+  --sc-ink: #101820;
+  --sc-ink-2: #1f6f9c;
+  --sc-rule: #9cc6d9;
+  --sc-accent: #1a9bd7;
+  --sc-accent-ink: #ffffff;
+  --sc-plate: #eef7fa;
+  --sc-plate-line: #9cc6d9;
+  --sc-sheet-bg: #ffffff;
+  --sc-sheet-line: #9cc6d9;
+  --sc-radius: 0;
+  --sc-scrim-rgb: 255, 255, 255;
+  --sc-veil: linear-gradient(180deg, rgba(255, 255, 255, .88) 0%, rgba(255, 255, 255, .3) 30%, rgba(255, 255, 255, .92) 78%, #ffffff 100%);
+  --sc-veil-x: linear-gradient(90deg, rgba(255, 255, 255, .92) 0%, rgba(255, 255, 255, .4) 40%, #ffffff 94%);
+  --sc-frame-line: #1a9bd7;
+  --sc-frame-w: 1px;
+  --sc-frame-inset: 24px;
+  --sc-frame-inner: rgba(26, 155, 215, .4);
+  --sc-frame-inner-inset: 6px;
+  /* 顶缘黄条下线：theme.css 的 body::after（fixed 3px 双色顶条）在导出态
+     压在它上面，读成「上缘被裁半截」——整条改走统一左缘黄条（见下）。 */
+  --sc-strip-h: 0px;
+  --sc-strip: none;
+  --sc-title-font: var(--font-display);
+  --sc-title-weight: 800;
+  --sc-title-tracking: .02em;
+  --sc-title-size: 76px;
+  --sc-title-size-dossier: 48px;
+  --sc-title-size-score: 52px;
+  --sc-label-font: var(--font-ui);
+  --sc-label-tracking: .22em;
+  --sc-num-font: var(--font-display);
+  --sc-num-tracking: -.01em;
+  --sc-track: #e2eef5;
 }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-wash { display: none; }
+
+/* 导出态抑制：theme.css 的 body::before（fixed 制图网点/网格）与
+   body::after（fixed 3px 双色顶条）会串进截卡画面——只在导出时隐藏，
+   应用本体不受影响；卡片自带 96px 制图网格与黄条母题，装饰不丢。 */
+html[data-theme="summer"][data-share-export] body::before,
+html[data-theme="summer"][data-share-export] body::after { display: none; }
+
+/* 制图网格铺在卡片底上；黄条统一为「左缘黄条」——离四缘各留 ≥32px、
+   三张变体同一位置（由各变体的 .sc-deco 伪元素承载，见下）。 */
+html[data-theme="summer"] .share-card {
+  background:
+    repeating-linear-gradient(90deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(0deg, rgba(26, 155, 215, .13) 0 1px, transparent 1px 96px),
+    #ffffff;
+}
+html[data-theme="summer"] .share-card .sc-wash { display: none; }
+
+/* 统一左缘黄条：x 40..52、y 72..828（dossier 72..1428），完整落卡不贴边 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-deco::after,
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::after {
+  content: '';
+  position: absolute;
+  left: 40px;
+  top: 72px;
+  bottom: 72px;
+  width: 12px;
+  background: #e8f21f;
+}
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  left: 40px;
+  top: 72px;
+  bottom: 72px;
+  width: 12px;
+  background: #e8f21f;
+}
+
+/* ---- 通用修正 ------------------------------------------------
+   1) dossier 页脚去重：sc-foot 的「启动次数 / 上次游玩」与 sc-facts
+      数据列重复，dossier 变体整组隐藏（保留收藏与签名）。
+   2) 0/21 阶梯空节点：空档收成安静细轨（去边框、6px 高、极淡制图蓝，
+      底边对齐成轨），已点亮档位用制图蓝加高；is-next 保留共享层
+      的 inset 描边。 */
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+html[data-theme="summer"] .share-card .sc-ladder i {
+  height: 6px;
+  align-self: end;
+  border: 0;
+  background: rgba(26, 155, 215, .14);
+}
+html[data-theme="summer"] .share-card .sc-ladder i.is-on {
+  height: 13px;
+  border: 0;
+  background: var(--prog-fill, #1a9bd7);
+}
+
+/* 黑块白字标题（长标题逐行成块）+ 黄块副题，来自开机的标题排法 */
+html[data-theme="summer"] .share-card .sc-kicker { display: flex; width: fit-content; }
+html[data-theme="summer"] .share-card .sc-title {
+  display: inline;
+  color: #ffffff;
+  background: #101820;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  /* 只留横向 padding：内联块的纵向 padding 画在行盒之外，会和后续
+     元素的排版脱节；纵向节奏全部交给 line-height。行距放宽到 1.58，
+     两行标题的黑块之间留出白缝，不再读成一整块 L 形。 */
+  padding: 0 20px;
+  line-height: 1.58;
+}
+html[data-theme="summer"] .share-card .sc-zh {
+  display: block;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 4px 14px 7px;
+  background: #e8f21f;
+  color: #101820;
+  font-weight: 700;
+}
+
+/* -- POSTER · 制图海报 ------------------------------------------
+   左栏排版（黑块标题 → 黄块副题 → 蓝线数据），右侧图片块压黑色
+   硬阴影，编号以蓝色描边幽灵字落在右下，斜纹方格填中缝。 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-art {
+  inset: 110px 88px auto auto;
+  width: 620px;
+  height: 520px;
+  border: 2px solid #1a9bd7;
+  box-shadow: 20px 20px 0 #101820;
+}
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet {
   inset: 0;
-  padding: 76px;
+  padding: 88px 820px 64px 88px;
+  background: transparent;
 }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 64px 0 auto 76px; right: 46%; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-top { inset: 88px 820px auto 88px; }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-main {
   grid-template-columns: minmax(0, 1fr);
-  gap: 30px;
+  gap: 0;
   margin-top: auto;
-  max-width: 48%;
 }
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score {
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: #e2f53c;
-  border: 2px solid #101820;
-  box-shadow: 8px 8px 0 rgba(31, 147, 200, .9);
-  padding: 0;
+  align-items: flex-start;
+  text-align: left;
+  margin-top: 22px;
+  padding: 18px 0 0;
+  background: transparent;
+  border: 0;
+  border-top: 2px solid #1a9bd7;
+  border-radius: 0;
+  box-shadow: none;
 }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours { gap: 6px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 74px; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder { display: none; }
-/* A round badge holds two lines; the milestone sentence belongs to the
-   dossier, not to a 250px circle. */
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier { display: none; }
-html[data-theme="summer"] .share-card[data-variant="poster"] .sc-score { padding: 0 26px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-hours b { font-size: 92px; }
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-ladder,
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-tier { width: 100%; margin-left: 0; }
+/* 描边幽灵编号：开机终帧的空心字 */
+html[data-theme="summer"] .share-card[data-variant="poster"] .sc-sheet::after {
+  content: attr(data-no);
+  position: absolute;
+  right: 96px;
+  bottom: 20px;
+  font: 800 200px/1 var(--sc-title-font);
+  color: transparent;
+  -webkit-text-stroke: 3px rgba(26, 155, 215, .45);
+  letter-spacing: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+/* 45° 斜纹方格：锚进制图网格（96px 整数倍），不再悬空 */
 html[data-theme="summer"] .share-card[data-variant="poster"] .sc-deco::before {
   content: '';
   position: absolute;
-  right: 34%;
-  top: 52px;
-  width: 170px;
-  height: 40px;
-  background: rgba(226, 245, 60, .92);
-  transform: rotate(-4deg);
-  box-shadow: 0 6px 14px -8px rgba(16, 24, 32, .4);
+  left: 768px;
+  top: 672px;
+  width: 96px;
+  height: 96px;
+  background:
+    linear-gradient(45deg, rgba(26, 155, 215, .18) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .18) 75%) 0 0 / 24px 24px,
+    linear-gradient(45deg, rgba(26, 155, 215, .18) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .18) 75%) 12px 12px / 24px 24px;
 }
 
+/* -- DOSSIER · 制图档案 ------------------------------------------
+   整张重排：画框从「上半截提前收口」改为贯穿全卡的完整图框
+   （inset 52px），全部内容收进框内；左上标题栏，右上图片块
+   （黑硬阴影、离框留边），中段用斜纹方格 + 幽灵编号 + 制图注释
+   填实，底部数据表由蓝线起头，页脚收在框内。 */
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-frame {
+  inset: 52px;
+  height: auto;
+}
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-art {
-  inset: 56px 70px auto auto;
-  width: 50%;
+  inset: 120px 128px auto auto;
+  width: 460px;
   height: 460px;
-  border: 16px solid #ffffff;
-  box-shadow: 0 26px 54px -26px rgba(16, 24, 32, .45);
-  transform: rotate(1.8deg);
+  border: 2px solid #1a9bd7;
+  box-shadow: 16px 16px 0 #101820;
   z-index: 4;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-wash { display: none; }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet { inset: 0; padding: 150px 64px 52px; }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-frame {
-  inset: 26px;
-  height: auto;
-  border-color: #9cc6d9;
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet {
+  inset: 0;
+  padding: 120px 100px 92px;
+  background: transparent;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-id { max-width: 40%; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-top { inset: 70px 100px auto 100px; }
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-id { max-width: 500px; }
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-score {
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  border-top: 2px solid #1f93c8;
+  padding-top: 20px;
+  border-top: 2px solid #1a9bd7;
 }
-html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::before {
-  content: '';
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-hours b { font-size: 112px; }
+/* 制图注释：中段左中的图纸说明行（等宽制图字），填实原 y850-1120 空档 */
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet::before {
+  content: 'FIG. 02 — 游玩时长台账 PLAYTIME LEDGER\A比例 1 : 21 · 制图网格 96PX · 单位 小时\A图号 D-01 · 校对 GUGUOVA 绘图室\A日期 2026.10.21 · 签署 GUGUOVA';
   position: absolute;
-  right: 30%;
-  top: 42px;
-  width: 150px;
-  height: 34px;
-  background: rgba(226, 245, 60, .92);
-  transform: rotate(-3.5deg);
+  left: 340px;
+  top: 930px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 2;
+  letter-spacing: .1em;
+  color: #1f6f9c;
+  white-space: pre-line;
+  pointer-events: none;
 }
-
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-art {
-  inset: 70px 70px 70px auto;
-  width: 34%;
-  border-radius: 50%;
-  border: 14px solid #e2f53c;
-  box-shadow: 0 26px 60px -30px rgba(16, 24, 32, .5);
-}
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-wash { display: none; }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet {
-  inset: 0 40% 0 0;
-  padding: 64px 60px 48px;
-  background: #ffffff;
-  border-left: 0;
-}
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 56px auto auto 60px; }
-html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
-
+/* 幽灵编号挪进框内（不再压框线） */
 html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-sheet::after {
   content: attr(data-no);
   position: absolute;
-  right: 60px;
-  top: 520px;
-  font: 700 260px/1 var(--sc-title-font);
-  color: rgba(16, 24, 32, .07);
+  right: 96px;
+  top: 620px;
+  font: 800 240px/1 var(--sc-title-font);
+  color: transparent;
+  -webkit-text-stroke: 3px rgba(26, 155, 215, .4);
+  letter-spacing: 0;
   z-index: -1;
+  pointer-events: none;
 }
+/* 斜纹方格挪进框内、锚到 96px 网格 */
+html[data-theme="summer"] .share-card[data-variant="dossier"] .sc-deco::before {
+  content: '';
+  position: absolute;
+  left: 88px;
+  top: 640px;
+  width: 220px;
+  height: 220px;
+  background:
+    linear-gradient(45deg, rgba(26, 155, 215, .16) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .16) 75%) 0 0 / 28px 28px,
+    linear-gradient(45deg, rgba(26, 155, 215, .16) 25%, transparent 25%, transparent 75%, rgba(26, 155, 215, .16) 75%) 14px 14px / 28px 28px;
+}
+
+/* -- SCORE · 制图战绩 --------------------------------------------
+   左栏排版承载标题与数据，右侧图片块压黑色硬阴影；黄条统一走左缘
+   （中缝黄条下线，栏间留干净的制图留白）。四项事实打开成四栏
+   数据条，填实原中段空档。 */
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-art {
+  inset: 96px 96px 96px auto;
+  width: 42%;
+  border: 2px solid #1a9bd7;
+  box-shadow: 20px 20px 0 #101820;
+}
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet {
+  inset: 0;
+  padding: 118px 810px 56px 88px;
+  background: transparent;
+}
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-top { inset: 72px 810px auto 88px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-score {
+  margin-top: 8px;
+  padding: 18px 0 0;
+  border-top: 2px solid #1a9bd7;
+}
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-hours b { font-size: 116px; }
+/* 四栏数据条：制表数据行填实中段 */
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 18px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #9cc6d9;
+}
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-fact b { font-size: 15px; }
+html[data-theme="summer"] .share-card[data-variant="score"] .sc-sheet::before { display: none; }
