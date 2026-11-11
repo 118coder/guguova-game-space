@@ -49,6 +49,9 @@
 > ✅ **1.17.0 已发布**（§1.39，2026-11-11）：PR [#43](https://github.com/118coder/guguova-game-space/pull/43)
 > squash 合并 `ecd63a2`；`f425df9` bump 到 1.17.0；`release.sh --publish` 七阶段全过，
 > 三资产已上传 [v1.17.0](https://github.com/118coder/guguova-game-space/releases/tag/v1.17.0)（单文件 9.63 MB）。
+> ✅ **工作区已瘦身**（§1.40，2026-11-11）：`bin/obj/legacy/bin/legacy/obj/dist` 与 NuGet
+> HTTP 缓存全部清空，项目 841 MB → **93 MB**；清空后实测 `dotnet build` 0 错误 9.8 秒。
+> 下一轮第一件事就是重建。
 > ✅ **PR #42 已合并**（§1.35，2026-11-11）：§1.31–§1.34 全部进 `main`（`1c0ecfb`，squash，
 > 42 文件 +2288/−36），源分支 `feat/share-card-editor` 已推远端。**应用版本仍 1.16.5，
 > 未发 Release**——14 套 `theme.json` 已逐套 bump，发版时一次性做。
@@ -3276,6 +3279,61 @@ repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px,
 
 ---
 
+### 1.40 工作区瘦身与交接状态（2026-11-11 收尾）
+
+Owner：「清除所有的编译缓存，准备下一轮的交接文档」。
+
+#### 1.40.1 清掉的
+
+| 目录 | 说明 | 体积 |
+| --- | --- | --- |
+| `bin/` | Debug 主工程产物（含嵌入资源、WebView2 依赖） | 185 MB |
+| `obj/` | 中间产物、`project.assets.json` | 2 MB |
+| `legacy/bin/` | net48 宿主 Debug + Release 两份 | 61 MB |
+| `legacy/obj/` | net48 中间产物 | 22 MB |
+| `dist/` | 历史打包产物（1.16.1 / 1.16.2 / 1.16.3 / 1.17.0 的目录与 zip） | 479 MB |
+| `%LOCALAPPDATA%\NuGet\v3-cache` | NuGet HTTP 缓存（`dotnet nuget locals http-cache --clear`） | 124 MB |
+
+项目目录 **841 MB → 93 MB**；C 盘余量 4.3 GB → 4.4 GB。
+
+#### 1.40.2 没动的
+
+- `third_party/magpie/`：内嵌缩放引擎，构建必需，不是缓存；
+- `themes/`、`src/`、`Services/`、`docs/`、`tools/`、`wasm/`、`build/`：源码与脚本；
+- `node_modules/`（196 KB）：工具脚本依赖，删了要重装；
+- `_shots/`（365 MB）：截图与验收证据，属交接材料；
+- `backups/`（13 MB）：主题目录备份；
+- `%LOCALAPPDATA%\NOVA Game Space`（397 MB）：**玩家真实数据，永远不动**。
+
+#### 1.40.3 恢复构建
+
+清空后已实测可重建：0 错误、5 条既有 nullable 警告、9.8 秒。
+
+```bash
+dotnet build NovaGameSpace.csproj -c Debug        # 主工程，日常调试用
+bash tools/build-legacy.sh Release               # net48 宿主，发版才需要
+bash tools/release.sh --version x.y.z --publish  # 完整发版流水线
+```
+
+`dist/` 现在是空的，1.17.0 的三资产只在 GitHub Release 上。要重新核对校验值看 §1.39.2
+的 sha256 前缀，或者重跑 `release.sh` 重新打包。
+
+#### 1.40.4 还能腾的地方（没做，留给 Owner 决定）
+
+`~/.nuget/packages` **812 MB** 是全局包缓存。清掉要联网重新下载，代理不稳时构建会直接失败，
+所以没动。C 盘紧张的主因也不在这个项目：`%LOCALAPPDATA%\NOVA Game Space` 的 397 MB 是
+玩家真实数据（游戏库、媒体、备份），不能动；`.workbuddy` 与 `Programs` 才是大头。
+
+#### 1.40.5 下一轮起点
+
+1. **重建并验收**：`dotnet build` 之后打开 14 套主题的卡片弹窗，重点看风格化开关与取景手感；
+2. **五套冻结主题拍板**（nightflight / mnemo / aurum / grimoire / riso），其中 riso 的 score
+   是结构问题要重做，不是微调；
+3. **改动节奏固定**：先合 PR（squash）→ `bump-version.js` → `release.sh --publish`。
+   顺序反了会让 `version.json` 指向还没上传的资产。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -4029,8 +4087,10 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
-下一轮从 **§1.39** 开始：1.17.0 已发行（`v1.17.0` 三资产 + Release 文案），
+下一轮从 **§1.40** 开始：1.17.0 已发行（`v1.17.0` 三资产 + Release 文案），
 分享卡片这条线（§1.24–§1.38）全部进 `main` 并已随包发出。
+**工作区已清空构建产物**（§1.40）：`bin/`、`obj/`、`legacy/bin`、`legacy/obj`、`dist/`
+全部删除，项目 93 MB，第一件事是 `dotnet build NovaGameSpace.csproj -c Debug`（约 10 秒）。
 
 优先做三件事：
 
