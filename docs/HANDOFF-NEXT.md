@@ -2515,6 +2515,11 @@ aurum 差门楣收口、grimoire 冲击环实现不对——aurum/grimoire 因�
    image-0f9dbd43…png(summer) / image-01f9460a…png(nightflight) / image-c6890ea3…png(mnemo) /
    image-65c47f76…png(aurum) / image-71577cd8…png(grimoire) / image-e36381f2…png(riso)，
    general-purpose 代理可直接 Read。
+   **Owner 随附专业解析已全文记录进 `docs/CARD-DESIGN.md` §3**（summer 的设计宪法）：
+   瑞士国际主义 + 数字科技 + 酸性设计的「理性夏日」；关键构图事实——**左右两根荧光黄
+   竖线画框（右缘那根更靠内，向内挤压势能）**、**中文黄块微压黑块底边**、等宽 kicker/数据行、
+   日期行上方克制的蓝色短横线、右下像素棋盘格平衡左黑块。summer 重设计代理已收到此解析
+   作为最高优先级修正指令。
 
 ### 1.27.7 会话结束时的现场（下一轮从这里接手）
 
@@ -2527,8 +2532,8 @@ aurum 差门楣收口、grimoire 冲击环实现不对——aurum/grimoire 因�
   重做；其间不要动它们的卡片块（nightflight/steam 小修已落工作区，保留）。
 - **broadcast / zerohour 复核尾巴未修**（broadcast：poster 时码牌、poster/score 刻度盘频率读数、
   score 红点被栏线切开；zerohour：score 里程碑条文字浮条外、poster 屏框上沿被危险带压住）。
-- **工作区未提交**：12 套 interfaces.css + 12 套 theme.json（已 bump）+ docs（CARD-DESIGN.md 新建、
-  本文件 §1.27）。本轮未 commit、未 PR——summer 定稿复核后一并提交。
+- **现场已有 WIP 快照**：`702e99e`（本地提交，未推送）——12 套 interfaces.css + 12 套 theme.json（已 bump）+ docs（CARD-DESIGN.md 新建、
+  本文件 §1.27）。分支 design/share-cards-v2 未推送、未 PR——summer 定稿复核后在此基础上继续提交并走 PR。
 
 ### 1.27.6 没做 / 下一步
 
