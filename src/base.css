@@ -2527,6 +2527,35 @@ h1, h2, h3, p { margin: 0; }
   color: var(--accent);
 }
 
+/* A toast may carry one follow-up action (e.g. "打开文件夹" after an
+   export). The pill relaxes into a capsule so the action has a hit area. */
+.toast:has(.toast-action:not([hidden])) {
+  border-radius: 14px;
+  padding-right: 9px;
+}
+
+.toast-action {
+  flex: none;
+  margin-left: 3px;
+  padding: 5px 11px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .09);
+  color: inherit;
+  font: inherit;
+  letter-spacing: .03em;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease;
+}
+.toast-action:hover {
+  background: rgba(255, 255, 255, .17);
+  border-color: rgba(255, 255, 255, .34);
+}
+.toast-action:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .toast span {
   overflow: hidden;
   text-overflow: ellipsis;

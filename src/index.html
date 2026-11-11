@@ -1503,20 +1503,24 @@
         <div class="share-choices" id="shareChoices" role="radiogroup" aria-label="卡片版式"></div>
 
         <div class="share-tune" id="shareFraming" role="group" aria-label="调整封面缩放与位置">
-          <span class="share-tune-head">封面取景</span>
-          <div class="share-tune-row">
-            <button type="button" data-frame="left" aria-label="封面左移">←</button>
-            <button type="button" data-frame="up" aria-label="封面上移">↑</button>
-            <button type="button" data-frame="down" aria-label="封面下移">↓</button>
-            <button type="button" data-frame="right" aria-label="封面右移">→</button>
-            <button type="button" class="share-tune-reset" data-frame="reset" aria-label="恢复默认取景">重置</button>
+          <div class="share-tune-head">
+            <span>封面取景</span>
+            <span class="share-tune-state" id="shareSaveState" data-state="saved" role="status" aria-live="polite">已保存</span>
           </div>
           <div class="share-tune-row">
-            <button type="button" data-frame="zoom-out" aria-label="封面缩小">−</button>
+            <button type="button" data-frame="left" aria-label="封面左移，按住连续移动">←</button>
+            <button type="button" data-frame="up" aria-label="封面上移，按住连续移动">↑</button>
+            <button type="button" data-frame="down" aria-label="封面下移，按住连续移动">↓</button>
+            <button type="button" data-frame="right" aria-label="封面右移，按住连续移动">→</button>
+            <button type="button" class="share-tune-reset" id="shareFrameReset" data-frame="reset" aria-label="恢复默认取景" disabled>重置</button>
+          </div>
+          <div class="share-tune-row">
+            <button type="button" data-frame="zoom-out" aria-label="封面缩小，按住连续缩小">−</button>
             <span class="share-tune-value" id="shareZoomValue">100%</span>
-            <button type="button" data-frame="zoom-in" aria-label="封面放大">+</button>
-            <span class="share-tune-hint">缩放</span>
+            <button type="button" data-frame="zoom-in" aria-label="封面放大，按住连续放大">+</button>
+            <span class="share-tune-hint">滚轮缩放</span>
           </div>
+          <p class="share-tune-note">拖动封面直接取景 · 方向键微调（Shift 加速）· 双击复位</p>
           <button class="share-tint" id="shareTint" type="button" role="switch" aria-checked="false">
             <span class="share-tint-copy">
               <b>风格化封面</b>
@@ -1530,7 +1534,9 @@
 
     <footer class="engine-foot">
       <button class="engine-btn ghost" id="shareLongPage" type="button">整页长图</button>
-      <button class="engine-btn primary" id="shareExport" type="button">导出这张卡</button>
+      <button class="engine-btn primary" id="shareExport" type="button">
+        <span id="shareExportLabel">导出这张卡</span>
+      </button>
     </footer>
   </div>
 </div>
@@ -1690,6 +1696,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite">
   <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
   <span id="toastText"></span>
+  <button class="toast-action" id="toastAction" type="button" hidden></button>
 </div>
 
 <script src="motion.js?v=1.16.5" defer></script>

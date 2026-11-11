@@ -166,6 +166,118 @@
   opacity: .62;
 }
 
+/* ---- framing controls ------------------------------------------------
+   The block is a small editor, so it behaves like one: press and hold an
+   arrow to keep moving, drag the cover itself, scroll to zoom, arrows on
+   the keyboard for the last 2%. Everything here is state feedback — the
+   number never moves without the card moving with it. */
+
+.share-tune-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.share-tune-state {
+  font-size: 10px;
+  letter-spacing: .1em;
+  opacity: .5;
+  transition: color .18s ease, opacity .18s ease;
+}
+.share-tune-state[data-state="dirty"] { color: var(--sheet-warn, #f0b429); opacity: .95; }
+.share-tune-state[data-state="saving"] { opacity: .78; }
+
+.share-tune-note {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: .01em;
+  opacity: .42;
+}
+
+.share-tune-row button:disabled {
+  opacity: .32;
+  cursor: default;
+}
+.share-tune-row button:disabled:hover {
+  border-color: var(--sheet-line, rgba(255, 255, 255, .14));
+  background: var(--sheet-well, rgba(255, 255, 255, .06));
+}
+
+/* A held key reads as pressed for as long as it keeps repeating. */
+.share-tune-row button.is-holding {
+  border-color: var(--sheet-primary-bg, currentColor);
+  background: var(--sheet-primary-bg, rgba(255, 255, 255, .18));
+  color: var(--sheet-primary-ink, #08090c);
+  transform: translateY(1px);
+}
+
+.share-tune-row button:focus-visible,
+.share-tint:focus-visible,
+.share-choice:focus-visible,
+#shareExport:focus-visible {
+  outline: 2px solid var(--sheet-primary-bg, currentColor);
+  outline-offset: 2px;
+}
+
+/* The preview card is a handle, not a picture. */
+.share-mount { touch-action: none; }
+.share-mount .share-card { cursor: grab; }
+.share-mount .share-card,
+.share-mount .share-card * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.share-mount.is-dragging .share-card { cursor: grabbing; }
+
+/* A url() filter cannot interpolate, so switching the stylised cover would
+   snap. The plate blinks once instead, which reads as a development print. */
+.share-mount .sc-art img.is-tinting { animation: sc-tint-flash .32s ease; }
+@keyframes sc-tint-flash {
+  0% { opacity: .3; }
+  100% { opacity: 1; }
+}
+
+/* Right column scrolls on its own when the window is short, so the format
+   list never pushes the tuning block out of reach. The bar stays visible —
+   a hidden overflow with no affordance reads as a cut-off panel. */
+.share-side {
+  min-height: 0;
+  max-height: calc(100vh - 210px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* No `scrollbar-width: thin` here: the standard property wins over the
+     ::-webkit- rules below and turns the bar into an overlay that only
+     shows up while scrolling, leaving the column looking chopped off. */
+  padding-right: 2px;
+}
+.share-side::-webkit-scrollbar { width: 7px; }
+.share-side::-webkit-scrollbar-track { background: transparent; }
+.share-side::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--sheet-line, rgba(128, 128, 128, .4));
+}
+
+.engine-btn.is-busy {
+  opacity: .75;
+  cursor: progress;
+  pointer-events: none;
+}
+.engine-btn.is-busy::after {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 8px;
+  vertical-align: -1px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  animation: sc-spin .7s linear infinite;
+}
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+
 .share-choices {
   display: flex;
   flex-direction: column;
