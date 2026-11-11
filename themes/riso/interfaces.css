@@ -763,8 +763,11 @@ html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-foot > span:nth-
 html[data-theme="riso"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
 
 /* ---- 分享卡片 · 风格化封面的双色调端点 ----
-   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。
+   孔版印刷的蓝墨：暗端是压深的靛蓝，亮端是薄墨透出的纸蓝。
+   中间调由 shadow + (high - shadow) * .62 算出，所以两头都要带蓝，
+   只染亮端会被暗端的灰把整张图拉回中性。 ---- */
 html[data-theme="riso"] {
-  --sc-tint-shadow: #1b1a2e;
-  --sc-tint-high: #ff5c9d;
+  --sc-tint-shadow: #0b2f63;
+  --sc-tint-high: #c2ddff;
 }
