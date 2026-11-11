@@ -525,7 +525,7 @@
     audio.select();
     toast(added ? `已导入 ${added} 款游戏` : '没有新增游戏', added ? 'check' : 'info');
     closeScanner({ focus: false, sound: false });
-    if (!state.overlay) renderHero(currentGame(), false);
+    if (!state.overlay) renderHero(stageGame(), false);
 
     // A batch worth naming deserves a receipt: what landed, and how many
     // rows were skipped because they were already in the library.
@@ -568,7 +568,11 @@
     buildRail();
     buildAppearanceSwitcher();
     updateRail();
-    const game = currentGame();
+    /* `stageGame()` and not `currentGame()`: after the last visible game is
+       hidden the pointer still sits on it (the detail sheet needs that), but
+       the stage must fall back to the empty state instead of advertising a
+       game that no longer has a tile. */
+    const game = stageGame();
     /* The hero follows the shelf even while the detail sheet is open. Skipping
        it there left the page showing the game the player had just hidden as
        soon as the sheet closed (user report). Only the backdrop waits, because

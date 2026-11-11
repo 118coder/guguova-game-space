@@ -158,6 +158,22 @@
      SELECTION
      ============================================================ */
 
+  /** The title the home stage is allowed to show.
+   *
+   *  `state.index` can legitimately point at a hidden entry: its detail sheet
+   *  is the only place it can be unhidden, and every id-addressed jump lands
+   *  there. The stage is a different matter — a hidden game has no tile, so
+   *  drawing it left the hero advertising something the shelf had just
+   *  removed, and with every game hidden the hero claimed one game while the
+   *  dock said "0 款" (both self-contradictory, see §1.41.5). Only the detail
+   *  sheet may put a hidden game back on the stage. */
+  function stageGame() {
+    const game = currentGame();
+    if (!game) return null;
+    if (game.hidden && state.overlay !== 'details') return null;
+    return game;
+  }
+
   function selectGame(index, options = {}) {
     if (!state.games.length) {
       renderHero(null, false);

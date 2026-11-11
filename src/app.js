@@ -222,6 +222,8 @@
     libFilter: 'all',
     libQuery: '',
     libGenre: '',
+    // What the empty state's single button does: 'add' | 'clear' | 'show-hidden'.
+    libEmptyAction: 'clear',
     lastFocus: null,
     toastTimer: null,
     launchTimers: [],
@@ -262,7 +264,13 @@
     appearanceSaveTimers: new Map(),
     dataFolder: '',
     backupsFolder: '',
-    version: '1.5.3'
+    version: '1.5.3',
+    /* Update flow. Every host status message carries the run it belongs to
+       (`seq`), so a slow check can never overwrite the result of a newer one;
+       `0` means "nothing seen yet". */
+    update: { phase: 'idle' },
+    updateSeq: 0,
+    updateDownloadSeq: 0
   };
 
   const notices = [];
@@ -3669,6 +3677,22 @@
      SELECTION
      ============================================================ */
 
+  /** The title the home stage is allowed to show.
+   *
+   *  `state.index` can legitimately point at a hidden entry: its detail sheet
+   *  is the only place it can be unhidden, and every id-addressed jump lands
+   *  there. The stage is a different matter — a hidden game has no tile, so
+   *  drawing it left the hero advertising something the shelf had just
+   *  removed, and with every game hidden the hero claimed one game while the
+   *  dock said "0 款" (both self-contradictory, see §1.41.5). Only the detail
+   *  sheet may put a hidden game back on the stage. */
+  function stageGame() {
+    const game = currentGame();
+    if (!game) return null;
+    if (game.hidden && state.overlay !== 'details') return null;
+    return game;
+  }
+
   function selectGame(index, options = {}) {
     if (!state.games.length) {
       renderHero(null, false);
@@ -3934,10 +3958,12 @@
     const query = state.libQuery.trim().toLowerCase();
     return state.games.filter((game) => {
       // Hidden entries live only in the dedicated 隐藏 view; every other
-      // tab (and search) pretends they do not exist.
+      // tab (and search) pretends they do not exist. 程序缺失 is the one
+      // audit view that must see them too: an exe that vanished while the
+      // game was hidden had no screen to be repaired from (§1.41.5).
       if (state.libFilter === 'hidden') {
         if (!game.hidden) return false;
-      } else if (game.hidden) {
+      } else if (game.hidden && state.libFilter !== 'missing') {
         return false;
       }
       if (state.libFilter === 'recent' && !game.lastPlayedUtc) return false;
@@ -3993,6 +4019,9 @@
   function libraryBadgesHTML(game, featured) {
     const badges = [];
     if (featured) badges.push('<span class="lib-current">CURRENT</span>');
+    /* 程序缺失 is the only tab that also lists hidden entries, so a hidden
+       card needs to say why it is here (§1.41.5). */
+    if (game.hidden) badges.push('<span class="tile-badge tag">已隐藏</span>');
     let platformShown = false;
     if (state.running.has(game.id)) badges.push('<span class="lib-badge live">运行中</span>');
     else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
@@ -4027,14 +4056,32 @@
     return playtimePct(game.playtimeSeconds);
   }
 
-  function renderLibrary() {
-    const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
-    const favorites = state.games.filter((game) => game.favorite).length;
-    const platformCount = state.games.filter(isPlatformGame).length;
-    const missingCount = state.games.filter((game) => !game.exists).length;
+  /** Games a search would find if 隐藏 were not keeping them off every other
+      tab. Used for the empty state: "没有找到游戏" about a game the player
+      can see in the 隐藏 tab reads as a broken search (§1.41.5). */
+  function hiddenMatches(query) {
+    const needle = String(query || '').trim().toLowerCase();
+    if (!needle) return [];
+    return state.games.filter((game) => {
+      if (!game.hidden) return false;
+      const haystack = `${game.zh} ${game.name} ${(game.genres || []).join(' ')} ${game.genre || ''}`.toLowerCase();
+      return haystack.includes(needle);
+    });
+  }
 
-    els.libStats.innerHTML = `
-      <span><b>${state.games.length}</b> 款游戏</span>
+  /** The stat strip above the grid. Counts follow the shelf, and hidden games
+      are reported as their own number — the dock prints `shelfCount()` too, so
+      a library that says "12 款" while the strip says "11 款" is exactly the
+      kind of contradiction §1.41.5 listed. */
+  function libraryStatsHTML() {
+    const visible = state.games.filter((game) => !game.hidden);
+    const hidden = state.games.length - visible.length;
+    const totalSeconds = visible.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
+    const favorites = visible.filter((game) => game.favorite).length;
+    const platformCount = visible.filter(isPlatformGame).length;
+    const missingCount = visible.filter((game) => !game.exists).length;
+    return `
+      <span><b>${visible.length}</b> 款游戏</span>
       <span class="lib-sep"></span>
       <span>累计 <b>${formatHoursShort(totalSeconds)}</b></span>
       <span class="lib-sep"></span>
@@ -4042,7 +4089,12 @@
       <span class="lib-sep"></span>
       <span><b>${favorites}</b> 款收藏</span>
       ${missingCount ? `<span class="lib-sep"></span><span><b>${missingCount}</b> 款程序缺失</span>` : ''}
+      ${hidden ? `<span class="lib-sep"></span><span><b>${hidden}</b> 款已隐藏</span>` : ''}
     `;
+  }
+
+  function renderLibrary() {
+    els.libStats.innerHTML = libraryStatsHTML();
 
     $$('.filter', els.libFilters).forEach((button) => {
       button.classList.toggle('is-active', button.dataset.filter === state.libFilter);
@@ -4079,6 +4131,7 @@
       els.libEmptyTitle.textContent = '游戏库还是空的';
       els.libEmptyText.textContent = '自动扫描已安装的平台，或手动添加一个游戏程序。';
       els.clearFilters.textContent = '添加游戏';
+      state.libEmptyAction = 'add';
       return;
     }
 
@@ -4088,6 +4141,21 @@
     els.libEmpty.hidden = list.length !== 0;
     els.libGrid.style.display = list.length ? '' : 'none';
     els.clearFilters.textContent = '清除筛选';
+    state.libEmptyAction = 'clear';
+
+    /* An empty result that only fails because the matching games are hidden
+       is not a failed search — say so and offer the one click that shows
+       them, instead of a dead end (§1.41.5). */
+    if (!list.length && state.libQuery.trim() && state.libFilter !== 'hidden') {
+      const hiddenHits = hiddenMatches(state.libQuery);
+      if (hiddenHits.length) {
+        els.libEmptyTitle.textContent = `有 ${hiddenHits.length} 款已隐藏的游戏`;
+        const names = hiddenHits.slice(0, 3).map((game) => `《${shortName(game) || game.name}》`).join('、');
+        els.libEmptyText.textContent = `${names}${hiddenHits.length > 3 ? ' 等' : ''}藏在「隐藏」里，不会出现在其他筛选中。`;
+        els.clearFilters.textContent = '查看隐藏的游戏';
+        state.libEmptyAction = 'show-hidden';
+      }
+    }
 
     els.libGrid.innerHTML = list.map((game, index) => {
       const featured = game.id === featuredId;
@@ -6072,7 +6140,7 @@
             : info.phase === 'restarting' ? '正在替换程序并重启…'
               : info.phase === 'result' && info.available ? `发现新版本 v${info.latest} · 当前 v${info.current}`
                 : info.phase === 'result' ? `已是最新 · v${info.current}`
-                  : info.phase === 'done' ? `新版本${info.latest ? ` v${info.latest}` : ''}已下载 · 重启后自动完成升级`
+                  : info.phase === 'done' ? `新版本${info.latest ? ` v${info.latest} ` : ''}已下载 · 重启后自动完成升级`
                     : info.phase === 'cancelled' ? '下载已取消'
                       : info.phase === 'error' ? `检查失败：${info.error || '未知错误'}`
                         : `当前版本 ${state.version}`;
@@ -6086,8 +6154,64 @@
     }
   }
 
+  /** Host status messages carry the run they belong to. Anything older than the
+   *  run already on screen is dropped: a slow check, or a cancelled download
+   *  reporting late, used to repaint the panel with a result the player had
+   *  already replaced (§1.41.5). */
+  function acceptUpdateSeq(payload) {
+    const seq = Number(payload && payload.seq);
+    if (!Number.isFinite(seq) || seq <= 0) return true;  // host without seq
+    if (seq < state.updateSeq) return false;
+    state.updateSeq = seq;
+    return true;
+  }
+
+  /** "GUGUOVA-1.18.0-single.exe" → [1,18,0]; null when no version is readable. */
+  function versionFromAssetName(name) {
+    const match = String(name || '').match(/(\d+)\.(\d+)(?:\.(\d+))?/);
+    if (!match) return null;
+    return [Number(match[1]), Number(match[2]), Number(match[3] || 0)];
+  }
+
+  function versionParts(value) {
+    const match = String(value || '').match(/(\d+)\.(\d+)(?:\.(\d+))?/);
+    if (!match) return [0, 0, 0];
+    return [Number(match[1]), Number(match[2]), Number(match[3] || 0)];
+  }
+
+  function versionIsNewer(left, right) {
+    const a = Array.isArray(left) ? left : versionParts(left);
+    const b = Array.isArray(right) ? right : versionParts(right);
+    for (let i = 0; i < 3; i += 1) {
+      if (a[i] !== b[i]) return a[i] > b[i];
+    }
+    return false;
+  }
+
+  /**
+   * A package sitting in updates/ that nobody installed means the swap never
+   * completed (blocked script, killed waiter, reboot mid-upgrade). The panel
+   * opens on "已下载 · 重启后自动完成升级" instead of pretending nothing
+   * happened, so the player is one click from finishing it (§1.41.5).
+   */
+  function adoptPendingUpdate(pending) {
+    if (!pending || !pending.path) return false;
+    const version = versionFromAssetName(pending.name);
+    if (!version || !versionIsNewer(version, state.version)) return false;
+    state.update = {
+      phase: 'done',
+      path: pending.path,
+      name: pending.name,
+      latest: version.join('.')
+    };
+    updateRender();
+    return true;
+  }
+
   function onUpdateStatus(payload) {
-    state.update = { ...(state.update || {}), ...payload };
+    if (!acceptUpdateSeq(payload)) return;
+    const { seq, ...rest } = payload;
+    state.update = { ...(state.update || {}), ...rest };
     updateRender();
     if (payload.phase === 'result' && payload.available) {
       toast(`发现新版本 v${payload.latest} · 设置里可下载`, 'cloud');
@@ -6099,12 +6223,16 @@
   }
 
   function onUpdateProgress(payload) {
+    if (!acceptUpdateSeq(payload)) return;
     const percent = Math.max(0, Math.min(100, payload.percent || 0));
     if (els.updateProgressFill) els.updateProgressFill.style.width = `${percent}%`;
     if (els.updateProgressPct) els.updateProgressPct.textContent = `${percent}%`;
   }
 
   async function checkForUpdates() {
+    const phase = (state.update || {}).phase;
+    // Clicking twice queues two checks whose answers race each other.
+    if (phase === 'checking' || phase === 'downloading') return;
     const result = await call('checkUpdate');
     if (result && result.ok === false) toast(result.error || '无法启动检查', 'alert');
   }
@@ -6124,12 +6252,20 @@
       return;
     }
     const label = info.latest ? `v${info.latest}` : '新版本';
+    /* A running game is allowed to keep running — the launcher is not the game —
+       but this process owns the play clock and the scaling engine, so both stop
+       the moment the window closes. Naming the games beats a generic "请先退出
+       游戏" the player has no way to act on (§1.41.5). */
+    const running = [...state.running.keys()].map((id) => findGame(id)).filter(Boolean);
+    const runningNote = running.length
+      ? `\n注意：${running.map((game) => `《${shortName(game) || game.name}》`).join('、')}正在运行。启动器退出后这次游玩将不再计时（游戏本身不受影响）。`
+      : '';
     const choice = await window.NovaOverlays.dialog({
       title: `重启并升级到 ${label}`,
-      text: '启动器会关闭，用下载好的版本替换当前程序，然后自动重新打开。游戏库、主题与设置都不会改动，下载的安装包会在替换后清理。如果游戏正在运行，请先退出游戏再升级。',
+      text: '启动器会关闭，用下载好的版本替换当前程序，然后自动重新打开。游戏库、主题与设置都不会改动，下载的安装包会在替换后清理。' + runningNote,
       icon: 'up',
       actions: [
-        { label: '重启并升级', value: 'go', style: 'primary' },
+        { label: running.length ? '结束计时并升级' : '重启并升级', value: 'go', style: 'primary' },
         { label: '稍后再说', value: null }
       ]
     });
@@ -7015,20 +7151,7 @@
       const sub = $('.lib-sub', card);
       if (sub) sub.innerHTML = librarySubHTML(game);
     });
-    const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
-    const favorites = state.games.filter((game) => game.favorite).length;
-    const platformCount = state.games.filter(isPlatformGame).length;
-    const missingCount = state.games.filter((game) => !game.exists).length;
-    els.libStats.innerHTML = `
-      <span><b>${state.games.length}</b> 款游戏</span>
-      <span class="lib-sep"></span>
-      <span>累计 <b>${formatHoursShort(totalSeconds)}</b></span>
-      <span class="lib-sep"></span>
-      <span><b>${platformCount}</b> 款来自平台</span>
-      <span class="lib-sep"></span>
-      <span><b>${favorites}</b> 款收藏</span>
-      ${missingCount ? `<span class="lib-sep"></span><span><b>${missingCount}</b> 款程序缺失</span>` : ''}
-    `;
+    els.libStats.innerHTML = libraryStatsHTML();
   }
 
   function refreshLive() {
@@ -7039,7 +7162,7 @@
     state.liveSignature = signature;
     updateRail();
     if (state.view === 'library') refreshLibraryLive();
-    if (!state.overlay && state.view === 'home' && currentGame()) renderHero(currentGame(), false);
+    if (!state.overlay && state.view === 'home' && stageGame()) renderHero(stageGame(), false);
   }
 
 /* ============================================================
@@ -7762,7 +7885,7 @@
       refitLogos();
       // A theme may rename fixed phrases (DUSK: 上次游玩 → 上次委托), so the
       // hero and an open detail sheet must be repainted with the new lexicon.
-      if (currentGame()) renderHero(currentGame(), false);
+      if (stageGame()) renderHero(stageGame(), false);
       if (state.overlay === 'details') populateDetails(currentGame());
       if (state.appearanceEditing) requestAnimationFrame(layoutAppearanceCrop);
       // The theme changes nav paddings and font metrics. Without this the
@@ -7823,7 +7946,7 @@
     renderThemes();
     applyStyleModeUI();
     applyAccent(currentGame());
-    renderHero(currentGame(), false);
+    renderHero(stageGame(), false);
     updateRail();
 
     // Warm the stylesheet cache after the first frame: the first switch to
@@ -8134,19 +8257,29 @@
       : railTile
         ? state.games[Number(railTile.dataset.index)] || null
         : null;
-    const gameForMenu = scopedGame || currentGame();
+    /* Inside the library the menu answers for the card under the cursor and
+       nothing else. Falling back to the home selection opened a different
+       game from the one you were pointing at — or a hidden one — whenever the
+       grid's empty space was right-clicked (§1.41.5). */
+    const inLibrary = state.view === 'library';
+    /* The detail sheet is already that game's page: an entry that reopens the
+       same sheet can only be a dead no-op, so it is left out there. */
+    const inDetails = state.overlay === 'details';
+    const gameForMenu = scopedGame || (inLibrary ? null : currentGame());
 
     const theme = window.NovaTheme && window.NovaTheme.find(state.theme);
     items.push({ label: theme ? `界面主题 · ${theme.name}` : '界面主题', icon: 'spark', action: openAppearance });
-    items.push({
-      label: '游戏详情',
-      icon: 'info',
-      action: () => {
-        if (scopedGame && scopedGame.id !== currentGame()?.id) chooseGameById(scopedGame.id, { sound: false });
-        openDetails();
-      },
-      disabled: !gameForMenu
-    });
+    if (!inDetails) {
+      items.push({
+        label: '游戏详情',
+        icon: 'info',
+        action: () => {
+          if (scopedGame && scopedGame.id !== currentGame()?.id) chooseGameById(scopedGame.id, { sound: false });
+          openDetails();
+        },
+        disabled: !gameForMenu
+      });
+    }
     items.push({ label: '在资源管理器中显示', icon: 'folder', action: () => gameForMenu && call('revealGame', { id: gameForMenu.id }), disabled: !gameForMenu?.exists });
     if (themeId && window.NovaTheme) {
       const card = window.NovaTheme.find(themeId);
@@ -8859,7 +8992,7 @@
     audio.select();
     toast(added ? `已导入 ${added} 款游戏` : '没有新增游戏', added ? 'check' : 'info');
     closeScanner({ focus: false, sound: false });
-    if (!state.overlay) renderHero(currentGame(), false);
+    if (!state.overlay) renderHero(stageGame(), false);
 
     // A batch worth naming deserves a receipt: what landed, and how many
     // rows were skipped because they were already in the library.
@@ -8902,7 +9035,11 @@
     buildRail();
     buildAppearanceSwitcher();
     updateRail();
-    const game = currentGame();
+    /* `stageGame()` and not `currentGame()`: after the last visible game is
+       hidden the pointer still sits on it (the detail sheet needs that), but
+       the stage must fall back to the empty state instead of advertising a
+       game that no longer has a tile. */
+    const game = stageGame();
     /* The hero follows the shelf even while the detail sheet is open. Skipping
        it there left the page showing the game the player had just hidden as
        soon as the sheet closed (user report). Only the backdrop waits, because
@@ -9745,7 +9882,7 @@
       state.forceKill.suppressClick = false;
       return;
     }
-    const game = currentGame();
+    const game = stageGame();
     if (!game) {
       openScanner();
       return;
@@ -9918,6 +10055,19 @@
     els.clearFilters.addEventListener('click', () => {
       if (!state.games.length) {
         openScanner();
+        return;
+      }
+      if (state.libEmptyAction === 'show-hidden') {
+        // The search did match something — it is all hidden. Clearing the
+        // query into another empty grid would look like a no-op, so jump to
+        // the only tab that can show those games.
+        state.libFilter = 'hidden';
+        state.libQuery = '';
+        state.libGenre = '';
+        els.libSearch.value = '';
+        state.libPadIndex = 0;
+        renderLibrary();
+        audio.select();
         return;
       }
       state.libFilter = 'all';
@@ -10432,6 +10582,9 @@
     state.backupsFolder = boot.backupsFolder || '';
     state.liveSignature = liveSignature();
     state.version = boot.version || '1.5.3';
+    // A package an interrupted upgrade left in updates/ — offered again once
+    // the shell is up, never acted on silently.
+    state.pendingUpdate = boot.pendingUpdate || null;
     // Daily auto-check is opt-in and fires long after boot; the host no-ops
     // unless the player turned it on. Failures are silent here — a toast on
     // every startup hiccup would be worse than a missed check.
@@ -10516,8 +10669,9 @@
     initThemedSelects();
     document.body.classList.toggle('is-empty', shelfCount() === 0);
     applyAccent(currentGame());
-    // Every game hidden is the same empty shelf as no game at all.
-    renderHero(shelfCount() ? currentGame() : null, false);
+    // Every game hidden is the same empty shelf as no game at all; the stage
+    // helper also keeps a hidden entry off the hero (§1.41.5).
+    renderHero(stageGame(), false);
     applyStyleModeUI();
     syncSoundUI();
     syncFullscreenLabels();
@@ -10533,6 +10687,13 @@
     }
 
     if (currentGame()) setBackdrop(currentGame(), true);
+
+    /* An interrupted upgrade (blocked script, closed mid-swap, reboot) leaves
+       its package behind. The panel already knows how to finish it — surface
+       the fact instead of letting the file rot in updates/ (§1.41.5). */
+    if (adoptPendingUpdate(state.pendingUpdate) && !state.firstRun) {
+      setTimeout(() => toast('上次升级没有完成 · 设置里可再次执行', 'up'), 2600);
+    }
 
     // Diagnostics are not on the first-frame path: let the shell settle, then
     // fill in the Steam/Magpie rows so the settings page is ready when opened.

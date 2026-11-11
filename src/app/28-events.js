@@ -16,7 +16,7 @@
       state.forceKill.suppressClick = false;
       return;
     }
-    const game = currentGame();
+    const game = stageGame();
     if (!game) {
       openScanner();
       return;
@@ -189,6 +189,19 @@
     els.clearFilters.addEventListener('click', () => {
       if (!state.games.length) {
         openScanner();
+        return;
+      }
+      if (state.libEmptyAction === 'show-hidden') {
+        // The search did match something — it is all hidden. Clearing the
+        // query into another empty grid would look like a no-op, so jump to
+        // the only tab that can show those games.
+        state.libFilter = 'hidden';
+        state.libQuery = '';
+        state.libGenre = '';
+        els.libSearch.value = '';
+        state.libPadIndex = 0;
+        renderLibrary();
+        audio.select();
         return;
       }
       state.libFilter = 'all';

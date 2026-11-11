@@ -13,10 +13,12 @@
     const query = state.libQuery.trim().toLowerCase();
     return state.games.filter((game) => {
       // Hidden entries live only in the dedicated 隐藏 view; every other
-      // tab (and search) pretends they do not exist.
+      // tab (and search) pretends they do not exist. 程序缺失 is the one
+      // audit view that must see them too: an exe that vanished while the
+      // game was hidden had no screen to be repaired from (§1.41.5).
       if (state.libFilter === 'hidden') {
         if (!game.hidden) return false;
-      } else if (game.hidden) {
+      } else if (game.hidden && state.libFilter !== 'missing') {
         return false;
       }
       if (state.libFilter === 'recent' && !game.lastPlayedUtc) return false;
@@ -72,6 +74,9 @@
   function libraryBadgesHTML(game, featured) {
     const badges = [];
     if (featured) badges.push('<span class="lib-current">CURRENT</span>');
+    /* 程序缺失 is the only tab that also lists hidden entries, so a hidden
+       card needs to say why it is here (§1.41.5). */
+    if (game.hidden) badges.push('<span class="tile-badge tag">已隐藏</span>');
     let platformShown = false;
     if (state.running.has(game.id)) badges.push('<span class="lib-badge live">运行中</span>');
     else if (!game.exists) badges.push('<span class="tile-badge offline">程序缺失</span>');
@@ -106,14 +111,32 @@
     return playtimePct(game.playtimeSeconds);
   }
 
-  function renderLibrary() {
-    const totalSeconds = state.games.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
-    const favorites = state.games.filter((game) => game.favorite).length;
-    const platformCount = state.games.filter(isPlatformGame).length;
-    const missingCount = state.games.filter((game) => !game.exists).length;
+  /** Games a search would find if 隐藏 were not keeping them off every other
+      tab. Used for the empty state: "没有找到游戏" about a game the player
+      can see in the 隐藏 tab reads as a broken search (§1.41.5). */
+  function hiddenMatches(query) {
+    const needle = String(query || '').trim().toLowerCase();
+    if (!needle) return [];
+    return state.games.filter((game) => {
+      if (!game.hidden) return false;
+      const haystack = `${game.zh} ${game.name} ${(game.genres || []).join(' ')} ${game.genre || ''}`.toLowerCase();
+      return haystack.includes(needle);
+    });
+  }
 
-    els.libStats.innerHTML = `
-      <span><b>${state.games.length}</b> 款游戏</span>
+  /** The stat strip above the grid. Counts follow the shelf, and hidden games
+      are reported as their own number — the dock prints `shelfCount()` too, so
+      a library that says "12 款" while the strip says "11 款" is exactly the
+      kind of contradiction §1.41.5 listed. */
+  function libraryStatsHTML() {
+    const visible = state.games.filter((game) => !game.hidden);
+    const hidden = state.games.length - visible.length;
+    const totalSeconds = visible.reduce((sum, game) => sum + (game.playtimeSeconds || 0), 0);
+    const favorites = visible.filter((game) => game.favorite).length;
+    const platformCount = visible.filter(isPlatformGame).length;
+    const missingCount = visible.filter((game) => !game.exists).length;
+    return `
+      <span><b>${visible.length}</b> 款游戏</span>
       <span class="lib-sep"></span>
       <span>累计 <b>${formatHoursShort(totalSeconds)}</b></span>
       <span class="lib-sep"></span>
@@ -121,7 +144,12 @@
       <span class="lib-sep"></span>
       <span><b>${favorites}</b> 款收藏</span>
       ${missingCount ? `<span class="lib-sep"></span><span><b>${missingCount}</b> 款程序缺失</span>` : ''}
+      ${hidden ? `<span class="lib-sep"></span><span><b>${hidden}</b> 款已隐藏</span>` : ''}
     `;
+  }
+
+  function renderLibrary() {
+    els.libStats.innerHTML = libraryStatsHTML();
 
     $$('.filter', els.libFilters).forEach((button) => {
       button.classList.toggle('is-active', button.dataset.filter === state.libFilter);
@@ -158,6 +186,7 @@
       els.libEmptyTitle.textContent = '游戏库还是空的';
       els.libEmptyText.textContent = '自动扫描已安装的平台，或手动添加一个游戏程序。';
       els.clearFilters.textContent = '添加游戏';
+      state.libEmptyAction = 'add';
       return;
     }
 
@@ -167,6 +196,21 @@
     els.libEmpty.hidden = list.length !== 0;
     els.libGrid.style.display = list.length ? '' : 'none';
     els.clearFilters.textContent = '清除筛选';
+    state.libEmptyAction = 'clear';
+
+    /* An empty result that only fails because the matching games are hidden
+       is not a failed search — say so and offer the one click that shows
+       them, instead of a dead end (§1.41.5). */
+    if (!list.length && state.libQuery.trim() && state.libFilter !== 'hidden') {
+      const hiddenHits = hiddenMatches(state.libQuery);
+      if (hiddenHits.length) {
+        els.libEmptyTitle.textContent = `有 ${hiddenHits.length} 款已隐藏的游戏`;
+        const names = hiddenHits.slice(0, 3).map((game) => `《${shortName(game) || game.name}》`).join('、');
+        els.libEmptyText.textContent = `${names}${hiddenHits.length > 3 ? ' 等' : ''}藏在「隐藏」里，不会出现在其他筛选中。`;
+        els.clearFilters.textContent = '查看隐藏的游戏';
+        state.libEmptyAction = 'show-hidden';
+      }
+    }
 
     els.libGrid.innerHTML = list.map((game, index) => {
       const featured = game.id === featuredId;

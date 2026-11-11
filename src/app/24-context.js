@@ -53,19 +53,29 @@
       : railTile
         ? state.games[Number(railTile.dataset.index)] || null
         : null;
-    const gameForMenu = scopedGame || currentGame();
+    /* Inside the library the menu answers for the card under the cursor and
+       nothing else. Falling back to the home selection opened a different
+       game from the one you were pointing at — or a hidden one — whenever the
+       grid's empty space was right-clicked (§1.41.5). */
+    const inLibrary = state.view === 'library';
+    /* The detail sheet is already that game's page: an entry that reopens the
+       same sheet can only be a dead no-op, so it is left out there. */
+    const inDetails = state.overlay === 'details';
+    const gameForMenu = scopedGame || (inLibrary ? null : currentGame());
 
     const theme = window.NovaTheme && window.NovaTheme.find(state.theme);
     items.push({ label: theme ? `界面主题 · ${theme.name}` : '界面主题', icon: 'spark', action: openAppearance });
-    items.push({
-      label: '游戏详情',
-      icon: 'info',
-      action: () => {
-        if (scopedGame && scopedGame.id !== currentGame()?.id) chooseGameById(scopedGame.id, { sound: false });
-        openDetails();
-      },
-      disabled: !gameForMenu
-    });
+    if (!inDetails) {
+      items.push({
+        label: '游戏详情',
+        icon: 'info',
+        action: () => {
+          if (scopedGame && scopedGame.id !== currentGame()?.id) chooseGameById(scopedGame.id, { sound: false });
+          openDetails();
+        },
+        disabled: !gameForMenu
+      });
+    }
     items.push({ label: '在资源管理器中显示', icon: 'folder', action: () => gameForMenu && call('revealGame', { id: gameForMenu.id }), disabled: !gameForMenu?.exists });
     if (themeId && window.NovaTheme) {
       const card = window.NovaTheme.find(themeId);
