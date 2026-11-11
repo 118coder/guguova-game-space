@@ -466,14 +466,19 @@
   overflow: hidden;
 }
 .sc-art img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: var(--sc-art-pos, 50% 40%);
   display: block;
-  /* Card framing is independent of the home hero crop: --sc-art-zoom scales
-     the plate, the position decides what stays in frame. */
-  transform: scale(var(--sc-art-zoom, 1));
+  /* Card framing is independent of the home hero crop: the transform carries
+     both the zoom and the focus. The -50% centring keeps the picture anchored
+     on the plate's middle no matter which size the script hands it, and it is
+     applied last so a pan of N card pixels really is N card pixels. */
+  transform: translate(-50%, -50%) scale(var(--sc-art-zoom, 1));
   transform-origin: 50% 50%;
 }
 

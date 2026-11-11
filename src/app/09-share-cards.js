@@ -201,13 +201,17 @@
      framings saved before this change look identical.
      ------------------------------------------------------------ */
 
-  /** The plate's laid-out box and the cover-fitted image inside it. */
+  /** The plate's box and the footprint a cover-fitted picture needs to fill
+      it. Measured on the plate, never on the <img>: the script resizes the
+      element to that footprint below, so measuring the element would compound
+      on every repaint. */
   function shareArtMetrics(root) {
     const scope = root || els.shareMount;
-    const img = scope && scope.querySelector('.sc-art img');
+    const art = scope && scope.querySelector('.sc-art');
+    const img = art && art.querySelector('img');
     if (!img) return null;
-    const cw = img.offsetWidth;
-    const ch = img.offsetHeight;
+    const cw = art.clientWidth;
+    const ch = art.clientHeight;
     const nw = img.naturalWidth;
     const nh = img.naturalHeight;
     if (!cw || !ch || !nw || !nh) return null;
@@ -216,12 +220,12 @@
   }
 
   /** How far the plate can travel at the current zoom, in card pixels. */
-  function shareArtOverflow(root, zoom) {
-    const metrics = shareArtMetrics(root);
-    if (!metrics) return null;
+  function shareArtOverflow(root, zoom, metrics) {
+    const box = metrics || shareArtMetrics(root);
+    if (!box) return null;
     return {
-      x: Math.max(0, metrics.dw * zoom - metrics.cw),
-      y: Math.max(0, metrics.dh * zoom - metrics.ch)
+      x: Math.max(0, box.dw * zoom - box.cw),
+      y: Math.max(0, box.dh * zoom - box.ch)
     };
   }
 
@@ -231,12 +235,14 @@
     if (!img || !shareFraming) return;
     const zoom = shareFraming.zoom;
     img.style.setProperty('--sc-art-zoom', String(zoom));
-    const overflow = shareArtOverflow(scope, zoom);
-    if (!overflow) {
+    const metrics = shareArtMetrics(scope);
+    if (!metrics) {
       // The picture has not decoded yet: fall back to plain object-position
       // and repaint as soon as it does, so nothing jumps on screen.
+      img.style.width = '';
+      img.style.height = '';
       img.style.objectPosition = `${shareFraming.x}% ${shareFraming.y}%`;
-      img.style.transform = `scale(${zoom})`;
+      img.style.transform = `translate(-50%, -50%) scale(${zoom})`;
       if (!img.dataset.paintBound) {
         img.dataset.paintBound = '1';
         img.addEventListener('load', () => {
@@ -246,10 +252,25 @@
       }
       return;
     }
+    /* Size the element to the cover footprint. When the element stays the
+       size of the frame, object-fit crops the surplus away, and a translate
+       can only slide that already-invisible surplus around — which is what
+       left a slab of bare paper next to the artwork. Matching the element to
+       the footprint means every pixel a pan can reach is still picture, and
+       the travel limit is exactly half the overflow on each side. */
+    const width = `${metrics.dw.toFixed(2)}px`;
+    const height = `${metrics.dh.toFixed(2)}px`;
+    if (img.style.width !== width || img.style.height !== height) {
+      img.style.width = width;
+      img.style.height = height;
+      img.style.objectFit = 'cover';
+    }
+    const overflow = shareArtOverflow(scope, zoom, metrics);
     const tx = (50 - shareFraming.x) / 100 * overflow.x;
     const ty = (50 - shareFraming.y) / 100 * overflow.y;
     img.style.objectPosition = '50% 50%';
-    img.style.transform = `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) scale(${zoom})`;
+    img.style.transform =
+      `translate(-50%, -50%) translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) scale(${zoom})`;
   }
 
   /** Move the picture without rebuilding the card, so dragging feels live. */
@@ -711,10 +732,14 @@
     }, 120);
   }
 
-  /** Opening the dialog changes the stage size, so fit once more. */
+  /** Opening the dialog changes the stage size, so fit once more. The plate
+      is repainted on the same beat: while the dialog is closed its box is
+      unmeasurable, so the artwork was drawn in the plain object-position
+      fallback and only now can take its real framing. */
   function resizeInertSharePreview() {
     requestAnimationFrame(() => {
       fitSharePreview();
+      paintShareArt();
       requestAnimationFrame(fitSharePreview);
     });
   }
