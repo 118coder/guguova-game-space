@@ -632,3 +632,10 @@ html[data-theme="steam"] .share-card[data-variant="score"] .sc-deco::before {
     linear-gradient(90deg, #0f5f9e, #1a9fff 70%, #7fd0ff) 0 3px / 62% 4px no-repeat,
     linear-gradient(#262b34, #262b34) 0 3px / 100% 4px no-repeat;
 }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="steam"] {
+  --sc-tint-shadow: #0b0c0f;
+  --sc-tint-high: #a9c3da;
+}

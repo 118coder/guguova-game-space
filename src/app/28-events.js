@@ -230,6 +230,66 @@
       });
     }
     if (els.shareExport) els.shareExport.addEventListener('click', () => exportShareCard());
+    if (els.shareFraming) {
+      // Pressing an arrow steps once and then keeps going. The hold is what
+      // the control is for — one tap is a nudge, holding is how you walk the
+      // picture all the way across.
+      let pointerHandled = null;
+      els.shareFraming.addEventListener('pointerdown', (event) => {
+        const button = event.target.closest('button[data-frame]');
+        if (!button || event.button !== 0 || button.disabled) return;
+        pointerHandled = { button, at: performance.now() };
+        beginShareFrameHold(button, button.dataset.frame);
+      });
+      els.shareFraming.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-frame]');
+        if (!button || button.disabled) return;
+        // A pointer press already stepped on pointerdown; only keyboard
+        // activation (Enter / Space) lands here without one.
+        if (pointerHandled && pointerHandled.button === button
+          && performance.now() - pointerHandled.at < 900) return;
+        stepShareFraming(button.dataset.frame);
+      });
+      ['pointerup', 'pointercancel'].forEach((type) => {
+        window.addEventListener(type, () => stopShareFrameHold());
+      });
+      window.addEventListener('blur', () => stopShareFrameHold({ silent: true }));
+    }
+    if (els.shareMount) {
+      // The card itself is the fastest framing control: press and drag the
+      // cover, scroll to zoom, double-click to go back to the hero crop.
+      els.shareMount.addEventListener('pointerdown', (event) => {
+        if (state.overlay !== 'share') return;
+        beginShareDrag(event);
+      });
+      els.shareMount.addEventListener('pointermove', (event) => moveShareDrag(event));
+      els.shareMount.addEventListener('pointerup', (event) => endShareDrag(event));
+      els.shareMount.addEventListener('pointercancel', (event) => endShareDrag(event));
+      els.shareMount.addEventListener('wheel', (event) => {
+        if (state.overlay !== 'share' || !shareFraming) return;
+        event.preventDefault();
+        const step = event.deltaMode === 1 ? .12 : .06;
+        zoomShareFraming(event.deltaY > 0 ? -step : step);
+      }, { passive: false });
+      els.shareMount.addEventListener('dblclick', () => {
+        if (state.overlay !== 'share') return;
+        if (performance.now() - shareDragEndedAt < 320) return;
+        stepShareFraming('reset');
+      });
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.defaultPrevented) return;
+      handleShareKeydown(event);
+    });
+    if (els.toastAction) {
+      els.toastAction.addEventListener('click', () => {
+        const action = toastAction;
+        toastAction = null;
+        hideToast();
+        if (action && typeof action.run === 'function') action.run();
+      });
+    }
+    if (els.shareTint) els.shareTint.addEventListener('click', () => toggleShareTint());
     if (els.shareLongPage) {
       els.shareLongPage.addEventListener('click', () => {
         closeShareDialog();

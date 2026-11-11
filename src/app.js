@@ -534,6 +534,7 @@
     sleepDate: $('#sleepDate'),
     toast: $('#toast'),
     toastText: $('#toastText'),
+    toastAction: $('#toastAction'),
     fullscreenPill: $('#fullscreenPill'),
     themeGrid: $('#themeGrid'),
     themeCountTag: $('#themeCountTag'),
@@ -558,6 +559,13 @@
     shareLongPage: $('#shareLongPage'),
     shareSubtitle: $('#shareSubtitle'),
     shareExportStage: $('#shareExportStage'),
+    shareFraming: $('#shareFraming'),
+    shareZoomValue: $('#shareZoomValue'),
+    shareSaveState: $('#shareSaveState'),
+    shareFrameReset: $('#shareFrameReset'),
+    shareExportLabel: $('#shareExportLabel'),
+    shareTint: $('#shareTint'),
+    shareTintSwitch: $('#shareTintSwitch'),
     settingsPlayerName: $('#settingsPlayerName'),
     settingsSaveName: $('#settingsSaveName'),
     settingsUseSystemName: $('#settingsUseSystemName'),
@@ -1886,6 +1894,9 @@
 
   let shareVariant = 'poster';
   let shareExportJob = null;
+  /** Live framing of the card on screen: { x, y, zoom }. Null until a card is
+   *  rendered; the dialog seeds it from the game's own card/hero numbers. */
+  let shareFraming = null;
 
   /** 14.5 / 132 — the number only; the unit is set in type. */
   function shareHourText(seconds) {
@@ -1930,6 +1941,8 @@
   function shareCardHTML(game) {
     const variant = SHARE_VARIANTS.some((entry) => entry.id === shareVariant) ? shareVariant : 'poster';
     const art = game.heroUrl || game.coverUrl || 'assets/backdrop.jpg';
+    const framing = shareFraming || shareFramingFor(game);
+    const artStyle = `object-position:${framing.x}% ${framing.y}%;--sc-art-zoom:${framing.zoom}`;
     const genres = shareGenres(game);
     const tier = playtimeTierIndex(game.playtimeSeconds || 0);
     const vars = tierVarsFor(game, game.playtimeSeconds || 0);
@@ -1958,9 +1971,9 @@
     const showZh = zh && zh.toLowerCase() !== name.toLowerCase();
 
     return `
-      <article class="share-card" data-variant="${variant}" data-prog-tier="${tier}"
+      <article class="share-card" data-variant="${variant}" data-prog-tier="${tier}" data-tint="${shareTintOn() ? '1' : '0'}"
                data-no="${String(index).padStart(2, '0')}" data-total="${String(total).padStart(2, '0')}">
-        <div class="sc-art"><img src="${esc(art)}" alt="" draggable="false" style="object-position:${esc(game.heroPosition || '50% 45%')}"></div>
+        <div class="sc-art"><img src="${esc(art)}" alt="" draggable="false" style="${artStyle}"></div>
         <div class="sc-wash" aria-hidden="true"></div>
         <div class="sc-deco" aria-hidden="true"></div>
         <div class="sc-frame" aria-hidden="true"></div>
@@ -2001,6 +2014,486 @@
         </div>
       </article>
     `;
+  }
+
+  /* ------------------------------------------------------------
+     COVER FRAMING + STYLISED COVER
+     ------------------------------------------------------------
+     A card crops its cover to a near-square plate while the home backdrop
+     is ultrawide, so the hero crop regularly cuts the wrong thing out of
+     the frame. The card therefore keeps its own numbers (cardPosition /
+     cardZoom) and only falls back to the hero ones when the player has
+     never touched it — old entries keep the picture they always had.
+
+     The stylised cover is one duotone filter shared by every theme: the
+     two ends of the ramp come from --sc-tint-shadow / --sc-tint-high, so
+     each theme decides its own ink and the filter is written once.
+     ------------------------------------------------------------ */
+
+  const SHARE_FRAME = { x: 50, y: 45, step: 2, minZoom: 1, maxZoom: 2.4, zoomStep: .1 };
+
+  function shareClamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function shareFramingFor(game) {
+    const match = String(game.cardPosition || game.heroPosition || '')
+      .match(/([\d.]+)\s*%\s+([\d.]+)\s*%/);
+    const ownZoom = Number(game.cardZoom);
+    const heroZoom = Number(game.heroZoom);
+    const zoom = ownZoom >= SHARE_FRAME.minZoom ? ownZoom
+      : (heroZoom >= SHARE_FRAME.minZoom ? heroZoom : 1);
+    return {
+      x: match ? shareClamp(Number(match[1]), 0, 100) : SHARE_FRAME.x,
+      y: match ? shareClamp(Number(match[2]), 0, 100) : SHARE_FRAME.y,
+      zoom: shareClamp(zoom, SHARE_FRAME.minZoom, SHARE_FRAME.maxZoom)
+    };
+  }
+
+  /* ------------------------------------------------------------
+     PAINTING THE PLATE
+     ------------------------------------------------------------
+     object-position alone can only pan across the picture's own
+     overflow, so the moment the player zooms in, the extra plate could
+     no longer be nudged — and zoom-then-nudge is the first thing anyone
+     tries. The transform now carries both: scale for the zoom,
+     translate for the focus, measured against the real overflow so a
+     drag moves the picture exactly as far as the pointer went.
+
+     At zoom 1 the maths collapses to the old object-position result, so
+     framings saved before this change look identical.
+     ------------------------------------------------------------ */
+
+  /** The plate's box and the footprint a cover-fitted picture needs to fill
+      it. Measured on the plate, never on the <img>: the script resizes the
+      element to that footprint below, so measuring the element would compound
+      on every repaint. */
+  function shareArtMetrics(root) {
+    const scope = root || els.shareMount;
+    const art = scope && scope.querySelector('.sc-art');
+    const img = art && art.querySelector('img');
+    if (!img) return null;
+    const cw = art.clientWidth;
+    const ch = art.clientHeight;
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
+    if (!cw || !ch || !nw || !nh) return null;
+    const fit = Math.max(cw / nw, ch / nh);
+    return { cw, ch, dw: nw * fit, dh: nh * fit };
+  }
+
+  /** How far the plate can travel at the current zoom, in card pixels. */
+  function shareArtOverflow(root, zoom, metrics) {
+    const box = metrics || shareArtMetrics(root);
+    if (!box) return null;
+    return {
+      x: Math.max(0, box.dw * zoom - box.cw),
+      y: Math.max(0, box.dh * zoom - box.ch)
+    };
+  }
+
+  function paintShareArt(root) {
+    const scope = root || els.shareMount;
+    const img = scope && scope.querySelector('.sc-art img');
+    if (!img || !shareFraming) return;
+    const zoom = shareFraming.zoom;
+    img.style.setProperty('--sc-art-zoom', String(zoom));
+    const metrics = shareArtMetrics(scope);
+    if (!metrics) {
+      // The picture has not decoded yet: fall back to plain object-position
+      // and repaint as soon as it does, so nothing jumps on screen.
+      img.style.width = '';
+      img.style.height = '';
+      img.style.objectPosition = `${shareFraming.x}% ${shareFraming.y}%`;
+      img.style.transform = `translate(-50%, -50%) scale(${zoom})`;
+      if (!img.dataset.paintBound) {
+        img.dataset.paintBound = '1';
+        img.addEventListener('load', () => {
+          delete img.dataset.paintBound;
+          paintShareArt(scope);
+        }, { once: true });
+      }
+      return;
+    }
+    /* Size the element to the cover footprint. When the element stays the
+       size of the frame, object-fit crops the surplus away, and a translate
+       can only slide that already-invisible surplus around — which is what
+       left a slab of bare paper next to the artwork. Matching the element to
+       the footprint means every pixel a pan can reach is still picture, and
+       the travel limit is exactly half the overflow on each side. */
+    const width = `${metrics.dw.toFixed(2)}px`;
+    const height = `${metrics.dh.toFixed(2)}px`;
+    if (img.style.width !== width || img.style.height !== height) {
+      img.style.width = width;
+      img.style.height = height;
+      img.style.objectFit = 'cover';
+    }
+    const overflow = shareArtOverflow(scope, zoom, metrics);
+    const tx = (50 - shareFraming.x) / 100 * overflow.x;
+    const ty = (50 - shareFraming.y) / 100 * overflow.y;
+    img.style.objectPosition = '50% 50%';
+    img.style.transform =
+      `translate(-50%, -50%) translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) scale(${zoom})`;
+  }
+
+  /** Move the picture without rebuilding the card, so dragging feels live. */
+  function paintShareFraming() {
+    if (els.shareZoomValue && shareFraming) {
+      els.shareZoomValue.textContent = `${Math.round(shareFraming.zoom * 100)}%`;
+    }
+    if (!shareFraming) return;
+    paintShareArt();
+    syncShareFrameControls();
+  }
+
+  /** Reset only lights up once the card owns a framing of its own. */
+  function syncShareFrameControls() {
+    const game = currentGame();
+    const own = !!game && (!!String(game.cardPosition || '').trim()
+      || Number(game.cardZoom) >= SHARE_FRAME.minZoom);
+    if (els.shareFrameReset) els.shareFrameReset.disabled = !own;
+  }
+
+  /* ------------------------------------------------------------
+     SAVING
+     ------------------------------------------------------------
+     Every nudge used to be silent: the card moved and that was that.
+     A small state word next to the zoom value says whether the number
+     on screen is already in the library file.
+     ------------------------------------------------------------ */
+
+  let shareFrameTimer = null;
+
+  function setShareSaveState(mode) {
+    if (!els.shareSaveState) return;
+    els.shareSaveState.dataset.state = mode;
+    els.shareSaveState.textContent = mode === 'dirty' ? '未保存'
+      : (mode === 'saving' ? '保存中' : '已保存');
+  }
+
+  function markShareFramingDirty() {
+    setShareSaveState('dirty');
+  }
+
+  function scheduleShareFramingSave() {
+    const game = currentGame();
+    if (!game || !shareFraming) return;
+    setShareSaveState('saving');
+    clearTimeout(shareFrameTimer);
+    shareFrameTimer = setTimeout(async () => {
+      shareFrameTimer = null;
+      if (!shareFraming) return;
+      const position = `${Math.round(shareFraming.x)}% ${Math.round(shareFraming.y)}%`;
+      const zoom = Number(shareFraming.zoom.toFixed(2));
+      game.cardPosition = position;
+      game.cardZoom = zoom;
+      if (!hasBridge) {
+        setShareSaveState('saved');
+        return;
+      }
+      const result = await call('updateGame', { id: game.id, cardPosition: position, cardZoom: zoom });
+      if (!result || !result.ok) {
+        setShareSaveState('dirty');
+        toast(result?.error || '封面取景保存失败', 'alert');
+        return;
+      }
+      if (result.game) Object.assign(game, result.game);
+      setShareSaveState('saved');
+      syncShareFrameControls();
+    }, 420);
+  }
+
+  /** Leaving the dialog or releasing a hold writes through immediately. */
+  function flushShareFramingSave() {
+    const game = currentGame();
+    if (!game || !shareFraming) return;
+    clearTimeout(shareFrameTimer);
+    shareFrameTimer = null;
+    const position = `${Math.round(shareFraming.x)}% ${Math.round(shareFraming.y)}%`;
+    const zoom = Number(shareFraming.zoom.toFixed(2));
+    if (game.cardPosition === position && Number(game.cardZoom) === zoom) {
+      setShareSaveState('saved');
+      return;
+    }
+    game.cardPosition = position;
+    game.cardZoom = zoom;
+    setShareSaveState('saving');
+    if (!hasBridge) { setShareSaveState('saved'); return; }
+    call('updateGame', { id: game.id, cardPosition: position, cardZoom: zoom }).then((result) => {
+      if (result && result.ok) {
+        if (result.game) Object.assign(game, result.game);
+        setShareSaveState('saved');
+        syncShareFrameControls();
+      } else {
+        setShareSaveState('dirty');
+      }
+    }).catch(() => setShareSaveState('dirty'));
+  }
+
+  function stepShareFraming(action, options = {}) {
+    if (!shareFraming) return;
+    const silent = options.silent === true;
+    const game = currentGame();
+    if (action === 'reset') {
+      if (game) {
+        // Reset means "follow the hero crop again", not "jump to 50/45":
+        // clearing the override is the least surprising way back.
+        game.cardPosition = '';
+        game.cardZoom = 0;
+        if (hasBridge) call('updateGame', { id: game.id, cardPosition: '', cardZoom: 0 });
+      }
+      shareFraming = game ? shareFramingFor(game) : { x: SHARE_FRAME.x, y: SHARE_FRAME.y, zoom: 1 };
+      paintShareFraming();
+      setShareSaveState('saved');
+      if (!silent) audio.toggle();
+      return;
+    }
+    const step = options.step || SHARE_FRAME.step;
+    // Arrows move the picture, not the window onto it — the same direction a
+    // drag goes — so the labels ("封面右移") finally match what happens.
+    if (action === 'left') shareFraming.x += step;
+    else if (action === 'right') shareFraming.x -= step;
+    else if (action === 'up') shareFraming.y += step;
+    else if (action === 'down') shareFraming.y -= step;
+    else if (action === 'zoom-in') shareFraming.zoom += SHARE_FRAME.zoomStep;
+    else if (action === 'zoom-out') shareFraming.zoom -= SHARE_FRAME.zoomStep;
+    else return;
+    shareFraming.x = shareClamp(shareFraming.x, 0, 100);
+    shareFraming.y = shareClamp(shareFraming.y, 0, 100);
+    shareFraming.zoom = shareClamp(shareFraming.zoom, SHARE_FRAME.minZoom, SHARE_FRAME.maxZoom);
+    paintShareFraming();
+    scheduleShareFramingSave();
+    if (!silent) audio.toggle();
+  }
+
+  /* ------------------------------------------------------------
+     HOLD TO NUDGE
+     ------------------------------------------------------------
+     One tap is one step, but nobody nudges a picture two percent at a
+     time: holding an arrow now repeats, and the repeat speeds up as the
+     hold goes on (260ms before the first repeat, easing down to 45ms),
+     which is how every arrow key in every editor feels.
+     ------------------------------------------------------------ */
+
+  let shareFrameHold = null;
+
+  function stopShareFrameHold(options = {}) {
+    if (!shareFrameHold) return;
+    clearTimeout(shareFrameHold.timer);
+    if (shareFrameHold.button) shareFrameHold.button.classList.remove('is-holding');
+    const repeated = shareFrameHold.repeated === true;
+    shareFrameHold = null;
+    flushShareFramingSave();
+    // One tap already clicked; only a hold needs a closing note.
+    if (repeated && options.silent !== true) audio.toggle();
+  }
+
+  function beginShareFrameHold(button, action) {
+    stopShareFrameHold({ silent: true });
+    stepShareFraming(action);
+    if (action === 'reset') return;
+    const hold = { button, action, timer: null, repeated: false };
+    shareFrameHold = hold;
+    button.classList.add('is-holding');
+    let delay = 260;
+    const repeat = () => {
+      if (shareFrameHold !== hold) return;
+      hold.repeated = true;
+      stepShareFraming(action, { silent: true });
+      delay = Math.max(45, Math.round(delay * .78));
+      hold.timer = setTimeout(repeat, delay);
+    };
+    hold.timer = setTimeout(repeat, delay);
+  }
+
+  /* ------------------------------------------------------------
+     DRAG THE COVER
+     ------------------------------------------------------------
+     Arrows are precise, dragging is fast. The plate follows the
+     pointer one-to-one (card pixels, not preview pixels), so pulling
+     the picture right shows what is to its left — the picture moves
+     with the hand, not against it.
+     ------------------------------------------------------------ */
+
+  let shareDrag = null;
+  let shareDragEndedAt = 0;
+
+  function beginShareDrag(event) {
+    if (!shareFraming || !els.shareMount || event.button !== 0) return;
+    const card = els.shareMount.querySelector('.share-card');
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const overflow = shareArtOverflow(null, shareFraming.zoom);
+    if (!overflow || rect.width < 2) return;
+    shareDrag = {
+      id: event.pointerId,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      acc: 0,
+      overflow,
+      // The preview is the real card scaled down; one preview pixel is
+      // this many card pixels.
+      ratio: card.offsetWidth / rect.width,
+      moved: false
+    };
+    try { els.shareMount.setPointerCapture(event.pointerId); } catch (error) {}
+  }
+
+  function moveShareDrag(event) {
+    if (!shareDrag || event.pointerId !== shareDrag.id || !shareFraming) return;
+    // Incremental, not "distance from where the press started": once the
+    // plate hits an edge the hand and the picture would drift apart, and
+    // pulling back would feel stuck.
+    const dx = (event.clientX - shareDrag.lastX) * shareDrag.ratio;
+    const dy = (event.clientY - shareDrag.lastY) * shareDrag.ratio;
+    shareDrag.lastX = event.clientX;
+    shareDrag.lastY = event.clientY;
+    shareDrag.acc += Math.abs(dx) + Math.abs(dy);
+    if (!shareDrag.moved) {
+      if (shareDrag.acc < 2) return;
+      shareDrag.moved = true;
+      els.shareMount.classList.add('is-dragging');
+    }
+    const overX = Math.max(1, shareDrag.overflow.x);
+    const overY = Math.max(1, shareDrag.overflow.y);
+    // Only the axes that actually have slack respond; the other stays put.
+    if (shareDrag.overflow.x > 1) {
+      shareFraming.x = shareClamp(shareFraming.x - (dx / overX) * 100, 0, 100);
+    }
+    if (shareDrag.overflow.y > 1) {
+      shareFraming.y = shareClamp(shareFraming.y - (dy / overY) * 100, 0, 100);
+    }
+    paintShareFraming();
+    markShareFramingDirty();
+  }
+
+  function endShareDrag(event) {
+    if (!shareDrag || (event && event.pointerId !== shareDrag.id)) return;
+    const moved = shareDrag.moved;
+    const pointerId = shareDrag.id;
+    shareDrag = null;
+    if (els.shareMount) els.shareMount.classList.remove('is-dragging');
+    try { els.shareMount.releasePointerCapture(pointerId); } catch (error) {}
+    if (!moved) return;
+    shareDragEndedAt = performance.now();
+    flushShareFramingSave();
+    audio.select();
+  }
+
+  /** Wheel zooms the cover; the dialog never scrolls under the pointer. */
+  function zoomShareFraming(delta) {
+    if (!shareFraming) return;
+    const next = shareClamp(shareFraming.zoom + delta, SHARE_FRAME.minZoom, SHARE_FRAME.maxZoom);
+    if (next === shareFraming.zoom) return;
+    shareFraming.zoom = next;
+    paintShareFraming();
+    scheduleShareFramingSave();
+  }
+
+  /* ------------------------------------------------------------
+     KEYBOARD
+     ------------------------------------------------------------
+     The dialog is a small editor, so it behaves like one: arrows nudge
+     (Shift = 4×), +/- zoom, 0 or R resets, 1/2/3 switch format.
+     ------------------------------------------------------------ */
+
+  const SHARE_KEY_STEPS = {
+    ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down'
+  };
+
+  function handleShareKeydown(event) {
+    if (state.overlay !== 'share' || event.altKey || event.ctrlKey || event.metaKey) return false;
+    const key = event.key;
+    const direction = SHARE_KEY_STEPS[key];
+    if (direction) {
+      event.preventDefault();
+      const times = event.shiftKey ? 4 : 1;
+      for (let i = 0; i < times; i += 1) stepShareFraming(direction, { silent: i > 0 });
+      return true;
+    }
+    if (key === '+' || key === '=') {
+      event.preventDefault();
+      stepShareFraming('zoom-in');
+      return true;
+    }
+    if (key === '-' || key === '_') {
+      event.preventDefault();
+      stepShareFraming('zoom-out');
+      return true;
+    }
+    if (key === '0' || key === 'r' || key === 'R') {
+      event.preventDefault();
+      stepShareFraming('reset');
+      return true;
+    }
+    if (key === '1' || key === '2' || key === '3') {
+      const target = SHARE_VARIANTS[Number(key) - 1];
+      if (!target) return false;
+      event.preventDefault();
+      chooseShareVariant(target.id);
+      return true;
+    }
+    if (key === 'Enter' && !(event.target && event.target.closest && event.target.closest('button'))) {
+      event.preventDefault();
+      exportShareCard();
+      return true;
+    }
+    return false;
+  }
+
+  function shareTintOn() {
+    return !!(state.settings && state.settings.shareTint === true);
+  }
+
+  function syncShareTintState() {
+    const on = shareTintOn();
+    if (els.shareTint) els.shareTint.setAttribute('aria-checked', String(on));
+    if (els.shareTintSwitch) els.shareTintSwitch.classList.toggle('on', on);
+  }
+
+  function toggleShareTint() {
+    state.settings.shareTint = !shareTintOn();
+    syncShareTintState();
+    const card = els.shareMount && els.shareMount.querySelector('.share-card');
+    if (card) {
+      card.dataset.tint = state.settings.shareTint ? '1' : '0';
+      const img = card.querySelector('.sc-art img');
+      if (img) {
+        // The filter swap cannot tween, so the plate blinks once.
+        img.classList.remove('is-tinting');
+        void img.offsetWidth;
+        img.classList.add('is-tinting');
+        setTimeout(() => img.classList.remove('is-tinting'), 360);
+      }
+    }
+    saveSettings();
+    audio.select();
+  }
+
+  /** Resolve any CSS colour expression (var() included) to [r, g, b]. */
+  function probeCssColor(expression, fallback) {
+    const probe = document.createElement('span');
+    probe.style.cssText = `position:absolute;left:-9999px;top:0;width:0;height:0;color:${expression}`;
+    document.body.appendChild(probe);
+    const resolved = getComputedStyle(probe).color;
+    probe.remove();
+    const parts = (resolved.match(/[\d.]+/g) || []).map(Number);
+    return parts.length >= 3 ? parts.slice(0, 3) : fallback;
+  }
+
+  /** Rewrite the shared duotone ramp from the active theme's two ends. */
+  function applyShareTintFilter() {
+    const channels = ['scDuoR', 'scDuoG', 'scDuoB'].map((id) => document.getElementById(id));
+    if (channels.some((node) => !node)) return;
+    const shadow = probeCssColor('var(--sc-tint-shadow, #0a0d13)', [10, 13, 19]);
+    const high = probeCssColor('var(--sc-tint-high, #dfe6f2)', [223, 230, 242]);
+    const mid = shadow.map((value, i) => Math.round(value + (high[i] - value) * .62));
+    const stops = [shadow, mid, high];
+    channels.forEach((node, channel) => {
+      node.setAttribute('tableValues', stops
+        .map((stop) => shareClamp(stop[channel] / 255, 0, 1).toFixed(3))
+        .join(' '));
+    });
   }
 
   function shareGameForCard() {
@@ -2051,6 +2544,13 @@
       return;
     }
     els.shareMount.innerHTML = shareCardHTML(game);
+    if (els.shareZoomValue && shareFraming) {
+      els.shareZoomValue.textContent = `${Math.round(shareFraming.zoom * 100)}%`;
+    }
+    // The plate is painted right away so the framing is already in place
+    // when the preview appears, instead of snapping a frame later.
+    paintShareArt();
+    syncShareFrameControls();
     // The image decides the veil's job, so wait one frame for layout before
     // measuring; the card's own size is fixed, only the scale is computed.
     requestAnimationFrame(fitSharePreview);
@@ -2074,6 +2574,11 @@
     state.lastFocus = document.activeElement;
     state.overlay = 'share';
     document.body.dataset.overlay = 'share';
+    shareFraming = shareFramingFor(game);
+    syncShareTintState();
+    applyShareTintFilter();
+    setShareSaveState('saved');
+    updateShareExportLabel();
     renderShareChoices();
     renderSharePreview();
     if (els.shareSubtitle) els.shareSubtitle.textContent = `《${shortName(game) || game.name}》· 选一种版式，导出为图片`;
@@ -2090,16 +2595,25 @@
     }, 120);
   }
 
-  /** Opening the dialog changes the stage size, so fit once more. */
+  /** Opening the dialog changes the stage size, so fit once more. The plate
+      is repainted on the same beat: while the dialog is closed its box is
+      unmeasurable, so the artwork was drawn in the plain object-position
+      fallback and only now can take its real framing. */
   function resizeInertSharePreview() {
     requestAnimationFrame(() => {
       fitSharePreview();
+      paintShareArt();
       requestAnimationFrame(fitSharePreview);
     });
   }
 
   function closeShareDialog() {
     if (state.overlay !== 'share') return;
+    // A hold or a drag in flight must not keep ticking behind a closed
+    // dialog; the pending framing is written through before we leave.
+    stopShareFrameHold({ silent: true });
+    endShareDrag();
+    flushShareFramingSave();
     state.overlay = null;
     els.shareOverlay.classList.remove('is-open');
     els.shareOverlay.setAttribute('aria-hidden', 'true');
@@ -2114,7 +2628,39 @@
     shareVariant = id;
     syncShareChoiceState();
     renderSharePreview();
+    updateShareExportLabel();
     audio.select();
+  }
+
+  /** The button says exactly what it will make, at what size. */
+  function updateShareExportLabel() {
+    if (!els.shareExportLabel) return;
+    const size = SHARE_SIZES[shareVariant] || SHARE_SIZES.poster;
+    els.shareExportLabel.textContent = shareExportJob
+      ? '正在生成…'
+      : `导出这张卡 · ${size[0]}×${size[1]}`;
+  }
+
+  function setShareExportBusy(busy) {
+    if (els.shareExport) {
+      els.shareExport.disabled = busy;
+      els.shareExport.classList.toggle('is-busy', busy);
+      els.shareExport.setAttribute('aria-busy', String(busy));
+    }
+    updateShareExportLabel();
+  }
+
+  /** A card can be exported before its cover has decoded; wait for it so the
+   *  framing maths has real pixels to work with. */
+  function shareArtReady(root) {
+    const img = root && root.querySelector('.sc-art img');
+    if (!img || (img.complete && img.naturalWidth)) return Promise.resolve();
+    return new Promise((resolve) => {
+      const done = () => resolve();
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+      setTimeout(done, 1500);
+    });
   }
 
   function finishShareExport(payload) {
@@ -2123,12 +2669,19 @@
     shareExportJob = null;
     delete document.documentElement.dataset.shareExport;
     if (els.shareExportStage) els.shareExportStage.innerHTML = '';
+    setShareExportBusy(false);
     if (!payload || payload.ok === false) {
       const reason = payload && payload.error ? ` · ${payload.error}` : '';
       toast(`卡片导出失败${reason}`, 'alert');
       return;
     }
-    toast(`已导出 ${payload.width}×${payload.height} · ${payload.folder}`, 'camera');
+    // The file is already on disk; the toast carries the way to it, because
+    // "已导出到图片文件夹" always sends people hunting through Explorer.
+    toast(`已导出 ${payload.width}×${payload.height} · ${payload.folder}`, 'camera',
+      payload.path ? {
+        label: '打开文件夹',
+        run: () => { call('revealPath', { path: payload.path }); }
+      } : null);
   }
 
   async function exportShareCard() {
@@ -2137,6 +2690,7 @@
     if (!game) return;
     const variant = shareVariant;
     audio.confirm();
+    setShareExportBusy(true);
 
     // Build the card at full size in normal flow. While the capture runs the
     // app is hidden and the document collapses to exactly the card, so the
@@ -2146,12 +2700,16 @@
     document.documentElement.dataset.shareExport = variant;
 
     await new Promise((resolve) => requestAnimationFrame(resolve));
+    // The cover may still be decoding; the framing needs its pixel size.
+    await shareArtReady(els.shareExportStage);
+    paintShareArt(els.shareExportStage);
     await settleForExport(els.shareExportStage);
 
     const card = els.shareExportStage.querySelector('.share-card');
     if (!card) {
       delete document.documentElement.dataset.shareExport;
       els.shareExportStage.innerHTML = '';
+      setShareExportBusy(false);
       return;
     }
     const width = Math.ceil(card.getBoundingClientRect().width);
@@ -2252,14 +2810,31 @@
 
   const motionMs = (name, fallback) => (window.NovaMotion ? window.NovaMotion.duration(name) : fallback);
 
-  function toast(message, icon = 'check') {
+  /* Toasts can carry one follow-up action. A finished export is the reason:
+     "已导出到图片文件夹" without a way there is just homework for the player. */
+  let toastAction = null;
+
+  function hideToast() {
+    clearTimeout(state.toastTimer);
+    state.toastTimer = null;
+    els.toast.classList.remove('show');
+  }
+
+  function toast(message, icon = 'check', action = null) {
     if (state.overlay === 'launch' || state.overlay === 'sleep') return;
     const use = els.toast.querySelector('use');
     if (use) use.setAttribute('href', `#i-${icon}`);
     els.toastText.textContent = message;
+    if (els.toastAction) {
+      const usable = !!(action && action.label);
+      els.toastAction.hidden = !usable;
+      els.toastAction.textContent = usable ? action.label : '';
+      toastAction = usable ? action : null;
+    }
     els.toast.classList.add('show');
     clearTimeout(state.toastTimer);
-    state.toastTimer = setTimeout(() => els.toast.classList.remove('show'), 3000);
+    // An action needs long enough to be read and clicked.
+    state.toastTimer = setTimeout(hideToast, action ? 7000 : 3000);
   }
 
   function updateClock() {
@@ -2399,7 +2974,8 @@
         autoStartEngine: state.settings.autoStartEngine === true,
         startupFullscreen: state.settings.startupFullscreen === true,
         idlePauseMinutes: Number.isFinite(state.settings.idlePauseMinutes) ? state.settings.idlePauseMinutes : 10,
-        autoCheckUpdates: state.settings.autoCheckUpdates === true
+        autoCheckUpdates: state.settings.autoCheckUpdates === true,
+        shareTint: state.settings.shareTint === true
       });
     }, 180);
   }
@@ -9323,6 +9899,66 @@
       });
     }
     if (els.shareExport) els.shareExport.addEventListener('click', () => exportShareCard());
+    if (els.shareFraming) {
+      // Pressing an arrow steps once and then keeps going. The hold is what
+      // the control is for — one tap is a nudge, holding is how you walk the
+      // picture all the way across.
+      let pointerHandled = null;
+      els.shareFraming.addEventListener('pointerdown', (event) => {
+        const button = event.target.closest('button[data-frame]');
+        if (!button || event.button !== 0 || button.disabled) return;
+        pointerHandled = { button, at: performance.now() };
+        beginShareFrameHold(button, button.dataset.frame);
+      });
+      els.shareFraming.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-frame]');
+        if (!button || button.disabled) return;
+        // A pointer press already stepped on pointerdown; only keyboard
+        // activation (Enter / Space) lands here without one.
+        if (pointerHandled && pointerHandled.button === button
+          && performance.now() - pointerHandled.at < 900) return;
+        stepShareFraming(button.dataset.frame);
+      });
+      ['pointerup', 'pointercancel'].forEach((type) => {
+        window.addEventListener(type, () => stopShareFrameHold());
+      });
+      window.addEventListener('blur', () => stopShareFrameHold({ silent: true }));
+    }
+    if (els.shareMount) {
+      // The card itself is the fastest framing control: press and drag the
+      // cover, scroll to zoom, double-click to go back to the hero crop.
+      els.shareMount.addEventListener('pointerdown', (event) => {
+        if (state.overlay !== 'share') return;
+        beginShareDrag(event);
+      });
+      els.shareMount.addEventListener('pointermove', (event) => moveShareDrag(event));
+      els.shareMount.addEventListener('pointerup', (event) => endShareDrag(event));
+      els.shareMount.addEventListener('pointercancel', (event) => endShareDrag(event));
+      els.shareMount.addEventListener('wheel', (event) => {
+        if (state.overlay !== 'share' || !shareFraming) return;
+        event.preventDefault();
+        const step = event.deltaMode === 1 ? .12 : .06;
+        zoomShareFraming(event.deltaY > 0 ? -step : step);
+      }, { passive: false });
+      els.shareMount.addEventListener('dblclick', () => {
+        if (state.overlay !== 'share') return;
+        if (performance.now() - shareDragEndedAt < 320) return;
+        stepShareFraming('reset');
+      });
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.defaultPrevented) return;
+      handleShareKeydown(event);
+    });
+    if (els.toastAction) {
+      els.toastAction.addEventListener('click', () => {
+        const action = toastAction;
+        toastAction = null;
+        hideToast();
+        if (action && typeof action.run === 'function') action.run();
+      });
+    }
+    if (els.shareTint) els.shareTint.addEventListener('click', () => toggleShareTint());
     if (els.shareLongPage) {
       els.shareLongPage.addEventListener('click', () => {
         closeShareDialog();
@@ -9718,7 +10354,8 @@
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
       developerMode: boot.settings?.developerMode === true,
       elevated: boot.elevated === true,
-      autoCheckUpdates: boot.settings?.autoCheckUpdates === true
+      autoCheckUpdates: boot.settings?.autoCheckUpdates === true,
+      shareTint: boot.settings?.shareTint === true
     };
     state.developerMode = boot.developerMode === true;
     state.elevated = boot.elevated === true;

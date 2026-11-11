@@ -697,3 +697,10 @@ html[data-theme="riot"] .share-card[data-variant="score"] .sc-deco::after {
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(1),
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-foot > span:nth-of-type(2),
 html[data-theme="riot"] .share-card[data-variant="dossier"] .sc-foot > i:nth-of-type(1) { display: none; }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="riot"] {
+  --sc-tint-shadow: #141414;
+  --sc-tint-high: #ff3b30;
+}

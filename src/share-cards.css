@@ -64,6 +64,220 @@
 /* Three variants as a vertical list of spec rows. Each row is a small
    diagram of the card it produces: the diagram is drawn in CSS so it
    wears the theme's ink instead of shipping fifteen screenshots. */
+/* Right column: the format list plus the cover tuning block. The tuning row
+   mirrors .editor-framing, which already taught players how ←↑↓→ reads. */
+.share-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.share-tune {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.share-tune-head {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--sheet-muted, currentColor);
+  opacity: .58;
+}
+
+.share-tune-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 5px;
+  border: var(--sheet-control-border, 1px solid var(--sheet-line));
+  border-radius: var(--sheet-control-radius, 8px);
+  background: var(--sheet-control-bg, transparent);
+  color: var(--sheet-ink, inherit);
+}
+
+.share-tune-row button {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 4px;
+  border: 1px solid var(--sheet-line, rgba(255, 255, 255, .14));
+  background: var(--sheet-well, rgba(255, 255, 255, .06));
+  color: inherit;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .14s ease, background .14s ease;
+}
+
+.share-tune-row button:hover {
+  border-color: var(--sheet-primary-bg, currentColor);
+  background: var(--sheet-well, rgba(255, 255, 255, .12));
+}
+.share-tune-row button:active { transform: translateY(1px); }
+
+.share-tune-reset { margin-left: auto; font-size: 11px; }
+
+.share-tune-hint {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: .1em;
+  opacity: .5;
+}
+
+.share-tune-value {
+  min-width: 42px;
+  text-align: center;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: .82;
+}
+
+.share-tint {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: var(--sheet-control-border, 1px solid var(--sheet-line));
+  border-radius: var(--sheet-control-radius, 8px);
+  background: var(--sheet-control-bg, transparent);
+  color: var(--sheet-ink, inherit);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease;
+}
+.share-tint:hover { background: var(--sheet-well, rgba(255, 255, 255, .06)); }
+.share-tint[aria-checked="true"] { border-color: var(--sheet-primary-bg, currentColor); }
+.share-tint-copy { display: grid; gap: 3px; min-width: 0; }
+.share-tint-copy b { font-weight: 600; font-size: 12.5px; }
+.share-tint-copy i {
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: .62;
+}
+
+/* ---- framing controls ------------------------------------------------
+   The block is a small editor, so it behaves like one: press and hold an
+   arrow to keep moving, drag the cover itself, scroll to zoom, arrows on
+   the keyboard for the last 2%. Everything here is state feedback — the
+   number never moves without the card moving with it. */
+
+.share-tune-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.share-tune-state {
+  font-size: 10px;
+  letter-spacing: .1em;
+  opacity: .5;
+  transition: color .18s ease, opacity .18s ease;
+}
+.share-tune-state[data-state="dirty"] { color: var(--sheet-warn, #f0b429); opacity: .95; }
+.share-tune-state[data-state="saving"] { opacity: .78; }
+
+.share-tune-note {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: .01em;
+  opacity: .42;
+}
+
+.share-tune-row button:disabled {
+  opacity: .32;
+  cursor: default;
+}
+.share-tune-row button:disabled:hover {
+  border-color: var(--sheet-line, rgba(255, 255, 255, .14));
+  background: var(--sheet-well, rgba(255, 255, 255, .06));
+}
+
+/* A held key reads as pressed for as long as it keeps repeating. */
+.share-tune-row button.is-holding {
+  border-color: var(--sheet-primary-bg, currentColor);
+  background: var(--sheet-primary-bg, rgba(255, 255, 255, .18));
+  color: var(--sheet-primary-ink, #08090c);
+  transform: translateY(1px);
+}
+
+.share-tune-row button:focus-visible,
+.share-tint:focus-visible,
+.share-choice:focus-visible,
+#shareExport:focus-visible {
+  outline: 2px solid var(--sheet-primary-bg, currentColor);
+  outline-offset: 2px;
+}
+
+/* The preview card is a handle, not a picture. */
+.share-mount { touch-action: none; }
+.share-mount .share-card { cursor: grab; }
+.share-mount .share-card,
+.share-mount .share-card * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.share-mount.is-dragging .share-card { cursor: grabbing; }
+
+/* A url() filter cannot interpolate, so switching the stylised cover would
+   snap. The plate blinks once instead, which reads as a development print. */
+.share-mount .sc-art img.is-tinting { animation: sc-tint-flash .32s ease; }
+@keyframes sc-tint-flash {
+  0% { opacity: .3; }
+  100% { opacity: 1; }
+}
+
+/* Right column scrolls on its own when the window is short, so the format
+   list never pushes the tuning block out of reach. The bar stays visible —
+   a hidden overflow with no affordance reads as a cut-off panel. */
+.share-side {
+  min-height: 0;
+  max-height: calc(100vh - 210px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* No `scrollbar-width: thin` here: the standard property wins over the
+     ::-webkit- rules below and turns the bar into an overlay that only
+     shows up while scrolling, leaving the column looking chopped off. */
+  padding-right: 2px;
+}
+.share-side::-webkit-scrollbar { width: 7px; }
+.share-side::-webkit-scrollbar-track { background: transparent; }
+.share-side::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--sheet-line, rgba(128, 128, 128, .4));
+}
+
+.engine-btn.is-busy {
+  opacity: .75;
+  cursor: progress;
+  pointer-events: none;
+}
+.engine-btn.is-busy::after {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 8px;
+  vertical-align: -1px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  animation: sc-spin .7s linear infinite;
+}
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+
 .share-choices {
   display: flex;
   flex-direction: column;
@@ -188,6 +402,11 @@
      poster variant. A theme supplies its own ground RGB so a paper card
      lightens that corner instead of smearing black over it. */
   --sc-scrim-rgb: 4, 6, 10;
+  /* Duotone pair for the opt-in stylised cover. Falls back to the card's own
+     scrim and accent, so a theme that says nothing still gets its own ink;
+     themes with a stronger opinion name both outright. */
+  --sc-tint-shadow: #0a0d13;
+  --sc-tint-high: var(--sc-accent, #dfe6f2);
   /* Masthead band: the brand row sits on artwork, and a paper card needs a
      paper band behind dark ink exactly as a dark card needs a dark one. */
   --sc-top-veil: linear-gradient(180deg,
@@ -247,11 +466,33 @@
   overflow: hidden;
 }
 .sc-art img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: var(--sc-art-pos, 50% 40%);
   display: block;
+  /* Card framing is independent of the home hero crop: the transform carries
+     both the zoom and the focus. The -50% centring keeps the picture anchored
+     on the plate's middle no matter which size the script hands it, and it is
+     applied last so a pan of N card pixels really is N card pixels. */
+  transform: translate(-50%, -50%) scale(var(--sc-art-zoom, 1));
+  transform-origin: 50% 50%;
+}
+
+/* Stylised cover: one document-wide duotone filter whose table values are
+   rewritten from the active theme's --sc-tint-* pair, so every theme gets its
+   own ink without shipping fourteen filters. Off unless the player opts in. */
+.share-card[data-tint="1"] .sc-art img { filter: url(#scDuotone); }
+
+.sc-tint-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 /* Per-theme decoration layer (tape, barcode, halftone, scanlines, crop

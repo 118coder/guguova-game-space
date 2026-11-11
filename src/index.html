@@ -1499,18 +1499,73 @@
         <div class="share-mount" id="shareMount"></div>
       </div>
 
-      <div class="share-choices" id="shareChoices" role="radiogroup" aria-label="卡片版式"></div>
+      <div class="share-side">
+        <div class="share-choices" id="shareChoices" role="radiogroup" aria-label="卡片版式"></div>
+
+        <div class="share-tune" id="shareFraming" role="group" aria-label="调整封面缩放与位置">
+          <div class="share-tune-head">
+            <span>封面取景</span>
+            <span class="share-tune-state" id="shareSaveState" data-state="saved" role="status" aria-live="polite">已保存</span>
+          </div>
+          <div class="share-tune-row">
+            <button type="button" data-frame="left" aria-label="封面左移，按住连续移动">←</button>
+            <button type="button" data-frame="up" aria-label="封面上移，按住连续移动">↑</button>
+            <button type="button" data-frame="down" aria-label="封面下移，按住连续移动">↓</button>
+            <button type="button" data-frame="right" aria-label="封面右移，按住连续移动">→</button>
+            <button type="button" class="share-tune-reset" id="shareFrameReset" data-frame="reset" aria-label="恢复默认取景" disabled>重置</button>
+          </div>
+          <div class="share-tune-row">
+            <button type="button" data-frame="zoom-out" aria-label="封面缩小，按住连续缩小">−</button>
+            <span class="share-tune-value" id="shareZoomValue">100%</span>
+            <button type="button" data-frame="zoom-in" aria-label="封面放大，按住连续放大">+</button>
+            <span class="share-tune-hint">滚轮缩放</span>
+          </div>
+          <p class="share-tune-note">拖动封面直接取景 · 方向键微调（Shift 加速）· 双击复位</p>
+          <button class="share-tint" id="shareTint" type="button" role="switch" aria-checked="false">
+            <span class="share-tint-copy">
+              <b>风格化封面</b>
+              <i>按当前主题给封面重新上色</i>
+            </span>
+            <span class="switch" id="shareTintSwitch"></span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <footer class="engine-foot">
       <button class="engine-btn ghost" id="shareLongPage" type="button">整页长图</button>
-      <button class="engine-btn primary" id="shareExport" type="button">导出这张卡</button>
+      <button class="engine-btn primary" id="shareExport" type="button">
+        <span id="shareExportLabel">导出这张卡</span>
+      </button>
     </footer>
   </div>
 </div>
 
 <!-- Off-screen full-size card used by the host capture. -->
 <div class="share-export-stage" id="shareExportStage" aria-hidden="true"></div>
+
+<!-- Duotone for the stylized share cover. The renderer rewrites the three
+     feFunc tableValues from the active theme's --sc-tint-* pair, so a single
+     filter serves every theme and the export rasterises the same colours. -->
+<svg class="sc-tint-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="scDuotone" color-interpolation-filters="sRGB">
+      <feColorMatrix type="saturate" values="0" result="scGray"/>
+      <!-- Lift the midtones before mapping: a straight two-stop ramp buries
+           everything in the shadow half and the cover reads as a stain. -->
+      <feComponentTransfer in="scGray" result="scLift">
+        <feFuncR type="gamma" amplitude="1" exponent="0.82" offset="0.04"/>
+        <feFuncG type="gamma" amplitude="1" exponent="0.82" offset="0.04"/>
+        <feFuncB type="gamma" amplitude="1" exponent="0.82" offset="0.04"/>
+      </feComponentTransfer>
+      <feComponentTransfer in="scLift">
+        <feFuncR id="scDuoR" type="table" tableValues="0.04 0.32 0.95"/>
+        <feFuncG id="scDuoG" type="table" tableValues="0.05 0.38 0.97"/>
+        <feFuncB id="scDuoB" type="table" tableValues="0.07 0.45 1"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+</svg>
 
 <!-- ============ IN-APP FILE BROWSER ============ -->
 <div class="overlay picker-overlay" id="pickerOverlay" aria-hidden="true">
@@ -1641,6 +1696,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite">
   <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
   <span id="toastText"></span>
+  <button class="toast-action" id="toastAction" type="button" hidden></button>
 </div>
 
 <script src="motion.js?v=1.16.5" defer></script>

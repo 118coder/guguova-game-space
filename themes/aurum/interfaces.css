@@ -661,3 +661,10 @@ html[data-theme="aurum"] .share-card[data-variant="score"] .sc-sheet::after {
 }
 html[data-theme="aurum"] .share-card[data-variant="score"] .sc-title { font-size: 50px; letter-spacing: .08em; }
 html[data-theme="aurum"] .share-card[data-variant="score"] .sc-hours b { font-size: 150px; }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="aurum"] {
+  --sc-tint-shadow: #0a0f0c;
+  --sc-tint-high: #e8c98a;
+}

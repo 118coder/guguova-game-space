@@ -45,7 +45,8 @@
       compatibilityTier: boot.settings?.compatibilityTier || 'auto',
       developerMode: boot.settings?.developerMode === true,
       elevated: boot.elevated === true,
-      autoCheckUpdates: boot.settings?.autoCheckUpdates === true
+      autoCheckUpdates: boot.settings?.autoCheckUpdates === true,
+      shareTint: boot.settings?.shareTint === true
     };
     state.developerMode = boot.developerMode === true;
     state.elevated = boot.elevated === true;

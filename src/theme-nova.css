@@ -365,6 +365,9 @@ html[data-theme="nova"] {
   --sc-rule: rgba(255, 255, 255, .18);
   --sc-accent: var(--accent);
   --sc-accent-ink: #07100e;
+  /* 风格化封面的双色调端点：夜里的一点暖光 */
+  --sc-tint-shadow: #0a1520;
+  --sc-tint-high: #ffc79e;
   --sc-plate: rgba(9, 12, 19, .68);
   --sc-plate-line: rgba(255, 255, 255, .18);
   --sc-sheet-bg: #0a0d13;

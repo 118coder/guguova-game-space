@@ -705,3 +705,10 @@ html[data-theme="zerohour"] .share-card[data-variant="score"] .sc-hours b {
   font-size: 150px;
   text-shadow: 4px 4px 0 rgba(198, 255, 46, .8);
 }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。 ---- */
+html[data-theme="zerohour"] {
+  --sc-tint-shadow: #07100a;
+  --sc-tint-high: #c6ff2e;
+}

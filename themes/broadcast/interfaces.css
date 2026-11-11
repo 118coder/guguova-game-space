@@ -731,3 +731,12 @@ html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-deco::before 
   letter-spacing: .24em;
   box-shadow: 0 0 0 1px rgba(243, 243, 240, .35), 0 0 18px rgba(143, 43, 43, .45);
 }
+
+/* ---- 分享卡片 · 风格化封面的双色调端点 ----
+   玩家在导出卡片的开关里自己决定要不要上色；这两端只影响卡内封面。
+   广播是纸面主题，可风格化要的是「深夜示波器」，不是一张洗白的老照片：
+   暗端走夜蓝、亮端走冷白蓝，中间调自然落在青蓝一侧。 ---- */
+html[data-theme="broadcast"] {
+  --sc-tint-shadow: #08203a;
+  --sc-tint-high: #9ccdf0;
+}
