@@ -256,6 +256,7 @@ public sealed partial class NativeBridge
                 "downloadUpdate" => BeginUpdateDownload(args),
                 "cancelUpdateDownload" => CancelUpdateDownload(),
                 "openUpdateFolder" => OpenUpdateFolder(),
+                "applyUpdate" => ApplyUpdate(args),
                 "windowState" => WindowStatePayload(),
                 _ => new { error = $"unknown method {method}" }
             };

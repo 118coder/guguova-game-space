@@ -166,9 +166,12 @@
     const total = state.games.length;
     const target = ((index % total) + total) % total;
     /* Stepping past a hidden title must land on the next one the shelf
-       shows, not on the empty slot it used to occupy. */
+       shows, not on the empty slot it used to occupy. An explicit jump is
+       different: 「游戏详情」from the context menu and a card inside the 隐藏
+       filter both name the game by id, so honouring `hidden` there is the
+       only way to reopen that game — and therefore to unhide it. */
     const dir = target === state.index ? 1 : (index > state.index ? 1 : -1);
-    const wrapped = resolveShelfIndex(target, dir);
+    const wrapped = options.allowHidden === true ? target : resolveShelfIndex(target, dir);
     if (wrapped < 0) {
       renderHero(null, false);
       return;
@@ -206,7 +209,10 @@
   function chooseGameById(id, options = {}) {
     const index = state.games.findIndex((game) => game.id === id);
     if (index < 0) return;
-    selectGame(index, { sound: true, scroll: true, ...options });
+    /* Addressing a game by id includes hidden ones: the 隐藏 filter and the
+       context menu both arrive here, and skipping hidden entries made those
+       games impossible to open — so impossible to unhide (user report). */
+    selectGame(index, { sound: true, scroll: true, allowHidden: true, ...options });
   }
 
   /* ============================================================

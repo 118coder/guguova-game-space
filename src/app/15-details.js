@@ -330,8 +330,14 @@
     state.overlay = null;
     if (sound) audio.close();
     if (focus) restoreFocus();
-    // Leaving the sheet is when a just-hidden game actually leaves the stage.
-    if (wasHidden) rebuildAfterLibraryChange(false);
+    // Leaving the sheet is when a just-hidden game actually leaves the stage:
+    // step to a neighbouring visible title so the hero is not left showing a
+    // game that has no tile any more (it looked like a stuck, un-hideable item).
+    if (wasHidden) {
+      rebuildAfterLibraryChange(false);
+      const next = resolveShelfIndex(state.index, 1);
+      if (next >= 0 && next !== state.index) selectGame(next, { sound: false, scroll: true });
+    }
   }
 
   async function toggleFavorite(game) {

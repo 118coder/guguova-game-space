@@ -648,6 +648,7 @@
     settingsVersion: $('#settingsVersion'),
     updateCheckBtn: $('#updateCheckBtn'),
     updateDownloadBtn: $('#updateDownloadBtn'),
+    updateApplyBtn: $('#updateApplyBtn'),
     updateFolderBtn: $('#updateFolderBtn'),
     updateState: $('#updateState'),
     updateProgress: $('#updateProgress'),
@@ -3676,9 +3677,12 @@
     const total = state.games.length;
     const target = ((index % total) + total) % total;
     /* Stepping past a hidden title must land on the next one the shelf
-       shows, not on the empty slot it used to occupy. */
+       shows, not on the empty slot it used to occupy. An explicit jump is
+       different: 「游戏详情」from the context menu and a card inside the 隐藏
+       filter both name the game by id, so honouring `hidden` there is the
+       only way to reopen that game — and therefore to unhide it. */
     const dir = target === state.index ? 1 : (index > state.index ? 1 : -1);
-    const wrapped = resolveShelfIndex(target, dir);
+    const wrapped = options.allowHidden === true ? target : resolveShelfIndex(target, dir);
     if (wrapped < 0) {
       renderHero(null, false);
       return;
@@ -3716,7 +3720,10 @@
   function chooseGameById(id, options = {}) {
     const index = state.games.findIndex((game) => game.id === id);
     if (index < 0) return;
-    selectGame(index, { sound: true, scroll: true, ...options });
+    /* Addressing a game by id includes hidden ones: the 隐藏 filter and the
+       context menu both arrive here, and skipping hidden entries made those
+       games impossible to open — so impossible to unhide (user report). */
+    selectGame(index, { sound: true, scroll: true, allowHidden: true, ...options });
   }
 
   /* ============================================================
@@ -4488,8 +4495,14 @@
     state.overlay = null;
     if (sound) audio.close();
     if (focus) restoreFocus();
-    // Leaving the sheet is when a just-hidden game actually leaves the stage.
-    if (wasHidden) rebuildAfterLibraryChange(false);
+    // Leaving the sheet is when a just-hidden game actually leaves the stage:
+    // step to a neighbouring visible title so the hero is not left showing a
+    // game that has no tile any more (it looked like a stuck, un-hideable item).
+    if (wasHidden) {
+      rebuildAfterLibraryChange(false);
+      const next = resolveShelfIndex(state.index, 1);
+      if (next >= 0 && next !== state.index) selectGame(next, { sound: false, scroll: true });
+    }
   }
 
   async function toggleFavorite(game) {
@@ -6043,18 +6056,26 @@
       els.updateCheckBtn.disabled = busy;
     }
     if (els.updateDownloadBtn) els.updateDownloadBtn.hidden = !(info.phase === 'result' && info.available);
+    /* A finished download is a ready-to-install build: the only useful action
+       left is the one that swaps the exe and relaunches on it. */
+    if (els.updateApplyBtn) {
+      const ready = (info.phase === 'done' || info.phase === 'restarting') && !!info.path;
+      els.updateApplyBtn.hidden = !ready;
+      els.updateApplyBtn.disabled = info.phase === 'restarting';
+    }
     if (els.updateFolderBtn) els.updateFolderBtn.hidden = info.phase !== 'done';
     if (els.updateProgress) els.updateProgress.hidden = info.phase !== 'downloading';
     if (els.updateState) {
       els.updateState.textContent =
         info.phase === 'checking' ? '正在检查更新…'
           : info.phase === 'downloading' ? `正在下载 ${info.name || '更新包'}…`
-            : info.phase === 'result' && info.available ? `发现新版本 v${info.latest} · 当前 v${info.current}`
-              : info.phase === 'result' ? `已是最新 · v${info.current}`
-                : info.phase === 'done' ? `已下载 ${info.name} · 运行它即可升级（新版会接管旧版）`
-                  : info.phase === 'cancelled' ? '下载已取消'
-                    : info.phase === 'error' ? `检查失败：${info.error || '未知错误'}`
-                      : `当前版本 ${state.version}`;
+            : info.phase === 'restarting' ? '正在替换程序并重启…'
+              : info.phase === 'result' && info.available ? `发现新版本 v${info.latest} · 当前 v${info.current}`
+                : info.phase === 'result' ? `已是最新 · v${info.current}`
+                  : info.phase === 'done' ? `新版本${info.latest ? ` v${info.latest}` : ''}已下载 · 重启后自动完成升级`
+                    : info.phase === 'cancelled' ? '下载已取消'
+                      : info.phase === 'error' ? `检查失败：${info.error || '未知错误'}`
+                        : `当前版本 ${state.version}`;
     }
     if (els.updateNote) {
       const text = info.phase === 'result' && info.available
@@ -6086,6 +6107,44 @@
   async function checkForUpdates() {
     const result = await call('checkUpdate');
     if (result && result.ok === false) toast(result.error || '无法启动检查', 'alert');
+  }
+
+  /**
+   * Replace the running exe with the downloaded build and come back up on it.
+   * Windows will not let a process overwrite its own image, so the native side
+   * leaves a detached waiter behind: it waits for this process to exit, swaps
+   * the file, wipes the download cache and starts the new build. The page only
+   * has to ask — the app closes itself a moment later.
+   */
+  async function applyUpdateAndRestart() {
+    const info = state.update || {};
+    if (!info.path) {
+      audio.error();
+      toast('没有已下载的更新包', 'alert');
+      return;
+    }
+    const label = info.latest ? `v${info.latest}` : '新版本';
+    const choice = await window.NovaOverlays.dialog({
+      title: `重启并升级到 ${label}`,
+      text: '启动器会关闭，用下载好的版本替换当前程序，然后自动重新打开。游戏库、主题与设置都不会改动，下载的安装包会在替换后清理。如果游戏正在运行，请先退出游戏再升级。',
+      icon: 'up',
+      actions: [
+        { label: '重启并升级', value: 'go', style: 'primary' },
+        { label: '稍后再说', value: null }
+      ]
+    });
+    if (choice !== 'go') return;
+    audio.select();
+    state.update = { ...info, phase: 'restarting' };
+    updateRender();
+    const result = await call('applyUpdate', { path: info.path });
+    if (!result || !result.ok) {
+      state.update = { ...info, phase: 'done' };
+      updateRender();
+      audio.error();
+      toast(result?.error || '无法自动升级，请手动运行下载的安装包', 'alert');
+    }
+    // On success the host exits within a second; nothing else to do here.
   }
 
   function toggleUpdateAuto() {
@@ -7815,6 +7874,7 @@
         call('downloadUpdate', { url: info.assetUrl, name: info.assetName });
       });
     }
+    if (els.updateApplyBtn) els.updateApplyBtn.addEventListener('click', applyUpdateAndRestart);
     if (els.updateFolderBtn) els.updateFolderBtn.addEventListener('click', () => call('openUpdateFolder'));
     if (els.updateAutoRow) els.updateAutoRow.addEventListener('click', toggleUpdateAuto);
     if (els.settingsStartupRow) els.settingsStartupRow.addEventListener('click', toggleStartup);

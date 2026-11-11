@@ -106,26 +106,37 @@ internal static class UpdateService
         var target = Path.Combine(UpdatesDir, asset.Name);
         var temp = target + ".part";
 
-        using (var response = await Http.GetAsync(asset.Url, HttpCompletionOption.ResponseHeadersRead, cancellation))
+        try
         {
-            response.EnsureSuccessStatusCode();
-            var total = response.Content.Headers.ContentLength ?? asset.Size;
-            using var remote = await response.Content.ReadAsStreamAsync();
-            using var file = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
-            var buffer = new byte[81920];
-            long received = 0;
-            int read;
-            while ((read = await remote.ReadAsync(buffer, 0, buffer.Length, cancellation)) > 0)
+            using (var response = await Http.GetAsync(asset.Url, HttpCompletionOption.ResponseHeadersRead, cancellation))
             {
-                await file.WriteAsync(buffer, 0, read, cancellation);
-                received += read;
-                progress?.Invoke(received, total);
+                response.EnsureSuccessStatusCode();
+                var total = response.Content.Headers.ContentLength ?? asset.Size;
+                using var remote = await response.Content.ReadAsStreamAsync();
+                using var file = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+                var buffer = new byte[81920];
+                long received = 0;
+                int read;
+                while ((read = await remote.ReadAsync(buffer, 0, buffer.Length, cancellation)) > 0)
+                {
+                    await file.WriteAsync(buffer, 0, read, cancellation);
+                    received += read;
+                    progress?.Invoke(received, total);
+                }
             }
-        }
 
-        if (File.Exists(target)) File.Delete(target);
-        File.Move(temp, target);
-        return target;
+            if (File.Exists(target)) File.Delete(target);
+            File.Move(temp, target);
+            return target;
+        }
+        catch
+        {
+            // A cancelled or failed transfer must not leave a .part behind: the
+            // updates folder is the only copy the player sees, and it used to
+            // grow a fresh partial file on every retry.
+            try { if (File.Exists(temp)) File.Delete(temp); } catch { }
+            throw;
+        }
     }
 
     public static void CancelDownload()

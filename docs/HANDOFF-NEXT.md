@@ -52,6 +52,12 @@
 > ✅ **工作区已瘦身**（§1.40，2026-11-11）：`bin/obj/legacy/bin/legacy/obj/dist` 与 NuGet
 > HTTP 缓存全部清空，项目 841 MB → **93 MB**；清空后实测 `dotnet build` 0 错误 9.8 秒。
 > 下一轮第一件事就是重建。
+> ✅ **隐藏游戏能重新打开**（§1.41，2026-11-11，Owner 报告）：`selectGame` 新增
+> `allowHidden`，按 id 寻址（右键详情、隐藏筛选里的卡片）不再被跳到相邻游戏；
+> `closeDetails` 在刚隐藏时跳到相邻可见项。
+> ✅ **下载完可直接「重启并升级」**（§1.41）：`applyUpdate` 交给后台接管进程替换 exe、
+> 清空 updates、重启；PowerShell 主路 + WSH 兜底，不需要用户装任何运行时。
+> 新增 `tools/verify-hide.js`、`tools/verify-update.js`。应用版本仍 1.17.0（未发版）。
 > ✅ **PR #42 已合并**（§1.35，2026-11-11）：§1.31–§1.34 全部进 `main`（`1c0ecfb`，squash，
 > 42 文件 +2288/−36），源分支 `feat/share-card-editor` 已推远端。**应用版本仍 1.16.5，
 > 未发 Release**——14 套 `theme.json` 已逐套 bump，发版时一次性做。
@@ -3334,6 +3340,76 @@ bash tools/release.sh --version x.y.z --publish  # 完整发版流水线
 
 ---
 
+### 1.41 隐藏游戏可达性 + 自动升级（2026-11-11）
+
+#### 1.41.1 隐藏之后打不开（Owner 报告）
+
+现象：隐藏一款游戏后，右键 →「游戏详情」打不开它，于是永远没法取消隐藏。
+
+根因：`selectGame()` 一律走 `resolveShelfIndex(target, dir)`，而这个函数会跳过
+`game.hidden`。右键菜单和隐藏筛选里的卡片都是「按 id 精确寻址」，却被当成「往下翻一格」
+处理，目标被替换成相邻的可见游戏——所有入口同时失效。
+
+修法三处：
+
+- `selectGame(index, { allowHidden: true })` 时不走跳过逻辑（默认行为不变，键盘翻页仍跳过）；
+- `chooseGameById()` 默认带 `allowHidden: true`——按 id 寻址本来就该命中隐藏项；
+- `closeDetails()` 在「刚被隐藏的那款」离开时跳到相邻可见项，首页 hero 不会停在
+  一个没有 tile 的游戏上。
+
+#### 1.41.2 自动升级：点一下重启并替换
+
+设置页下载完成后出现「重启并升级」主按钮，走 `applyUpdate`：
+
+1. 校验：包必须在 `updates/` 里、是 `.exe`、目标目录可写、不是 `dotnet.exe`、
+   不是文件夹版（`Environment.Version.Major < 5` 判 net48 宿主）；
+2. 启动后台接管进程，**先写握手标记**（1.6 秒内没写出来就判定被拦，换下一个方案）；
+3. 主进程 `QuitNow()` 退出；
+4. 接管进程等目标进程消失 → 覆盖 exe（最多 60 次重试，进程退出后文件锁还会滞留一下）
+   → 比对文件大小 → 清空 `updates/` 里的 `exe/zip/part` → 启动新 exe。
+
+**不需要任何编译语言**：PowerShell 是 Windows 自带（Win7 SP1 起），脚本用
+`-EncodedCommand`（UTF-16 base64）传入，中文安装路径不会乱码；PowerShell 被组策略或
+AppLocker 挡住时，回退 WSH/VBScript（UTF-16 + BOM，同样绕开编码问题）。两条路都不需要
+.NET SDK、Python、Node，也不需要管理员权限（除非装在 Program Files，这种情况提前判定
+目录不可写并提示）。
+
+#### 1.41.3 顺手修的两处
+
+- `DownloadAsync` 失败或取消时删掉 `.part`：以前每次重试都会在 updates 目录留一个残片；
+- `.update-buttons` 允许收缩换行：四个按钮同时出现时右栏横向溢出 45px，现在 0。
+
+#### 1.41.4 验证
+
+- `tools/verify-hide.js`：headless 里隐藏一款 → 左键选中 → 首页进详情 → 回库「隐藏」筛选
+  右键详情 → 取消隐藏离开列表，全链路通过（旧代码在这条路上会打开相邻游戏）。
+- `tools/verify-update.js`：把 Debug 构建复制到 `_shots/updtest` 的独立数据根，塞一个假包，
+  调 `applyUpdate` → exe 大小变成包大小、updates 清空、CDP 重新应答（替换/清缓存/重启三步）。
+- `feature-checks` 11 组全过、`theme-slot-check --strict` exit 0、编译 0 错误。
+
+**工具坑**：`fs.cpSync()` 在这台机器上会让 node 静默退出（exit 127、零输出），
+复制 185 MB 的构建目录必须用 shell `cp`。
+
+#### 1.41.5 另外十个可能出问题的地方（按风险排序，都还没修）
+
+| # | 位置 | 会出什么事 |
+| --- | --- | --- |
+| 1 | `12-hero.js` `resolveShelfIndex` | 所有游戏都隐藏时返回 -1，首页 hero 停在一款已隐藏的游戏、dock 显示「0 款」，画面自相矛盾 |
+| 2 | `24-context.js` `contextItemsFor` | 在库视图空白处右键，「游戏详情」用的是 `currentGame()`，打开的是首页选中的那款而不是库里的卡片 |
+| 3 | `14-library.js` `filterGames` | 在「全部」里搜隐藏游戏的名字 → 空结果，没有一句「它在隐藏里」的提示 |
+| 4 | `09-share-cards.js` `currentGame` | 分享/导出卡片同样取 `currentGame()`，隐藏游戏也能导出，卡片上是一个「不在货架上」的游戏 |
+| 5 | `19-update.js` `checkForUpdates` | 连点「检查更新」或自动检查与手动检查撞车，`update-status` 乱序覆盖，进度条可能停在旧值（没有请求序号） |
+| 6 | `NativeBridge.Update.cs` `ApplyUpdate` | 升级时若有游戏在运行，`QuitNow` 直接 Shutdown，绕过关窗确认，可能留下未回收的缩放引擎/游戏进程 |
+| 7 | 同上 | 接管脚本被杀或权限不足时启动器已经退出，包还留在 updates 里，下次启动却没有任何「有更新待安装」的提示 |
+| 8 | `Services/UpdateService.cs` `Rank` | 只按文件名挑 exe；将来同时发 arm64/x86 资产会挑错架构 |
+| 9 | `Services/LibraryModels.cs` `Hidden` + 统计 | `stats` 里的游戏数含隐藏项，与货架计数、dock 的「N 款」口径可能不一致 |
+| 10 | `14-library.js` | 「缺失」筛选优先排除 hidden，exe 被删的隐藏游戏只能去「隐藏」里找，排查坏条目时容易漏 |
+
+附带一条：在详情弹窗里右键也会出现「游戏详情」项，语义重复（打开另一个详情），
+应该在该浮层内禁用。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -3966,7 +4042,18 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 
 ## 14. 交接清单
 
-本轮（第二十二轮 · 三项卡片修正 + **发布 1.17.0**，详见 §1.36–§1.39）：
+本轮（第二十三轮 · 隐藏游戏可达性 + 自动升级，详见 §1.41）：
+
+- [x] 修「隐藏后右键详情打不开、无法取消隐藏」：`allowHidden` 贯穿 selectGame / chooseGameById；
+- [x] 自动升级：`applyUpdate` + 设置页「重启并升级」，PowerShell 主路、WSH 兜底、握手校验；
+- [x] 升级后清空 updates 里的 exe/zip/part；下载失败/取消也删 `.part`；
+- [x] 拦截文件夹版（net48 宿主）与 dotnet.exe，避免替换错目标；
+- [x] `.update-buttons` 允许换行，四个按钮同时出现不再横向溢出；
+- [x] 新增 `tools/verify-hide.js`、`tools/verify-update.js`（隔离数据根，不碰真实库）；
+- [x] `feature-checks` 11 组全过、`theme-slot-check --strict` exit 0、编译 0 错误；
+- [x] §1.41.5 记下另外十处可能出问题的地方（含位置与现象），留给下一轮。
+
+上一轮（第二十二轮 · 三项卡片修正 + **发布 1.17.0**，详见 §1.36–§1.39）：
 
 - [x] 深挖「电波海报 = riso、深夜广播 = broadcast」——回退广播的深夜蓝，蓝色改到 riso；
 - [x] 两套纸面主题的卡片封面改用首页 hero 那条滤镜链（`--sc-tint-filter` / `--sc-tint-opacity`）；
@@ -4087,7 +4174,7 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
-下一轮从 **§1.40** 开始：1.17.0 已发行（`v1.17.0` 三资产 + Release 文案），
+下一轮从 **§1.41** 开始：1.17.0 已发行（`v1.17.0` 三资产 + Release 文案），
 分享卡片这条线（§1.24–§1.38）全部进 `main` 并已随包发出。
 **工作区已清空构建产物**（§1.40）：`bin/`、`obj/`、`legacy/bin`、`legacy/obj`、`dist/`
 全部删除，项目 93 MB，第一件事是 `dotnet build NovaGameSpace.csproj -c Debug`（约 10 秒）。

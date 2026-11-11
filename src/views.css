@@ -561,7 +561,9 @@ body.layout-rail .view-home .dock-title {
   overflow-wrap: anywhere;
 }
 
-.update-buttons { display: flex; gap: 8px; flex: none; }
+/* 四个按钮同时出现时会撑破右栏（重启并升级那一版加的），允许换行并靠右，
+   窄窗口下也不横向溢出。 */
+.update-buttons { display: flex; gap: 8px; flex: 0 1 auto; min-width: 0; flex-wrap: wrap; justify-content: flex-end; }
 
 .update-progress {
   display: flex;

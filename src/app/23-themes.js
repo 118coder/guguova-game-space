@@ -377,6 +377,7 @@
         call('downloadUpdate', { url: info.assetUrl, name: info.assetName });
       });
     }
+    if (els.updateApplyBtn) els.updateApplyBtn.addEventListener('click', applyUpdateAndRestart);
     if (els.updateFolderBtn) els.updateFolderBtn.addEventListener('click', () => call('openUpdateFolder'));
     if (els.updateAutoRow) els.updateAutoRow.addEventListener('click', toggleUpdateAuto);
     if (els.settingsStartupRow) els.settingsStartupRow.addEventListener('click', toggleStartup);
