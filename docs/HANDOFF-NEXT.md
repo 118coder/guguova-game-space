@@ -43,6 +43,9 @@
 > riso 直接复用 hero 的 `grayscale → sepia → hue-rotate(188°) → saturate(2.2)` 蓝墨链，
 > broadcast 复用 `grayscale + contrast(.92) + brightness(1.5)` 配 62% 不透明压在纸面。
 > riso 1.4.17、broadcast 1.4.19，应用版本仍 1.16.5，未发 Release。
+> ✅ **深夜广播卡片去掉扫描线**（§1.38，2026-11-11，Owner：「卡片导出那里把深夜广播的
+> 扫描线去掉」）：三处 `.sc-wash` 的 1px/4px CRT 横纹删掉，只留底部暗角与顶部纱层；
+> 齿孔条、刻度尺、ON AIR 章、时码牌不动。broadcast 1.4.20，应用版本仍 1.16.5。
 > ✅ **PR #42 已合并**（§1.35，2026-11-11）：§1.31–§1.34 全部进 `main`（`1c0ecfb`，squash，
 > 42 文件 +2288/−36），源分支 `feat/share-card-editor` 已推远端。**应用版本仍 1.16.5，
 > 未发 Release**——14 套 `theme.json` 已逐套 bump，发版时一次性做。
@@ -3184,7 +3187,45 @@ Owner 贴了两张首页截图：电波海报的首页封面是**蓝墨单色**�
 
 - riso：图版 = 蓝墨单色，暗部深海军蓝、高光近白，圆形高光与深色椭圆的层次都在，
   与纸面上的蓝网点（multiply）读作同一套套印。
-- broadcast：图版 = 高亮灰阶 + 扫描线，像播出中的一帧，不再是染色照片。
+- broadcast：图版 = 高亮灰阶 + 扫描线，像播出中的一帧，不再是染色照片
+  （扫描线已在 §1.38 按 Owner 要求去掉，只留暗角）。
+
+---
+
+### 1.38 深夜广播卡片去掉扫描线（2026-11-11，Owner：「卡片导出那里把深夜广播的扫描线去掉」）
+
+#### 1.38.1 扫描线在哪
+
+不是单独的元素，是三个版式 `.sc-wash` 的 `background-image` **第一层**：
+
+```css
+repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px,
+                          rgba(16, 16, 16, 0) 1px 4px)
+```
+
+`0deg` + 1px 实线 / 4px 空隙 = 全幅 CRT 横纹。三个版式的 `.sc-wash` 各自写了一遍
+（poster 行 436、dossier 行 560、score 行 644），共享层不涉及。
+
+#### 1.38.2 改法
+
+- 三处删掉这一层，剩下的层原样不动：poster 保留 `linear-gradient(180deg,
+  rgba(16,16,16,.05) 40%, rgba(16,16,16,.52) 100%)` 底部暗角 + `var(--sc-top-veil)`
+  顶部纱层；dossier / score 保留各自那道 `.08 → .48` 的暗角。
+- `background-size` 跟着从 `cover, cover, cover` / `cover, cover` 收敛成与层数一致，
+  免得将来加层时对不上。
+- 广播 1.4.19 → 1.4.20（内容变更必须前进版本号，否则用户主题目录不会刷新）。
+
+#### 1.38.3 没动的
+
+胶片齿孔条（`--sc-strip`，页面上沿那排黑白方格）、刻度尺与 FM 读数、ON AIR 章、
+时码牌、`TC` 牌全部保留——它们是版式的骨架，不是 CRT 纹理。要减的是「横纹」这一项。
+
+#### 1.38.4 验证
+
+`node tools/share-shots.js --themes=broadcast` 三版式导出逐张看过：播出画面是干净的
+明暗过渡，暗角仍在，画框与刻度尺不受影响；`theme-slot-check --strict` exit 0；
+用户主题目录 `broadcast` 已同步到 1.4.20（同步前备份
+`backups/themes-before-scan-off-20261111-1626/`）。
 
 ---
 

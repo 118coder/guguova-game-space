@@ -432,11 +432,12 @@ html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-art {
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-wash {
   inset: 0 0 auto 0;
   height: 54%;
+  /* 卡面不加扫描线（Owner §1.38）：只留底部暗角与顶部纱层，
+     播出画面靠明暗过渡成立，不靠 CRT 横纹。 */
   background-image:
-    repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px, rgba(16, 16, 16, 0) 1px 4px),
     linear-gradient(180deg, rgba(16, 16, 16, .05) 40%, rgba(16, 16, 16, .52) 100%),
     var(--sc-top-veil);
-  background-size: cover, cover, cover;
+  background-size: cover, cover;
 }
 html[data-theme="broadcast"] .share-card[data-variant="poster"] .sc-sheet {
   inset: 54% 0 0;
@@ -556,10 +557,10 @@ html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-art {
 html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-wash {
   inset: 104px 46px auto 46px;
   height: 640px;
+  /* 同上：监视器画框里也只留暗角，不再叠 CRT 横纹。 */
   background-image:
-    repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px, rgba(16, 16, 16, 0) 1px 4px),
     linear-gradient(180deg, rgba(16, 16, 16, .08) 30%, rgba(16, 16, 16, .48) 100%);
-  background-size: cover, cover;
+  background-size: cover;
 }
 html[data-theme="broadcast"] .share-card[data-variant="dossier"] .sc-frame {
   inset: 98px 40px auto 40px;
@@ -640,10 +641,10 @@ html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-art {
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-wash {
   inset: 44px auto 44px 44px;
   width: 33%;
+  /* 同上：监视器画框里也只留暗角，不再叠 CRT 横纹。 */
   background-image:
-    repeating-linear-gradient(0deg, rgba(16, 16, 16, .2) 0 1px, rgba(16, 16, 16, 0) 1px 4px),
     linear-gradient(180deg, rgba(16, 16, 16, .08) 30%, rgba(16, 16, 16, .48) 100%);
-  background-size: cover, cover;
+  background-size: cover;
 }
 html[data-theme="broadcast"] .share-card[data-variant="score"] .sc-frame {
   inset: 38px 1022px 38px 38px;
