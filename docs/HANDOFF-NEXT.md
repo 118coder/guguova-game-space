@@ -18,10 +18,13 @@
 > ✅ **summer 海报去掉大灰框**（§1.29，2026-11-11，Owner 截图反馈）：夏天是唯一没
 > 重定义 `--sc-plate` 的主题，poster 数据块露出一整块深色玻璃。已整块去底板、改左对齐
 > 的瑞士制表列（蓝规 + 酸黄小方块 + 88px 黑块数字），顺带修掉数据行折行与行尾孤立
-> 分隔点。summer 1.8.18，仍**未推送、未 PR**。
-> 交接时间：2026-11-10（同日第四至十一轮）
-> 分支：`main` = `fcbcfe1`（PR [#37](https://github.com/118coder/guguova-game-space/pull/37) squash 合并，
-> 42 文件 +5094/−81，基于 `b40f19e`）；**版本号仍是 1.16.5，没有 bump、没有发行**
+> 分隔点。summer 1.8.18。
+> ✅ **PR #41 已合并**（§1.30，2026-11-11）：卡片重做全部进 `main`（`a5b44fd`，squash，
+> 27 文件 +3777/−801）；本地 Debug 编译 0 错误并已启动实测。**应用版本仍 1.16.5，
+> 未发 Release**——发版留给 Owner 试完这一批之后一次性做。
+> 交接时间：2026-11-11（同日第十八轮）
+> 分支：`main` = `a5b44fd`（PR [#41](https://github.com/118coder/guguova-game-space/pull/41) squash 合并，
+> 27 文件 +3777/−801，基于 `ecbff21`）；**版本号仍是 1.16.5，没有 bump、没有发行**
 > ✅ **沉浸模式＝沉稳模式**（§1.23.1，2026-11-10 语义修正）：全屏只放大窗口，版式不变；
 > 打开沉稳模式才进沉浸版式。此前四轮把它挂在全屏上，按 F 就换掉了玩家熟悉的页面。
 > ✅ **图标带不再压住按钮**（§1.23.2）：高度改为运行时实测（ResizeObserver → `--im-dock-h`），
@@ -2664,6 +2667,37 @@ score / dossier 两版式完全不受影响（已裁图核对平台标签仍在�
 
 回归：`theme-slot-check --strict` exit 0、`feature-checks` 全过、全量 14 套 × 3 版式
 42 卡 0 报错 0 溢出。summer 1.8.18。
+
+---
+
+## 1.30 第十八轮（2026-11-11）：PR #41 合并 + 本地编译实测
+
+Owner 看图定稿，要求合并、杀掉旧进程、编译新版试。
+
+- **PR [#41](https://github.com/118coder/guguova-game-space/pull/41) 已 squash 合并**，
+  main 落在 `a5b44fd`（8 个提交压成一条，27 文件 +3777 / −801）；分支
+  `design/share-cards-v2` 已推送远端并保留。
+- **应用版本仍是 1.16.5，没有发 Release**。理由：`version.json` 是唯一版本源，先 bump 到
+  1.17.0 而远端没有对应 Release，已装 1.16.5 的机器查更新会指向空资产。正式发版时再走
+  `tools/release.sh --version x.y.z --publish`，一次 bump 全链。
+- 本地 `dotnet build -c Debug`：**0 错误**，5 条既有 nullable 警告（与 1.16.5 基线一致），
+  产物 `bin/Debug/net10.0-windows/win-x64/GUGUOVA.exe`（10:16:44）。
+- 用户主题目录 `%LOCALAPPDATA%\NOVA Game Space\themes` 的 `interfaces.css` + `theme.json`
+  已同步（14 套 26 个文件），同步前备份在 `backups/nova-themes-20261111-cardfix/<id>/`。
+  启动器启动时自身也会 `seeded bundled theme`，两条路径都指向新样式。
+- 实测启动：PID 44068 常驻，窗口标题「GUGUOVA · 游戏空间」。
+
+**工具坑（记下来省下一轮排查）**：在工具调用里用 `Start-Process` 启动 GUI，进程会随工具
+会话结束被回收，日志停在 `shell navigate`、看起来像崩溃。必须用
+`Start-Process explorer.exe -ArgumentList "<exe>"` 拉起才是独立进程。
+
+### 1.30.1 仍然挂着的事
+
+1. 五套冻结（nightflight / mnemo / aurum / grimoire / riso）等 Owner 逐套拍板；riso 的
+   score 卡结构问题（顶部被黑边裁成横带、粉块悬空、下半张空白）需要和终帧一起重做。
+2. 正式发版（bump 到 1.17.0 + Release 三资产）未做，等 Owner 试完这批卡片、确认没有要改的
+   地方再一次性走完。
+3. §8 的 P1 未动项照旧（卡片复制到剪贴板 / JPG 出口等）。
 
 ---
 
