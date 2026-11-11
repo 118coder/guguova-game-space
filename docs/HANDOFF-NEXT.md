@@ -2526,8 +2526,11 @@ aurum 差门楣收口、grimoire 冲击环实现不对——aurum/grimoire 因�
 - **summer 重设计已完成并提交 `ad8d058`**（原代理超时被停，由主代理按 Owner 设计宪法 CARD-DESIGN §3 直接落地）：
   **双黄竖线画框（左缘出血+右缘内收挤压）**、黑块白字巨题+酸黄中文微压底边、等宽 kicker/数据行（上方蓝短横线）、
   蓝图网格/斜线/双圆弧/右下棋盘格、图版蓝框+墨色硬偏移影；三张渲染 overflow 0 尺寸精确，**已提交**。
-- **riot/riso/codex/mnemo 终轮小修代理可能仍在跑**（在途改动属当前设计内打磨，与待定不冲突，
-  交卷后同样复核）。
+- **riot/riso/codex/mnemo 终轮小修：CSS 已全部落地、最终渲染验证未跑**（代理被 Owner 叫停，
+  也没写成自己的交接文档）。文件探测：riot 沟槽弧 ✓ / codex 星座图 420 ✓ / mnemo 分类窄带
+  +poster 内缩 ✓ / riso score 粉块锚定 ✓ / 四套阶梯安静轨 ✓ / 四套 dossier 去重 ✓（都在快照里）。
+  **接手第一件事**：`node tools/share-shots.js --themes=riot,riso,codex,mnemo --out=../_shots/share-v4`
+  确认 overflow 0，再派 png-one 抽查终轮修复项（对照复核①清单）。
 - **待定冻结五套**：nightflight / mnemo / aurum / grimoire / riso——等 Owner 逐套拍板后再按终帧
   重做；其间不要动它们的卡片块（nightflight/steam 小修已落工作区，保留）。
 - **broadcast / zerohour 复核尾巴未修**（broadcast：poster 时码牌、poster/score 刻度盘频率读数、
