@@ -348,59 +348,208 @@ async function main() {
     check('dossier includes 字标方案', labels.includes('字标方案'), labels.join('/'));
     await shot(cdp, 'editor-dossier.png');
 
-    /* ---- 7 · fullscreen / factor scale mode ---- */
-    console.log('\n[7] settings · scale mode + factor controls (?novaScaleMode=factor&novaScaleFactor=2.5)');
+    /* ---- 7 · the home scaling sheet owns mode / size / algorithm ---- */
+    console.log('\n[7] home 缩放设置 · one sheet for mode, size, algorithm (?novaScaleMode=factor&novaScaleFactor=2.5)');
     await boot(cdp, host, '?novaScaleMode=factor&novaScaleFactor=2.5');
     await cdp.ev(`window.__novaExport.setup('settings')`);
     await wait(450);
-    const scaleUi = await evalJson(cdp, `JSON.stringify({
-      mode: (document.querySelector('#settingsScaleMode') || {}).value || '',
-      factor: (document.querySelector('#settingsScaleFactor') || {}).value || '',
-      factorHidden: !!(document.querySelector('#settingsScaleFactorRow') || {}).hidden
+    const noDuplicates = await evalJson(cdp, `JSON.stringify({
+      legacySelects: ['#settingsScaleMode','#settingsScaleFactor','#settingsScaleAlgorithm',
+        '#settingsScaleDelay','#settingsScaleFactorRow','#engineMode','#settingsEngineOptions']
+        .filter((id) => !!document.querySelector(id)),
+      entry: !!document.querySelector('#settingsScaleSetupRow'),
+      summary: (document.querySelector('#settingsScaleSetupHint') || {}).textContent || '',
+      oldWords: /全屏缩放|启动时缩放|倍数缩放/.test((document.body.innerText || ''))
     })`);
-    check('factor mode boots into the windowed controls', scaleUi.mode === 'factor', JSON.stringify(scaleUi));
-    check('factor select reflects the stored 2.5x', scaleUi.factor === '2.5', JSON.stringify(scaleUi));
-    check('factor row is visible in factor mode', scaleUi.factorHidden === false, JSON.stringify(scaleUi));
+    check('settings page no longer carries a second set of scaling controls',
+      noDuplicates.legacySelects.length === 0, JSON.stringify(noDuplicates.legacySelects));
+    check('settings page shows a read-only summary + one entry',
+      noDuplicates.entry && noDuplicates.summary.includes('放大 2.5 倍'), JSON.stringify(noDuplicates));
+    check('old mixed wording is gone from the visible UI', noDuplicates.oldWords === false,
+      JSON.stringify(noDuplicates));
+
+    // The settings entry and the home button must open the SAME sheet.
+    await cdp.ev(`(() => { document.querySelector('#settingsScaleSetupRow')?.click(); return 'ok'; })()`);
+    await wait(600);
+    const fromSettings = await evalJson(cdp, `JSON.stringify({
+      open: document.querySelector('#engineOverlay').classList.contains('is-open'),
+      title: (document.querySelector('#engineOverlay h2') || {}).textContent || ''
+    })`);
+    check('settings entry opens the shared 缩放设置 sheet',
+      fromSettings.open === true && fromSettings.title === '缩放设置', JSON.stringify(fromSettings));
+    await cdp.ev(`(() => { document.querySelector('#engineDone')?.click(); return 'ok'; })()`);
+    await wait(250);
+    await cdp.ev(`window.__novaExport.setup('home')`);
+    await cdp.ev(`window.__novaExport.setup('engine')`);
+    await wait(600);
+
+    const sheet = await evalJson(cdp, `JSON.stringify({
+      open: document.querySelector('#engineOverlay').classList.contains('is-open'),
+      tabs: Array.from(document.querySelectorAll('#engineScaleTabs .scale-tab')).map((t) => t.dataset.scaleMode),
+      selected: (document.querySelector('#engineScaleTabs .scale-tab[aria-selected="true"]') || {}).dataset?.scaleMode || '',
+      windowVisible: !document.querySelector('#engineScaleWindowRow').hidden,
+      sizeValue: (document.querySelector('#engineScaleSize') || {}).value || '',
+      sizeOptions: Array.from(document.querySelectorAll('#engineScaleSize option')).map((o) => o.value),
+      algoOptions: Array.from(document.querySelectorAll('#engineScaleAlgorithm option')).map((o) => o.value),
+      algoSelects: document.querySelectorAll('#settingsScaleAlgorithm, #engineMode').length,
+      hasDelay: !!document.querySelector('#engineScaleDelay'),
+      hasAdvanced: !!document.querySelector('#engineAdvanced'),
+      homeHint: (document.querySelector('#homeScaleHint') || {}).textContent || '',
+      sheetHint: (document.querySelector('#engineScaleHint') || {}).textContent || '',
+      text: (document.querySelector('#engineOverlay') || {}).innerText || ''
+    })`);
+    check('home button opens the same sheet', sheet.open === true, JSON.stringify(sheet.open));
+    check('mode tabs offer 铺满屏幕 / 按倍数放大',
+      sheet.tabs.join(',') === 'fullscreen,factor', JSON.stringify(sheet.tabs));
+    check('factor boots with the factor tab selected', sheet.selected === 'factor', sheet.selected);
+    check('factor boots with the size conversion row visible', sheet.windowVisible === true,
+      JSON.stringify(sheet.windowVisible));
+    check('size select offers 跟随显示器, multipliers and target resolutions',
+      sheet.sizeOptions.includes('fullscreen') && sheet.sizeOptions.includes('f:2.5')
+        && sheet.sizeOptions.includes('r:1920x1080'), JSON.stringify(sheet.sizeOptions));
+    check('one algorithm select, listing the pixel mode',
+      sheet.algoSelects === 0 && sheet.algoOptions.includes('Pixel'), JSON.stringify(sheet.algoOptions));
+    check('sheet also owns launch timing + advanced engine options',
+      sheet.hasDelay && sheet.hasAdvanced, JSON.stringify({ delay: sheet.hasDelay, advanced: sheet.hasAdvanced }));
+    check('home + sheet hints use the same state wording',
+      sheet.homeHint === sheet.sheetHint && !/全屏缩放|启动时缩放/.test(sheet.homeHint),
+      JSON.stringify({ home: sheet.homeHint, sheet: sheet.sheetHint }));
+    check('sheet uses one vocabulary', !/全屏缩放|启动时缩放|倍数缩放/.test(sheet.text), sheet.text.slice(0, 120));
 
     await cdp.ev(`(() => {
-      const select = document.querySelector('#settingsScaleMode');
+      document.querySelector('#engineScaleTabs .scale-tab[data-scale-mode="fullscreen"]')?.click();
+      return 'ok';
+    })()`);
+    await wait(320);
+    const full = await evalJson(cdp, `(async () => {
+      const response = await window.nova.call('boot');
+      return JSON.stringify({
+        mode: response.settings.scaleMode,
+        sizeValue: (document.querySelector('#engineScaleSize') || {}).value || '',
+        windowHidden: !!(document.querySelector('#engineScaleWindowRow') || {}).hidden,
+        sizeVisible: !document.querySelector('#engineScaleSizeRow').hidden
+      });
+    })()`);
+    check('switching to 铺满屏幕 saves fullscreen mode', full.mode === 'fullscreen', JSON.stringify(full));
+    check('铺满屏幕 keeps the size select visible and shows 跟随显示器',
+      full.sizeVisible === true && full.sizeValue === 'fullscreen' && full.windowHidden === true,
+      JSON.stringify(full));
+
+    // Picking a target resolution from the 铺满屏幕 state must switch the mode
+    // by itself — the player should never have to hunt for the right tab.
+    await cdp.ev(`(() => {
+      const select = document.querySelector('#engineScaleSize');
       if (!select) return false;
-      select.value = 'fullscreen';
+      select.value = 'r:1920x1080';
       select.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
     })()`);
-    await wait(350);
-    const afterSwitch = await evalJson(cdp, `JSON.stringify({
-      hidden: !!(document.querySelector('#settingsScaleFactorRow') || {}).hidden
-    })`);
-    check('switching back to fullscreen hides the factor row', afterSwitch.hidden === true, JSON.stringify(afterSwitch));
-    const saved = await evalJson(cdp, `(async () => {
+    await wait(320);
+    const res = await evalJson(cdp, `(async () => {
       const response = await window.nova.call('boot');
-      return JSON.stringify({ mode: response.settings.scaleMode, factor: response.settings.scaleFactor });
+      return JSON.stringify({
+        mode: response.settings.scaleMode,
+        preset: response.settings.scaleSizePreset,
+        factor: response.settings.scaleFactor,
+        note: (document.querySelector('#engineScaleSizeNote') || {}).textContent || ''
+      });
     })()`);
-    check('scale mode round-trips through saveSettings', saved.mode === 'fullscreen', JSON.stringify(saved));
-    check('scale factor survives the mode switch', saved.factor === 2.5, JSON.stringify(saved));
-    const algoUi = await evalJson(cdp, `JSON.stringify({
-      options: Array.from(document.querySelectorAll('#settingsScaleAlgorithm option')).map((o) => o.value)
-    })`);
-    check('algorithm select lists the pixel mode', algoUi.options.includes('Pixel'), JSON.stringify(algoUi));
+    check('choosing a target resolution switches to 按倍数放大 on its own',
+      res.mode === 'factor', JSON.stringify(res));
+    check('target 1920x1080 on a 1280x720 window becomes 1.5x',
+      res.preset === 'r:1920x1080' && res.factor === 1.5, JSON.stringify(res));
+    check('the conversion is explained in plain words',
+      res.note.includes('1.5 倍') && res.note.includes('1920×1080'), res.note);
+
     await cdp.ev(`(() => {
-      const select = document.querySelector('#settingsScaleAlgorithm');
+      const w = document.querySelector('#engineScaleWinW');
+      const h = document.querySelector('#engineScaleWinH');
+      if (!w || !h) return false;
+      w.value = '640'; h.value = '480';
+      w.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`);
+    await wait(320);
+    const win = await evalJson(cdp, `(async () => {
+      const response = await window.nova.call('boot');
+      return JSON.stringify({
+        w: response.settings.scaleWindowW,
+        h: response.settings.scaleWindowH,
+        factor: response.settings.scaleFactor
+      });
+    })()`);
+    check('window size persists and the target resolution is recomputed',
+      win.w === 640 && win.h === 480 && win.factor === 2.25, JSON.stringify(win));
+
+    await cdp.ev(`(() => {
+      const select = document.querySelector('#engineScaleSize');
       if (!select) return false;
-      select.value = 'Pixel';
+      select.value = 'f:2.5';
       select.dispatchEvent(new Event('change', { bubbles: true }));
       return true;
     })()`);
-    await wait(350);
-    const savedAlgo = await evalJson(cdp, `(async () => {
+    await wait(320);
+    const multiplier = await evalJson(cdp, `(async () => {
       const response = await window.nova.call('boot');
-      return JSON.stringify({ algo: response.settings.scaleAlgorithm });
+      return JSON.stringify({ preset: response.settings.scaleSizePreset, factor: response.settings.scaleFactor });
     })()`);
-    check('pixel algorithm round-trips through saveSettings', savedAlgo.algo === 'Pixel', JSON.stringify(savedAlgo));
-    await shot(cdp, 'settings-scale-mode.png');
+    check('multiplier preset round-trips through saveSettings',
+      multiplier.preset === 'f:2.5' && multiplier.factor === 2.5, JSON.stringify(multiplier));
 
-    /* ---- 8 · home + engine sheet scale tick boxes ---- */
-    console.log('\n[8] home + engine sheet · scale tick boxes');
+    await cdp.ev(`(() => {
+      const select = document.querySelector('#engineScaleSize');
+      if (!select) return false;
+      select.value = 'f:custom';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`);
+    await wait(280);
+    const customVisible = await evalJson(cdp, `JSON.stringify({
+      visible: !document.querySelector('#engineScaleCustomRow').hidden
+    })`);
+    check('custom multiplier reveals its input', customVisible.visible === true, JSON.stringify(customVisible));
+    await cdp.ev(`(() => {
+      const input = document.querySelector('#engineScaleCustomFactor');
+      if (!input) return false;
+      input.value = '3.2';
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`);
+    await wait(320);
+    const customFactor = await evalJson(cdp, `(async () => {
+      const response = await window.nova.call('boot');
+      return JSON.stringify({ factor: response.settings.scaleFactor });
+    })()`);
+    check('custom multiplier is written as a real factor', customFactor.factor === 3.2,
+      JSON.stringify(customFactor));
+
+    await cdp.ev(`(() => {
+      const algo = document.querySelector('#engineScaleAlgorithm');
+      const delay = document.querySelector('#engineScaleDelay');
+      if (!algo || !delay) return false;
+      algo.value = 'Pixel';
+      algo.dispatchEvent(new Event('change', { bubbles: true }));
+      delay.value = '5';
+      delay.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`);
+    await wait(360);
+    const savedAll = await evalJson(cdp, `(async () => {
+      const response = await window.nova.call('boot');
+      return JSON.stringify({
+        algo: response.settings.scaleAlgorithm,
+        delay: response.settings.scaleDelaySeconds,
+        summary: (document.querySelector('#settingsScaleSetupHint') || {}).textContent || ''
+      });
+    })()`);
+    check('algorithm round-trips through saveSettings', savedAll.algo === 'Pixel', JSON.stringify(savedAll));
+    check('launch timing round-trips through saveSettings', savedAll.delay === 5, JSON.stringify(savedAll));
+    check('settings summary follows the sheet', savedAll.summary.includes('放大 3.2 倍')
+      && savedAll.summary.includes('Pixel'), savedAll.summary);
+    await shot(cdp, 'home-scale-setup.png');
+
+    /* ---- 8 · home + sheet + detail scale tick boxes ---- */
+    console.log('\n[8] home + sheet + detail · one per-game switch');
     await boot(cdp, host, '');
     await cdp.ev(`window.__novaExport.setup('home')`);
     await wait(450);
@@ -414,13 +563,20 @@ async function main() {
     const afterTick = await cdp.ev(`document.querySelector('#homeScaleRow')?.getAttribute('aria-checked') || ''`);
     check('home tick box toggles scaling', afterTick !== homeTick.checked, `${homeTick.checked} -> ${afterTick}`);
     await cdp.ev(`window.__novaExport.setup('engine')`);
-    await wait(400);
+    await wait(500);
     const engineTick = await evalJson(cdp, `JSON.stringify({
       has: !!document.querySelector('#engineScaleRow .hero-scale-check'),
-      checked: document.querySelector('#engineScaleRow')?.getAttribute('aria-checked') || ''
+      checked: document.querySelector('#engineScaleRow')?.getAttribute('aria-checked') || '',
+      home: (document.querySelector('#homeScaleHint') || {}).textContent || '',
+      sheet: (document.querySelector('#engineScaleHint') || {}).textContent || '',
+      detail: (document.querySelector('#detailScaleHint') || {}).textContent || ''
     })`);
-    check('engine sheet has the same tick box', engineTick.has === true, JSON.stringify(engineTick));
-    check('engine tick box mirrors the home value', engineTick.checked === afterTick, JSON.stringify(engineTick));
+    check('sheet has the same tick box', engineTick.has === true, JSON.stringify(engineTick));
+    check('sheet tick box mirrors the home value', engineTick.checked === afterTick, JSON.stringify(engineTick));
+    check('home / sheet / detail hints agree on the on/off state',
+      engineTick.home === engineTick.sheet
+        && engineTick.home.includes('已关闭') === engineTick.detail.includes('已关闭'),
+      JSON.stringify({ home: engineTick.home, sheet: engineTick.sheet, detail: engineTick.detail }));
     await shot(cdp, 'home-scale-tick.png');
 
     /* ---- 9 · immersive shell: the fullscreen switch changes the layout ---- */

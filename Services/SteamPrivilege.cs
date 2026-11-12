@@ -205,6 +205,22 @@ public static class SteamPrivilege
         try { return IsElevated(Process.GetCurrentProcess()); } catch { return false; }
     }
 
+    /// <summary>按 PID 查询任意进程令牌的提升状态。缩放引擎由本进程拉起时
+    /// 直接继承令牌（CreateProcess 语义），这里用来校验"管理员启动器 →
+    /// 管理员 Magpie"的链路真的成立。</summary>
+    public static bool IsProcessElevated(int pid)
+    {
+        try
+        {
+            using var process = Process.GetProcessById(pid);
+            return IsElevated(process);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private static string? ReadAdminLayer(string? exe)
     {
         if (string.IsNullOrWhiteSpace(exe)) return null;

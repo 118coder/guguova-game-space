@@ -18,6 +18,83 @@ public static partial class ScalingEngine
        Hotkey config
        ------------------------------------------------------------------ */
 
+    /// <summary>玩家可选的像素类预设（名称与效果定义）。全新机器的引擎配置
+    /// 里只有官方模式，这两项不存在，选了就会「找不到算法」——所以首启播种，
+    /// 保证玩家选择的模式一定生效。</summary>
+    private static readonly (string Name, double Scale)[] PixelPresets =
+    {
+        ("像素缩放", 1.0),
+        ("Integer Scale 2x", 2.0)
+    };
+
+    /// <summary>内置引擎首次生成配置后，补齐启动器依赖的项（写前备份）：
+    /// ① windowedModeScale 快捷键——Magpie 全新配置里可能缺失或为 0，倍数
+    /// 模式靠它触发；② 像素类预设模式（见 PixelPresets）。这是倍数 + 像素
+    /// 放大在任何机器上开箱即用的关键。</summary>
+    public static void SeedFirstRunConfig()
+    {
+        try
+        {
+            var file = ActiveConfigFile();
+            if (file == null) return;
+            var text = File.ReadAllText(file);
+            if (JsonNode.Parse(text) is not JsonObject root) return;
+            var changed = false;
+
+            if (root["shortcuts"] is not JsonObject shortcuts)
+                root["shortcuts"] = shortcuts = new JsonObject();
+            int windowed = -1;
+            try { windowed = shortcuts["windowedModeScale"]?.GetValue<int>() ?? -1; } catch { }
+            if (windowed <= 0)
+            {
+                shortcuts["windowedModeScale"] = DefaultWindowedHotkey;
+                changed = true;
+            }
+
+            if (root["scalingModes"] is JsonArray modes)
+            {
+                var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var mode in modes)
+                {
+                    try
+                    {
+                        var name = (mode as JsonObject)?["name"]?.GetValue<string>();
+                        if (!string.IsNullOrWhiteSpace(name)) existing.Add(name);
+                    }
+                    catch { }
+                }
+                foreach (var (name, scale) in PixelPresets)
+                {
+                    if (existing.Contains(name)) continue;
+                    modes.Add(new JsonObject
+                    {
+                        ["name"] = name,
+                        ["effects"] = new JsonArray(new JsonObject
+                        {
+                            ["name"] = "Nearest",
+                            ["scalingType"] = 1,
+                            ["scale"] = new JsonObject { ["x"] = scale, ["y"] = scale }
+                        })
+                    });
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                AppPaths.Ensure();
+                var backup = Path.Combine(AppPaths.Backups, $"magpie-seed-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+                File.WriteAllText(backup, text);
+                File.WriteAllText(file, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+                Log.Write($"magpie first-run config seeded backup={backup}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("seed magpie config", ex);
+        }
+    }
+
     public static string? ActiveConfigFile()
     {
         try

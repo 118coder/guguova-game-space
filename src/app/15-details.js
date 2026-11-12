@@ -155,51 +155,58 @@
     return !!state.fullscreen;
   }
 
-  /** Name the active scaling mode in plain words. The per-game tick box only
-      says *whether* to scale; the row still has to show that fullscreen
-      scaling is alive (and which mode is in force) without a settings trip. */
+  /** One vocabulary for the whole app: 「开启缩放」 answers *whether* this
+      game is scaled; 「缩放模式」 answers *how*. Nothing outside the home
+      scaling sheet is allowed to call the mode "全屏缩放" or "启动时缩放"
+      again — that mix-up is what made the switch read like two features. */
   function scaleModeLabel() {
     const settings = state.settings || {};
     if (settings.scaleMode === 'factor') {
-      const factor = Number(settings.scaleFactor) || 2;
+      const factor = Math.min(10, Math.max(1.1, Number(settings.scaleFactor) || 2));
       const text = Number.isInteger(factor) ? String(factor) : String(Number(factor.toFixed(2)));
-      return `倍数缩放 ${text} 倍`;
+      return `放大 ${text} 倍`;
     }
-    return '全屏缩放';
+    return '铺满屏幕';
   }
 
-  /** The engine sheet (opened from the home "缩放设置" button) carries the
-      same per-game tick box, so deciding whether this game should be scaled
-      never requires a trip into the detail page. */
+  function scaleAlgorithmLabel() {
+    return state.settings?.scaleAlgorithm || '跟随引擎算法';
+  }
+
+  /** Read-only summary for the settings page; the editable controls live in
+      the home scaling sheet, so there is never a second copy to disagree. */
+  function scaleSummaryLabel() {
+    return `${scaleModeLabel()} · ${scaleAlgorithmLabel()}`;
+  }
+
+  function scaleSwitchHint(game, disabled) {
+    if (disabled) return '引擎已关闭 · 不能缩放';
+    return fullscreenScaleFor(game)
+      ? `已开启 · ${scaleModeLabel()}`
+      : '已关闭 · 按游戏原窗口运行';
+  }
+
+  /** The home "缩放设置" sheet carries the same per-game tick box, so
+      deciding whether this game should be scaled never needs the detail page. */
   function syncEngineScaleRow() {
     if (!els.engineScaleRow) return;
     const game = currentGame();
     const disabled = state.settings.scalingEngine === 'off';
-    const explicit = !!(game && typeof game.fullscreenScale === 'boolean');
     els.engineScaleRow.disabled = disabled;
     els.engineScaleRow.setAttribute('aria-disabled', String(disabled));
     setPrefSwitch(els.engineScaleRow, els.engineScaleCheck, !disabled && fullscreenScaleFor(game));
-    if (els.engineScaleHint) {
-      els.engineScaleHint.textContent = disabled
-        ? '已在设置中关闭'
-        : `${scaleModeLabel()} · ${explicit ? '仅此游戏' : '默认开启'}`;
-    }
+    if (els.engineScaleHint) els.engineScaleHint.textContent = scaleSwitchHint(game, disabled);
   }
 
   function syncHeroScaleRow() {
     if (!els.homeScaleRow) return;
     const game = currentGame();
     const disabled = state.settings.scalingEngine === 'off';
-    const explicit = !!(game && typeof game.fullscreenScale === 'boolean');
     els.homeScaleRow.hidden = !game;
     els.homeScaleRow.disabled = disabled;
     els.homeScaleRow.setAttribute('aria-disabled', String(disabled));
     setPrefSwitch(els.homeScaleRow, els.homeScaleSwitch, !disabled && fullscreenScaleFor(game));
-    if (els.homeScaleHint) {
-      els.homeScaleHint.textContent = disabled
-        ? '已在设置中关闭'
-        : `${scaleModeLabel()} · ${explicit ? '仅此游戏' : '默认开启'}`;
-    }
+    if (els.homeScaleHint) els.homeScaleHint.textContent = scaleSwitchHint(game, disabled);
     syncEngineScaleRow();
   }
 
@@ -217,7 +224,7 @@
       syncHeroScaleRow();
       syncDetailScaleRow();
       audio.error();
-      toast(result?.error || '无法保存缩放设置', 'alert');
+      toast(result?.error || '无法保存这款游戏的缩放开关', 'alert');
       return;
     }
     if (result.game) Object.assign(game, result.game);
@@ -235,10 +242,8 @@
     setPrefSwitch(els.detailScaleRow, els.detailScaleSwitch, !disabled && fullscreenScaleFor(game));
     if (els.detailScaleHint) {
       els.detailScaleHint.textContent = disabled
-        ? '已在设置中关闭'
-        : explicit
-          ? '仅对这款游戏生效'
-          : (state.fullscreen ? '沉浸模式下默认开启' : '全屏显示时默认开启');
+        ? '引擎已关闭 · 不能缩放'
+        : `${explicit ? '只对这款游戏' : '跟随默认'} · ${fullscreenScaleFor(game) ? '已开启' : '已关闭'}`;
     }
     syncEngineScaleRow();
   }
@@ -255,12 +260,12 @@
       game.fullscreenScale = null;
       syncDetailScaleRow();
       audio.error();
-      toast(result?.error || '无法保存缩放设置', 'alert');
+      toast(result?.error || '无法保存这款游戏的缩放开关', 'alert');
       return;
     }
     if (result.game) Object.assign(game, result.game);
     syncDetailScaleRow();
-    toast(next ? '启动时按设置缩放' : '启动时保持窗口大小', 'fullscreen');
+    toast(next ? '这款游戏：开启缩放' : '这款游戏：关闭缩放', 'fullscreen');
   }
 
   /* ---------- hidden game ---------- */

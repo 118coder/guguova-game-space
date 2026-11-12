@@ -209,6 +209,19 @@ public sealed class PlayerSettings
     /// customInitialWindowedScaleFactor before its windowed hotkey is sent.</summary>
     public double ScaleFactor { get; set; } = 2.0;
 
+    /// <summary>The "缩放尺寸" preset chosen in the home scaling sheet:
+    /// "f:2" is a multiplier, "r:1920x1080" is a target resolution, and the
+    /// ":custom" variants carry the player's own numbers. Magpie itself only
+    /// accepts a multiplier, so the sheet converts a target resolution into
+    /// ScaleFactor using the window size below. Stored so the choice can be
+    /// shown again after a restart.</summary>
+    public string ScaleSizePreset { get; set; } = "f:2";
+
+    /// <summary>Approximate unscaled game window, used to convert a target
+    /// resolution into a magnification factor without distorting the image.</summary>
+    public int ScaleWindowWidth { get; set; } = 1280;
+    public int ScaleWindowHeight { get; set; } = 720;
+
     /// <summary>Scaling algorithm name as Magpie lists it (e.g. "Integer
     /// Scale 2x" or "像素缩放"). Stored by name, not index: modes move when
     /// Magpie updates or the library is exported to another PC. Empty means

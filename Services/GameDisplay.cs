@@ -152,6 +152,14 @@ public static class GameDisplay
     /// <summary>Drops state for a process that has exited.</summary>
     public static void ForgetProcess(int pid)
     {
+        lock (WatchGate)
+        {
+            if (ScaleWatches.TryGetValue(pid, out var watch))
+            {
+                watch.Stopped = true;
+                ScaleWatches.Remove(pid);
+            }
+        }
         lock (WindowGate)
         {
             foreach (var key in SavedWindows.Where(pair => pair.Value.Pid == pid).Select(pair => pair.Key).ToList())
@@ -175,10 +183,23 @@ public static class GameDisplay
         var family = ProcessFamily(pid);
         var factorMode = string.Equals(settings.ScaleMode, "factor", StringComparison.OrdinalIgnoreCase);
 
-        // The bundled engine starts before the hand-off so its own window can
-        // be hidden while the game still owns the foreground. An explicit
-        // scale request (the player's switch) is permission to start the
-        // engine; the immersive shell default only ever uses one that runs.
+        // 倍数缩放只有内置缩放引擎做得到：无边框拉伸只能把窗口铺满显示器，
+        // 物理上做不出「按 N 倍放大」。底层引擎选了 native 却要倍数时，
+        // 升级走内置引擎，而不是静默退回全屏拉伸（实机日志证明过这条
+        // 静默路径：mode=factor factor=2 engine=native，连错误提示都没有）。
+        // 引擎确实不可用时保持 native，并在下面的 scale 分支给出明确原因。
+        var factorEscalated = false;
+        if (factorMode && scale && string.Equals(engine, "native", StringComparison.OrdinalIgnoreCase) &&
+            ScalingEngine.Supported && ScalingEngine.FindExe(settings) != null)
+        {
+            engine = "auto";
+            factorEscalated = true;
+            Log.Write("factor mode escalates native->engine (borderless cannot multiply)");
+        }
+
+        // 引擎的算法与窗口倍数都存在引擎配置里、于引擎启动时读取。配置已在
+        // 磁盘上时先把它们写好再拉引擎——引擎起来就是正确状态，不用中途重启；
+        // 配置不存在（首次启动）时先拉引擎生成配置，再写入并重启一次。
         ScalingEngine.Status? engineStatus = null;
         string? engineReason = null;
         if (scale && engine == "auto")
@@ -189,38 +210,40 @@ public static class GameDisplay
             }
             else
             {
+                var configExisted = ScalingEngine.ActiveConfigFile() != null;
+                var configNotes = new List<string>();
+                var configChanged = configExisted
+                    ? WriteScaleProfile(settings, factorMode, configNotes)
+                    : false;
+
                 ScalingEngine.EnsureRunning(settings, scaleExplicit, out var status);
                 engineStatus = status;
 
-                // The algorithm and the windowed multiplier both live in the
-                // engine config and are read when Magpie starts. Write them
-                // together, then restart once if anything actually changed —
-                // otherwise a pixel algorithm picked in the launcher would
-                // stay on disk while the running engine kept its old effect.
-                var configChanged = false;
-                var configNotes = new List<string>();
-                if (status.Running)
+                if (!status.Running)
                 {
-                    ScalingEngine.ApplyAlgorithm(settings.ScaleAlgorithm, out var algoNote, out var algoChanged);
-                    configChanged |= algoChanged;
-                    configNotes.Add($"algo={algoNote}");
-                    if (factorMode)
-                    {
-                        ScalingEngine.WriteWindowedFactor(settings.ScaleFactor, out var factorNote, out var factorChanged);
-                        configChanged |= factorChanged;
-                        configNotes.Add($"factor={factorNote}");
-                    }
+                    engineReason = string.IsNullOrWhiteSpace(status.Note)
+                        ? "缩放引擎没有在运行（可在设置里开启「自动启动内置缩放引擎」）"
+                        : $"缩放引擎没有在运行：{status.Note}";
+                }
+                else
+                {
+                    if (!configExisted)
+                        configChanged = WriteScaleProfile(settings, factorMode, configNotes);
                     if (configChanged && ScalingEngine.IsRunning())
                     {
                         ScalingEngine.Restart(settings, out _);
                         Log.Write($"magpie restarted for scale profile {string.Join(" ", configNotes)}");
                     }
-                }
 
-                if (!status.Running)
-                    engineReason = string.IsNullOrWhiteSpace(status.Note)
-                        ? "缩放引擎没有在运行（可在设置开启「自动启动内置缩放引擎」）"
-                        : $"缩放引擎没有在运行：{status.Note}";
+                    // 生效校验：引擎此刻真正在用的算法要和玩家选的一致，不一致
+                    // 立刻留证（选过的模式不存在、配置被外部改掉等都逃不过日志）。
+                    if (!string.IsNullOrWhiteSpace(settings.ScaleAlgorithm))
+                    {
+                        var active = ScalingEngine.ReadAlgorithmName();
+                        if (!string.Equals(active, settings.ScaleAlgorithm, StringComparison.OrdinalIgnoreCase))
+                            Log.Write($"magpie algorithm mismatch: wanted={settings.ScaleAlgorithm} active={active ?? "-"}");
+                    }
+                }
             }
         }
 
@@ -260,14 +283,19 @@ public static class GameDisplay
                 scaled = TryMagpie(window, hotkey, family, out window, out magpieDiag);
                 engineUsed = scaled ? (factorMode ? "magpie-factor" : "magpie") : "none";
                 if (!scaled) error = factorMode
-                    ? "倍数缩放没有接管这个窗口，已改用无边框全屏"
-                    : "缩放引擎没有接管这个窗口，已改用无边框全屏";
+                    ? "按倍数放大没接管这个窗口，已改用无边框拉伸"
+                    : "缩放引擎没接管这个窗口，已改用无边框拉伸";
             }
             else if (engine == "auto" && engineReason != null)
             {
                 // Never silently degrade: say why Magpie is not part of this
                 // launch, including the case where the engine cannot start.
-                error = engineReason + "，已改用无边框全屏";
+                error = engineReason + "，已改用无边框拉伸";
+            }
+            else if (factorMode && string.Equals(engine, "native", StringComparison.OrdinalIgnoreCase))
+            {
+                // 倍数模式 + 引擎不可用：说明原因，别让玩家以为倍数生效了。
+                error = "倍数放大需要内置缩放引擎；这台机器没有可用的引擎，已改用无边框拉伸";
             }
 
             if (!scaled)
@@ -279,8 +307,141 @@ public static class GameDisplay
         }
 
         GetWindowThreadProcessId(window, out var owner);
-        Log.Write($"present pid={pid} hwnd=0x{window.ToInt64():X} owner={owner} family={family.Count} cls={WindowClass(window)} foreground={foreground} scale={scale} mode={(factorMode ? "factor" : "fullscreen")} algo={(string.IsNullOrWhiteSpace(settings.ScaleAlgorithm) ? "-" : settings.ScaleAlgorithm)} factor={(factorMode ? settings.ScaleFactor.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "-")} engine={engineUsed} scaled={scaled} {magpieDiag} {error}");
+        // gameElevated 用来诊断「游戏提权而引擎没提权」时缩放必然失败的场景。
+        var gameElevated = scale ? SteamPrivilege.IsProcessElevated(pid) : false;
+        Log.Write($"present pid={pid} hwnd=0x{window.ToInt64():X} owner={owner} family={family.Count} cls={WindowClass(window)} foreground={foreground} scale={scale} gameElevated={gameElevated} mode={(factorMode ? "factor" : "fullscreen")} algo={(string.IsNullOrWhiteSpace(settings.ScaleAlgorithm) ? "-" : settings.ScaleAlgorithm)} factor={(factorMode ? settings.ScaleFactor.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "-")}{(factorEscalated ? " esc=native->engine" : "")} engine={engineUsed} scaled={scaled} {magpieDiag} {error}");
+
+        // 缩放成功后启动看护：很多游戏登录后进正式场景会重建窗口（旧 HWND
+        // 销毁），Magpie 挂在旧句柄上的缩放会跟着静默丢失——表现就是「进去
+        // 之后又缩放回去了」。看护检测到重建就自动重新拉起缩放。
+        if (scaled && engineUsed is "magpie" or "magpie-factor")
+            StartScaleWatch(pid, factorMode, window);
+
         return new Result(true, scaled, foreground, engineUsed, error, window.ToInt64());
+    }
+
+    /* ------------------------------------------------------------------
+       Scale watcher：游戏重建窗口后的缩放自动恢复
+       ------------------------------------------------------------------ */
+
+    private sealed class ScaleWatch
+    {
+        public int Pid;
+        public bool FactorMode;
+        public IntPtr ScaledWindow;
+        public int LostChecks;
+        public int Retries;
+        public volatile bool Stopped;
+    }
+
+    private static readonly Dictionary<int, ScaleWatch> ScaleWatches = new();
+    private static readonly object WatchGate = new();
+
+    /// <summary>一次会话里最多自动恢复的次数：超过说明游戏与引擎在打架，
+    /// 继续抢只会更糟，如实放弃。</summary>
+    private const int MaxScaleWatchRetries = 5;
+
+    private static void StartScaleWatch(int pid, bool factorMode, IntPtr scaledWindow)
+    {
+        if (pid <= 0 || scaledWindow == IntPtr.Zero) return;
+        lock (WatchGate)
+        {
+            if (ScaleWatches.TryGetValue(pid, out var existing))
+            {
+                existing.Stopped = true;
+                ScaleWatches.Remove(pid);
+            }
+            var watch = new ScaleWatch { Pid = pid, FactorMode = factorMode, ScaledWindow = scaledWindow };
+            ScaleWatches[pid] = watch;
+            new Thread(WatchLoop) { IsBackground = true, Name = $"nova-scale-watch-{pid}" }.Start(watch);
+        }
+        Log.Write($"scale watch started pid={pid} hwnd=0x{scaledWindow.ToInt64():X} mode={(factorMode ? "factor" : "fullscreen")}");
+    }
+
+    private static void WatchLoop(object? state)
+    {
+        var watch = (ScaleWatch)state!;
+        try
+        {
+            while (!watch.Stopped && ProcessAlive(watch.Pid))
+            {
+                Thread.Sleep(1500);
+                if (watch.Stopped || !ProcessAlive(watch.Pid)) break;
+
+                var family = ProcessFamily(watch.Pid);
+
+                // 健康：Magpie 还在缩放本游戏进程族里的某个窗口。基准窗口
+                // 持续更新，作为「重建」判定的参照物。
+                var scaledNow = ScaledWindowIn(family);
+                if (scaledNow != IntPtr.Zero)
+                {
+                    watch.ScaledWindow = scaledNow;
+                    watch.LostChecks = 0;
+                    continue;
+                }
+
+                // 缩放不在了。只有「出现了新的主窗口（≠ 上次被缩放的窗口）」
+                // 才认定是重建并自动恢复；还是原窗口时多半是玩家手动关了缩放，
+                // 绝不抢回来。
+                var window = FindMainWindow(family);
+                if (window == IntPtr.Zero || window == watch.ScaledWindow)
+                    continue;
+
+                watch.LostChecks++;
+                if (watch.LostChecks < 2) continue;   // 连续两轮确认，避开加载期抖动
+
+                if (watch.Retries >= MaxScaleWatchRetries)
+                {
+                    Log.Write($"scale watch: give up pid={watch.Pid} after {watch.Retries} re-applies");
+                    break;
+                }
+                watch.Retries++;
+                watch.LostChecks = 0;
+                Log.Write($"scale watch: window rebuilt 0x{watch.ScaledWindow.ToInt64():X}->0x{window.ToInt64():X}, reapplying (attempt {watch.Retries}/{MaxScaleWatchRetries})");
+
+                BringToFront(window);
+                var hotkey = watch.FactorMode
+                    ? ScalingEngine.ReadWindowedHotkey()
+                    : ScalingEngine.ReadHotkey();
+                var ok = TryMagpie(window, hotkey, family, out var used, out var diag);
+                Log.Write($"scale watch: reapply {(ok ? "ok" : "failed")} {diag}");
+                if (ok) watch.ScaledWindow = used;
+                else Thread.Sleep(4000);   // 失败时拉开两次热键的间隔，别连发
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("scale watch", ex);
+        }
+        finally
+        {
+            lock (WatchGate)
+            {
+                if (ScaleWatches.TryGetValue(watch.Pid, out var current) && current == watch)
+                    ScaleWatches.Remove(watch.Pid);
+            }
+            Log.Write($"scale watch stopped pid={watch.Pid}");
+        }
+    }
+
+    /// <summary>把玩家选的算法与倍数写进引擎配置（各自写前备份，返回是否有变化）。
+    /// 算法为空 = 跟随引擎当前设置，不动。</summary>
+    private static bool WriteScaleProfile(PlayerSettings settings, bool factorMode, List<string> notes)
+    {
+        var changed = false;
+        if (!string.IsNullOrWhiteSpace(settings.ScaleAlgorithm))
+        {
+            ScalingEngine.ApplyAlgorithm(settings.ScaleAlgorithm, out var algoNote, out var algoChanged);
+            changed |= algoChanged;
+            notes.Add($"algo={algoNote}");
+        }
+        if (factorMode)
+        {
+            ScalingEngine.WriteWindowedFactor(settings.ScaleFactor, out var factorNote, out var factorChanged);
+            changed |= factorChanged;
+            notes.Add($"factor={factorNote}");
+        }
+        return changed;
     }
 
     private static bool ProcessAlive(int pid)

@@ -8,7 +8,7 @@ run this once on a build machine before `tools/pipeline.sh`.
     python tools/fetch-magpie.py
 
 If github.com is blocked on your network, download the same asset manually
-(Magpie-v0.12.1-x64.zip) and extract the files listed in KEEP into
+(Magpie-v0.13.0-x64.zip) and extract the files listed in KEEP into
 third_party/magpie/.
 """
 from __future__ import annotations
@@ -20,7 +20,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-VERSION = "v0.12.1"
+VERSION = "v0.13.0"
 ASSET = f"Magpie-{VERSION[1:]}-x64.zip"
 URL = f"https://github.com/Blinue/Magpie/releases/download/{VERSION}/{ASSET}"
 
@@ -61,7 +61,7 @@ def main() -> int:
             urllib.request.urlretrieve(URL, archive)
         except Exception as error:  # noqa: BLE001 - report the manual fallback
             print(f"download failed: {error}", file=sys.stderr)
-            print("download Magpie-v0.12.1-x64.zip manually and extract Magpie.exe, "
+            print("download Magpie-v0.13.0-x64.zip manually and extract Magpie.exe, "
                   "Microsoft.UI.Xaml.dll, resources.pri, TouchHelper.exe, Updater.exe "
                   "and effects/ into third_party/magpie/", file=sys.stderr)
             return 1

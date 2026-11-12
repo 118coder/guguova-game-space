@@ -1,4 +1,4 @@
-# 内置全屏缩放引擎：Magpie 0.12.1
+# 内置全屏缩放引擎：Magpie 0.13.0
 
 本目录随 GUGUOVA 发行包一起分发一个**未经修改**的 Magpie 官方发行版，路径：
 
@@ -20,7 +20,7 @@ engine\magpie\
 - Magpie 由 Blinue 开发，采用 **GNU General Public License v3.0**。
 - 许可证全文见 `LICENSE-GPL-3.0.txt`。
 - 上游项目：<https://github.com/Blinue/Magpie>
-- 本发行版对应上游标签：`v0.12.1`（官方 x64 发行 zip）。
+- 本发行版对应上游标签：`v0.13.0`（官方 x64 发行 zip）。
 - 本目录中的文件未做修改。Magpie 的图标、名称与版权归其作者所有。
 
 ## 与启动器的关系
@@ -41,7 +41,7 @@ Magpie 部分只受 GPLv3 约束。
 ## 源码
 
 GPLv3 要求随目标代码分发时提供对应源码。`SOURCE-OFFER.txt` 是书面提供源码的说明；
-上游源码也可直接从 <https://github.com/Blinue/Magpie/tree/v0.12.1> 获取。
+上游源码也可直接从 <https://github.com/Blinue/Magpie/tree/v0.13.0> 获取。
 
 如果你不需要内置引擎，删除整个 `engine\magpie\` 目录即可；启动器会自动退回
 内置的无边框全屏（`scalingEngine=native` / `auto` 的兜底路径）。

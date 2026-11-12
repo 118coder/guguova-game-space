@@ -1,5 +1,43 @@
 # GUGUOVA 下一轮交接文档
 
+> ✅ **§1.48 缩放看护（智能检测）**（2026-11-13，最新一轮）：Owner 报告「成功缩放之后，
+> 进入游戏后又缩放回去了」——游戏登录后重建窗口（旧 HWND 销毁），Magpie 挂在旧句柄
+> 上的缩放静默丢失。新增 **scale watcher**：缩放成功后 1.5s 一拍监视游戏进程族，
+> ① Magpie 还在缩放族内窗口 → 健康，基准句柄持续更新；② 缩放丢失 + **出现新主窗口
+> （≠ 上次被缩放句柄）** → 判定重建，防抖两拍后自动重发热键恢复缩放（单会话最多 5 次，
+> 失败拉开 4s 间隔）；③ 缩放丢失但**还是原窗口**（玩家手动关缩放的语义）→ 绝不抢回。
+> 实机验证：`scale watch started → 健康期零误报 → 杀死 Magpie（窗口未重建）不误恢复 →
+> 游戏退出 `scale watch stopped`，孤儿照常清理。重建恢复路径待 Owner 真实进入游戏验证。
+> ✅ **§1.47 自研引擎尝试已废弃 + Magpie 对接优化**（2026-11-13）：Owner 决定
+> 放弃自研倍数引擎（§1.46.6 之后又攻了一轮，实机结论：**Win11 24H2+ 的 WGC 工厂已经
+> 不再实现 `IGraphicsCaptureItemInterop`**——`RoGetActivationFactory` 带 interop IID
+> 直接 `E_NOINTERFACE`（探针实测），`TryCreateFromWindowId` 的 `WindowId.Value` 也不等于
+> HWND（传真窗口返回 null）。所有代码已按 Owner 指令**全部回退**（FactorEngine.cs /
+> csproj TFM / Vortice / NativeBridge 钩子，双目标 0 错误、csproj 零 diff、153 MB 的
+> SDK 投影包缓存已删）。本轮落地的是 **Magpie 对接三优化**：① 首启播种
+> `windowedModeScale` 热键 + 像素类预设（像素缩放 / Integer Scale 2x，全新机器开箱即用）；
+> ② **启动前预写**算法与倍数——配置已在磁盘上时先写再拉引擎，**不再中途重启引擎**
+> （实机验证：两次启动均 `scaled=True try=1` 且无 restarted 行）；③ 权限一致性链路
+> `scaling engine started … launcherElevated=X engineElevated=Y`——CreateProcess 语义下
+> 引擎继承启动器令牌，管理员启动器 ⇒ 管理员 Magpie，实测不符会直接报错留证；
+> 另有算法生效校验（`magpie algorithm mismatch`）与 `gameElevated=` 诊断字段。
+> NOTICE.md / fetch-magpie.py 版本号同步为 **0.13.0**（二进制早已是 0.13.0，文档没跟上）。
+> 版本仍 1.18.0，未提交、未发版。
+> ✅ **§1.46 倍数放大实机修复**（2026-11-13）：Owner 报告「倍数缩放无效，
+> 默认直接全屏缩放」。根因是设置里**底层引擎＝仅无边框拉伸**（`scalingEngine=native`），
+> 而 `GameDisplay.Present` 所有内置引擎路径都要求 `engine=auto`——倍数模式被静默跳过、
+> 直接无边框拉伸（日志铁证 `mode=factor factor=2 engine=native`，连报错都没有）。
+> 已修：**倍数模式下底层引擎是 native 时自动升级走内置引擎**（升级不可用时明确报错）；
+> 真实 DNF-Season1-Act4 实机两轮闭环（升级路径 + auto 路径都 `engine=magpie-factor
+> scaled=True try=1`），窗口 640×480 → 1298×969（≈2.02 倍），截图放大目检像素硬边
+> ＝像素缩放（Nearest）确认生效。Owner 真实库设置已按其意图改为
+> **自动 · 内置缩放引擎优先 + 像素缩放 + 按倍数放大 2 倍**（通过应用内 saveSettings 写入）。
+> 版本仍 **1.18.0**（按 §1.45.7 约定未 bump），未提交、未发版。
+> ✅ **§1.45 缩放语义与入口收口**（2026-11-12）：首页「开启缩放」不再一会儿说全屏、
+> 一会儿说开始缩放；缩放模式 / 尺寸 / 算法 / 启动时机全部收进首页「缩放设置」这一个面板，
+> 设置页不再放第二套可编辑控件；面板支持选缩放算法与**目标分辨率**（按窗口尺寸换成真实倍数，
+> 不是假界面）。设置页与首页点开的都是同一个弹窗。66/66 断言、双目标 0 错误、14 主题 0 新增裁切。
+> **未提交、未 bump、未发版**，版本仍 1.18.0；构建产物已清，真实库没动。
 > 交接版本：**1.16.5 已发布；§1.18–§1.25 已全部合并进 `main`（PR #37/#38/#39），未发版**
 > ✅ **终末地导出卡片已按 endfield-ui 技能重做**（§1.25，2026-11-11）：黄线全部改黄块、
 > 分隔符 `·`→`/`、Saira 宽体上卡、档案卡重构（原构图有 700px 死白）、并修掉
@@ -3613,6 +3651,320 @@ node tools/build-app.js                            # 改了 src/app/*.js 才需�
 
 ---
 
+### 1.45 缩放语义与入口收口（2026-11-12，工作区未提交）
+
+> Owner 原话：「修正首页【开启缩放】功能的语义和表达，一会全屏又一会开始缩放的。然后缩放模式，
+> 你是放在设置里面的，而不是首页里面那个缩放设置里面的。导致容易出现歧义。然后在首页里面的
+> 缩放模式选项卡要修改，支持用户选择对应的缩放算法以及缩放分辨率……总而言之，由你去想，去修改。」
+
+#### 1.45.1 根因（查证过，不是猜的）
+
+同一件事被拆成三处、四种叫法：
+
+| 位置 | 改前 | 问题 |
+| --- | --- | --- |
+| 首页 hero | 「开启缩放」勾选框，hint 写「全屏缩放 · 默认开启」 | 开关说要不要，说明说模式；「全屏」还和 F 键的界面全屏撞名 |
+| 详情页 | 「启动时缩放」 | 第三种叫法 |
+| 设置 → 启动与关闭 | 「全屏缩放快捷键」+ 缩放方式 / 放大倍数 / 缩放算法 / 启动后延迟缩放 | 玩家改缩放要跑设置页，首页那个「缩放设置」按钮却打开另一个弹窗 |
+| 首页「缩放设置」弹窗 | 「缩放引擎」「全屏缩放方式」+ 独立的「缩放算法」下拉（Magpie 索引） | 与设置页的「缩放算法」（按名称存）是**两份值**，靠保存时互相打补丁，天然会打架 |
+
+「缩放模式」放在设置页、首页「缩放设置」里却没有，是歧义的主要来源；两个算法下拉是第二来源。
+
+#### 1.45.2 一套术语（全项目收口，别再改回去）
+
+- **「开启缩放」**＝这款游戏要不要缩放（per-game 开关，首页 / 详情页 / 面板三处同一个值）。
+- **「缩放模式」**＝怎么缩放，只有两种：铺满屏幕 / 按倍数放大。
+- **「缩放尺寸」「缩放算法」「启动时机」**＝模式下面的参数。
+- **「高级引擎设置」**＝Magpie 原生项（底层引擎、捕获、光标、帧率、3D）。
+- **「界面全屏显示」**＝F 键那个只放大启动器窗口的开关，和游戏缩放无关。
+- 删掉的旧叫法：全屏缩放、启动时缩放、倍数缩放、全屏缩放方式、引擎设置…。
+  `GameDisplay.cs` 的失败提示也统一成「已改用无边框拉伸」（原来写「无边框全屏」，又和 F 键撞）。
+
+所有 hint 现在只说状态和模式：`已关闭 · 按游戏原窗口运行` / `已开启 · 放大 2.5 倍` /
+`引擎已关闭 · 不能缩放`；详情页说 `只对这款游戏 / 跟随默认 · 已开启（或已关闭）`。
+`scaleModeLabel / scaleSummaryLabel / scaleSwitchHint` 都在 `src/app/15-details.js`。
+
+#### 1.45.3 一站式面板（首页「缩放设置」＝设置页「缩放设置」＝同一个弹窗）
+
+`src/index.html` 的 `#engineOverlay` 重做：
+
+1. 「开启缩放」勾选行（沿用 `engineScaleRow`）+ 一句说明；
+2. 「缩放模式」两个选项卡 `#engineScaleTabs`；
+3. 「缩放尺寸」`#engineScaleSize`：第一项「铺满屏幕 · 跟随显示器分辨率」，下面两组 optgroup：
+   倍数 1.25 / 1.5 / 1.75 / 2 / 2.5 / 3 + 自定义倍数；目标分辨率 1280×720 / 1600×900 /
+   1920×1080 / 2560×1440 / 3840×2160 + 自定义宽高；
+4. 「游戏窗口约」宽×高（默认 1280×720，可改）、自定义输入行、换算说明；
+5. 「缩放算法」`#engineScaleAlgorithm`（**唯一的一个**，选项来自 `engineOptions.modes`，按名称存）；
+6. 「启动时机」`#engineScaleDelay`；
+7. `<details>` 折叠的「高级引擎设置」：原 `#engineEngine / #engineCapture / #engineCursor /
+   #engineFrameRate / #engine3dRow / #engineAutoRow` + 算法说明清单，`#engineSave` 和「恢复默认」
+   都挪进这里；footer 只留「打开完整 Magpie」和「完成」(`#engineDone`)。
+
+面板里的选项**选完立即保存**（`saveSettings` 180ms 防抖，算法会立刻写进引擎并重启运行中的引擎）；
+高级区仍是「点保存并重启引擎」才提交，两区用分隔线 + 小标题分开，不会让人以为没生效。
+
+设置页「启动与关闭」删掉缩放方式 / 放大倍数 / 缩放算法 / 启动后延迟缩放四行和「引擎设置…」按钮，
+换成一行只读摘要 `#settingsScaleSetupHint`（如「放大 2.5 倍 · 像素缩放」）+ 入口
+`#settingsScaleSetupRow`，点它打开同一个弹窗。设置页只剩引擎级开关：自动启动内置缩放引擎、
+缩放快捷键、引擎状态、指定 Magpie.exe、界面全屏显示。
+
+#### 1.45.4 「缩放分辨率」怎么落地（重要，别误以为 Magpie 支持固定分辨率）
+
+Magpie 的窗口化缩放**只接受放大倍数**（`customInitialWindowedScaleFactor`，1.1–10），
+没有「输出固定分辨率」这个参数。目标分辨率在前端按可编辑的游戏窗口尺寸换算：
+
+```
+factor = clamp(min(目标宽 / 窗口宽, 目标高 / 窗口高), 1.1, 10)
+```
+
+取 min 保持比例、不拉伸；换算结果写成 `scaleFactor`，走**原有** `WriteWindowedFactor` / 窗口化热键
+链路，**没有改 `GameDisplay.Present` 的引擎启动时序**（§1.17 实机验收过的部分）。
+面板实时显示「按 1280×720 的窗口换算 → 1.5 倍，约放大到 1920×1080」。老数据没有 preset 时，
+`29-boot.js` 按已存的 `scaleFactor` 反推 `f:<倍数>` 或 `f:custom`，不会跳回 2 倍。
+
+在「铺满屏幕」状态下直接选任何倍数 / 分辨率会**自动切成「按倍数放大」**，不用先点选项卡；
+选第一项就切回铺满屏幕。尺寸下拉**两种模式下都可见**，玩家一打开就看得见分辨率选项。
+
+#### 1.45.5 代码与数据
+
+| 文件 | 改动 |
+| --- | --- |
+| `src/index.html` / `src/app.css` | 面板 DOM 与共享 `.scale-*` 样式；全部消费 `--sheet-*` 槽位，**14 套主题 CSS 零改动** |
+| `src/theme-slots.css` | `.engine-scale-row .pref-hint` 改用主题实色 `--sheet-ink`（见验收里的对比度修复） |
+| `src/app/03-dom.js` / `02-state.js` / `29-boot.js` / `09-share-cards.js` | 新元素、默认状态、boot 回读、saveSettings 带新字段 |
+| `src/app/15-details.js` | 三处 hint 与 toast 语义统一 |
+| `src/app/18-steam.js` | 合并两份算法选择、面板回填、模式 / 尺寸 / 换算 / 算法 / 时机逻辑、高级保存按名称反查索引 |
+| `src/app/23-themes.js` / `01-runtime.js` | 事件绑定换到新控件、快捷键切换的 toast 文案 |
+| `Services/LibraryModels.cs` / `NativeBridge.Settings.cs` | 新增 `ScaleSizePreset` / `ScaleWindowWidth` / `ScaleWindowHeight`（纯数据，带范围校验） |
+| `Services/GameDisplay.cs` | 失败提示统一「无边框拉伸」 |
+| `tools/feature-checks.js` | [7] 组重写（26 项）、[8] 组补 1 项 |
+| `README.md` | 「全屏缩放引擎」章节按新面板重写，玩家向 |
+
+改完跑 `node tools/build-app.js` 重新拼 `src/app.js`（**不要直接编辑 app.js，会被覆盖**）。
+
+#### 1.45.6 验证
+
+| 检查 | 结果 |
+| --- | --- |
+| `dotnet build` 现代 + legacy net48 | **0 错误**（5 / 49 条既有警告） |
+| `node tools/build-app.js --check` + `node --check src/app.js` | 通过 |
+| `node tools/theme-slot-check.js --strict` | 14 套全覆盖，0 finding |
+| `node tools/feature-checks.js` | **66/66 全过**（[7] 组 26 项：设置页无重复控件 / 两个入口开同一个面板 / 选项卡 / 尺寸含分辨率 / 只有一个算法下拉 / 模式往返 / 目标分辨率 1.5 倍 / 改窗口尺寸重算 2.25 倍 / 自定义 3.2 倍 / 算法与延迟往返 / 摘要跟随） |
+| `node tools/headless-shots.js --views=engine --format=png` | 14 张；警告只有**既有** aurum 5px / dusk 2px 磁贴名裁切，**0 新增** |
+| 人工截图 | nova（深色）/ broadcast（纸面）/ dusk（纸面）逐张看过：文字完整、无遮挡、无截断，面板可滚动 |
+| `node tools/text-audit.js --views=engine` | engine 视图**首次**纳入审计。修掉 dusk 开关提示 2.65:1（主题级 `.pref-hint` 覆盖了共享规则，改用 `--sheet-ink` 实色 + 更高特异性后达标）和新增控件 3 项；剩 **7 项 4.19–4.48:1** 是 nova / dusk 既有 `--sheet-*` 材质的边界值（kicker / subtitle / 三个 field label），本轮**没有统一改动 14 套主题的外观层次** |
+
+#### 1.45.7 状态与下次起点
+
+- 应用版本仍 **1.18.0**，未 bump、未提交、未发版；工作区 16 个文件改动（`git status` 可查）。
+- `%LOCALAPPDATA%\NOVA Game Space` 真实库**没动**，验证全走 headless 夹具的虚构库。
+- 构建产物（`bin/ obj/ legacy/bin legacy/obj`）验证完已直接删除、不进回收站；**21:35 Owner 要实机验收，
+  又 build 了一次（0 错误）**，产物在 `bin/Debug/net10.0-windows/win-x64/GUGUOVA.exe`（现代）与
+  `legacy/bin/Debug/net48/GUGUOVA.exe`（net48），合计约 227 MB；验收完可直接删，下次开工先 build。
+- 待 Owner 验收：① 首页点「缩放设置」选目标分辨率，启动真实游戏后窗口是不是按换算倍数放大；
+  ② 14 套主题里有没有哪套面板说明文字显得太淡（若要把 text-audit 剩的 7 项也抬到 AA，
+  需要单独拍板改主题材质，本轮没做）；③ 1.18.0 那两条实机验收仍未反馈（§1.44.3）。
+- 发版顺序照旧：先合 PR → 再 bump → `release.sh --publish` → 最后推 bump。
+
+---
+
+## 1.46 第N+1轮（2026-11-13）：倍数放大实机修复——「native 挡死引擎路径」（Owner 报告实机失效）
+
+> Owner 原话：「继续交接，倍数缩放无效，默认直接全屏缩放了。请以此游戏作为标准，
+> 缩放算法为像素缩放（像素放大）并进行实机测试，从而将缩放算法修复。」
+> 追加：「但问题在于，我是内置轻量级引擎的，所以要解决这个问题。」
+
+#### 1.46.1 根因（日志铁证，不是猜的）
+
+Owner 设置里「高级引擎设置 → 底层引擎」是**仅无边框拉伸**（`scalingEngine=native`，
+来源不明，可能是早前某轮实验残留）。而 `GameDisplay.Present` 里**所有**内置缩放引擎
+路径（启动引擎、写算法/倍数、发全屏或窗口化热键）都包在 `engine == "auto"` 里：
+`native` 时直接落到 `ApplyBorderless`——把窗口铺满显示器。
+
+倍数放大物理上只有内置引擎做得到（无边框拉伸只能 1:1 铺屏），于是出现：
+
+```
+present pid=11284 … mode=factor algo=像素缩放 factor=2 engine=native scaled=True
+```
+
+`scaled=True` 还是假象——那是无边框拉伸成功，不是倍数生效；`magpieDiag` 与 `error`
+全空说明 **TryMagpie 连跑都没跑**，用户侧表现就是「倍数缩放无效，默认直接全屏缩放」。
+
+内置引擎链路本身没坏：§1.17.2 曾实测 2.5 倍成功；本轮前 Magpie 配置里
+`shortcuts.windowedModeScale=3153`（Alt+Shift+Q）也在，只是被引擎选项挡死了。
+
+#### 1.46.2 修复（两处，都很小）
+
+| # | 修复 | 位置 |
+| --- | --- | --- |
+| ① | **倍数模式自动升级引擎**：`factorMode && engine=="native"` 且引擎可用（`ScalingEngine.Supported` + `FindExe` 命中）时，把 engine 升级为 `"auto"` 走完整内置引擎链路，日志写 `factor mode escalates native->engine (borderless cannot multiply)`、present 行带 `esc=native->engine`；引擎真不可用（不支持/没找到 exe）时保持 native 并给出明确 error「倍数放大需要内置缩放引擎；这台机器没有可用的引擎，已改用无边框拉伸」，不再无声降级。文案遵循 §1.45.2 术语（「按倍数放大」「无边框拉伸」） | `Services/GameDisplay.cs`（Present 头部 + scale 分支新增 else-if + 日志字段） |
+| ② | **前端提前说明**：在缩放面板把模式切成「按倍数放大」而底层引擎还是 native 时，toast 说「按倍数放大（将由内置缩放引擎完成）」，把升级这件事提前告诉玩家 | `src/app/18-steam.js`（`applyScaleMode`） |
+
+改动后 `node tools/build-app.js` 重新拼装（app.js 是生成物，直接改会被覆盖）。
+
+#### 1.46.3 实机验收（真实 DNF-Season1-Act4，两轮闭环）
+
+环境：真实数据根 + CDP 9223；设置先用应用内 `saveSettings` 写成
+`native + factor 2 + 像素缩放`（故意保留 native 来验证升级路径）。
+
+| 轮次 | 配置 | 日志关键行 | 窗口实测 |
+| --- | --- | --- | --- |
+| ① 升级路径 | native + 2 倍 + 像素缩放 | `factor mode escalates native->engine` → `magpie windowed factor written 2` → `magpie restarted for scale profile algo=算法已是 像素缩放 factor=放大倍数已写入缩放引擎` → `present … mode=factor algo=像素缩放 factor=2 esc=native->engine engine=magpie-factor scaled=True try=1 fg=True/exact=True` | DNF 源窗口 640×480；Magpie 窗口 1298×969（≈2.02 倍，差值是窗口边框），`src` 指向 DNF 句柄，**窗口化运行在桌面中央而非全屏** |
+| ② 正式路径 | auto + 2 倍 + 像素缩放 | `present … mode=factor algo=像素缩放 factor=2 engine=magpie-factor scaled=True try=1`（无 esc，直走 auto） | 同上 1298×969 |
+
+像素算法目检：全屏截图裁角色立绘区域 6 倍最近邻放大——头发/砖缝全是**整齐实心色块、
+无插值渐变**，Nearest（像素放大）确认生效，不是模糊拉伸。
+
+退出清理两次都过：`launcher tree killed` + `launcher orphan killed`，7001 释放；
+测试实例退出后内置引擎自动回收（`ReleaseIfAutoStarted`，Magpie 进程归零）。
+
+#### 1.46.4 Owner 真实库设置（这次动了，经 Owner 授权）
+
+§1.17.4 的惯例「不替 Owner 改 library.json」本轮破例，依据是 Owner 明确说
+「我是内置轻量级引擎的」——即设置应当是内置引擎优先。通过**运行中的应用**
+`window.nova.call('saveSettings', …)` 写入（走正常落盘路径，不是手改 JSON）：
+
+- `scalingEngine: 'auto'`（自动 · 内置缩放引擎优先）
+- `scaleMode: 'factor'`、`scaleFactor: 2`（按倍数放大 2 倍）
+- `scaleAlgorithm: '像素缩放'`（像素放大，DNF 基准）
+
+#### 1.46.5 验证与收尾
+
+| 检查 | 结果 |
+| --- | --- |
+| `dotnet build -c Debug`（现代） | 0 错误（既有警告不变） |
+| `node tools/feature-checks.js` | 66/66 全过（前端改动零回归） |
+| 版本 | 保持 **1.18.0**——本轮曾误 bump 1.18.1，已按 §1.45.7「先合 PR 再 bump」的约定回退 |
+| 临时产物 | `.cache/probe/`（窗口探针 + 截图）已直接删除、不进回收站；无其他新增临时目录 |
+| 收尾状态 | Owner 的 GUGUOVA 已用含修复的 Debug 构建拉起（CDP 9223），Magpie/DNF 均已退出 |
+
+#### 1.46.6 下次起点（已被 §1.47 部分处理，见下）
+
+1. **待 Owner 实机复核**：随便开一款开了「开启缩放」的游戏，窗口应按 2 倍放大且像素锐利；
+   若底层引擎停在「仅无边框拉伸」，日志应出现 `esc=native->engine` 而不是静默全屏。
+2. §1.45.7 的三条待验收（目标分辨率换算、面板文字对比度、1.18.0 两条）原样沿用。
+3. 本轮与 §1.45 的改动都在工作区**未提交**；发版顺序照旧：先合 PR → 再 bump →
+   `release.sh --publish` → 最后推 bump。
+4. 注意：内置引擎的倍数链路依赖 Magpie 配置里的 `scalingModes` 有「像素缩放」这个
+   **自定义模式**（Nearest 1×1）。它是这台机器的配置里已有的；全新机器首次生成配置时
+   没有它，`ApplyAlgorithm` 会报「找不到算法」。若要把它做成出厂标准，需要内 shipped
+   配置种子（引擎首启后追加该模式），本轮没做，先记档。
+   → **已由 §1.47 落地**（SeedFirstRunConfig，见下）。
+
+---
+
+## 1.47 第N+2轮（2026-11-13）：自研倍数引擎尝试（废弃）+ Magpie 对接三优化
+
+> Owner 决策：先要求「把内置的缩放引擎更新一下，使其能够直接支持倍数缩放」，选了
+> 自研路线；攻坚一轮后 Owner 拍板「**算了，太麻烦了，不如和 Magpie 做好对接**……
+> 把这些修改全部给我删掉吧。然后想办法优化一下程序和 magpie，做好完美对接」，
+> 并追加两条要求：**玩家选的任何缩放模式都要生效**；**管理员启动器 ⇒ 管理员 Magpie**。
+
+### 1.47.1 自研引擎为什么死掉（留档，别再走一遍）
+
+调研结论（全部有实证）：Magpie 任何版本（含上游最新 v0.13.0 / dev 分支源码）都**没有**
+「直接缩放指定窗口」的接口，触发缩放的唯一途径是全局热键；官方 wiki「以编程方式与
+Magpie 交互」只提供状态通知（`MagpieScalingChanged` 消息与窗口属性）。自研引擎
+（Windows.Graphics.Capture + D3D11 staging + GDI 最近邻）本机代码全部跑通后卡死在
+**item 创建**：Win11 24H2+ 的 GraphicsCaptureItem 激活工厂**不再实现
+`IGraphicsCaptureItemInterop`**——`RoGetActivationFactory` 带 interop IID 直接
+`E_NOINTERFACE`（MTA、直接激活、CsWinRT `ActivationFactory.Get` 三种姿势全部实测）；
+`GraphicsCaptureItem.TryCreateFromWindowId(new WindowId{Value=hwnd})` 返回 null——
+`WindowId.Value` **不等于** HWND（对真实记事本窗口同样 null）。Chromium 社区在 24H2
+也确认此回归并改走其他路径（见 Developer Community / Windows.UI.Composition-Win32-Samples
+issue #142）。Magpie 0.13 自己的 WGC 源在这类系统上大概率降级到 DDA/GDI 帧源。
+结论：**放弃自研，回到 Magpie 对接**。所有自研代码已按指令回退：
+
+| 回退项 | 状态 |
+| --- | --- |
+| `Services/FactorEngine.cs`（~700 行 WGC/D3D11/Win32 引擎） | 已删除 |
+| csproj：TFM 10.0.22621.0 → 还原 `net10.0-windows`；Vortice.Direct3D11、AllowUnsafeBlocks、OutputPath 钉定、NOVA_NATIVE_SCALE 常量 | 全部还原，`git diff` 仅换行噪音 |
+| legacy csproj 的 FactorEngine 排除 | 已移除 |
+| `NativeBridge.cs` / `NativeBridge.Engine.cs` 的 StopAll 钩子 | 已移除 |
+| `~/.nuget/packages`：vortice.*、microsoft.windows.sdk.net.ref（22000/22621，153 MB） | 已直接删除 |
+| 探针工程 `.cache/probe/wgc-probe` | 已直接删除 |
+
+双目标 `dotnet build` 0 错误；`feature-checks.js` 66/66 全过；保留 §1.46 的
+「native→引擎」升级修复不动。
+
+### 1.47.2 Magpie 对接三优化（本轮的落点）
+
+| # | 优化 | 位置 | 实机证据 |
+| --- | --- | --- | --- |
+| ① | **首启播种**：引擎第一次生成配置后自动补齐 `shortcuts.windowedModeScale`（缺省/0 时写默认 Alt+Shift+Q）与像素类预设「像素缩放」(Nearest 1×1)、「Integer Scale 2x」(Nearest 2×1→2×2)（写前备份 `magpie-seed-*.json`）。全新机器上玩家选的像素算法不再「找不到算法」，倍数热键必然存在 | `ScalingEngine.Config.cs` `SeedFirstRunConfig` + `Process.cs` 首启路径调用 | 本机配置已有这些项，播种静默跳过；全新机器路径靠种子保证 |
+| ② | **启动前预写**：算法与倍数都存在引擎配置里、引擎启动时读取。配置已在磁盘时**先写后拉引擎**，引擎起来就是正确状态——不再出现「启动→写配置→重启引擎」的中途重启；首次生成配置的机器仍走一次重启（无可避免） | `GameDisplay.Present` 引擎块重排 + `WriteScaleProfile` 助手 | 两次实机启动均 `engine=magpie-factor scaled=True try=1`，**无 `magpie restarted` 行**（旧流程必有） |
+| ③ | **权限一致性链路**：引擎拉起后实测记录 `scaling engine started pid=… launcherElevated=X engineElevated=Y`。CreateProcess 语义下子进程继承启动器令牌 ⇒ 管理员启动器必然得到管理员 Magpie（提权游戏才抓得到窗口）；不符即报错留证。`present` 行新增 `gameElevated=` 诊断字段 | `ScalingEngine.Process.cs` `StartProcess`、`SteamPrivilege.IsProcessElevated(pid)`（公开包装）、`GameDisplay.Present` | `scaling engine started pid=12300 launcherElevated=False engineElevated=False`；管理员链路的真实验证需要 Owner 以管理员跑一次启动器看日志 |
+
+另有：**算法生效校验**（引擎起来后 `ReadAlgorithmName` 与玩家选择比对，不一致写
+`magpie algorithm mismatch: wanted=X active=Y`）；`NOTICE.md` 与 `fetch-magpie.py`
+版本号 0.12.1 → **0.13.0**（二进制早已是 0.13.0，文档没跟上）。
+
+### 1.47.3 实机验证（DNF-Season1-Act4，两轮）
+
+| 轮次 | 配置 | 结果 |
+| --- | --- | --- |
+| ① | auto + 2 倍 + 像素缩放（配置已对） | `present … gameElevated=False mode=factor algo=像素缩放 factor=2 engine=magpie-factor scaled=True try=1`，无重启 |
+| ② | 切 **Lanczos**（saveSettings）+ 杀掉引擎让它冷启动 | `scaling engine started … launcherElevated=False engineElevated=False` → `present … algo=Lanczos factor=2 engine=magpie-factor scaled=True try=1`，无 mismatch、无重启 → **玩家选什么，起来就是什么** |
+
+测完已把算法还原为 Owner 的标准 **像素缩放**；游戏退出后孤儿服务端正常带走
+（`launcher orphan killed`），引擎随设置切换自动重启（`SaveSettings` 立即生效路径）。
+
+### 1.47.4 状态与下次起点
+
+- 版本仍 **1.18.0**；本轮改动：`GameDisplay.cs` / `ScalingEngine.Config.cs` /
+  `ScalingEngine.Process.cs` / `SteamPrivilege.cs` / `NativeBridge.cs(钩子还原)` /
+  `NativeBridge.Engine.cs(钩子还原)` / `third_party/magpie/NOTICE.md` / `tools/fetch-magpie.py`。
+  §1.45/1.46 的工作区改动原样保留，全部未提交。
+- 待 Owner 实机复核：① 用管理员运行一次启动器再开游戏，日志应出现
+  `launcherElevated=True engineElevated=True`，且能缩放提权游戏；② 首启播种要在
+  **删掉 `%LOCALAPPDATA%\Magpie\config` 的全新环境**里验证一次（备份目录会多一个
+  `magpie-seed-*.json`）。
+- 自研引擎的技术尸体不要复用：Win11 24H2+ interop 被移除是系统级行为，除非微软
+  恢复或官方放出直连 API，否则 WGC 窗口捕获在此类系统上对非打包应用基本死路；
+  若将来重试，先跑探针（§1.47.1 的三种姿势）确认 interop 恢复了再动手。
+
+---
+
+## 1.48 第N+3轮（2026-11-13）：缩放看护——「进游戏后缩放回去了」的智能检测与自动恢复
+
+> Owner 原话：「加入智能检测功能，有时候因为游戏的特殊性，成功缩放大之后，在进入
+> 游戏后又缩放回去了。你想想办法，解决这个问题。」
+
+### 1.48.1 机理与设计
+
+游戏登录后进正式场景时常常**重建窗口**：旧 HWND 销毁、新 HWND 建立。Magpie 的缩放
+绑定在旧句柄上，句柄一死缩放就静默丢失——玩家看到的就是「进去之后又缩放回去了」
+（§1.15.5 怀疑点 ② 的正式解法）。设计三条规则，关键是**别跟玩家抢**：
+
+| 状态 | 判定 | 动作 |
+| --- | --- | --- |
+| 健康 | `ScaledWindowIn(family)` 命中（Magpie 缩放窗口存在且属于游戏进程族） | 更新基准句柄，静默 |
+| **重建** | 缩放丢失 + `FindMainWindow(family)` 出现**新主窗口**（≠ 上次被缩放句柄） | 防抖两拍（~3s）确认后自动重发热键恢复（全屏/倍数各用各的热键）；单会话最多 5 次，失败拉开 4s 间隔防连发 |
+| 手动关闭 | 缩放丢失但主窗口**还是原来那个** | 不动作——这是玩家自己关缩放的语义，绝不抢回 |
+
+看护只挂在 `engine=magpie / magpie-factor` 成功之后启动（native 无边框不挂，避免和
+Alt+Shift+A 手动无边框开关打架）；游戏退出时 `ForgetProcess` 置停并随进程回收。
+
+### 1.48.2 实现与验证
+
+| 项 | 内容 |
+| --- | --- |
+| 代码 | `Services/GameDisplay.cs`：`ScaleWatch` / `StartScaleWatch` / `WatchLoop`（~120 行），`ForgetProcess` 扩展停止看护 |
+| 构建 | 双目标 0 错误（net48 不支持 `required` 成员，已用普通字段）；`feature-checks.js` 66/66 |
+| 实机 | `scale watch started pid=15832 hwnd=0x9A1080 mode=factor` → 健康期零日志（无误报）→ **杀死 Magpie（窗口未重建）12s 后仍不误恢复**（手动关闭语义正确）→ 退出游戏 `scale watch stopped pid=15832`，孤儿服务端照常清理 |
+| 待验证 | 重建→自动恢复这条路径只能在真实游戏里触发（登录进场景时窗口重建）；Owner 下次进游戏如果又被弹回去，日志会依次出现 `scale watch: window rebuilt 0x…->0x…, reapplying` 与 `scale watch: reapply ok`——出现即恢复成功 |
+
+### 1.48.3 已知边界（别当成 bug 再查一遍）
+
+- 玩家手动关缩放**之后**游戏才重建窗口：会触发一次自动恢复（判定依据只有句柄变化），
+  属于罕见边角，恢复 5 次封顶后不会再抢。
+- 游戏进**独占全屏**时窗口热键救不回来（Magpie 对独占全屏本来就不适用），重试 5 次
+  后放弃并留日志；全屏模式该在游戏设置里关独占全屏。
+- 看护只重发热键，不会替玩家重启引擎；引擎死了（Magpie 进程没了）时热键无效，
+  5 次后放弃——引擎存活是 `Present` 阶段的职责，不在看护里重复。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -4404,25 +4756,28 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 整页截图实机验证（游戏库视图）；名称排序按真实库 21 条 DNF 逐条推演；
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
-下一轮从 **§1.44** 开始：1.18.0 已合并并发行（`v1.18.0` 三资产 + 文案），
-§1.41–§1.42 的全部改动都在 `main`（squash `9934d1f`），bump `caa4aa4`，文档 §1.43/§1.44，
-远端 `main` 与本地一致、工作区干净（**具体 HEAD 以 `git log -1` 为准**——文档自己一提交
+下一轮从 **§1.45** 开始：1.18.0 已合并并发行（`v1.18.0` 三资产 + 文案），
+§1.41–§1.42 的全部改动都在 `main`（squash `9934d1f`），bump `caa4aa4`，文档 §1.43/§1.44；
+**§1.45 的缩放语义与入口收口仍在工作区未提交**（16 个文件，见 §1.45.5，66/66 断言全过）。
+远端 `main` 与本地一致（**具体 HEAD 以 `git log -1` 为准**——文档自己一提交
 hash 就变了，别在这里写死）。
-**构建产物已按 §1.44.1 全部清空**（`dist/ bin/ obj/ legacy/bin legacy/obj` + `_shots/updtest`，
-释放约 556 MB），项目现为 **92 MB**，所以**第一件事是 build**：
+**构建产物已在 §1.45 验收前重建过一次**（`bin/Debug/net10.0-windows/win-x64/GUGUOVA.exe`、
+`legacy/bin/Debug/net48/GUGUOVA.exe`，约 227 MB）；如果交接时已被清掉，**第一件事仍然是 build**：
 
 ```bash
 dotnet build NovaGameSpace.csproj -c Debug                    # 约 10 秒
 dotnet build legacy/NovaGameSpace.Legacy.csproj -c Debug       # 改了 .cs 就必须也编
 ```
 
-优先做三件事：
+优先做四件事：
 
-1. **先问 Owner 1.18.0 的实机验收结果**——一是隐藏那款能否重新打开并取消隐藏，二是
+1. **先让 Owner 看 §1.45 的缩放面板**：首页「缩放设置」里选一个目标分辨率，启动真实游戏确认窗口
+   按换算倍数放大；这一轮改动还在工作区，没提交也没发版，看完再决定要不要和下一批一起发；
+2. **再问 Owner 1.18.0 的实机验收结果**——一是隐藏那款能否重新打开并取消隐藏，二是
    「重启并升级」是否真换掉 exe 并自动打开新版（试之前备份当前 exe）；两条都还没反馈；
-2. **五套冻结主题拍板**（nightflight / mnemo / aurum / grimoire / riso），其中 riso 的 score
+3. **五套冻结主题拍板**（nightflight / mnemo / aurum / grimoire / riso），其中 riso 的 score
    有真结构问题要重做，不是微调；
-3. **发版节奏**沿用本轮顺序：先合 PR → 再 bump → 然后 `release.sh --publish` → 最后推 bump 提交；
+4. **发版节奏**沿用本轮顺序：先合 PR → 再 bump → 然后 `release.sh --publish` → 最后推 bump 提交；
    反了会让 `version.json` 指向还没上传的资产，已装用户查更新会 404。
 其余沿用：Owner 旧实例退出后删归档里的两个 `.old` 文件、§7 的实机回访；
 平台真机（P0-2）仍是最大空白。

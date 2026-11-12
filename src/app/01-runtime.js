@@ -114,7 +114,7 @@
       if (message.type === 'scaling-toggled') {
         const payload = message.payload || {};
         toast(payload.ok
-          ? (payload.on ? '启动时缩放已开启' : '启动时缩放已关闭')
+          ? (payload.on ? '这款游戏：开启缩放' : '这款游戏：关闭缩放')
           : (payload.reason || '没有可以缩放的游戏'), payload.ok ? 'fullscreen' : 'alert');
         return;
       }
