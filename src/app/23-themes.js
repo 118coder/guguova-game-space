@@ -393,15 +393,33 @@
       await call('restartScalingEngine');
       toast('正在重启缩放引擎…', 'spark');
     });
-    if (els.settingsEngineOptions) els.settingsEngineOptions.addEventListener('click', openEngineDialog);
+    if (els.settingsScaleSetupRow) els.settingsScaleSetupRow.addEventListener('click', openEngineDialog);
     if (els.engineClose) els.engineClose.addEventListener('click', closeEngineDialog);
+    if (els.engineDone) els.engineDone.addEventListener('click', closeEngineDialog);
     if (els.engineSave) els.engineSave.addEventListener('click', saveEngineDialog);
     if (els.engineReset) els.engineReset.addEventListener('click', resetEngineDialog);
     if (els.engineOpenFull) els.engineOpenFull.addEventListener('click', openFullMagpie);
     if (els.engine3dRow) els.engine3dRow.addEventListener('click', toggleEngine3d);
-    if (els.engineMode) els.engineMode.addEventListener('change', () => {
-      const modes = (state.engineOptions && state.engineOptions.modes) || [];
-      renderEngineModeList(modes, Number(els.engineMode.value || 0));
+    if (els.engineScaleTabs) {
+      els.engineScaleTabs.addEventListener('click', (event) => {
+        const tab = event.target.closest('.scale-tab');
+        if (tab) applyScaleMode(tab.dataset.scaleMode);
+      });
+    }
+    if (els.engineScaleAlgorithm) els.engineScaleAlgorithm.addEventListener('change', applyScaleAlgorithm);
+    if (els.engineAdvanced) els.engineAdvanced.addEventListener('toggle', () => {
+      if (!els.engineAdvanced.open || !state.engineOptions) return;
+      const modes = state.engineOptions.modes || [];
+      const wanted = state.settings.scaleAlgorithm || '';
+      const active = wanted ? modes.find((mode) => mode.name === wanted) : null;
+      renderEngineModeList(modes, active ? active.index : Number(state.engineOptions.scalingMode ?? 0));
+    });
+    if (els.engineScaleSize) els.engineScaleSize.addEventListener('change', applyScaleSize);
+    if (els.engineScaleDelay) els.engineScaleDelay.addEventListener('change', applyScaleDelay);
+    if (els.engineScaleWinW) els.engineScaleWinW.addEventListener('change', applyScaleWindowSize);
+    if (els.engineScaleWinH) els.engineScaleWinH.addEventListener('change', applyScaleWindowSize);
+    [els.engineScaleCustomFactor, els.engineScaleCustomW, els.engineScaleCustomH].forEach((input) => {
+      if (input) input.addEventListener('change', applyScaleCustomSize);
     });
     if (els.engineAutoRow) els.engineAutoRow.addEventListener('click', () => {
       const next = els.engineAutoRow.getAttribute('aria-checked') !== 'true';
@@ -430,37 +448,6 @@
       audio.toggle();
       renderLibrary();
       toast(`封面标签：${state.settings.libraryTagCount} 个`, 'check');
-    });
-    if (els.settingsScaleDelay) els.settingsScaleDelay.addEventListener('change', () => {
-      state.settings.scaleDelaySeconds = Math.min(120, Math.max(0, Number(els.settingsScaleDelay.value) || 0));
-      saveSettings();
-      audio.toggle();
-      toast(state.settings.scaleDelaySeconds > 0
-        ? `启动后 ${state.settings.scaleDelaySeconds} 秒再缩放`
-        : '缩放时机：立即', 'check');
-    });
-    if (els.settingsScaleMode) els.settingsScaleMode.addEventListener('change', () => {
-      state.settings.scaleMode = els.settingsScaleMode.value === 'factor' ? 'factor' : 'fullscreen';
-      if (els.settingsScaleFactorRow) els.settingsScaleFactorRow.hidden = state.settings.scaleMode !== 'factor';
-      saveSettings();
-      audio.toggle();
-      toast(state.settings.scaleMode === 'factor'
-        ? '缩放方式：倍数缩放，可在下面选倍数'
-        : '缩放方式：全屏缩放', 'check');
-    });
-    if (els.settingsScaleFactor) els.settingsScaleFactor.addEventListener('change', () => {
-      state.settings.scaleFactor = Math.min(10, Math.max(1.1, Number(els.settingsScaleFactor.value) || 2));
-      saveSettings();
-      audio.toggle();
-      toast(`放大倍数：${state.settings.scaleFactor} 倍`, 'check');
-    });
-    if (els.settingsScaleAlgorithm) els.settingsScaleAlgorithm.addEventListener('change', () => {
-      state.settings.scaleAlgorithm = els.settingsScaleAlgorithm.value || '';
-      saveSettings();
-      audio.toggle();
-      toast(state.settings.scaleAlgorithm
-        ? `缩放算法：${state.settings.scaleAlgorithm}`
-        : '缩放算法：跟随引擎当前设置', 'check');
     });
     if (els.settingsExport) els.settingsExport.addEventListener('click', exportPack);
     if (els.settingsImport) els.settingsImport.addEventListener('click', importPack);

@@ -36,6 +36,13 @@
       // multiplier using Magpie's windowed mode.
       scaleMode: 'fullscreen',
       scaleFactor: 2,
+      // 'f:2' / 'r:1920x1080' / 'f:custom' / 'r:custom' — how the player
+      // picked the size in the home scaling sheet. Magpie itself only takes a
+      // multiplier, so a target resolution is converted into ScaleFactor
+      // against the window size below.
+      scaleSizePreset: 'f:2',
+      scaleWindowW: 1280,
+      scaleWindowH: 720,
       // '' = follow whatever algorithm Magpie is currently set to.
       scaleAlgorithm: '',
       minimizeOnLaunch: true,

@@ -114,7 +114,7 @@
       if (message.type === 'scaling-toggled') {
         const payload = message.payload || {};
         toast(payload.ok
-          ? (payload.on ? '启动时缩放已开启' : '启动时缩放已关闭')
+          ? (payload.on ? '这款游戏：开启缩放' : '这款游戏：关闭缩放')
           : (payload.reason || '没有可以缩放的游戏'), payload.ok ? 'fullscreen' : 'alert');
         return;
       }
@@ -193,6 +193,13 @@
       // multiplier using Magpie's windowed mode.
       scaleMode: 'fullscreen',
       scaleFactor: 2,
+      // 'f:2' / 'r:1920x1080' / 'f:custom' / 'r:custom' — how the player
+      // picked the size in the home scaling sheet. Magpie itself only takes a
+      // multiplier, so a target resolution is converted into ScaleFactor
+      // against the window size below.
+      scaleSizePreset: 'f:2',
+      scaleWindowW: 1280,
+      scaleWindowH: 720,
       // '' = follow whatever algorithm Magpie is currently set to.
       scaleAlgorithm: '',
       minimizeOnLaunch: true,
@@ -603,14 +610,34 @@
     settingsMagpieStart: $('#settingsMagpieStart'),
     settingsMagpieRestart: $('#settingsMagpieRestart'),
     settingsMagpiePick: $('#settingsMagpiePick'),
-    settingsEngineOptions: $('#settingsEngineOptions'),
+    settingsScaleSetupRow: $('#settingsScaleSetupRow'),
+    settingsScaleSetupHint: $('#settingsScaleSetupHint'),
     engineOverlay: $('#engineOverlay'),
     engineScaleRow: $('#engineScaleRow'),
     engineScaleCheck: $('#engineScaleCheck'),
     engineScaleHint: $('#engineScaleHint'),
     engineClose: $('#engineClose'),
+    engineDone: $('#engineDone'),
     engineSubtitle: $('#engineSubtitle'),
-    engineMode: $('#engineMode'),
+    engineScaleTabs: $('#engineScaleTabs'),
+    engineScaleModeNote: $('#engineScaleModeNote'),
+    engineScaleSizeRow: $('#engineScaleSizeRow'),
+    engineScaleSize: $('#engineScaleSize'),
+    engineScaleSizeNote: $('#engineScaleSizeNote'),
+    engineScaleWindowRow: $('#engineScaleWindowRow'),
+    engineScaleWinW: $('#engineScaleWinW'),
+    engineScaleWinH: $('#engineScaleWinH'),
+    engineScaleCustomRow: $('#engineScaleCustomRow'),
+    engineScaleCustomLabel: $('#engineScaleCustomLabel'),
+    engineScaleCustomFactor: $('#engineScaleCustomFactor'),
+    engineScaleCustomW: $('#engineScaleCustomW'),
+    engineScaleCustomH: $('#engineScaleCustomH'),
+    engineScaleCustomTimes: $('#engineScaleCustomTimes'),
+    engineScaleCustomHint: $('#engineScaleCustomHint'),
+    engineScaleAlgorithm: $('#engineScaleAlgorithm'),
+    engineScaleAlgorithmNote: $('#engineScaleAlgorithmNote'),
+    engineScaleDelay: $('#engineScaleDelay'),
+    engineAdvanced: $('#engineAdvanced'),
     engineModeNote: $('#engineModeNote'),
     engineModeList: $('#engineModeList'),
     engineAutoRow: $('#engineAutoRow'),
@@ -640,11 +667,6 @@
     settingsOpenBackups: $('#settingsOpenBackups'),
     settingsTier: $('#settingsTier'),
     settingsTagCount: $('#settingsTagCount'),
-    settingsScaleDelay: $('#settingsScaleDelay'),
-    settingsScaleMode: $('#settingsScaleMode'),
-    settingsScaleFactor: $('#settingsScaleFactor'),
-    settingsScaleFactorRow: $('#settingsScaleFactorRow'),
-    settingsScaleAlgorithm: $('#settingsScaleAlgorithm'),
     settingsTierTag: $('#settingsTierTag'),
     settingsSystemStats: $('#settingsSystemStats'),
     settingsSystemNote: $('#settingsSystemNote'),
@@ -2975,6 +2997,9 @@
         scaleDelaySeconds: Math.min(120, Math.max(0, Number(state.settings.scaleDelaySeconds) || 0)),
         scaleMode: state.settings.scaleMode === 'factor' ? 'factor' : 'fullscreen',
         scaleFactor: Math.min(10, Math.max(1.1, Number(state.settings.scaleFactor) || 2)),
+        scaleSizePreset: String(state.settings.scaleSizePreset || 'f:2'),
+        scaleWindowW: Math.min(7680, Math.max(160, Math.round(Number(state.settings.scaleWindowW) || 1280))),
+        scaleWindowH: Math.min(4320, Math.max(120, Math.round(Number(state.settings.scaleWindowH) || 720))),
         scaleAlgorithm: state.settings.scaleAlgorithm || '',
         minimizeOnLaunch: state.settings.minimizeOnLaunch !== false,
         scalingEngine: state.settings.scalingEngine || 'auto',
@@ -4388,51 +4413,58 @@
     return !!state.fullscreen;
   }
 
-  /** Name the active scaling mode in plain words. The per-game tick box only
-      says *whether* to scale; the row still has to show that fullscreen
-      scaling is alive (and which mode is in force) without a settings trip. */
+  /** One vocabulary for the whole app: 「开启缩放」 answers *whether* this
+      game is scaled; 「缩放模式」 answers *how*. Nothing outside the home
+      scaling sheet is allowed to call the mode "全屏缩放" or "启动时缩放"
+      again — that mix-up is what made the switch read like two features. */
   function scaleModeLabel() {
     const settings = state.settings || {};
     if (settings.scaleMode === 'factor') {
-      const factor = Number(settings.scaleFactor) || 2;
+      const factor = Math.min(10, Math.max(1.1, Number(settings.scaleFactor) || 2));
       const text = Number.isInteger(factor) ? String(factor) : String(Number(factor.toFixed(2)));
-      return `倍数缩放 ${text} 倍`;
+      return `放大 ${text} 倍`;
     }
-    return '全屏缩放';
+    return '铺满屏幕';
   }
 
-  /** The engine sheet (opened from the home "缩放设置" button) carries the
-      same per-game tick box, so deciding whether this game should be scaled
-      never requires a trip into the detail page. */
+  function scaleAlgorithmLabel() {
+    return state.settings?.scaleAlgorithm || '跟随引擎算法';
+  }
+
+  /** Read-only summary for the settings page; the editable controls live in
+      the home scaling sheet, so there is never a second copy to disagree. */
+  function scaleSummaryLabel() {
+    return `${scaleModeLabel()} · ${scaleAlgorithmLabel()}`;
+  }
+
+  function scaleSwitchHint(game, disabled) {
+    if (disabled) return '引擎已关闭 · 不能缩放';
+    return fullscreenScaleFor(game)
+      ? `已开启 · ${scaleModeLabel()}`
+      : '已关闭 · 按游戏原窗口运行';
+  }
+
+  /** The home "缩放设置" sheet carries the same per-game tick box, so
+      deciding whether this game should be scaled never needs the detail page. */
   function syncEngineScaleRow() {
     if (!els.engineScaleRow) return;
     const game = currentGame();
     const disabled = state.settings.scalingEngine === 'off';
-    const explicit = !!(game && typeof game.fullscreenScale === 'boolean');
     els.engineScaleRow.disabled = disabled;
     els.engineScaleRow.setAttribute('aria-disabled', String(disabled));
     setPrefSwitch(els.engineScaleRow, els.engineScaleCheck, !disabled && fullscreenScaleFor(game));
-    if (els.engineScaleHint) {
-      els.engineScaleHint.textContent = disabled
-        ? '已在设置中关闭'
-        : `${scaleModeLabel()} · ${explicit ? '仅此游戏' : '默认开启'}`;
-    }
+    if (els.engineScaleHint) els.engineScaleHint.textContent = scaleSwitchHint(game, disabled);
   }
 
   function syncHeroScaleRow() {
     if (!els.homeScaleRow) return;
     const game = currentGame();
     const disabled = state.settings.scalingEngine === 'off';
-    const explicit = !!(game && typeof game.fullscreenScale === 'boolean');
     els.homeScaleRow.hidden = !game;
     els.homeScaleRow.disabled = disabled;
     els.homeScaleRow.setAttribute('aria-disabled', String(disabled));
     setPrefSwitch(els.homeScaleRow, els.homeScaleSwitch, !disabled && fullscreenScaleFor(game));
-    if (els.homeScaleHint) {
-      els.homeScaleHint.textContent = disabled
-        ? '已在设置中关闭'
-        : `${scaleModeLabel()} · ${explicit ? '仅此游戏' : '默认开启'}`;
-    }
+    if (els.homeScaleHint) els.homeScaleHint.textContent = scaleSwitchHint(game, disabled);
     syncEngineScaleRow();
   }
 
@@ -4450,7 +4482,7 @@
       syncHeroScaleRow();
       syncDetailScaleRow();
       audio.error();
-      toast(result?.error || '无法保存缩放设置', 'alert');
+      toast(result?.error || '无法保存这款游戏的缩放开关', 'alert');
       return;
     }
     if (result.game) Object.assign(game, result.game);
@@ -4468,10 +4500,8 @@
     setPrefSwitch(els.detailScaleRow, els.detailScaleSwitch, !disabled && fullscreenScaleFor(game));
     if (els.detailScaleHint) {
       els.detailScaleHint.textContent = disabled
-        ? '已在设置中关闭'
-        : explicit
-          ? '仅对这款游戏生效'
-          : (state.fullscreen ? '沉浸模式下默认开启' : '全屏显示时默认开启');
+        ? '引擎已关闭 · 不能缩放'
+        : `${explicit ? '只对这款游戏' : '跟随默认'} · ${fullscreenScaleFor(game) ? '已开启' : '已关闭'}`;
     }
     syncEngineScaleRow();
   }
@@ -4488,12 +4518,12 @@
       game.fullscreenScale = null;
       syncDetailScaleRow();
       audio.error();
-      toast(result?.error || '无法保存缩放设置', 'alert');
+      toast(result?.error || '无法保存这款游戏的缩放开关', 'alert');
       return;
     }
     if (result.game) Object.assign(game, result.game);
     syncDetailScaleRow();
-    toast(next ? '启动时按设置缩放' : '启动时保持窗口大小', 'fullscreen');
+    toast(next ? '这款游戏：开启缩放' : '这款游戏：关闭缩放', 'fullscreen');
   }
 
   /* ---------- hidden game ---------- */
@@ -5421,12 +5451,6 @@
   function fillEngineDialog(options) {
     syncEngineScaleRow();
     const modes = Array.isArray(options.modes) ? options.modes : [];
-    if (els.engineMode) {
-      els.engineMode.innerHTML = modes.map((mode) => `
-        <option value="${mode.index}" ${mode.available ? '' : 'disabled'}>${esc(mode.name)}${mode.available ? '' : ' · 缺少效果'}</option>
-      `).join('');
-      els.engineMode.value = String(options.scalingMode ?? 0);
-    }
     if (els.engineEngine) els.engineEngine.value = state.settings.scalingEngine || 'auto';
     if (els.engineCapture) els.engineCapture.value = String(options.captureMethod ?? 0);
     if (els.engineCursor) els.engineCursor.value = String(options.cursorScaling ?? 6);
@@ -5436,25 +5460,228 @@
       els.engineFrameRate.placeholder = limited ? '' : '无上限';
     }
     setPrefSwitch(els.engine3dRow, els.engine3dSwitch, !!options.gameMode3d);
-
-    renderEngineModeList(modes, Number(els.engineMode?.value || 0));
     if (els.engineAutoRow) setPrefSwitch(els.engineAutoRow, els.engineAutoSwitch, options.autoStart === true);
 
     const current = modes.find((mode) => mode.index === options.scalingMode);
-    if (current && !current.available) {
-      // Lite bundles omit some effect files; never leave an unusable mode
-      // selected just because the old config pointed at it.
-      const first = modes.find((mode) => mode.available);
-      if (first && els.engineMode) els.engineMode.value = String(first.index);
-    }
     if (els.engineSubtitle) {
       els.engineSubtitle.textContent = `${options.bundled ? '内置 Magpie' : '系统 Magpie'} · ${options.configPath || '配置尚未生成'}`;
     }
     if (els.engineNote) {
       els.engineNote.textContent = current && !current.available
         ? `「${current.name}」需要的效果文件不在当前引擎里；换一个算法，或在设置里指定完整的 Magpie.exe。`
-        : '保存后会重启引擎；正在缩放的游戏会先退回窗口。';
+        : '保存后引擎会重启；正在缩放的游戏会先退回窗口。';
     }
+    fillScaleAlgorithms(options);
+    syncScalePanel();
+  }
+
+  /* ---------- home scaling sheet: one mode, one size, one algorithm ----------
+     There used to be two algorithm selects (settings page + engine sheet) and
+     the mode/factor/algorithm controls lived on the settings page. Both facts
+     produced "一会儿全屏、一会儿开始缩放" and let the two copies disagree.
+     Everything editable is now in this sheet; the settings page shows a
+     read-only summary and opens the same sheet.                              */
+
+  const SCALE_DELAY_STEPS = [0, 3, 5, 10, 15];
+
+  function clampScaleFactor(value) {
+    const number = Number(value);
+    return Math.min(10, Math.max(1.1, Number.isFinite(number) && number > 0 ? number : 2));
+  }
+
+  function scaleWindowSize() {
+    const s = state.settings || {};
+    const w = Number(s.scaleWindowW);
+    const h = Number(s.scaleWindowH);
+    return {
+      w: Number.isFinite(w) && w > 0 ? clampNumber(w, 160, 7680) : 1280,
+      h: Number.isFinite(h) && h > 0 ? clampNumber(h, 120, 4320) : 720
+    };
+  }
+
+  /** Magpie takes a multiplier, not a target resolution. A resolution preset
+      is converted into a multiplier against the window size the player gave;
+      min(width, height) keeps the aspect ratio instead of stretching it. */
+  function scaleSizeFactor(preset) {
+    const kind = String(preset || state.settings.scaleSizePreset || 'f:2');
+    const win = scaleWindowSize();
+    if (kind === 'f:custom') return clampScaleFactor(els.engineScaleCustomFactor?.value);
+    if (kind === 'r:custom') {
+      const w = clampNumber(els.engineScaleCustomW?.value, 160, 7680);
+      const h = clampNumber(els.engineScaleCustomH?.value, 120, 4320);
+      return clampScaleFactor(Math.min(w / win.w, h / win.h));
+    }
+    if (kind.startsWith('f:')) return clampScaleFactor(kind.slice(2));
+    if (kind.startsWith('r:')) {
+      const [w, h] = kind.slice(2).split('x').map(Number);
+      if (w > 0 && h > 0) return clampScaleFactor(Math.min(w / win.w, h / win.h));
+    }
+    return clampScaleFactor(state.settings.scaleFactor);
+  }
+
+  function scaleSizeNote() {
+    const s = state.settings;
+    if (s.scaleMode !== 'factor') {
+      return '铺满屏幕时输出尺寸跟着显示器走；想指定放大到多大，在下面选倍数或目标分辨率，会自动切成「按倍数放大」。';
+    }
+    const factor = clampScaleFactor(s.scaleFactor);
+    const text = Number.isInteger(factor) ? String(factor) : String(Number(factor.toFixed(2)));
+    const win = scaleWindowSize();
+    const tail = `按 ${win.w}×${win.h} 的窗口换算 → ${text} 倍，约放大到 ${Math.round(win.w * factor)}×${Math.round(win.h * factor)}`;
+    return String(s.scaleSizePreset || '').startsWith('r:')
+      ? `${tail}；保持比例，不会拉伸变形，最小按 1.1 倍处理。`
+      : `${tail}。`;
+  }
+
+  function syncScaleSummary() {
+    if (els.settingsScaleSetupHint) els.settingsScaleSetupHint.textContent = scaleSummaryLabel();
+    syncHeroScaleRow();
+    syncDetailScaleRow();
+  }
+
+  function syncScalePanel() {
+    const s = state.settings;
+    const mode = s.scaleMode === 'factor' ? 'factor' : 'fullscreen';
+    const factorMode = mode === 'factor';
+    if (els.engineScaleTabs) {
+      els.engineScaleTabs.querySelectorAll('.scale-tab').forEach((tab) => {
+        tab.setAttribute('aria-selected', String(tab.dataset.scaleMode === mode));
+      });
+    }
+    if (els.engineScaleModeNote) {
+      els.engineScaleModeNote.textContent = factorMode
+        ? '按倍数放大：窗口按你选的尺寸放大，桌面仍露在外面；尺寸和算法都在下面选。'
+        : '铺满屏幕：画面放大到整块屏幕，输出尺寸跟着显示器走，桌面会被盖住。';
+    }
+
+    const preset = String(s.scaleSizePreset || 'f:2');
+    const custom = preset === 'f:custom' || preset === 'r:custom';
+    // Keep the size select visible in both modes: 「铺满屏幕 · 跟随显示器」
+    // is its first option, so the player can see and change the output size
+    // without first guessing which tab hides it.
+    if (els.engineScaleWindowRow) els.engineScaleWindowRow.hidden = !factorMode;
+    if (els.engineScaleCustomRow) els.engineScaleCustomRow.hidden = !factorMode || !custom;
+    if (els.engineScaleSize) {
+      els.engineScaleSize.value = factorMode ? preset : 'fullscreen';
+      if (factorMode && els.engineScaleSize.value !== preset) els.engineScaleSize.value = 'f:2';
+    }
+
+    const win = scaleWindowSize();
+    if (els.engineScaleWinW) els.engineScaleWinW.value = String(win.w);
+    if (els.engineScaleWinH) els.engineScaleWinH.value = String(win.h);
+    const customResolution = preset === 'r:custom';
+    if (els.engineScaleCustomLabel) els.engineScaleCustomLabel.textContent = customResolution ? '自定义分辨率' : '自定义倍数';
+    if (els.engineScaleCustomFactor) {
+      els.engineScaleCustomFactor.value = String(clampScaleFactor(s.scaleFactor));
+      els.engineScaleCustomFactor.hidden = customResolution;
+    }
+    if (els.engineScaleCustomW) {
+      els.engineScaleCustomW.value = String(Math.round(win.w * clampScaleFactor(s.scaleFactor)));
+      els.engineScaleCustomW.hidden = !customResolution;
+    }
+    if (els.engineScaleCustomTimes) els.engineScaleCustomTimes.hidden = !customResolution;
+    if (els.engineScaleCustomH) {
+      els.engineScaleCustomH.value = String(Math.round(win.h * clampScaleFactor(s.scaleFactor)));
+      els.engineScaleCustomH.hidden = !customResolution;
+    }
+    if (els.engineScaleCustomHint) {
+      els.engineScaleCustomHint.textContent = customResolution ? '宽 × 高，按上面的窗口尺寸换算' : '1.1 – 10 倍';
+    }
+    if (els.engineScaleSizeNote) els.engineScaleSizeNote.textContent = scaleSizeNote();
+    if (els.engineScaleDelay) {
+      const stored = Math.max(0, Number(s.scaleDelaySeconds) || 0);
+      els.engineScaleDelay.value = String(SCALE_DELAY_STEPS.reduce((best, step) =>
+        Math.abs(step - stored) < Math.abs(best - stored) ? step : best, 0));
+    }
+    syncScaleSummary();
+  }
+
+  function applyScaleMode(mode) {
+    const next = mode === 'factor' ? 'factor' : 'fullscreen';
+    if (state.settings.scaleMode === next) return;
+    state.settings.scaleMode = next;
+    saveSettings();
+    audio.toggle();
+    syncScalePanel();
+    // 倍数放大只有内置缩放引擎做得到；底层引擎还停在「仅无边框拉伸」时，
+    // 提前把这件事说清楚，免得玩家以为倍数没生效。
+    if (next === 'factor' && state.settings.scalingEngine === 'native') {
+      toast('缩放模式：按倍数放大（将由内置缩放引擎完成）', 'check');
+      return;
+    }
+    toast(next === 'factor' ? '缩放模式：按倍数放大' : '缩放模式：铺满屏幕', 'check');
+  }
+
+  function applyScaleSize() {
+    const value = els.engineScaleSize?.value || 'f:2';
+    if (value === 'fullscreen') {
+      applyScaleMode('fullscreen');
+      return;
+    }
+    state.settings.scaleSizePreset = value;
+    state.settings.scaleFactor = scaleSizeFactor(value);
+    // Picking a concrete size IS windowed scaling; switch automatically so
+    // the player never has to guess which tab owns the resolution choice.
+    state.settings.scaleMode = 'factor';
+    saveSettings();
+    audio.toggle();
+    syncScalePanel();
+    toast(`缩放尺寸：${scaleModeLabel()}`, 'check');
+  }
+
+  function applyScaleWindowSize() {
+    state.settings.scaleWindowW = clampNumber(els.engineScaleWinW?.value, 160, 7680);
+    state.settings.scaleWindowH = clampNumber(els.engineScaleWinH?.value, 120, 4320);
+    if (String(state.settings.scaleSizePreset || '').startsWith('r:')) {
+      state.settings.scaleFactor = scaleSizeFactor(state.settings.scaleSizePreset);
+    }
+    saveSettings();
+    // Do not re-fill the inputs here: the player is still typing in them.
+    if (els.engineScaleSizeNote) els.engineScaleSizeNote.textContent = scaleSizeNote();
+    syncScaleSummary();
+  }
+
+  function applyScaleCustomSize() {
+    const preset = String(state.settings.scaleSizePreset || '');
+    if (preset !== 'f:custom' && preset !== 'r:custom') return;
+    state.settings.scaleFactor = scaleSizeFactor(preset);
+    saveSettings();
+    audio.toggle();
+    if (els.engineScaleSizeNote) els.engineScaleSizeNote.textContent = scaleSizeNote();
+    syncScaleSummary();
+    toast(`缩放尺寸：${scaleModeLabel()}`, 'check');
+  }
+
+  function applyScaleDelay() {
+    state.settings.scaleDelaySeconds = Math.min(120, Math.max(0, Number(els.engineScaleDelay?.value) || 0));
+    saveSettings();
+    audio.toggle();
+    toast(state.settings.scaleDelaySeconds > 0
+      ? `缩放时机：等 ${state.settings.scaleDelaySeconds} 秒`
+      : '缩放时机：窗口出现就缩放', 'check');
+  }
+
+  function updateScaleAlgorithmNote(data) {
+    if (!els.engineScaleAlgorithmNote) return;
+    const modes = Array.isArray(data?.modes) ? data.modes : [];
+    const wanted = state.settings.scaleAlgorithm || '';
+    const active = wanted ? modes.find((mode) => mode.name === wanted) : null;
+    els.engineScaleAlgorithmNote.textContent = active
+      ? `${active.name} · ${active.note || '按这个算法的默认效果渲染'}。选完立刻写进引擎，启动游戏时还会再校验一次。`
+      : '像素类算法（Integer Scale、像素缩放）保留硬边，适合老游戏和 2D 画面；平滑类会把像素边缘糊掉。选完立刻写进引擎，启动游戏时还会再校验一次。';
+  }
+
+  function applyScaleAlgorithm() {
+    const wanted = els.engineScaleAlgorithm?.value || '';
+    state.settings.scaleAlgorithm = wanted;
+    saveSettings();
+    audio.toggle();
+    updateScaleAlgorithmNote(state.engineOptions);
+    const modes = Array.isArray(state.engineOptions?.modes) ? state.engineOptions.modes : [];
+    const active = wanted ? modes.find((mode) => mode.name === wanted) : null;
+    renderEngineModeList(modes, active ? active.index : (state.engineOptions?.scalingMode ?? 0));
+    syncScaleSummary();
+    toast(wanted ? `缩放算法：${wanted}` : '缩放算法：跟随引擎当前设置', 'check');
   }
 
   function renderEngineModeList(modes, activeIndex) {
@@ -5500,8 +5727,8 @@
   function resetEngineDialog() {
     const options = state.engineOptions;
     if (!options) return;
-    const first = (options.modes || []).find((mode) => mode.available) || { index: 0 };
-    if (els.engineMode) els.engineMode.value = String(first.index);
+    if (els.engineScaleAlgorithm) els.engineScaleAlgorithm.value = '';
+    if (els.engineEngine) els.engineEngine.value = 'auto';
     if (els.engineCapture) els.engineCapture.value = '0';
     if (els.engineCursor) els.engineCursor.value = '6';
     if (els.engineFrameRate) {
@@ -5511,7 +5738,7 @@
     setPrefSwitch(els.engine3dRow, els.engine3dSwitch, false);
     if (els.engineAutoRow) setPrefSwitch(els.engineAutoRow, els.engineAutoSwitch, false);
     audio.toggle();
-    toast('已恢复默认值 · 点保存生效', 'spark');
+    toast('高级设置已恢复默认 · 点「保存并重启引擎」生效', 'spark');
   }
 
   async function saveEngineDialog() {
@@ -5522,8 +5749,19 @@
       : (Number(state.engineOptions?.maxFrameRate) || 120);
     const engineMode = els.engineEngine?.value || state.settings.scalingEngine || 'auto';
     if (engineMode !== state.settings.scalingEngine) await applyScalingEngineMode(engineMode);
+
+    // The advanced sheet and the player-facing algorithm select are ONE value.
+    // Resolve the chosen name back to Magpie's index here instead of keeping a
+    // second native <select> that could disagree with the player's choice.
+    const modes = Array.isArray(state.engineOptions?.modes) ? state.engineOptions.modes : [];
+    const currentIndex = Number(state.engineOptions?.scalingMode ?? 0);
+    const chosenName = els.engineScaleAlgorithm?.value || '';
+    const chosen = chosenName
+      ? modes.find((mode) => mode.name === chosenName)
+      : modes.find((mode) => mode.index === currentIndex);
+    const scalingMode = chosen ? Number(chosen.index) : currentIndex;
     const result = await call('saveEngineOptions', {
-      scalingMode: Number(els.engineMode?.value || 0),
+      scalingMode,
       captureMethod: Number(els.engineCapture?.value || 0),
       cursorScaling: Number(els.engineCursor?.value || 6),
       frameRateLimiterEnabled: frameRateLimited,
@@ -5536,13 +5774,13 @@
       toast(result?.error || '缩放引擎设置保存失败', 'alert');
       return;
     }
-    // Keep the settings page in sync with the engine sheet: the native side
-    // stores the same name, so the next launch will not undo this choice.
-    const chosenMode = (state.engineOptions?.modes || []).find(
-      (mode) => String(mode.index) === String(els.engineMode?.value));
-    state.settings.scaleAlgorithm = chosenMode ? chosenMode.name : '';
+    // The native side writes the algorithm name back into PlayerSettings; keep
+    // the front end on exactly that name so the next launch cannot undo it.
+    state.settings.scaleAlgorithm = chosen ? chosen.name : '';
+    saveSettings();
+    syncScaleSummary();
     audio.confirm();
-    toast(result.message || '缩放引擎设置已保存', 'check');
+    toast(result.message || '高级引擎设置已保存', 'check');
     closeEngineDialog();
     setTimeout(refreshMagpieStatus, 4200);
   }
@@ -5828,16 +6066,19 @@
   /** Fills the scaling-algorithm select from Magpie's own mode list. Names,
       not indices, are stored: Magpie can insert a mode or the library can be
       moved to another PC without silently switching to a different effect. */
-  async function fillScaleAlgorithms() {
-    const select = els.settingsScaleAlgorithm;
+  async function fillScaleAlgorithms(options) {
+    const select = els.engineScaleAlgorithm;
     if (!select) return;
-    if (!state.engineOptions) {
-      const result = await call('engineOptions');
-      if (result && result.ok) state.engineOptions = result;
+    let data = options;
+    if (!data) {
+      if (!state.engineOptions) {
+        const result = await call('engineOptions');
+        if (result && result.ok) state.engineOptions = result;
+      }
+      data = state.engineOptions || {};
     }
-    const options = state.engineOptions || {};
-    const modes = Array.isArray(options.modes) ? options.modes : [];
-    const current = modes.find((mode) => mode.index === (options.scalingMode ?? 0));
+    const modes = Array.isArray(data.modes) ? data.modes : [];
+    const current = modes.find((mode) => mode.index === (data.scalingMode ?? 0));
     const followLabel = current ? `跟随引擎当前设置（${current.name}）` : '跟随引擎当前设置';
     const wanted = state.settings.scaleAlgorithm || '';
     select.innerHTML = [
@@ -5847,6 +6088,9 @@
     ].join('');
     select.value = wanted;
     if (select.value !== wanted) select.value = '';
+    updateScaleAlgorithmNote(data);
+    const active = wanted ? modes.find((mode) => mode.name === wanted) : current;
+    renderEngineModeList(modes, active ? active.index : Number(data.scalingMode ?? 0));
   }
 
   function renderSettings() {
@@ -5874,26 +6118,7 @@
     if (els.settingsTagCount) {
       els.settingsTagCount.value = String(Math.min(3, Math.max(1, Number(state.settings.libraryTagCount) || 3)));
     }
-    if (els.settingsScaleMode) {
-      els.settingsScaleMode.value = state.settings.scaleMode === 'factor' ? 'factor' : 'fullscreen';
-    }
-    if (els.settingsScaleFactor) {
-      const storedFactor = Math.min(10, Math.max(1.1, Number(state.settings.scaleFactor) || 2));
-      const factorSteps = [1.25, 1.5, 1.75, 2, 2.5, 3];
-      els.settingsScaleFactor.value = String(factorSteps.reduce((best, step) =>
-        Math.abs(step - storedFactor) < Math.abs(best - storedFactor) ? step : best, 2));
-    }
-    if (els.settingsScaleFactorRow) {
-      els.settingsScaleFactorRow.hidden = state.settings.scaleMode !== 'factor';
-    }
-    fillScaleAlgorithms();
-    if (els.settingsScaleDelay) {
-      // Snap to the offered options so a hand-edited value can't blank the select.
-      const stored = Math.max(0, Number(state.settings.scaleDelaySeconds) || 0);
-      const options = [0, 3, 5, 10, 15];
-      els.settingsScaleDelay.value = String(options.reduce((best, step) =>
-        Math.abs(step - stored) < Math.abs(best - stored) ? step : best, 0));
-    }
+    if (els.settingsScaleSetupHint) els.settingsScaleSetupHint.textContent = scaleSummaryLabel();
     if (els.settingsTierTag) els.settingsTierTag.textContent = system.tierLabel || '完整效果';
     if (els.settingsSystemStats) {
       els.settingsSystemStats.innerHTML = [
@@ -8013,15 +8238,33 @@
       await call('restartScalingEngine');
       toast('正在重启缩放引擎…', 'spark');
     });
-    if (els.settingsEngineOptions) els.settingsEngineOptions.addEventListener('click', openEngineDialog);
+    if (els.settingsScaleSetupRow) els.settingsScaleSetupRow.addEventListener('click', openEngineDialog);
     if (els.engineClose) els.engineClose.addEventListener('click', closeEngineDialog);
+    if (els.engineDone) els.engineDone.addEventListener('click', closeEngineDialog);
     if (els.engineSave) els.engineSave.addEventListener('click', saveEngineDialog);
     if (els.engineReset) els.engineReset.addEventListener('click', resetEngineDialog);
     if (els.engineOpenFull) els.engineOpenFull.addEventListener('click', openFullMagpie);
     if (els.engine3dRow) els.engine3dRow.addEventListener('click', toggleEngine3d);
-    if (els.engineMode) els.engineMode.addEventListener('change', () => {
-      const modes = (state.engineOptions && state.engineOptions.modes) || [];
-      renderEngineModeList(modes, Number(els.engineMode.value || 0));
+    if (els.engineScaleTabs) {
+      els.engineScaleTabs.addEventListener('click', (event) => {
+        const tab = event.target.closest('.scale-tab');
+        if (tab) applyScaleMode(tab.dataset.scaleMode);
+      });
+    }
+    if (els.engineScaleAlgorithm) els.engineScaleAlgorithm.addEventListener('change', applyScaleAlgorithm);
+    if (els.engineAdvanced) els.engineAdvanced.addEventListener('toggle', () => {
+      if (!els.engineAdvanced.open || !state.engineOptions) return;
+      const modes = state.engineOptions.modes || [];
+      const wanted = state.settings.scaleAlgorithm || '';
+      const active = wanted ? modes.find((mode) => mode.name === wanted) : null;
+      renderEngineModeList(modes, active ? active.index : Number(state.engineOptions.scalingMode ?? 0));
+    });
+    if (els.engineScaleSize) els.engineScaleSize.addEventListener('change', applyScaleSize);
+    if (els.engineScaleDelay) els.engineScaleDelay.addEventListener('change', applyScaleDelay);
+    if (els.engineScaleWinW) els.engineScaleWinW.addEventListener('change', applyScaleWindowSize);
+    if (els.engineScaleWinH) els.engineScaleWinH.addEventListener('change', applyScaleWindowSize);
+    [els.engineScaleCustomFactor, els.engineScaleCustomW, els.engineScaleCustomH].forEach((input) => {
+      if (input) input.addEventListener('change', applyScaleCustomSize);
     });
     if (els.engineAutoRow) els.engineAutoRow.addEventListener('click', () => {
       const next = els.engineAutoRow.getAttribute('aria-checked') !== 'true';
@@ -8050,37 +8293,6 @@
       audio.toggle();
       renderLibrary();
       toast(`封面标签：${state.settings.libraryTagCount} 个`, 'check');
-    });
-    if (els.settingsScaleDelay) els.settingsScaleDelay.addEventListener('change', () => {
-      state.settings.scaleDelaySeconds = Math.min(120, Math.max(0, Number(els.settingsScaleDelay.value) || 0));
-      saveSettings();
-      audio.toggle();
-      toast(state.settings.scaleDelaySeconds > 0
-        ? `启动后 ${state.settings.scaleDelaySeconds} 秒再缩放`
-        : '缩放时机：立即', 'check');
-    });
-    if (els.settingsScaleMode) els.settingsScaleMode.addEventListener('change', () => {
-      state.settings.scaleMode = els.settingsScaleMode.value === 'factor' ? 'factor' : 'fullscreen';
-      if (els.settingsScaleFactorRow) els.settingsScaleFactorRow.hidden = state.settings.scaleMode !== 'factor';
-      saveSettings();
-      audio.toggle();
-      toast(state.settings.scaleMode === 'factor'
-        ? '缩放方式：倍数缩放，可在下面选倍数'
-        : '缩放方式：全屏缩放', 'check');
-    });
-    if (els.settingsScaleFactor) els.settingsScaleFactor.addEventListener('change', () => {
-      state.settings.scaleFactor = Math.min(10, Math.max(1.1, Number(els.settingsScaleFactor.value) || 2));
-      saveSettings();
-      audio.toggle();
-      toast(`放大倍数：${state.settings.scaleFactor} 倍`, 'check');
-    });
-    if (els.settingsScaleAlgorithm) els.settingsScaleAlgorithm.addEventListener('change', () => {
-      state.settings.scaleAlgorithm = els.settingsScaleAlgorithm.value || '';
-      saveSettings();
-      audio.toggle();
-      toast(state.settings.scaleAlgorithm
-        ? `缩放算法：${state.settings.scaleAlgorithm}`
-        : '缩放算法：跟随引擎当前设置', 'check');
     });
     if (els.settingsExport) els.settingsExport.addEventListener('click', exportPack);
     if (els.settingsImport) els.settingsImport.addEventListener('click', importPack);
@@ -10550,6 +10762,14 @@
       scaleDelaySeconds: Math.min(120, Math.max(0, Number(boot.settings?.scaleDelaySeconds) || 0)),
       scaleMode: boot.settings?.scaleMode === 'factor' ? 'factor' : 'fullscreen',
       scaleFactor: Math.min(10, Math.max(1.1, Number(boot.settings?.scaleFactor) || 2)),
+      scaleSizePreset: (() => {
+        const stored = boot.settings?.scaleSizePreset;
+        if (typeof stored === 'string' && stored) return stored;
+        const factor = Math.min(10, Math.max(1.1, Number(boot.settings?.scaleFactor) || 2));
+        return [1.25, 1.5, 1.75, 2, 2.5, 3].includes(factor) ? `f:${factor}` : 'f:custom';
+      })(),
+      scaleWindowW: Math.min(7680, Math.max(160, Math.round(Number(boot.settings?.scaleWindowW) || 1280))),
+      scaleWindowH: Math.min(4320, Math.max(120, Math.round(Number(boot.settings?.scaleWindowH) || 720))),
       scaleAlgorithm: typeof boot.settings?.scaleAlgorithm === 'string' ? boot.settings.scaleAlgorithm : '',
       minimizeOnLaunch: boot.settings?.minimizeOnLaunch !== false,
       scalingEngine: ['auto', 'native', 'off'].includes(boot.settings?.scalingEngine)

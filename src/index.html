@@ -210,7 +210,7 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>
                   <span>游戏详情</span>
                 </button>
-                <button class="btn ghost compact" id="homeEngineBtn" aria-label="编辑 Magpie 缩放选项" title="编辑 Magpie 缩放选项">
+                <button class="btn ghost compact" id="homeEngineBtn" aria-label="打开缩放设置" title="打开缩放设置">
                   <svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>
                   <span>缩放设置</span>
                 </button>
@@ -237,7 +237,7 @@
                     <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
                     <span>开启缩放</span>
                   </span>
-                  <span class="hero-scale-hint" id="homeScaleHint">全屏缩放 · 默认开启</span>
+                  <span class="hero-scale-hint" id="homeScaleHint">已关闭 · 按游戏原窗口运行</span>
                   <span class="hero-scale-check" id="homeScaleSwitch" aria-hidden="true"></span>
                 </button>
               </div>
@@ -753,7 +753,7 @@
               <button class="pref-row" id="settingsHotkeyRow" type="button">
                 <span class="pref-label">
                   <svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg>
-                  <span>全屏缩放快捷键</span>
+                  <span>缩放快捷键</span>
                 </span>
                 <span class="pref-hint" id="settingsHotkeyHint" hidden>按下组合键 · Esc 取消</span>
                 <span class="hotkey-value" id="settingsHotkeyLabel">Alt + Shift + A</span>
@@ -763,58 +763,30 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
                   <span>自动启动内置缩放引擎</span>
                 </span>
+                <span class="pref-hint">只管引擎本身，和游戏开不开缩放是两回事</span>
                 <span class="switch on" id="settingsAutoEngineSwitch"></span>
               </button>
-              <div class="settings-field settings-field--inline">
-                <label for="settingsScaleMode">缩放方式</label>
-                <select id="settingsScaleMode" aria-label="缩放方式">
-                  <option value="fullscreen">全屏缩放 · 铺满整块屏幕</option>
-                  <option value="factor">倍数缩放 · 按倍数放大窗口</option>
-                </select>
-                <span class="settings-note">两种都走缩放引擎。全屏是把画面铺满屏幕；倍数是把窗口按选定倍数放大，桌面仍露在外面。</span>
-              </div>
-              <div class="settings-field settings-field--inline" id="settingsScaleFactorRow">
-                <label for="settingsScaleFactor">放大倍数</label>
-                <select id="settingsScaleFactor" aria-label="放大倍数">
-                  <option value="1.25">1.25 倍</option>
-                  <option value="1.5">1.5 倍</option>
-                  <option value="1.75">1.75 倍</option>
-                  <option value="2">2 倍</option>
-                  <option value="2.5">2.5 倍</option>
-                  <option value="3">3 倍</option>
-                </select>
-                <span class="settings-note">倍数越大画面越大，也越吃显卡；换倍数会在下次启动游戏时写进缩放引擎。</span>
-              </div>
-              <div class="settings-field settings-field--inline">
-                <label for="settingsScaleAlgorithm">缩放算法</label>
-                <select id="settingsScaleAlgorithm" aria-label="缩放算法">
-                  <option value="">跟随引擎当前设置</option>
-                </select>
-                <span class="settings-note">像素算法（Integer Scale、像素缩放）保留硬边，适合老游戏和 2D 画面；平滑类算法会把像素边缘糊掉。选完立刻写进引擎，启动游戏时还会再校验一次。</span>
-              </div>
-              <div class="settings-field settings-field--inline">
-                <label for="settingsScaleDelay">启动后延迟缩放</label>
-                <select id="settingsScaleDelay" aria-label="启动后延迟缩放">
-                  <option value="0">立即缩放</option>
-                  <option value="3">等待 3 秒</option>
-                  <option value="5">等待 5 秒</option>
-                  <option value="10">等待 10 秒</option>
-                  <option value="15">等待 15 秒</option>
-                </select>
-                <span class="settings-note">要加载的游戏先等本体就绪再缩放，否则缩放无效；延迟只作用于缩放，不影响启动其它步骤。</span>
-              </div>
+              <button class="pref-row" id="settingsScaleSetupRow" type="button">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>
+                  <span>缩放设置</span>
+                </span>
+                <span class="pref-hint" id="settingsScaleSetupHint">铺满屏幕 · 跟随引擎算法</span>
+                <span class="hotkey-value">打开 ›</span>
+              </button>
+              <p class="settings-note scale-setup-note">每款游戏开不开缩放、铺满屏幕还是按倍数放大、放大到多大、用哪种算法，都在首页「缩放设置」里选，所有游戏共用一次；这里只管引擎和快捷键。</p>
               <div class="settings-note" id="settingsMagpieNote">正在检测 Magpie…</div>
               <div class="settings-actions" id="settingsMagpieActions" hidden>
                 <button class="btn ghost compact" id="settingsMagpieStart" type="button">启动引擎</button>
                 <button class="btn ghost compact" id="settingsMagpieRestart" type="button" hidden>重启引擎</button>
                 <button class="btn ghost compact" id="settingsMagpiePick" type="button">指定 Magpie.exe</button>
-                <button class="btn ghost compact" id="settingsEngineOptions" type="button">引擎设置…</button>
               </div>
               <button class="pref-row" id="settingsFullscreenRow">
                 <span class="pref-label">
                   <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-                  <span>全屏显示</span>
+                  <span>界面全屏显示</span>
                 </span>
+                <span class="pref-hint">只放大启动器窗口，和游戏缩放无关</span>
                 <span class="pref-note">F</span>
               </button>
             </div>
@@ -896,90 +868,168 @@
   </div>
 </div>
 
-<!-- ============ SCALING ENGINE ============ -->
+<!-- ============ SCALING SETUP / ENGINE ============ -->
 <div class="overlay engine-overlay" id="engineOverlay" aria-hidden="true">
-  <div class="engine-shell" role="dialog" aria-modal="true" aria-label="缩放引擎设置">
+  <div class="engine-shell scale-sheet" role="dialog" aria-modal="true" aria-label="缩放设置">
     <header class="engine-head">
       <div class="engine-head-copy">
-        <div class="engine-kicker">SCALING ENGINE</div>
-        <h2>缩放引擎</h2>
-        <p id="engineSubtitle">内置 Magpie · 保存后会重启引擎</p>
+        <div class="engine-kicker">SCALING</div>
+        <h2>缩放设置</h2>
+        <p id="engineSubtitle">内置 Magpie · 改完立即生效</p>
       </div>
-      <button class="icon-btn" id="engineClose" aria-label="关闭缩放引擎设置">
+      <button class="icon-btn" id="engineClose" aria-label="关闭缩放设置">
         <svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>
       </button>
     </header>
 
     <div class="engine-body">
+      <!-- One tick box answers one question: does THIS game get scaled. -->
       <button class="engine-scale-row" id="engineScaleRow" role="checkbox" aria-checked="false" type="button">
         <span class="pref-label">
           <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
           <span>开启缩放</span>
         </span>
-        <span class="pref-hint" id="engineScaleHint">全屏缩放 · 默认开启</span>
+        <span class="pref-hint" id="engineScaleHint">已关闭 · 按游戏原窗口运行</span>
         <span class="hero-scale-check" id="engineScaleCheck" aria-hidden="true"></span>
       </button>
-      <div class="settings-field">
-        <label for="engineEngine">缩放引擎</label>
-        <select id="engineEngine" aria-label="全屏缩放方式">
-          <option value="auto">自动 · Magpie 优先</option>
-          <option value="native">仅无边框拉伸</option>
-          <option value="off">关闭缩放</option>
+      <p class="scale-note">只管当前这款游戏。关掉就按游戏原本的窗口大小运行，启动器不会去放大它。</p>
+
+      <div class="scale-section-head"><span>缩放模式</span><em>所有游戏共用</em></div>
+      <div class="scale-tabs" id="engineScaleTabs" role="tablist" aria-label="缩放模式">
+        <button class="scale-tab" type="button" role="tab" data-scale-mode="fullscreen" aria-selected="true">
+          <b>铺满屏幕</b><span>画面放大到整块屏幕</span>
+        </button>
+        <button class="scale-tab" type="button" role="tab" data-scale-mode="factor" aria-selected="false">
+          <b>按倍数放大</b><span>窗口放大，桌面还露着</span>
+        </button>
+      </div>
+      <p class="scale-note" id="engineScaleModeNote">铺满屏幕：输出尺寸跟着显示器走，桌面会被画面盖住。</p>
+
+      <div class="settings-field scale-size-field" id="engineScaleSizeRow">
+        <label for="engineScaleSize">缩放尺寸</label>
+        <select id="engineScaleSize" aria-label="缩放尺寸">
+          <option value="fullscreen">铺满屏幕 · 跟随显示器分辨率</option>
+          <optgroup label="按倍数放大">
+            <option value="f:1.25">1.25 倍</option>
+            <option value="f:1.5">1.5 倍</option>
+            <option value="f:1.75">1.75 倍</option>
+            <option value="f:2">2 倍</option>
+            <option value="f:2.5">2.5 倍</option>
+            <option value="f:3">3 倍</option>
+            <option value="f:custom">自定义倍数…</option>
+          </optgroup>
+          <optgroup label="按目标分辨率放大到">
+            <option value="r:1280x720">1280 × 720</option>
+            <option value="r:1600x900">1600 × 900</option>
+            <option value="r:1920x1080">1920 × 1080</option>
+            <option value="r:2560x1440">2560 × 1440</option>
+            <option value="r:3840x2160">3840 × 2160</option>
+            <option value="r:custom">自定义分辨率…</option>
+          </optgroup>
         </select>
+        <span class="scale-note" id="engineScaleSizeNote">按 1280×720 的窗口算 → 2 倍，约放大到 2560×1440。</span>
+      </div>
+      <div class="scale-inline-row" id="engineScaleWindowRow">
+        <label>游戏窗口约</label>
+        <input id="engineScaleWinW" type="number" min="160" max="7680" step="1" inputmode="numeric" value="1280" aria-label="游戏窗口宽度">
+        <span class="scale-times">×</span>
+        <input id="engineScaleWinH" type="number" min="120" max="4320" step="1" inputmode="numeric" value="720" aria-label="游戏窗口高度">
+        <em>用来把「目标分辨率」换算成放大倍数</em>
+      </div>
+      <div class="scale-inline-row" id="engineScaleCustomRow" hidden>
+        <label id="engineScaleCustomLabel">自定义倍数</label>
+        <input id="engineScaleCustomFactor" type="number" min="1.1" max="10" step="0.05" inputmode="decimal" value="2" aria-label="自定义放大倍数">
+        <input id="engineScaleCustomW" type="number" min="160" max="7680" step="1" inputmode="numeric" value="1920" aria-label="自定义目标宽度" hidden>
+        <span class="scale-times" id="engineScaleCustomTimes" hidden>×</span>
+        <input id="engineScaleCustomH" type="number" min="120" max="4320" step="1" inputmode="numeric" value="1080" aria-label="自定义目标高度" hidden>
+        <em id="engineScaleCustomHint">1.1 – 10 倍</em>
+      </div>
+
+      <div class="settings-field">
+        <label for="engineScaleAlgorithm">缩放算法</label>
+        <select id="engineScaleAlgorithm" aria-label="缩放算法">
+          <option value="">跟随引擎当前设置</option>
+        </select>
+        <span class="scale-note" id="engineScaleAlgorithmNote">像素类算法保留硬边，适合老游戏和 2D 画面；平滑类会把像素边缘糊掉。选完立刻写进引擎，启动游戏时还会再校验一次。</span>
       </div>
       <div class="settings-field">
-        <label for="engineMode">缩放算法</label>
-        <select id="engineMode" aria-label="缩放算法"></select>
+        <label for="engineScaleDelay">启动时机</label>
+        <select id="engineScaleDelay" aria-label="启动时机">
+          <option value="0">游戏窗口出现就缩放</option>
+          <option value="3">等 3 秒再缩放</option>
+          <option value="5">等 5 秒再缩放</option>
+          <option value="10">等 10 秒再缩放</option>
+          <option value="15">等 15 秒再缩放</option>
+        </select>
+        <span class="scale-note">有加载画面的游戏先等本体就绪，否则缩放会落空；这项只影响缩放时机，不影响启动别的步骤。</span>
       </div>
-      <p class="engine-mode-note" id="engineModeNote">选择一种算法；每种算法的适用场景见下方说明。</p>
-      <div class="engine-mode-list" id="engineModeList" aria-label="算法说明"></div>
-      <div class="engine-grid">
-        <div class="settings-field">
-          <label for="engineCapture">画面捕获</label>
-          <select id="engineCapture" aria-label="画面捕获方式">
-            <option value="0">自动 · Graphics Capture</option>
-            <option value="1">Desktop Duplication</option>
-            <option value="2">DWM 共享表面</option>
-          </select>
+      <p class="engine-note scale-auto-note">上面这些选项选完就保存，下次启动游戏自动应用；算法会立刻写进引擎。</p>
+
+      <details class="scale-advanced" id="engineAdvanced">
+        <summary>高级引擎设置 <em>底层引擎 / 捕获 / 光标 / 帧率 / 算法说明</em></summary>
+        <div class="scale-advanced-body">
+          <div class="settings-field">
+            <label for="engineEngine">底层引擎</label>
+            <select id="engineEngine" aria-label="底层引擎">
+              <option value="auto">自动 · Magpie 优先</option>
+              <option value="native">仅无边框拉伸</option>
+              <option value="off">关闭缩放</option>
+            </select>
+          </div>
+          <p class="engine-mode-note" id="engineModeNote">选择一种算法；每种算法的适用场景见下方说明。</p>
+          <div class="engine-mode-list" id="engineModeList" aria-label="算法说明"></div>
+          <div class="engine-grid">
+            <div class="settings-field">
+              <label for="engineCapture">画面捕获</label>
+              <select id="engineCapture" aria-label="画面捕获方式">
+                <option value="0">自动 · Graphics Capture</option>
+                <option value="1">Desktop Duplication</option>
+                <option value="2">DWM 共享表面</option>
+              </select>
+            </div>
+            <div class="settings-field">
+              <label for="engineCursor">光标缩放</label>
+              <select id="engineCursor" aria-label="光标缩放">
+                <option value="6" selected>跟随画面</option>
+                <option value="2">不缩放</option>
+                <option value="3">1.25×</option>
+                <option value="4">1.5×</option>
+                <option value="5">2×</option>
+              </select>
+            </div>
+            <div class="settings-field">
+              <label for="engineFrameRate">最大帧率 <em>留空 = 无上限</em></label>
+              <input id="engineFrameRate" type="number" min="10" max="1000" step="1" inputmode="numeric"
+                     placeholder="无上限" title="留空表示不限制帧率">
+            </div>
+          </div>
+          <button class="pref-row" id="engineAutoRow" role="switch" aria-checked="false" type="button">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>
+              <span>随游戏自动启动引擎</span>
+            </span>
+            <span class="pref-hint">关闭后只在手动启动时运行</span>
+            <span class="switch" id="engineAutoSwitch"></span>
+          </button>
+          <button class="pref-row engine-switch" id="engine3dRow" role="switch" aria-checked="false" type="button">
+            <span class="pref-label">
+              <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+              <span>3D 游戏模式</span>
+            </span>
+            <span class="pref-hint">降低延迟，适合动作游戏</span>
+            <span class="switch" id="engine3dSwitch"></span>
+          </button>
+          <p class="engine-note" id="engineNote">这些选项写入缩放引擎的配置；保存后引擎会重启，快捷键立即生效。</p>
+          <div class="engine-actions scale-advanced-actions">
+            <button class="engine-btn ghost" id="engineReset" type="button">恢复默认</button>
+            <button class="engine-btn primary" id="engineSave" type="button">保存并重启引擎</button>
+          </div>
         </div>
-        <div class="settings-field">
-          <label for="engineCursor">光标缩放</label>
-          <select id="engineCursor" aria-label="光标缩放">
-            <option value="6" selected>跟随画面</option>
-            <option value="2">不缩放</option>
-            <option value="3">1.25×</option>
-            <option value="4">1.5×</option>
-            <option value="5">2×</option>
-          </select>
-        </div>
-        <div class="settings-field">
-          <label for="engineFrameRate">最大帧率 <em>留空 = 无上限</em></label>
-          <input id="engineFrameRate" type="number" min="10" max="1000" step="1" inputmode="numeric"
-                 placeholder="无上限" title="留空表示不限制帧率">
-        </div>
-      </div>
-      <button class="pref-row" id="engineAutoRow" role="switch" aria-checked="false" type="button">
-        <span class="pref-label">
-          <svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg>
-          <span>随游戏自动启动引擎</span>
-        </span>
-        <span class="pref-hint">关闭后只在手动启动时运行</span>
-        <span class="switch" id="engineAutoSwitch"></span>
-      </button>
-      <button class="pref-row engine-switch" id="engine3dRow" role="switch" aria-checked="false" type="button">
-        <span class="pref-label">
-          <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-          <span>3D 游戏模式</span>
-        </span>
-        <span class="pref-hint">降低延迟，适合动作游戏</span>
-        <span class="switch" id="engine3dSwitch"></span>
-      </button>
-      <p class="engine-note" id="engineNote">这些选项写入缩放引擎的配置；保存后引擎会重启，快捷键立即生效。</p>
+      </details>
     </div>
     <footer class="engine-actions">
       <button class="engine-btn ghost" id="engineOpenFull" type="button">打开完整 Magpie</button>
-      <button class="engine-btn ghost" id="engineReset" type="button">恢复默认</button>
-      <button class="engine-btn primary" id="engineSave" type="button">保存并重启引擎</button>
+      <button class="engine-btn primary" id="engineDone" type="button">完成</button>
     </footer>
   </div>
 </div>
@@ -1170,9 +1220,9 @@
         <button class="pref-row" id="detailScaleRow" role="switch" aria-checked="false" type="button">
           <span class="pref-label">
             <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-            <span>启动时缩放</span>
+            <span>开启缩放</span>
           </span>
-          <span class="pref-hint" id="detailScaleHint">沉浸模式下默认开启</span>
+          <span class="pref-hint" id="detailScaleHint">跟随默认 · 已关闭</span>
           <span class="switch" id="detailScaleSwitch"></span>
         </button>
       </div>

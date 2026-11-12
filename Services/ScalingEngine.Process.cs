@@ -56,11 +56,14 @@ public static partial class ScalingEngine
         {
             var deadline = DateTime.UtcNow.AddSeconds(6);
             while (DateTime.UtcNow < deadline && ActiveConfigFile() == null) Thread.Sleep(250);
-            if (ActiveConfigFile() != null && settings.ScalingHotkey > 0 &&
-                ReadHotkey() != settings.ScalingHotkey)
+            if (ActiveConfigFile() != null)
             {
-                WriteHotkey(settings.ScalingHotkey, out _);
-                Restart(settings, out _);
+                SeedFirstRunConfig();
+                if (settings.ScalingHotkey > 0 && ReadHotkey() != settings.ScalingHotkey)
+                {
+                    WriteHotkey(settings.ScalingHotkey, out _);
+                    Restart(settings, out _);
+                }
             }
         }
 
@@ -91,6 +94,16 @@ public static partial class ScalingEngine
             while (DateTime.UtcNow < deadline && !IsRunning()) Thread.Sleep(200);
             Thread.Sleep(900);
             HideMainWindow(pid);
+
+            // 权限一致性：CreateProcess 语义下子进程直接继承本进程令牌，玩家
+            // 以管理员运行启动器时 Magpie 必须也是管理员，否则抓不到提权游戏
+            // 的窗口（UIPI）。这里实测并留证，不符就明确报错而不是静默失效。
+            var engineElevated = SteamPrivilege.IsProcessElevated(pid);
+            var launcherElevated = SteamPrivilege.LauncherIsElevated();
+            Log.Write($"scaling engine started pid={pid} launcherElevated={launcherElevated} engineElevated={engineElevated}");
+            if (launcherElevated && !engineElevated)
+                Log.Error("scaling engine elevation", new InvalidOperationException("启动器是管理员但引擎没有继承提权，提权游戏将无法被缩放"));
+
             return true;
         }
         catch (Exception ex)

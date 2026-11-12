@@ -31,6 +31,14 @@
       scaleDelaySeconds: Math.min(120, Math.max(0, Number(boot.settings?.scaleDelaySeconds) || 0)),
       scaleMode: boot.settings?.scaleMode === 'factor' ? 'factor' : 'fullscreen',
       scaleFactor: Math.min(10, Math.max(1.1, Number(boot.settings?.scaleFactor) || 2)),
+      scaleSizePreset: (() => {
+        const stored = boot.settings?.scaleSizePreset;
+        if (typeof stored === 'string' && stored) return stored;
+        const factor = Math.min(10, Math.max(1.1, Number(boot.settings?.scaleFactor) || 2));
+        return [1.25, 1.5, 1.75, 2, 2.5, 3].includes(factor) ? `f:${factor}` : 'f:custom';
+      })(),
+      scaleWindowW: Math.min(7680, Math.max(160, Math.round(Number(boot.settings?.scaleWindowW) || 1280))),
+      scaleWindowH: Math.min(4320, Math.max(120, Math.round(Number(boot.settings?.scaleWindowH) || 720))),
       scaleAlgorithm: typeof boot.settings?.scaleAlgorithm === 'string' ? boot.settings.scaleAlgorithm : '',
       minimizeOnLaunch: boot.settings?.minimizeOnLaunch !== false,
       scalingEngine: ['auto', 'native', 'off'].includes(boot.settings?.scalingEngine)

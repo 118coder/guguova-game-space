@@ -75,6 +75,15 @@ public sealed partial class NativeBridge
             }
             if (args.TryGetProperty("scaleFactor", out var scaleFactor) && scaleFactor.TryGetDouble(out var scaleFactorValue))
                 settings.ScaleFactor = Math.Max(1.1, Math.Min(10, scaleFactorValue));
+            if (args.TryGetProperty("scaleSizePreset", out var scaleSizePreset) && scaleSizePreset.ValueKind == JsonValueKind.String)
+            {
+                var preset = scaleSizePreset.GetString() ?? "f:2";
+                settings.ScaleSizePreset = preset.Length <= 32 ? preset : "f:2";
+            }
+            if (args.TryGetProperty("scaleWindowW", out var scaleWinW) && scaleWinW.TryGetInt32(out var windowWidth))
+                settings.ScaleWindowWidth = Math.Max(160, Math.Min(7680, windowWidth));
+            if (args.TryGetProperty("scaleWindowH", out var scaleWinH) && scaleWinH.TryGetInt32(out var windowHeight))
+                settings.ScaleWindowHeight = Math.Max(120, Math.Min(4320, windowHeight));
             if (args.TryGetProperty("scaleAlgorithm", out var scaleAlgorithm) && scaleAlgorithm.ValueKind == JsonValueKind.String)
             {
                 var nextAlgorithm = scaleAlgorithm.GetString() ?? "";

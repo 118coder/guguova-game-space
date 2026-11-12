@@ -890,10 +890,15 @@ html.calm body.layout-rail .view-home .tile-progress {
   color: inherit;
 }
 
-.engine-scale-row .pref-hint {
+.engine-shell.scale-sheet .engine-scale-row .pref-hint {
   margin-left: auto;
-  color: inherit;
-  opacity: var(--hs-hint-alpha, .78);
+  /* This is the player's on/off state, not decoration. The old inherited
+     ink plus an alpha fade measured 2.65:1 on DUSK's paper (a theme-level
+     .pref-hint rule kept overriding it), so pin the sheet's own solid ink
+     with a selector the page rules cannot beat. */
+  color: var(--sheet-ink, inherit);
+  opacity: 1;
+  font-weight: 600;
   text-align: right;
 }
 
