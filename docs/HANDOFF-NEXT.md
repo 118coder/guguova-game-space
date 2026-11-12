@@ -4405,8 +4405,8 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [ ] 未了项已并入上面「未完成（下一轮）」清单。
 
 下一轮从 **§1.44** 开始：1.18.0 已合并并发行（`v1.18.0` 三资产 + 文案），
-§1.41–§1.42 的全部改动都在 `main`（squash `9934d1f`），bump `caa4aa4`，文档 `0db2ae2`，
-远端 `main` 与本地一致、工作区干净。
+§1.41–§1.42 的全部改动都在 `main`（squash `9934d1f`），bump `caa4aa4`，文档 §1.43/§1.44，
+HEAD `bfb19a8`，远端 `main` 与本地一致、工作区干净。
 **构建产物已按 §1.44.1 全部清空**（`dist/ bin/ obj/ legacy/bin legacy/obj` + `_shots/updtest`，
 释放约 556 MB），项目现为 **92 MB**，所以**第一件事是 build**：
 
