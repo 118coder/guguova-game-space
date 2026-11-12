@@ -1,6 +1,13 @@
 # GUGUOVA 下一轮交接文档
 
-> ✅ **§1.48 缩放看护（智能检测）**（2026-11-13，最新一轮）：Owner 报告「成功缩放之后，
+> ✅ **v1.19.0 已发行**（2026-11-13）：PR [#45](https://github.com/118coder/guguova-game-space/pull/45)
+> 已合并（squash `7645a02`，§1.45–§1.48 全部进 main），bump 1.19.0 后
+> `release.sh --publish` 发布 [`v1.19.0`](https://github.com/118coder/guguova-game-space/releases/tag/v1.19.0)，
+> 三资产：single.exe 9.66 MB / legacy-single.zip 13.84 MB / legacy-full.zip 17.37 MB。
+> 发版踩坑：**发行冒烟要求没有任何运行中的 Magpie**——`FindExe` 优先返回"正在运行的
+> Magpie"，残留进程会让单文件包冒烟误判「引擎解析到了外部 Magpie」；杀掉再跑即过。
+> 构建产物（bin/obj/legacy/dist/.cache）发完已清空，下次开工先 build。
+> ✅ **§1.48 缩放看护（智能检测）**（2026-11-13）：Owner 报告「成功缩放之后，
 > 进入游戏后又缩放回去了」——游戏登录后重建窗口（旧 HWND 销毁），Magpie 挂在旧句柄
 > 上的缩放静默丢失。新增 **scale watcher**：缩放成功后 1.5s 一拍监视游戏进程族，
 > ① Magpie 还在缩放族内窗口 → 健康，基准句柄持续更新；② 缩放丢失 + **出现新主窗口
