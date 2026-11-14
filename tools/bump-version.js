@@ -28,4 +28,9 @@ console.log('updated version.json');
 
 write('NovaGameSpace.csproj', (s) => s.replace(/<Version>[^<]+<\/Version>/, `<Version>${value}</Version>`));
 write('legacy/NovaGameSpace.Legacy.csproj', (s) => s.replace(/<Version>[^<]+<\/Version>/, `<Version>${value}</Version>`));
-write('src/index.html', (s) => s.replace(/\?v=\d+\.\d+\.\d+/g, `?v=${value}`));
+// The static text inside #settingsVersion is the fallback shown before the
+// runtime boot payload arrives (and if it never does). It drifted from 1.5.3
+// for a dozen releases because nothing rewrote it — keep both in step.
+write('src/index.html', (s) => s
+  .replace(/\?v=\d+\.\d+\.\d+/g, `?v=${value}`)
+  .replace(/(id="settingsVersion">)\d+\.\d+\.\d+(<)/, `$1${value}$2`));
