@@ -1,13 +1,21 @@
 # GUGUOVA 下一轮交接文档
 
+> ✅ **v1.20.0 已发行**（2026-11-14）：PR [#46](https://github.com/118coder/guguova-game-space/pull/46)
+> 已合并（squash `50799c1`，§1.50 全部进 main），bump `36ff3dc` 后
+> `release.sh --publish` 发布 [`v1.20.0`](https://github.com/118coder/guguova-game-space/releases/tag/v1.20.0)，
+> 三资产：single.exe 9.67 MB / legacy-single.zip 13.85 MB / legacy-full.zip 17.38 MB，
+> 正文已在模板四段前补「这次改了什么」（玩家口吻，不含未做的事）。
+> 本轮顺手修了 `tools/bump-version.js` 只改 `?v=` 的老问题：`#settingsVersion` 的
+> 静态占位从 1.5.3 起就没跟上过，现在也一并改写。
+> 构建产物（bin/obj/legacy/dist/.cache）发完已清空，下次开工先 build。
+>
 > ✅ **v1.19.0 已发行**（2026-11-13）：PR [#45](https://github.com/118coder/guguova-game-space/pull/45)
 > 已合并（squash `7645a02`，§1.45–§1.48 全部进 main），bump 1.19.0 后
 > `release.sh --publish` 发布 [`v1.19.0`](https://github.com/118coder/guguova-game-space/releases/tag/v1.19.0)，
 > 三资产：single.exe 9.66 MB / legacy-single.zip 13.84 MB / legacy-full.zip 17.37 MB。
 > 发版踩坑：**发行冒烟要求没有任何运行中的 Magpie**——`FindExe` 优先返回"正在运行的
 > Magpie"，残留进程会让单文件包冒烟误判「引擎解析到了外部 Magpie」；杀掉再跑即过。
-> 构建产物（bin/obj/legacy/dist/.cache）发完已清空，下次开工先 build。
-> ✅ **§1.50 设置页重排 + 导出长图净化 + 日志导出 + 新版本通知**（2026-11-14，工作区未提交）：
+> ✅ **§1.50 设置页重排 + 导出长图净化 + 日志导出 + 新版本通知**（2026-11-14，已随 v1.20.0 发行）：
 > 设置页两栏重排（系统与兼容性进宽栏、启动与关闭拆五组带标题、按钮成对不再留空格子），
 > 卡片头统一加细线，更新按钮改两列等宽；**整页长图不再把「导出卡片」对话框烤进图里**
 > ——`html[data-exporting]` 期间把 overlay/popover/toast 全部 `display:none`（原图是
@@ -3981,10 +3989,14 @@ Alt+Shift+A 手动无边框开关打架）；游戏退出时 `ForgetProcess` 置
 
 ---
 
-### 1.50 设置页重排 + 导出长图净化 + 日志导出 + 新版本通知（2026-11-14，工作区未提交）
+### 1.50 设置页重排 + 导出长图净化 + 日志导出 + 新版本通知（2026-11-14，已随 v1.20.0 发行）
 
 Owner 的原始诉求三条（排版、导出长图被遮挡、导出日志、新版本推送），外加一条现场
 提问「DNF 记录不了时间」。四条全部落地，DNF 那条查到了两个真 bug（§1.50.5）。
+
+**发行记录**：PR #46 squash `50799c1` → bump `36ff3dc` → tag `v1.20.0`，三资产
+single.exe 9.67 MB（sha256 `ba68073e…`）/ legacy-single.zip 13.85 MB / legacy-full.zip
+17.38 MB，全部 `state: uploaded`。发布流程一次通过，冒烟前确认无残留 Magpie 进程。
 
 #### 1.50.1 设置页：分栏重排 + 分组
 
@@ -4765,7 +4777,7 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 
 ## 14. 交接清单
 
-本轮（第二十六轮 · 设置页与计时，**工作区未提交**，详见 §1.50）：
+本轮（第二十七轮 · 1.20.0 合并发布，详见 §1.50）：
 
 - [x] 设置页两栏重排：系统与兼容性进宽栏、启动与关闭拆五组、数据按钮成对、卡片头加细线；
 - [x] 修复整页长图把「导出卡片」对话框与封面烤进图片（A/B 复现后由 `data-exporting` 隐藏）；
@@ -4776,9 +4788,19 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 - [x] 探针验证启动器链路计时 **86 秒**正确入账（`probe-timed`）；
 - [x] 14 主题设置页无头截图 0 clipping、980×760 单栏干净；`theme-slot-check` / `feature-checks` 全过；
 - [x] 双目标编译 0 错误；测试数据根、探针脚本、缓存与测试导出全部直接删除；
+- [x] 分支 `feat/settings-layout-and-diagnostics` 推远端，PR [#46](https://github.com/118coder/guguova-game-space/pull/46) squash 合并 → `50799c1`；
+- [x] `bump-version.js 1.20.0`（`36ff3dc`），**发布成功之后**才推 bump，避免 `version.json` 指向不存在的资产；
+- [x] `release.sh --publish` 七阶段全过，三资产上传 [v1.20.0](https://github.com/118coder/guguova-game-space/releases/tag/v1.20.0)；
+- [x] Release 正文补「这次改了什么」（玩家口吻，模板四段不动）；
+- [x] `bump-version.js` 顺带修好：`#settingsVersion` 的静态占位也改写（此前一直停在 1.5.3）；
 - [ ] **DNF 完整链路待 Owner 手动跑一遍**：登录器 → 登录 → 进游戏 → 玩 1 分钟 → 退出，
       看「游玩统计」是否 +1 分钟（自动化卡在登录器是 System 完整性且最小化）；
-- [ ] 提交 / PR / bump / 发版（等 Owner 验收后决定，本轮没动版本号）。
+- [ ] 1.20.0 实机验收（设置页排版、导出长图、导出日志、通知推送）**尚无反馈**，下次开工先问。
+
+上一轮（第二十六轮 · 设置页与计时，已随 v1.20.0 发行）：
+
+- 工作项就是上面那一串 [x]（代码部分），本轮只补了提交、PR、bump 与发版；
+- 遗留同样是那两条 [ ]：DNF 完整链路要 Owner 手动跑，1.20.0 待实机验收。
 
 上一轮（第二十五轮 · 1.18.0 合并发布，详见 §1.43）：
 
