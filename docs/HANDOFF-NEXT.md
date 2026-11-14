@@ -7,6 +7,15 @@
 > 发版踩坑：**发行冒烟要求没有任何运行中的 Magpie**——`FindExe` 优先返回"正在运行的
 > Magpie"，残留进程会让单文件包冒烟误判「引擎解析到了外部 Magpie」；杀掉再跑即过。
 > 构建产物（bin/obj/legacy/dist/.cache）发完已清空，下次开工先 build。
+> ✅ **§1.50 设置页重排 + 导出长图净化 + 日志导出 + 新版本通知**（2026-11-14，工作区未提交）：
+> 设置页两栏重排（系统与兼容性进宽栏、启动与关闭拆五组带标题、按钮成对不再留空格子），
+> 卡片头统一加细线，更新按钮改两列等宽；**整页长图不再把「导出卡片」对话框烤进图里**
+> ——`html[data-exporting]` 期间把 overlay/popover/toast 全部 `display:none`（原图是
+> 450ms 淡出被抢拍 + captureBeyondViewport 把 backdrop-filter 层合成到内容下方）；
+> 「关于 → 反馈与诊断」新增**导出启动器日志**（版本/宿主/系统/WebView2/档位/库规模 +
+> 最近 20 条 ERROR + 日志末尾 400 行，不含存档与账号）；通知页在发现新版与包已下载时
+> 各推一条，点击直达版本块；**DNF 计时两个真 bug 已修**（受 AC 保护时 StartTime 读不到
+> 导致本体永远匹配不上；拿不到退出事件时会话永不结算）。
 > ✅ **§1.48 缩放看护（智能检测）**（2026-11-13）：Owner 报告「成功缩放之后，
 > 进入游戏后又缩放回去了」——游戏登录后重建窗口（旧 HWND 销毁），Magpie 挂在旧句柄
 > 上的缩放静默丢失。新增 **scale watcher**：缩放成功后 1.5s 一拍监视游戏进程族，
@@ -3972,6 +3981,145 @@ Alt+Shift+A 手动无边框开关打架）；游戏退出时 `ForgetProcess` 置
 
 ---
 
+### 1.50 设置页重排 + 导出长图净化 + 日志导出 + 新版本通知（2026-11-14，工作区未提交）
+
+Owner 的原始诉求三条（排版、导出长图被遮挡、导出日志、新版本推送），外加一条现场
+提问「DNF 记录不了时间」。四条全部落地，DNF 那条查到了两个真 bug（§1.50.5）。
+
+#### 1.50.1 设置页：分栏重排 + 分组
+
+改的是 `src/index.html` 的设置页块与 `src/views.css` 的 SETTINGS 段，**没有动任何主题
+文件**（八张卡片的外观仍由各主题的 `interfaces.css` 决定）。
+
+| 位置 | 改前 | 改后 |
+| --- | --- | --- |
+| 两栏分配 | 左 玩家/数据/游玩/库显示，右 启动/系统/关于 | 左（1.45fr）玩家/数据/**系统**/游玩，右（1fr）**启动**/库显示/关于 |
+| 「启动与关闭」 | 11 个开关平铺，看成一堵墙 | 五组带标题的分隔行：窗口与托盘 / 计时与备份 / 开机与启动 / 音效与快捷键 / 缩放引擎 |
+| 开关行 | flex + space-between，提示长短不定、开关被推着跑 | `.settings-card--startup .pref-row` 改 grid 三列，提示右对齐、开关统一贴右边缘 |
+| 「数据与备份」按钮 | 导出跨两列，其余两列，`打开备份文件夹` 单独一行留空格 | 成对排列：导出（整行）/ 导入+CSV / 同步 Steam（整行，`is-wide`）/ 打开数据+打开备份 |
+| 卡片头 | 只有标题与描述 | 头下加一条 `--hair` 细线，八张卡片的层级一致 |
+| 统计格 | 固定 4 列（窄栏被压成 2×2 的例外规则） | `auto-fit minmax(148px,1fr)`，宽栏自动 4 列、窄窗自动 2 列 |
+| 「关于」 | 一段迁移说明 + 一个 update-block | 拆成「版本与更新」「反馈与诊断」两个 `settings-sub` 子块 |
+| 更新按钮 | flex 换行，四个按钮宽度不一 | 两列 grid 等宽；只剩一个可见时 `is-solo` 让它占满整行 |
+| 「界面全屏显示」的 F | `.pref-note` 的 `max-width:55%` 在 auto 栅格列里自相矛盾，F 被压成 6px 看不见 | 去掉百分比 + 给它一个 10px 的键帽样式 |
+| 窄窗（≤1080） | 卡片 `order` 旧值 | 单列顺序：玩家 → 启动 → 数据 → 系统 → 游玩 → 库显示 → 关于 |
+
+顺带改了两句为了窄栏不折成孤行的文案：「界面全屏显示」提示改成「只放大启动器」、
+「自动启动内置缩放引擎」的提示删掉（下面那段说明已经讲清楚）、「游戏库显示」的描述
+缩成一句。
+
+验收：`headless-shots --views=settings` 14 主题 1440×1000 **0 clipping**；
+980×760 单栏 2 主题同样干净；`theme-slot-check --strict` 0 finding；
+`feature-checks` 全过；owner 实际主题（**endfield**）的整页导出逐屏目检通过。
+
+#### 1.50.2 整页长图把对话框烤进图里（真 bug，已复现并修复）
+
+Owner 给的那张 `GUGUOVA-settingsView-20261114-200124.png` 不是截图，是**整页长图的
+导出产物**（1800×2475 = 1440×1980 @125%）。里面叠着半透明的「导出卡片」标题、卡片预览
+封面和页脚按钮——因为 `整页长图` 的处理是：
+
+```
+click → closeShareDialog() → 下一帧 exportScreenshot()
+                                   ↓
+             releaseForExport()（放高）→ settleForExport()（字体/图片）
+                                   ↓
+                     capturePage（CDP captureScreenshot 分片）
+```
+
+`closeShareDialog()` 只摘 `is-open`，`.overlay` 的 opacity 过渡是 **450ms**；图片已缓存
+时 `settleForExport` 一两帧就返回，于是捕获发生在淡出中途。更糟的是
+`captureBeyondViewport` 下带 `backdrop-filter` 的 overlay 会被合成到内容**下面**，
+所以怪影看起来像"被主封面挡住"，其实是被拍进了图里、还压在卡片文字下面。
+
+修法：`src/views.css` 的 `html[data-exporting]` 增加一条
+
+```css
+html[data-exporting] body > .overlay,
+html[data-exporting] body > .popover,
+html[data-exporting] body > .toast,
+html[data-exporting] body > .context-menu,
+html[data-exporting] body > .pad-hints { display: none !important; }
+```
+
+`data-exporting` 在 `releaseForExport()` 里加、`restore()` 里删，所以只在捕获那一两帧
+生效，`display:none` 是唯一不可能"正处于过渡中"的状态。toast 也要一起藏——Owner 的图里
+还烙着一条「已导出 2000×1050」，那是先导卡片、四秒内又点长图留下的。
+
+**复现方法（下次别再猜）**：把上面那条规则临时用 CDP 注入覆盖成 `display:grid`，再
+`#shotBtn → #shareLongPage`，导出的图立刻出现一模一样的怪影；去掉覆盖就干净。这就是
+A/B 证据，不是"可能"。
+
+另外给 `.engine-foot` 加了 `position:relative; z-index:2`：`.engine-shell::before` 是
+一条 `z-index:1` 的装饰带，某些主题把它画得高，理论上能盖住页脚按钮。
+
+#### 1.50.3 导出启动器日志（新功能）
+
+设置页「关于 → 反馈与诊断」两个按钮：
+
+- **导出启动器日志** → `exportLog` → `BackupService.ExportDiagnostics()`，写
+  `文档\GUGUOVA Backups\GUGUOVA-log-yyyyMMdd-HHmmss.txt`（UTF-8 BOM，记事本直接开）；
+- **打开日志文件夹** → `openLogFolder`，就是同一个目录。
+
+文件内容（实测 4 KB / 400 行）：生成时间、版本、程序路径、宿主（modern / legacy、单文件）、
+系统与架构、WebView2 版本、效果档位、主题、数据目录、库规模（含隐藏与缺失计数）、
+缩放引擎设置、**最近 20 条 ERROR**、**日志末尾 400 行**。刻意不写游玩记录、封面路径和
+账户名——这份文件是要发给别人的。
+
+实现要点：net48 没有 `Enumerable.TakeLast`（改成按下标裁），也没有
+`Environment.ProcessPath`（用 `Process.GetCurrentProcess().MainModule`）。
+
+#### 1.50.4 通知页：检测到新版本
+
+`onUpdateStatus` 在 `result && available` 与 `done` 两个分支各推一条通知
+（`noticeUpdate()`），铃铛红点由 `pushNotice` 自动点亮：
+
+- 发现新版：`检测到新版本 v1.19.1` / 副标题 `当前 v1.19.0 · 点这里去「设置 → 关于」下载`；
+- 包已下载：`更新包已就绪 · v1.20.0` / `到「设置 → 关于」点「重启并升级」就能换上`；
+- `adoptPendingUpdate`（上次升级没完成）也会补一条，不必等下次检查。
+
+同版本同阶段只推一次（`state.updateNotice`），因为每日自动检查会在每次聚焦时重跑。点通知
+会 `openSettings()` + `revealUpdateBlock()`（滚到版本块 + 1.3s 强调色扫光）。图标色用
+`--accent-text` 而不是 `--accent`——accent 在深色主题上画 15px 线条太暗。
+
+#### 1.50.5 DNF 为什么记录不了时间（两个真 bug，已修）
+
+Owner 让实测 `E:\WeGameApps\地下城与勇士\Launcher\DNF115CN.Launcher.exe`。实测结论分三层：
+
+**① 机制本身是好的。** 用一个探针启动器（cmd → `ping -t`）走同一条路：启动器 → 等到本体
+→ 挂会话 → 86 秒后本体会被结束 → 写进 `sessions`（`seconds: 86`）。所以"启动器 → 本体
+→ 计时 → 结算"这条链路没问题。
+
+**② 真 bug A：受反作弊保护的本体永远匹配不到。** `FindBodyProcess` 在
+`process.MainModule` 被拒后的兜底要求 `StartedAfter(...)`，而 **StartTime 同样要开进程
+句柄**，ACE 把两者一起拒 → 兜底永远 false → 5 分钟看护超时、游戏在屏幕上却不算时间。
+修：新增 `StartedAfterOrUnknown()`，读不到就当"刚启动"（能走到这一步说明 pid 不在
+`known` 里、名字已匹配，不会误伤）。
+
+**③ 真 bug B：拿不到退出事件时计时钟永不结算。** `AttachProcess` 里
+`EnableRaisingEvents` 对受保护进程会抛，异常被吞、`Exited` 永远不触发 → 会话一直"运行中"，
+退出后什么都不写。修：catch 里起 `PollForExit(gameId, pid)`，2 秒拍一次，pid 消失就
+`HandleExit`（`HandleExit` 的签名放宽成 `Process?`，null 表示来自轮询）。
+
+④ 另外给 `FindBodyProcess` 加了 **Toolhelp 快照兜底**（`ProcessSnapshot`，
+`CreateToolhelp32Snapshot` + `Process32FirstW/NextW`）：连 `Process.ProcessName` 都被拒的
+进程，只有内核快照还能看到 exe 名，这是唯一不需要句柄的识别方式。
+
+**实测里还发现一件不是 bug 但要说的事**：这个「台改登录器」窗口是 **System 完整性**、
+启动后一直**最小化 199×34**，从普通权限连 `ShowWindow` 都无效；它不会自己拉起
+DNF.exe，必须有人在登录器里点登录。所以自动化只能验到"本体出现后能不能挂上计时"——
+直接起 `DNF.exe` 时日志确实出现了 `game body attached DNF 115 pid=4200` 并记了 8 秒
+（本体没登录会自己退）。**完整的"登录器 → 登录 → 游戏 → 退出"还需要 Owner 手动跑一遍。**
+
+#### 1.50.6 状态
+
+- 双目标编译 0 错误（legacy 只余既有的 `ScalingEngine.Process.cs` 两处 CS8604 警告）；
+- 未提交、未 bump、未发版；版本仍 1.19.0；
+- 清理：`tools/_probe-launcher.cmd`、`tools/_probe-share.tmp.js`、隔离数据根
+  `.tmpdata/settings-probe`、`.cache`、`obj`、`legacy/obj` 全部直接删除；
+  测试导出到 `图片\GUGUOVA` 的 4 张长图与 1 份日志 txt 也删了（Owner 那张 20:01 的没动）。
+
+---
+
 ## 2. 1.15.0 做的四件事（背景）
 
 ### 2.1 多平台入库（Steam 之外 6 家）
@@ -4489,6 +4637,19 @@ node tools/export-all.js --themes=all --views=all --sizes=1439x1124,960x600,1280
     不要回退成裸墙钟；0 = 关；
 50. **扫描/托盘/拖拽里拒绝启动器客户端**；Xbox 条目不提供「直接启动」。
 
+### 导出 / 计时（1.50）
+
+56. **整页长图期间必须把 overlay / popover / toast 全部 `display:none`**
+    （`html[data-exporting]` 那段）。只摘 `is-open` 会留下 450ms 的淡出残影，
+    `captureBeyondViewport` 还会把带 `backdrop-filter` 的层合成到内容**下面**，
+    结果是对话框和封面被烤进图片、压在卡片文字上；
+57. **受反作弊保护的进程会同时拒绝 `MainModule` 和 `StartTime`**：本体匹配的兜底
+    不能要求 `StartTime`（否则 DNF 这类游戏永远匹配不上）；需要 pid + exe 名的
+    场景走 `ProcessSnapshot`（Toolhelp），那是唯一不需要句柄的视图；
+58. **拿不到 `Exited` 事件时必须自己轮询 pid**（`PollForExit`），否则会话永不结算，
+    表现为"游戏明明玩了、时长没涨"；
+59. **诊断文件不写存档 / 封面 / 账户名**：`GUGUOVA-log-*.txt` 是要发给别人的。
+
 ### 构建 / 发布
 
 48. **legacy (net48) 不支持 C# 8 的 range / index 语法**（`x[..n]`、`x[^1]`）；
@@ -4604,7 +4765,22 @@ Git / PR：`gh` 未安装；用 credential manager 的 token 走 GitHub API 建 
 
 ## 14. 交接清单
 
-本轮（第二十五轮 · 1.18.0 合并发布，详见 §1.43）：
+本轮（第二十六轮 · 设置页与计时，**工作区未提交**，详见 §1.50）：
+
+- [x] 设置页两栏重排：系统与兼容性进宽栏、启动与关闭拆五组、数据按钮成对、卡片头加细线；
+- [x] 修复整页长图把「导出卡片」对话框与封面烤进图片（A/B 复现后由 `data-exporting` 隐藏）；
+- [x] `.engine-foot` 独立层级，装饰带不可能盖住「整页长图」；
+- [x] 新增「导出启动器日志 / 打开日志文件夹」（`exportLog` / `openLogFolder`，实测 4 KB）；
+- [x] 通知页新增「检测到新版本」「更新包已就绪」两条推送，点击直达版本块；
+- [x] DNF 计时两个真 bug：受 AC 保护时本体匹配不上、拿不到退出事件时会话不结算；
+- [x] 探针验证启动器链路计时 **86 秒**正确入账（`probe-timed`）；
+- [x] 14 主题设置页无头截图 0 clipping、980×760 单栏干净；`theme-slot-check` / `feature-checks` 全过；
+- [x] 双目标编译 0 错误；测试数据根、探针脚本、缓存与测试导出全部直接删除；
+- [ ] **DNF 完整链路待 Owner 手动跑一遍**：登录器 → 登录 → 进游戏 → 玩 1 分钟 → 退出，
+      看「游玩统计」是否 +1 分钟（自动化卡在登录器是 System 完整性且最小化）；
+- [ ] 提交 / PR / bump / 发版（等 Owner 验收后决定，本轮没动版本号）。
+
+上一轮（第二十五轮 · 1.18.0 合并发布，详见 §1.43）：
 
 - [x] 4 个提交转分支 `fix/hidden-and-auto-update` 推远端，PR [#44](https://github.com/118coder/guguova-game-space/pull/44) squash 合并 → `9934d1f`；
 - [x] `bump-version.js 1.18.0`（`caa4aa4`），发布成功之后才推 bump，避免 `version.json` 指向不存在的资产；

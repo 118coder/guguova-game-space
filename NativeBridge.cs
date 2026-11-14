@@ -230,6 +230,8 @@ public sealed partial class NativeBridge
                 "exportPack" => ExportPack(),
                 "importPack" => ImportPack(args),
                 "exportRecords" => ExportRecords(),
+                "exportLog" => ExportDiagnostics(),
+                "openLogFolder" => OpenLogFolder(),
                 "getStats" => new { ok = true, stats = _store.BuildStats(_store.DeveloperMode), storage = _store.BuildStorage() },
                 "getSystem" => new { ok = true, system = SystemProfile.Detect(GetString(args, "tier") ?? _store.Library.Settings.CompatibilityTier) },
                 "capturePage" => QueuePageCapture(args),

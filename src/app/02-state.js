@@ -120,7 +120,10 @@
        `0` means "nothing seen yet". */
     update: { phase: 'idle' },
     updateSeq: 0,
-    updateDownloadSeq: 0
+    updateDownloadSeq: 0,
+    /* Which version already got a 通知, so the daily check cannot stack the
+       same「检测到新版本」notice on every focus. */
+    updateNotice: ''
   };
 
   const notices = [];

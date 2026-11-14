@@ -74,9 +74,66 @@ public sealed partial class LauncherService
         catch (Exception ex)
         {
             Log.Error("attach steam game", ex);
+            // A process protected by an anti-cheat driver refuses the handle that
+            // EnableRaisingEvents needs, so Exited never fires and the session
+            // would stay open forever — the clock runs, but nothing is ever
+            // written. Poll the PID instead so the session still closes.
+            PollForExit(game.Id, process.Id);
         }
 
         Log.Write($"game body attached {game.Name} pid={process.Id}");
+    }
+
+    /// <summary>Last-resort exit watch for processes we cannot get a handle on:
+    /// a PID that no longer exists is the only signal such a game gives.</summary>
+    private void PollForExit(string gameId, int pid)
+    {
+        var thread = new System.Threading.Thread(() =>
+        {
+            try
+            {
+                while (true)
+                {
+                    System.Threading.Thread.Sleep(2000);
+                    lock (_gate)
+                    {
+                        if (!_sessions.ContainsKey(gameId)) return; // already closed
+                    }
+
+                    Process? probe = null;
+                    try
+                    {
+                        probe = Process.GetProcessById(pid);
+                        if (!probe.HasExited)
+                        {
+                            probe.Dispose();
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        // GetProcessById throws once the pid is gone: that is the exit.
+                    }
+                    finally
+                    {
+                        probe?.Dispose();
+                    }
+
+                    Log.Write($"attached process gone {pid} — closing session");
+                    HandleExit(gameId, null);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("poll exit", ex);
+            }
+        })
+        {
+            IsBackground = true,
+            Name = $"NOVA exit watch {pid}"
+        };
+        thread.Start();
     }
 
     /// <summary>The host takes the options once, when the session starts. A
@@ -247,14 +304,18 @@ public sealed partial class LauncherService
         return Math.Max(0, wall - paused);
     }
 
-    private void HandleExit(string gameId, Process process)
+    private void HandleExit(string gameId, Process? process)
     {
         RunningSessionInfo info;
         DateTime started;
         lock (_gate)
         {
             if (!_sessions.TryGetValue(gameId, out info!)) return;
-            if (!_processes.TryGetValue(gameId, out var tracked) || tracked.Id != process.Id) return;
+            // A null process comes from the PID poll (protected games); the
+            // session id already identifies the run, so the pid check is only
+            // meaningful when we actually have the process.
+            if (!_processes.TryGetValue(gameId, out var tracked)) return;
+            if (process != null && tracked.Id != process.Id) return;
             _sessions.Remove(gameId);
             _processes.Remove(gameId);
             if (!_sessionStarts.TryGetValue(gameId, out started)) started = DateTime.UtcNow;
@@ -267,15 +328,18 @@ public sealed partial class LauncherService
 
         var seconds = EffectiveSeconds(gameId, started);
         var crashed = false;
-        try
+        if (process != null)
         {
-            // Many launchers exit non-zero on a normal shutdown, so only a
-            // non-zero code combined with a very short run counts as a crash.
-            crashed = process.ExitCode != 0 && seconds < 20;
-        }
-        catch
-        {
-            // exit code unavailable
+            try
+            {
+                // Many launchers exit non-zero on a normal shutdown, so only a
+                // non-zero code combined with a very short run counts as a crash.
+                crashed = process.ExitCode != 0 && seconds < 20;
+            }
+            catch
+            {
+                // exit code unavailable (protected process, or pid already gone)
+            }
         }
 
         var game = _store.Find(gameId);

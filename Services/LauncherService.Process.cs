@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using NovaGameSpace.Models;
 
 namespace NovaGameSpace.Services;
@@ -88,10 +89,24 @@ public sealed partial class LauncherService
             }
             catch
             {
-                // Protected processes reject MainModule; skip them.
+                // Protected processes reject MainModule; the snapshot pass below
+                // still finds them by name.
             }
             process.Dispose();
         }
+
+        // Same blindness as FindBodyProcess: a protected previous instance must
+        // still count as "already there", or the watch would adopt it.
+        var name = Path.GetFileName(game.ExePath);
+        if (!string.IsNullOrEmpty(name))
+        {
+            foreach (var (pid, exeName) in ProcessSnapshot.Enumerate())
+            {
+                if (string.Equals(exeName, name, StringComparison.OrdinalIgnoreCase) && !result.Contains(pid))
+                    result.Add(pid);
+            }
+        }
+
         return result;
     }
 
@@ -130,8 +145,14 @@ public sealed partial class LauncherService
                     }
                     else if (denied && expectedName != null)
                     {
-                        keep = string.Equals(process.ProcessName + ".exe", expectedName, StringComparison.OrdinalIgnoreCase) &&
-                            StartedAfter(process, launchedAt.AddSeconds(-10));
+                        // Anti-cheat processes (DNF's ACE, many Korean MMOs) refuse
+                        // both MainModule and StartTime, so requiring a start time
+                        // here made the fallback fail exactly where it was needed:
+                        // the body never matched and 计时 never started. `known`
+                        // already holds every same-named PID that existed before
+                        // this launch, so a name match is identity enough.
+                        keep = string.Equals(process.ProcessName + ".exe", expectedName, StringComparison.OrdinalIgnoreCase)
+                            && StartedAfterOrUnknown(process, launchedAt.AddSeconds(-10));
                     }
                 }
             }
@@ -143,6 +164,30 @@ public sealed partial class LauncherService
             if (keep) return process;
             process.Dispose();
         }
+
+        // Second chance through the toolhelp snapshot. A process guarded by an
+        // anti-cheat driver can refuse every managed accessor including
+        // ProcessName, which leaves the loop above with nothing to compare —
+        // DNF's launcher hands the game to a protected process exactly like
+        // that, and the body watch then timed out with the game on screen.
+        // The snapshot reads the exe name from the kernel with no handle at all.
+        if (expectedName != null)
+        {
+            foreach (var (pid, exeName) in ProcessSnapshot.Enumerate())
+            {
+                if (!string.Equals(exeName, expectedName, StringComparison.OrdinalIgnoreCase)) continue;
+                if (known.Contains(pid)) continue;
+                try
+                {
+                    return Process.GetProcessById(pid);
+                }
+                catch
+                {
+                    // Exited between the snapshot and now.
+                }
+            }
+        }
+
         return null;
     }
 
@@ -321,13 +366,10 @@ public sealed partial class LauncherService
                     {
                         // Name + a recent start time is still a safe identity for an
                         // elevated process; processes that already existed are in
-                        // `known` or started before this launch.
-                        var name = process.ProcessName + ".exe";
-                        if (string.Equals(name, expectedName, StringComparison.OrdinalIgnoreCase) &&
-                            StartedAfter(process, launchedAt.AddSeconds(-10)))
-                        {
-                            keep = true;
-                        }
+                        // `known` or started before this launch. When even StartTime
+                        // is refused (anti-cheat), the name has to be enough.
+                        keep = string.Equals(process.ProcessName + ".exe", expectedName, StringComparison.OrdinalIgnoreCase)
+                            && StartedAfterOrUnknown(process, launchedAt.AddSeconds(-10));
                     }
                 }
             }
@@ -351,6 +393,26 @@ public sealed partial class LauncherService
         catch
         {
             return false;
+        }
+    }
+
+    /// <summary>Same question, but "cannot read it" counts as yes.
+    ///
+    /// A process protected by an anti-cheat driver rejects the whole accessor
+    /// surface — MainModule, StartTime, everything. Treating that as "started
+    /// long ago" is what kept DNF from ever being attached (the body watch gave
+    /// up after five minutes and the game was never timed). Callers only reach
+    /// this branch after the exe name already matched and the PID was not in
+    /// the pre-existing set, so the answer is never used on its own.</summary>
+    private static bool StartedAfterOrUnknown(Process process, DateTime threshold)
+    {
+        try
+        {
+            return process.StartTime >= threshold;
+        }
+        catch
+        {
+            return true;
         }
     }
 
@@ -524,5 +586,70 @@ public sealed partial class LauncherService
             // original handle still covers the normal path.
         }
         return process;
+    }
+}
+
+/// <summary>
+/// Kernel-level process list (Toolhelp32) — the one view an anti-cheat driver
+/// cannot refuse. Every managed property on <see cref="System.Diagnostics.Process"/>
+/// needs a handle, so a protected game is invisible to it; this snapshot only
+/// needs the exe name and the pid, and works for SYSTEM-level processes from a
+/// normal user context. Used as the fallback identity for the game body.
+/// </summary>
+internal static class ProcessSnapshot
+{
+    private const uint Th32CsSnapProcess = 0x00000002;
+    private static readonly IntPtr InvalidHandleValue = new IntPtr(-1);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct ProcessEntry32W
+    {
+        public uint dwSize;
+        public uint cntUsage;
+        public uint th32ProcessID;
+        public IntPtr th32DefaultHeapID;
+        public uint th32ModuleID;
+        public uint cntThreads;
+        public uint th32ParentProcessID;
+        public int pcPriClassBase;
+        public uint dwFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string szExeFile;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr CreateToolhelp32Snapshot(uint flags, uint processId);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool Process32FirstW(IntPtr snapshot, ref ProcessEntry32W entry);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool Process32NextW(IntPtr snapshot, ref ProcessEntry32W entry);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr handle);
+
+    public static List<(int Pid, string Name)> Enumerate()
+    {
+        var result = new List<(int, string)>();
+        var snapshot = CreateToolhelp32Snapshot(Th32CsSnapProcess, 0);
+        if (snapshot == IntPtr.Zero || snapshot == InvalidHandleValue) return result;
+        try
+        {
+            var entry = new ProcessEntry32W { dwSize = (uint)Marshal.SizeOf(typeof(ProcessEntry32W)) };
+            if (!Process32FirstW(snapshot, ref entry)) return result;
+            do
+            {
+                if (!string.IsNullOrEmpty(entry.szExeFile))
+                    result.Add(((int)entry.th32ProcessID, entry.szExeFile));
+                entry.dwSize = (uint)Marshal.SizeOf(typeof(ProcessEntry32W));
+            }
+            while (Process32NextW(snapshot, ref entry));
+        }
+        finally
+        {
+            CloseHandle(snapshot);
+        }
+        return result;
     }
 }

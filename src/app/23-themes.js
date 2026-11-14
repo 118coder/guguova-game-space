@@ -454,6 +454,8 @@
     if (els.settingsCsv) els.settingsCsv.addEventListener('click', exportRecords);
     if (els.settingsOpenData) els.settingsOpenData.addEventListener('click', () => { audio.select(); call('openDataFolder'); });
     if (els.settingsOpenBackups) els.settingsOpenBackups.addEventListener('click', () => { audio.select(); call('openBackupsFolder'); });
+    if (els.settingsExportLog) els.settingsExportLog.addEventListener('click', exportDiagnostics);
+    if (els.settingsOpenLogFolder) els.settingsOpenLogFolder.addEventListener('click', () => { audio.select(); call('openLogFolder'); });
     if (els.libSort) {
       els.libSort.addEventListener('change', () => {
         state.settings.librarySort = els.libSort.value;

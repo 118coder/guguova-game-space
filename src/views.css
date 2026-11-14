@@ -346,7 +346,7 @@ body.layout-rail .view-home .dock-title {
 .settings-options {
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 1.6vh, 20px);
+  gap: clamp(16px, 1.8vh, 22px);
 }
 
 /* ---------- hero: title + local identity ---------- */
@@ -495,25 +495,28 @@ body.layout-rail .view-home .dock-title {
 }
 
 /* ---------- two-column board ---------- */
+/* The wide column carries everything with rows or button grids (data actions,
+   the switch list, session history); the narrow one keeps summaries. Same gap
+   everywhere so the two columns read as one grid, not two stacks. */
 
 .settings-board {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-  gap: clamp(12px, 1.2vw, 18px);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: clamp(14px, 1.3vw, 18px);
   align-items: start;
 }
 
 .settings-col {
   display: flex;
   flex-direction: column;
-  gap: clamp(12px, 1.2vw, 18px);
+  gap: clamp(14px, 1.3vw, 18px);
   min-width: 0;
 }
 
 .settings-card {
   min-width: 0;
   margin: 0;
-  padding: clamp(16px, 1.4vw, 22px) clamp(16px, 1.5vw, 24px) clamp(18px, 1.6vw, 24px);
+  padding: clamp(16px, 1.4vw, 20px) clamp(16px, 1.5vw, 22px) clamp(16px, 1.4vw, 20px);
   border: 1px solid var(--hair, rgba(255, 255, 255, .14));
   border-radius: 16px;
   background: rgba(255, 255, 255, .022);
@@ -525,9 +528,14 @@ body.layout-rail .view-home .dock-title {
   border-color: color-mix(in srgb, var(--accent) 46%, var(--hair, rgba(255, 255, 255, .14)));
 }
 
+/* A hairline under every card head: the title/description pair is the same
+   shape in all eight cards, so one divider turns them into a scannable list
+   instead of eight floating paragraphs. */
 .settings-card .section-head {
   align-items: flex-start;
   gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hair, rgba(255, 255, 255, .1));
 }
 
 .settings-card .section-head > div { min-width: 0; }
@@ -538,32 +546,148 @@ body.layout-rail .view-home .dock-title {
 }
 
 .settings-card .settings-field { margin-top: 14px; }
+.settings-card > .settings-note:first-of-type,
+.settings-card > .settings-stats:first-of-type { margin-top: 14px; }
 
-/* ---------- update check (about card) ---------- */
-.update-block {
-  margin-top: 14px;
-  padding-top: 12px;
+/* ---------- switch list inside a card ---------- */
+
+/* Group captions are plain siblings of the rows (not wrappers), so every
+   theme's .pref-row rule keeps matching a direct child of .pref-list. */
+.pref-group {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 13px 2px 3px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: .16em;
+  color: var(--muted, rgba(245, 242, 234, .55));
+}
+
+.pref-group:first-child { margin-top: 4px; }
+
+.pref-group::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--hair, rgba(255, 255, 255, .12));
+}
+
+/* Rows are flex by default, which lets a long hint push the switch around and
+   leaves the column of switches ragged. Three explicit columns put every
+   control on one right edge and every hint against it. */
+.settings-card--startup .pref-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 12px;
+}
+
+.settings-card--startup .pref-row .pref-label { grid-column: 1; }
+
+.settings-card--startup .pref-row .pref-hint {
+  grid-column: 2;
+  justify-self: end;
+  max-width: 22ch;
+  text-align: right;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.settings-card--startup .pref-row > .switch,
+.settings-card--startup .pref-row > .hotkey-value,
+.settings-card--startup .pref-row > .pref-note {
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* .pref-note carries `max-width: 55%` from the shared sheet; inside an `auto`
+   grid column that percentage resolves against the very box it is sizing, so
+   the keycap collapsed to ~6px. The column already hugs its content — drop
+   the percentage and give the shortcut its own legible keycap: at the shared
+   8px / 24% alpha the F was a grey smudge nobody could read. */
+.settings-card--startup .pref-row > .pref-note {
+  max-width: none;
+  width: auto;
+  min-width: 20px;
+  padding: 2px 6px;
+  border: 1px solid var(--hair, rgba(255, 255, 255, .18));
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--muted, rgba(245, 242, 234, .72));
+  background: color-mix(in srgb, var(--ink, #f5f2ea) 6%, transparent);
+}
+
+/* ---------- sub block: one titled section inside a card ---------- */
+
+.settings-sub {
+  margin-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--hair, rgba(255, 255, 255, .14));
 }
 
-.update-line {
+.settings-sub-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
 }
 
+.settings-sub-head > span:first-child {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--ink, #f5f2ea);
+}
+
+.settings-sub-hint,
 .update-state {
   min-width: 0;
   font-size: var(--text-label, 12px);
+  line-height: 1.5;
   color: var(--muted, inherit);
+  text-align: right;
   overflow-wrap: anywhere;
 }
 
-/* 四个按钮同时出现时会撑破右栏（重启并升级那一版加的），允许换行并靠右，
-   窄窗口下也不横向溢出。 */
-.update-buttons { display: flex; gap: 8px; flex: 0 1 auto; min-width: 0; flex-wrap: wrap; justify-content: flex-end; }
+/* Arriving from the 通知 bell: a short accent wash shows which block the
+   notification was about, then gets out of the way. */
+.settings-sub.is-flash {
+  border-radius: 12px;
+  animation: settings-sub-flash 1.3s ease-out;
+}
+
+@keyframes settings-sub-flash {
+  from { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  to { box-shadow: 0 0 0 2px transparent; background: transparent; }
+}
+
+/* ---------- update check (about card) ---------- */
+
+.update-block { margin-top: 14px; }
+
+/* Four buttons can be on screen at once (check / download / restart / folder).
+   Two fixed columns keep them one width and pair up 2×2 — auto-fit put three
+   in the first row and left the fourth alone underneath. */
+.update-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.update-buttons .btn {
+  width: 100%;
+  justify-content: center;
+  min-width: 0;
+}
+
+.update-buttons.is-solo .btn { grid-column: 1 / -1; }
 
 .update-progress {
   display: flex;
@@ -575,9 +699,11 @@ body.layout-rail .view-home .dock-title {
 .update-progress-track {
   flex: 1;
   height: 4px;
+  min-height: 4px;
   border-radius: 4px;
   overflow: hidden;
   background: var(--hair, rgba(255, 255, 255, .14));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink, #f5f2ea) 8%, transparent);
 }
 
 .update-progress-track i {
@@ -605,9 +731,10 @@ body.layout-rail .view-home .dock-title {
   overflow-wrap: anywhere;
 }
 
-/* The side column is narrower: stack its stat cards 2×2. */
-.settings-card--system .settings-stats {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+/* 系统与兼容性 now lives in the wide column, so its four tiles stay in one
+   row; below 1240px they fold to 2×2 on their own via auto-fit. */
+.settings-stats {
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
 }
 
 .settings-field {
@@ -665,9 +792,21 @@ body.layout-rail .view-home .dock-title {
 .settings-actions .btn {
   width: 100%;
   justify-content: center;
+  min-width: 0;
 }
 
-.settings-actions #settingsExport { grid-column: span 2; }
+/* 跨两列的整行按钮（导出数据包、同步 Steam、修复提权），下面两个「打开
+   文件夹」自然组成一对，不会再出现「只有一个按钮 + 一个空格子」的行。 */
+.settings-actions .is-wide,
+.settings-actions #settingsExport { grid-column: 1 / -1; }
+
+/* 诊断区两枚按钮等宽并排，不跟数据区共用那条「整行」规则。 */
+.settings-actions--pair { margin-top: 10px; }
+
+.settings-actions--pair .btn {
+  justify-content: flex-start;
+  gap: 8px;
+}
 
 .settings-stats {
   display: grid;
@@ -859,6 +998,21 @@ html[data-exporting] { scrollbar-width: none; }
 html[data-exporting]::-webkit-scrollbar,
 html[data-exporting] ::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
 
+/* Overlays must not be in the frame at all.
+   「整页长图」closes the share dialog and exports on the next frame, but the
+   dialog leaves with a 450ms fade — a fast capture caught it half-transparent
+   and baked the sheet, the card preview (封面) and the footer button straight
+   into the middle of the exported image, on top of the settings cards.
+   `display:none` is the only state that cannot be mid-transition, and it also
+   keeps the fixed/backdrop-filter layers out of Chromium's captureBeyondViewport
+   path, where they were composited in the wrong order. Everything here is
+   restored when releaseForExport() puts the inline styles back. */
+html[data-exporting] body > .overlay,
+html[data-exporting] body > .popover,
+html[data-exporting] body > .toast,
+html[data-exporting] body > .context-menu,
+html[data-exporting] body > .pad-hints { display: none !important; }
+
 @media (max-width: 1240px) {
   .settings-hero {
     grid-template-columns: minmax(0, 1fr);
@@ -877,15 +1031,15 @@ html[data-exporting] ::-webkit-scrollbar { width: 0 !important; height: 0 !impor
   .settings-card--player { order: 1; }
   .settings-card--startup { order: 2; }
   .settings-card--data { order: 3; }
-  .settings-card--play { order: 4; }
-  .settings-card--system { order: 5; }
-  .settings-card--about { order: 6; }
-  .settings-card--system .settings-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .settings-card--system { order: 4; }
+  .settings-card--play { order: 5; }
+  .settings-card--library { order: 6; }
+  .settings-card--about { order: 7; }
 }
 
 @media (max-width: 900px) {
-  .settings-stats,
-  .settings-card--system .settings-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .settings-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .settings-card--startup .pref-row .pref-hint { max-width: 16ch; }
 }
 
 @media (max-width: 620px) {
@@ -893,7 +1047,7 @@ html[data-exporting] ::-webkit-scrollbar { width: 0 !important; height: 0 !impor
   .session-row { grid-template-columns: minmax(0, 1fr) auto; }
   .session-row span:last-child { grid-column: 1 / -1; }
   .settings-actions { grid-template-columns: minmax(0, 1fr); }
-  .settings-actions #settingsExport { grid-column: auto; }
+  .settings-actions--pair { grid-template-columns: minmax(0, 1fr); }
   .settings-id { padding: 12px 14px; }
   .settings-foot-path { margin-left: 0; flex-basis: 100%; }
 }
