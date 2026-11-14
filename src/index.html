@@ -638,6 +638,9 @@
               <span class="section-tag" id="settingsDataTag">离线</span>
             </div>
             <div class="settings-stats" id="settingsStorageStats"></div>
+            <!-- 一排两列：导出/导入成对，CSV/Steam 成对，两个「打开文件夹」
+                 成对。整行按钮（导出数据包、同步 Steam）跨两列，这样任何
+                 一个按钮隐藏时都不会留下空格子。 -->
             <div class="settings-actions">
               <button class="btn primary compact" id="settingsExport">
                 <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>
@@ -651,7 +654,7 @@
                 <svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>
                 <span>导出游玩记录 CSV</span>
               </button>
-              <button class="btn ghost compact" id="settingsSyncPlaytime" hidden>
+              <button class="btn ghost compact is-wide" id="settingsSyncPlaytime" hidden>
                 <svg class="ic" aria-hidden="true"><use href="#i-steam"/></svg>
                 <span>同步 Steam 游玩时间</span>
               </button>
@@ -665,131 +668,6 @@
               </button>
             </div>
             <div class="settings-note" id="settingsBackupNote">数据包包含游戏库、设置、游玩记录与封面；不包含游戏本体与主题文件。</div>
-          </section>
-
-          <section class="appearance-section settings-card settings-card--play">
-            <div class="section-head">
-              <div><h3>游玩统计</h3><p>来自本机真实进程计时。</p></div>
-              <span class="section-tag" id="settingsSessionTag">0 次</span>
-            </div>
-            <div class="settings-stats" id="settingsPlayStats"></div>
-            <div class="recent-sessions" id="settingsSessions"></div>
-          </section>
-
-          <section class="appearance-section settings-card settings-card--library">
-            <div class="section-head">
-              <div><h3>游戏库显示</h3><p>封面左上角展示的信息标签，依次为平台、游戏类型、单人/双人。</p></div>
-              <span class="section-tag">游戏库</span>
-            </div>
-            <div class="settings-field">
-              <label for="settingsTagCount">封面标签数量</label>
-              <select id="settingsTagCount" aria-label="封面标签数量">
-                <option value="1">1 个 · 只显示平台</option>
-                <option value="2">2 个 · 平台 + 类型</option>
-                <option value="3">3 个 · 平台 + 类型 + 模式</option>
-              </select>
-            </div>
-            <div class="settings-note">手动添加的游戏没有平台标记，标签会比设定少一个。</div>
-          </section>
-          </div>
-
-          <div class="settings-col settings-col-side">
-          <section class="appearance-section settings-card settings-card--startup">
-            <div class="section-head">
-              <div><h3>启动与关闭</h3><p>游戏运行时也可以最小化到托盘继续计时。</p></div>
-            </div>
-            <div class="pref-list">
-              <button class="pref-row" id="settingsTrayRow" role="switch" aria-checked="false">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
-                  <span>关闭窗口时最小化到托盘</span>
-                </span>
-                <span class="switch" id="settingsTraySwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsIdleRow" role="switch" aria-checked="true">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
-                  <span>挂机 10 分钟后暂停计时</span>
-                </span>
-                <span class="switch" id="settingsIdleSwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsAutoBackupRow" role="switch" aria-checked="true">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
-                  <span>每天自动备份数据</span>
-                </span>
-                <span class="pref-hint">保留最近 5 份</span>
-                <span class="switch on" id="settingsAutoBackupSwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsStartupRow" role="switch" aria-checked="false">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
-                  <span>开机时自动启动</span>
-                </span>
-                <span class="pref-hint" id="settingsStartupHint" hidden>路径已变化 · 点一次可重新登记</span>
-                <span class="switch" id="settingsStartupSwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsStartupFullscreenRow" role="switch" aria-checked="false">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-                  <span>开机后无边框全屏启动</span>
-                </span>
-                <span class="switch" id="settingsStartupFullscreenSwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsMinimizeRow" role="switch" aria-checked="true">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg>
-                  <span>启动游戏后最小化</span>
-                </span>
-                <span class="switch on" id="settingsMinimizeSwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsUnifiedSfxRow" role="switch" aria-checked="false">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
-                  <span>使用默认统一音效</span>
-                </span>
-                <span class="switch" id="settingsUnifiedSfxSwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsHotkeyRow" type="button">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg>
-                  <span>缩放快捷键</span>
-                </span>
-                <span class="pref-hint" id="settingsHotkeyHint" hidden>按下组合键 · Esc 取消</span>
-                <span class="hotkey-value" id="settingsHotkeyLabel">Alt + Shift + A</span>
-              </button>
-              <button class="pref-row" id="settingsAutoEngineRow" role="switch" aria-checked="true">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
-                  <span>自动启动内置缩放引擎</span>
-                </span>
-                <span class="pref-hint">只管引擎本身，和游戏开不开缩放是两回事</span>
-                <span class="switch on" id="settingsAutoEngineSwitch"></span>
-              </button>
-              <button class="pref-row" id="settingsScaleSetupRow" type="button">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>
-                  <span>缩放设置</span>
-                </span>
-                <span class="pref-hint" id="settingsScaleSetupHint">铺满屏幕 · 跟随引擎算法</span>
-                <span class="hotkey-value">打开 ›</span>
-              </button>
-              <p class="settings-note scale-setup-note">每款游戏开不开缩放、铺满屏幕还是按倍数放大、放大到多大、用哪种算法，都在首页「缩放设置」里选，所有游戏共用一次；这里只管引擎和快捷键。</p>
-              <div class="settings-note" id="settingsMagpieNote">正在检测 Magpie…</div>
-              <div class="settings-actions" id="settingsMagpieActions" hidden>
-                <button class="btn ghost compact" id="settingsMagpieStart" type="button">启动引擎</button>
-                <button class="btn ghost compact" id="settingsMagpieRestart" type="button" hidden>重启引擎</button>
-                <button class="btn ghost compact" id="settingsMagpiePick" type="button">指定 Magpie.exe</button>
-              </div>
-              <button class="pref-row" id="settingsFullscreenRow">
-                <span class="pref-label">
-                  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
-                  <span>界面全屏显示</span>
-                </span>
-                <span class="pref-hint">只放大启动器窗口，和游戏缩放无关</span>
-                <span class="pref-note">F</span>
-              </button>
-            </div>
           </section>
 
           <section class="appearance-section settings-card settings-card--system">
@@ -820,6 +698,142 @@
             </div>
           </section>
 
+          <section class="appearance-section settings-card settings-card--play">
+            <div class="section-head">
+              <div><h3>游玩统计</h3><p>来自本机真实进程计时。</p></div>
+              <span class="section-tag" id="settingsSessionTag">0 次</span>
+            </div>
+            <div class="settings-stats" id="settingsPlayStats"></div>
+            <div class="recent-sessions" id="settingsSessions"></div>
+          </section>
+          </div>
+
+          <div class="settings-col settings-col-side">
+          <section class="appearance-section settings-card settings-card--startup">
+            <div class="section-head">
+              <div><h3>启动与关闭</h3><p>游戏运行时也可以最小化到托盘继续计时。</p></div>
+            </div>
+            <!-- 十一条开关平铺会看成一堵墙：按「窗口 / 计时 / 开机 / 音效与
+                 快捷键 / 缩放引擎」分五组，组标题是分隔行，行本身仍是
+                 .pref-list 的直接子元素（主题的 .pref-row 规则不受影响）。 -->
+            <div class="pref-list">
+              <div class="pref-group"><span>窗口与托盘</span></div>
+              <button class="pref-row" id="settingsTrayRow" role="switch" aria-checked="false">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+                  <span>关闭窗口时最小化到托盘</span>
+                </span>
+                <span class="switch" id="settingsTraySwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsMinimizeRow" role="switch" aria-checked="true">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg>
+                  <span>启动游戏后最小化</span>
+                </span>
+                <span class="switch on" id="settingsMinimizeSwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsFullscreenRow">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+                  <span>界面全屏显示</span>
+                </span>
+                <span class="pref-hint">只放大启动器</span>
+                <span class="pref-note">F</span>
+              </button>
+
+              <div class="pref-group"><span>计时与备份</span></div>
+              <button class="pref-row" id="settingsIdleRow" role="switch" aria-checked="true">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+                  <span>挂机 10 分钟后暂停计时</span>
+                </span>
+                <span class="switch" id="settingsIdleSwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsAutoBackupRow" role="switch" aria-checked="true">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+                  <span>每天自动备份数据</span>
+                </span>
+                <span class="pref-hint">保留最近 5 份</span>
+                <span class="switch on" id="settingsAutoBackupSwitch"></span>
+              </button>
+
+              <div class="pref-group"><span>开机与启动</span></div>
+              <button class="pref-row" id="settingsStartupRow" role="switch" aria-checked="false">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg>
+                  <span>开机时自动启动</span>
+                </span>
+                <span class="pref-hint" id="settingsStartupHint" hidden>路径已变化 · 点一次可重新登记</span>
+                <span class="switch" id="settingsStartupSwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsStartupFullscreenRow" role="switch" aria-checked="false">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-fullscreen"/></svg>
+                  <span>开机后无边框全屏启动</span>
+                </span>
+                <span class="switch" id="settingsStartupFullscreenSwitch"></span>
+              </button>
+
+              <div class="pref-group"><span>音效与快捷键</span></div>
+              <button class="pref-row" id="settingsUnifiedSfxRow" role="switch" aria-checked="false">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-sound-on"/></svg>
+                  <span>使用默认统一音效</span>
+                </span>
+                <span class="switch" id="settingsUnifiedSfxSwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsHotkeyRow" type="button">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-gamepad"/></svg>
+                  <span>缩放快捷键</span>
+                </span>
+                <span class="pref-hint" id="settingsHotkeyHint" hidden>按下组合键 · Esc 取消</span>
+                <span class="hotkey-value" id="settingsHotkeyLabel">Alt + Shift + A</span>
+              </button>
+
+              <div class="pref-group"><span>缩放引擎</span></div>
+              <button class="pref-row" id="settingsAutoEngineRow" role="switch" aria-checked="true">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>
+                  <span>自动启动内置缩放引擎</span>
+                </span>
+                <span class="switch on" id="settingsAutoEngineSwitch"></span>
+              </button>
+              <button class="pref-row" id="settingsScaleSetupRow" type="button">
+                <span class="pref-label">
+                  <svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>
+                  <span>缩放设置</span>
+                </span>
+                <span class="pref-hint" id="settingsScaleSetupHint">铺满屏幕 · 跟随引擎算法</span>
+                <span class="hotkey-value">打开 ›</span>
+              </button>
+              <p class="settings-note scale-setup-note">每款游戏开不开缩放、铺满屏幕还是按倍数放大、放大到多大、用哪种算法，都在首页「缩放设置」里选，所有游戏共用一次；这里只管引擎和快捷键。</p>
+              <div class="settings-note" id="settingsMagpieNote">正在检测 Magpie…</div>
+              <div class="settings-actions" id="settingsMagpieActions" hidden>
+                <button class="btn ghost compact" id="settingsMagpieStart" type="button">启动引擎</button>
+                <button class="btn ghost compact" id="settingsMagpieRestart" type="button" hidden>重启引擎</button>
+                <button class="btn ghost compact" id="settingsMagpiePick" type="button">指定 Magpie.exe</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="appearance-section settings-card settings-card--library">
+            <div class="section-head">
+              <div><h3>游戏库显示</h3><p>封面左上角依次显示平台、类型、模式标签。</p></div>
+              <span class="section-tag">游戏库</span>
+            </div>
+            <div class="settings-field">
+              <label for="settingsTagCount">封面标签数量</label>
+              <select id="settingsTagCount" aria-label="封面标签数量">
+                <option value="1">1 个 · 只显示平台</option>
+                <option value="2">2 个 · 平台 + 类型</option>
+                <option value="3">3 个 · 平台 + 类型 + 模式</option>
+              </select>
+            </div>
+            <div class="settings-note">手动添加的游戏没有平台标记，标签会比设定少一个。</div>
+          </section>
+
           <section class="appearance-section settings-card settings-card--about">
             <div class="section-head">
               <div><h3>关于</h3><p>GUGUOVA Game Space · 离线单机启动器</p></div>
@@ -829,15 +843,19 @@
               <p class="settings-note" id="settingsDevNote" hidden></p>
               <p>迁移：在「数据与备份」导出 <code>.nova-pack</code>，复制到另一台电脑后导入；缺失的游戏程序可在「编辑游戏」里重新指定。</p>
             </div>
-            <div class="update-block">
-              <div class="update-line">
+
+            <!-- 版本与更新：状态一行、按钮一格、进度一条，三段分开放，
+                 四个按钮同时出现时按格子排队而不是挤成一坨。 -->
+            <div class="settings-sub" id="settingsUpdateBlock">
+              <div class="settings-sub-head">
+                <span>版本与更新</span>
                 <span class="update-state" id="updateState">当前版本 —</span>
-                <span class="update-buttons">
-                  <button class="btn ghost compact" id="updateCheckBtn" type="button">检查更新</button>
-                  <button class="btn ghost compact" id="updateDownloadBtn" type="button" hidden>下载最新版</button>
-                  <button class="btn primary compact" id="updateApplyBtn" type="button" hidden>重启并升级</button>
-                  <button class="btn ghost compact" id="updateFolderBtn" type="button" hidden>打开下载文件夹</button>
-                </span>
+              </div>
+              <div class="update-buttons">
+                <button class="btn ghost compact" id="updateCheckBtn" type="button">检查更新</button>
+                <button class="btn ghost compact" id="updateDownloadBtn" type="button" hidden>下载最新版</button>
+                <button class="btn primary compact" id="updateApplyBtn" type="button" hidden>重启并升级</button>
+                <button class="btn ghost compact" id="updateFolderBtn" type="button" hidden>打开下载文件夹</button>
               </div>
               <div class="update-progress" id="updateProgress" hidden>
                 <div class="update-progress-track"><i id="updateProgressFill"></i></div>
@@ -849,9 +867,28 @@
                   <svg class="ic" aria-hidden="true"><use href="#i-cloud"/></svg>
                   <span>每天自动检查一次更新</span>
                 </span>
-                <span class="pref-hint">仅此功能联网 · 其余保持离线</span>
+                <span class="pref-hint">仅此功能联网</span>
                 <span class="switch" id="updateAutoSwitch"></span>
               </button>
+            </div>
+
+            <!-- 反馈与诊断：把这份 txt 直接发给作者就能定位大部分问题。 -->
+            <div class="settings-sub settings-sub--diagnostics" id="settingsDiagnosticsBlock">
+              <div class="settings-sub-head">
+                <span>反馈与诊断</span>
+                <span class="settings-sub-hint" id="settingsLogHint">遇到打不开、卡住、闪退时导出一份</span>
+              </div>
+              <div class="settings-actions settings-actions--pair">
+                <button class="btn ghost compact" id="settingsExportLog" type="button">
+                  <svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>
+                  <span>导出启动器日志</span>
+                </button>
+                <button class="btn ghost compact" id="settingsOpenLogFolder" type="button">
+                  <svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg>
+                  <span>打开日志文件夹</span>
+                </button>
+              </div>
+              <p class="settings-note">日志包含版本号、系统与 WebView2 信息、最近 400 行运行记录和最近报错；不含存档、封面与账号信息。</p>
             </div>
           </section>
           </div>

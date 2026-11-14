@@ -277,7 +277,10 @@
        `0` means "nothing seen yet". */
     update: { phase: 'idle' },
     updateSeq: 0,
-    updateDownloadSeq: 0
+    updateDownloadSeq: 0,
+    /* Which version already got a 通知, so the daily check cannot stack the
+       same「检测到新版本」notice on every focus. */
+    updateNotice: ''
   };
 
   const notices = [];
@@ -665,6 +668,11 @@
     settingsSyncPlaytime: $('#settingsSyncPlaytime'),
     settingsOpenData: $('#settingsOpenData'),
     settingsOpenBackups: $('#settingsOpenBackups'),
+    settingsExportLog: $('#settingsExportLog'),
+    settingsOpenLogFolder: $('#settingsOpenLogFolder'),
+    settingsUpdateBlock: $('#settingsUpdateBlock'),
+    settingsDiagnosticsBlock: $('#settingsDiagnosticsBlock'),
+    updateButtons: $('#settingsUpdateBlock .update-buttons'),
     settingsTier: $('#settingsTier'),
     settingsTagCount: $('#settingsTagCount'),
     settingsTierTag: $('#settingsTierTag'),
@@ -6377,6 +6385,13 @@
       els.updateNote.hidden = !text;
       els.updateNote.textContent = text;
     }
+    /* One visible button in a two-column grid sits alone on its row at half
+       width, which reads like a broken layout. Let it take the whole row. */
+    if (els.updateButtons) {
+      const shown = [els.updateCheckBtn, els.updateDownloadBtn, els.updateApplyBtn, els.updateFolderBtn]
+        .filter((button) => button && !button.hidden).length;
+      els.updateButtons.classList.toggle('is-solo', shown === 1);
+    }
   }
 
   /** Host status messages carry the run they belong to. Anything older than the
@@ -6430,6 +6445,9 @@
       latest: version.join('.')
     };
     updateRender();
+    // A package that never got installed is worth a badge on the bell: the
+    // player closed the app mid-upgrade and nothing else would remind them.
+    noticeUpdate(version.join('.'), state.version, 'done');
     return true;
   }
 
@@ -6440,10 +6458,60 @@
     updateRender();
     if (payload.phase === 'result' && payload.available) {
       toast(`发现新版本 v${payload.latest} · 设置里可下载`, 'cloud');
+      noticeUpdate(payload.latest, payload.current, 'result');
     } else if (payload.phase === 'done') {
       toast('更新包已下载', 'check');
+      noticeUpdate(payload.latest || (state.update || {}).latest, state.version, 'done');
     } else if (payload.phase === 'error') {
       toast(payload.error || '更新检查失败', 'alert');
+    }
+  }
+
+  /**
+   * The check runs on its own (or silently after boot), so a toast that fades
+   * in six seconds was the only trace a new version existed. A notice keeps it
+   * in the bell until the player acts, and clicking it lands on the update
+   * block instead of asking them to go find it.
+   * One notice per version per run: the daily check re-fires on every focus.
+   */
+  function noticeUpdate(latest, current, phase) {
+    const version = String(latest || '').trim();
+    if (!version) return;
+    const key = `${version}:${phase}`;
+    if (state.updateNotice === key) return;
+    state.updateNotice = key;
+    if (phase === 'done') {
+      pushNotice({
+        title: `更新包已就绪 · v${version}`,
+        sub: '到「设置 → 关于」点「重启并升级」就能换上',
+        icon: 'check',
+        color: 'var(--accent-text, var(--accent))',
+        action: 'update'
+      });
+      return;
+    }
+    pushNotice({
+      title: `检测到新版本 v${version}`,
+      sub: `当前 v${current || state.version} · 点这里去「设置 → 关于」下载`,
+      icon: 'cloud',
+      color: 'var(--accent-text, var(--accent))',
+      action: 'update'
+    });
+  }
+
+  /** Jump to the version block from a notification. */
+  function revealUpdateBlock() {
+    const block = els.settingsUpdateBlock;
+    if (!block) return;
+    try {
+      block.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    } catch (error) {
+      block.scrollIntoView();
+    }
+    block.classList.add('is-flash');
+    setTimeout(() => block.classList.remove('is-flash'), 1400);
+    if (els.updateCheckBtn && !els.updateCheckBtn.hidden) {
+      try { els.updateCheckBtn.focus({ preventScroll: true }); } catch (error) {}
     }
   }
 
@@ -6557,6 +6625,30 @@
       return;
     }
     await showExportResult('游玩记录已导出', result.path, 'CSV 可用 Excel 或文本编辑器打开。');
+  }
+
+  /**
+   * 反馈用：一份描述「当时在跑什么」的 txt——版本、宿主、系统、WebView2、
+   * 档位、主题、库规模，加上 nova.log 末尾 400 行与最近报错。玩家把这个
+   * 文件发过来，绝大部分「打不开 / 卡住 / 闪退」就能直接定位。
+   */
+  async function exportDiagnostics() {
+    if (els.settingsExportLog && els.settingsExportLog.disabled) return;
+    audio.select();
+    const button = els.settingsExportLog;
+    const label = button ? button.querySelector('span') : null;
+    if (button) button.disabled = true;
+    if (label) label.textContent = '正在整理…';
+    const result = await call('exportLog');
+    if (button) button.disabled = false;
+    if (label) label.textContent = '导出启动器日志';
+    if (!result || !result.ok) {
+      audio.error();
+      toast(result?.error || '导出日志失败', 'alert');
+      return;
+    }
+    await showExportResult('启动器日志已导出', result.path,
+      `${formatBytes(result.size)} · 把这个 txt 直接发给作者，里面没有存档、封面和账号信息。`);
   }
 
   /**
@@ -8299,6 +8391,8 @@
     if (els.settingsCsv) els.settingsCsv.addEventListener('click', exportRecords);
     if (els.settingsOpenData) els.settingsOpenData.addEventListener('click', () => { audio.select(); call('openDataFolder'); });
     if (els.settingsOpenBackups) els.settingsOpenBackups.addEventListener('click', () => { audio.select(); call('openBackupsFolder'); });
+    if (els.settingsExportLog) els.settingsExportLog.addEventListener('click', exportDiagnostics);
+    if (els.settingsOpenLogFolder) els.settingsOpenLogFolder.addEventListener('click', () => { audio.select(); call('openLogFolder'); });
     if (els.libSort) {
       els.libSort.addEventListener('change', () => {
         state.settings.librarySort = els.libSort.value;
@@ -10432,6 +10526,10 @@
         chooseGameById(notice.gameId);
         setView('home');
         toast(`已切换至《${findGame(notice.gameId).zh || findGame(notice.gameId).name}》`);
+      } else if (notice.action === 'update') {
+        //「检测到新版本」点开就落到版本那一块，不用玩家自己在设置里翻。
+        openSettings();
+        requestAnimationFrame(() => revealUpdateBlock());
       }
     });
 

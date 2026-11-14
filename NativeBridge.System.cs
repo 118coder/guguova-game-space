@@ -218,4 +218,46 @@ public sealed partial class NativeBridge
             return new { ok = false, error = ex.Message };
         }
     }
+
+    /// <summary>One text file a player can hand back with a bug report. Also
+    /// opened from the settings page's 反馈与诊断 block.</summary>
+    private object ExportDiagnostics()
+    {
+        try
+        {
+            var path = BackupService.ExportDiagnostics(_store);
+            Log.Stage($"diagnostics exported: {path}");
+            return new
+            {
+                ok = true,
+                path,
+                size = File.Exists(path) ? new FileInfo(path).Length : 0
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("export diagnostics", ex);
+            return new { ok = false, error = ex.Message };
+        }
+    }
+
+    private object OpenLogFolder()
+    {
+        try
+        {
+            var folder = BackupService.DefaultExportDirectory;
+            Directory.CreateDirectory(folder);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = folder,
+                UseShellExecute = true
+            });
+            return new { ok = true, path = folder };
+        }
+        catch (Exception ex)
+        {
+            Log.Error("open log folder", ex);
+            return new { ok = false, error = ex.Message };
+        }
+    }
 }

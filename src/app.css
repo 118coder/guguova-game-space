@@ -1857,6 +1857,17 @@ html { color-scheme: dark; }
 
 .engine-body .settings-field { margin-top: 0; }
 
+/* The footer holds the dialog's primary action and the share sheet's 整页长图.
+   .engine-shell::before is a z-index:1 decorative strip, and several themes
+   paint their own layers above the sheet background — keep the action row in
+   its own stacking context above all of them so no decoration, cover art or
+   strip can ever sit on top of the button. */
+.engine-foot {
+  position: relative;
+  z-index: 2;
+  flex: none;
+}
+
 html .engine-shell .settings-field { margin-top: 14px; }
 html .engine-shell .settings-field label {
   font-family: var(--sheet-label-font);

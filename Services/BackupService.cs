@@ -230,6 +230,94 @@ public static class BackupService
         return path;
     }
 
+    /// <summary>
+    /// One plain-text report a player can attach to a bug report. Everything
+    /// here answers "what was running when it broke" — version, host flavour,
+    /// OS, WebView2, tier, theme, library size and the tail of nova.log.
+    /// Playtime, covers and account names are deliberately left out: the file
+    /// leaves the machine, and none of that helps diagnose a crash.
+    /// </summary>
+    public static string ExportDiagnostics(StoreService store, string? directory = null)
+    {
+        var dir = directory ?? DefaultExportDirectory;
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, $"GUGUOVA-log-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
+
+        var info = SystemProfile.Detect(store.Library.Settings.CompatibilityTier);
+        var games = store.Library.Games;
+        var sessions = games.Sum(game => game.Sessions?.Count ?? 0);
+        var hidden = games.Count(game => game.Hidden);
+        var missing = games.Count(game => !game.DeveloperOnly && !string.IsNullOrWhiteSpace(game.ExePath) && !File.Exists(game.ExePath));
+
+        var lines = new List<string>
+        {
+            "GUGUOVA 启动器诊断报告",
+            "把这个 txt 直接发给作者即可，里面没有存档、封面和账号信息。",
+            new string('-', 56),
+            $"生成时间     {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
+            $"版本         {UpdateService.CurrentVersion}",
+            $"程序         {ExecutablePath()}",
+            $"运行宿主     {(info.LegacyHost ? "legacy (net48)" : "modern (net10)")}{(info.LegacyBuild ? " · 单文件版" : "")}",
+            $"系统         {info.OsLabel}（{info.Major}.{info.Minor}.{info.Build} · {(Environment.Is64BitProcess ? "x64" : "x86")}）",
+            $"WebView2     {(string.IsNullOrWhiteSpace(info.WebView2Version) ? "未检测到" : info.WebView2Version)}",
+            $"效果档位     {info.TierLabel}（{info.Tier}）",
+            $"主题         {store.Library.Settings.Theme}",
+            $"数据目录     {AppPaths.Root}",
+            $"游戏库       {games.Count} 款 · 会话记录 {sessions} 条 · 已隐藏 {hidden} · 程序缺失 {missing}",
+            $"缩放引擎     {store.Library.Settings.ScalingEngine} / {store.Library.Settings.ScaleMode}",
+            new string('-', 56),
+            ""
+        };
+
+        string log = "";
+        try
+        {
+            if (File.Exists(AppPaths.LogFile))
+            {
+                var all = File.ReadAllLines(AppPaths.LogFile);
+                const int tail = 400;
+                log = all.Length <= tail
+                    ? string.Join(Environment.NewLine, all)
+                    : string.Join(Environment.NewLine, all.Skip(all.Length - tail));
+            }
+        }
+        catch (Exception ex)
+        {
+            log = $"(读取日志失败：{ex.Message})";
+        }
+
+        var errors = log.Split('\n')
+            .Where(line => line.Contains("ERROR", StringComparison.Ordinal))
+            .ToList();
+        // net48 has no Enumerable.TakeLast, so trim by index.
+        if (errors.Count > 20) errors.RemoveRange(0, errors.Count - 20);
+
+        lines.Add($"最近报错（{errors.Count} 条）");
+        lines.Add(errors.Count == 0 ? "  无" : string.Join(Environment.NewLine, errors.Select(line => "  " + line.TrimEnd())));
+        lines.Add("");
+        lines.Add(new string('-', 56));
+        lines.Add("运行日志（末尾 400 行）");
+        lines.Add("");
+        lines.Add(log);
+
+        File.WriteAllLines(path, lines, new System.Text.UTF8Encoding(true));
+        return path;
+    }
+
+    /// <summary>Both hosts compile this file; the net48 build has no
+    /// Environment.ProcessPath, so ask the process itself.</summary>
+    private static string ExecutablePath()
+    {
+        try
+        {
+            return System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "(未知)";
+        }
+        catch
+        {
+            return "(未知)";
+        }
+    }
+
     private static int CopyMedia(string temp)
     {
         var source = Path.Combine(temp, "media");

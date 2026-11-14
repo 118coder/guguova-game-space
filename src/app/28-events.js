@@ -354,6 +354,10 @@
         chooseGameById(notice.gameId);
         setView('home');
         toast(`已切换至《${findGame(notice.gameId).zh || findGame(notice.gameId).name}》`);
+      } else if (notice.action === 'update') {
+        //「检测到新版本」点开就落到版本那一块，不用玩家自己在设置里翻。
+        openSettings();
+        requestAnimationFrame(() => revealUpdateBlock());
       }
     });
 
