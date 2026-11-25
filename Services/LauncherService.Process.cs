@@ -13,7 +13,10 @@ public sealed partial class LauncherService
     /// <summary>Polls for the game body process after its own launcher was
     /// started. Launchers may sit on a login screen for a while, so the window
     /// is generous and the wait never blocks the UI thread. When the body
-    /// shows up it is attached like any client-launched game.</summary>
+    /// shows up it is attached like any client-launched game. A launcher the
+    /// player opens and closes again must not hold the entry pending for the
+    /// whole window, so an emptied launcher tree fails the attempt after a
+    /// short grace.</summary>
     private void WatchLauncherBody(GameEntry game)
     {
         var gameId = game.Id;
@@ -21,10 +24,18 @@ public sealed partial class LauncherService
         // is waiting for the one THIS launcher start produces.
         var known = new HashSet<int>(BodyProcessPids(game));
         var budget = TimeSpan.FromMinutes(5);
+        // Closing the login window used to leave the entry pending until the
+        // whole budget ran out, and every later click answered 正在等待游戏本体
+        // 进程. The body still gets a grace window because a launcher can exit
+        // right after spawning it.
+        var exitGrace = TimeSpan.FromSeconds(6);
+        LauncherJob? launcherJob;
+        lock (_gate) _launcherJobs.TryGetValue(gameId, out launcherJob);
 
         var thread = new System.Threading.Thread(() =>
         {
             var started = DateTime.UtcNow;
+            DateTime? launcherGoneAt = null;
             try
             {
                 while (DateTime.UtcNow - started < budget)
@@ -37,9 +48,35 @@ public sealed partial class LauncherService
                     }
 
                     var process = FindBodyProcess(game, known, started);
-                    if (process == null) continue;
+                    if (process == null)
+                    {
+                        // A missing job handle means the OS refused to track the
+                        // tree (elevated launcher): keep the full window rather
+                        // than calling a live login window closed.
+                        var active = launcherJob?.ActiveProcesses();
+                        if (active == null || active > 0)
+                        {
+                            launcherGoneAt = null;
+                            continue;
+                        }
+                        launcherGoneAt ??= DateTime.UtcNow;
+                        if (DateTime.UtcNow - launcherGoneAt.Value < exitGrace) continue;
+
+                        lock (_gate)
+                        {
+                            _pendingLauncher.Remove(gameId);
+                            _launchOptions.Remove(gameId);
+                        }
+                        DisposeLauncherJob(gameId);
+                        KillLauncherTree(gameId);
+                        Log.Write($"launcher closed without body {game.Name} launcher={game.LauncherPath}");
+                        GameFailed?.Invoke(gameId,
+                            "游戏启动器已经关闭，没有等到游戏本体。重新点开始游戏就会再拉起启动器。");
+                        return;
+                    }
 
                     lock (_gate) _pendingLauncher.Remove(gameId);
+                    DisposeLauncherJob(gameId);
                     AttachProcess(game, process);
                     return;
                 }
@@ -49,6 +86,7 @@ public sealed partial class LauncherService
                     _pendingLauncher.Remove(gameId);
                     _launchOptions.Remove(gameId);
                 }
+                DisposeLauncherJob(gameId);
                 KillLauncherTree(gameId);
                 Log.Write($"launcher body timeout {game.Name} launcher={game.LauncherPath}");
                 GameFailed?.Invoke(gameId,
@@ -61,6 +99,7 @@ public sealed partial class LauncherService
                     _pendingLauncher.Remove(gameId);
                     _launchOptions.Remove(gameId);
                 }
+                DisposeLauncherJob(gameId);
                 Log.Error("watch launcher body", ex);
             }
         })
@@ -69,6 +108,20 @@ public sealed partial class LauncherService
             Name = "NOVA launcher body watcher"
         };
         thread.Start();
+    }
+
+    /// <summary>Drops the launcher tree's job handle once the attempt no longer
+    /// needs it. Disposing never kills the processes in it: an attached game
+    /// keeps running, and a closed launcher has nothing left to kill.</summary>
+    private void DisposeLauncherJob(string gameId)
+    {
+        LauncherJob? job;
+        lock (_gate)
+        {
+            if (!_launcherJobs.TryGetValue(gameId, out job)) return;
+            _launcherJobs.Remove(gameId);
+        }
+        job?.Dispose();
     }
 
     /// <summary>PIDs of currently running processes whose exe path equals the
@@ -436,6 +489,7 @@ public sealed partial class LauncherService
     /// kill, and an elevated survivor simply wins.</summary>
     private void KillLauncherTree(string gameId)
     {
+        DisposeLauncherJob(gameId);
         var pid = 0;
         LauncherTreeScope? scope = null;
         var active = new HashSet<int>();
