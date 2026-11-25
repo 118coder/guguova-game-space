@@ -102,6 +102,12 @@ public sealed partial class LauncherService
                 if (launcherProcess != null)
                 {
                     lock (_gate) _launcherTreePids[game.Id] = launcherProcess.Id;
+                    // Bind the launcher and everything it spawns to one job, so
+                    // a wrapper that exits after handing its window to a second
+                    // exe is not mistaken for a closed launcher.
+                    var launcherJob = LauncherJob.Attach(launcherProcess.Id);
+                    if (launcherJob != null)
+                        lock (_gate) _launcherJobs[game.Id] = launcherJob;
                 }
             }
             catch (Exception ex)

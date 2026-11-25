@@ -42,6 +42,12 @@ public sealed partial class LauncherService
     /// that used `start` leaves its server orphaned as soon as cmd exits, so
     /// the exit path also sweeps only the NEW processes under that folder.</summary>
     private readonly Dictionary<string, LauncherTreeScope> _launcherTreeScopes = new();
+    /// <summary>Job object holding the launcher tree of a pending separated
+    /// launch. Portable launchers hand their window to a second exe and exit,
+    /// so an empty job — not a dead pid — is what "the launcher was closed"
+    /// looks like. Absent when the OS refused the handle: the wait then keeps
+    /// its full budget rather than guessing.</summary>
+    private readonly Dictionary<string, LauncherJob> _launcherJobs = new();
 
     private sealed class LauncherTreeScope
     {
